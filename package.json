@@ -1,0 +1,51 @@
+{
+  "name": "snevo-ecommerce",
+  "version": "1.0.0",
+  "description": "Nike-inspired e-commerce platform built with Node.js and vanilla frontend",
+  "main": "backend/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "node --watch backend/server.js",
+    "test": "node --test tests/**/*.test.js",
+    "test:backend": "node --test tests/backend/**/*.test.js",
+    "test:frontend": "node --test tests/frontend/**/*.test.js",
+    "setup": "node scripts/setup.js",
+    "db:migrate": "node scripts/migrate.js",
+    "db:seed": "node scripts/seed.js"
+  },
+  "keywords": [
+    "ecommerce",
+    "nike",
+    "shoes",
+    "nodejs",
+    "vanilla-js",
+    "supabase",
+    "mvc"
+  ],
+  "author": "Snevo Team",
+  "license": "MIT",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.38.0",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "dotenv": "^16.3.1",
+    "mime-types": "^2.1.35",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/snevo-ecommerce.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/snevo-ecommerce/issues"
+  },
+  "homepage": "https://github.com/yourusername/snevo-ecommerce#readme"
+}
+

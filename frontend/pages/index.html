@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snevo - Nike-Inspired Shoe Store</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="../assets/css/main.css" rel="stylesheet">
+    <link href="../assets/css/animations.css" rel="stylesheet">
+    <link href="../assets/css/components.css" rel="stylesheet">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="../assets/images/favicon.ico">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold fs-2" href="/">SNEVO</a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/products.html">Products</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            Categories
+                        </a>
+                        <ul class="dropdown-menu" id="categoriesDropdown">
+                            <!-- Categories will be loaded dynamically -->
+                        </ul>
+                    </li>
+                </ul>
+                
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="searchToggle">
+                            <i class="fas fa-search"></i>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link position-relative" href="/cart.html">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="cartCount">
+                                0
+                            </span>
+                        </a>
+                    </li>
+                    <li class="nav-item" id="authButtons">
+                        <a class="nav-link" href="/login.html">Login</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Search Bar (Hidden by default) -->
+    <div class="search-overlay d-none" id="searchOverlay">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="search-box">
+                        <input type="text" class="form-control form-control-lg" placeholder="Search for shoes..." id="searchInput">
+                        <button class="btn btn-dark" id="searchButton">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-slider">
+            <div class="hero-slide active" style="background-image: url('../assets/images/hero/hero-1.jpg')">
+                <div class="hero-overlay"></div>
+                <div class="container">
+                    <div class="row align-items-center min-vh-100">
+                        <div class="col-lg-6">
+                            <div class="hero-content">
+                                <h1 class="hero-title">Just Do It</h1>
+                                <p class="hero-subtitle">Discover the latest collection of premium athletic footwear designed for champions.</p>
+                                <div class="hero-buttons">
+                                    <a href="/products.html" class="btn btn-primary btn-lg me-3">Shop Now</a>
+                                    <a href="#featured" class="btn btn-outline-light btn-lg">Explore</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Products -->
+    <section id="featured" class="featured-section py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center mb-5">
+                    <h2 class="section-title">Featured Products</h2>
+                    <p class="section-subtitle">Discover our most popular shoes</p>
+                </div>
+            </div>
+            <div class="row" id="featuredProducts">
+                <!-- Featured products will be loaded dynamically -->
+                <div class="col-12 text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Categories Section -->
+    <section class="categories-section py-5 bg-light">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center mb-5">
+                    <h2 class="section-title">Shop by Category</h2>
+                    <p class="section-subtitle">Find the perfect shoe for every occasion</p>
+                </div>
+            </div>
+            <div class="row" id="categoriesGrid">
+                <!-- Categories will be loaded dynamically -->
+                <div class="col-12 text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Newsletter Section -->
+    <section class="newsletter-section py-5 bg-dark text-white">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <h3 class="mb-3">Stay Updated</h3>
+                    <p class="mb-0">Get the latest updates on new products and exclusive offers.</p>
+                </div>
+                <div class="col-lg-6">
+                    <form class="newsletter-form" id="newsletterForm">
+                        <div class="input-group">
+                            <input type="email" class="form-control" placeholder="Enter your email" required>
+                            <button class="btn btn-primary" type="submit">Subscribe</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer bg-black text-white py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5 class="fw-bold mb-3">SNEVO</h5>
+                    <p>Premium athletic footwear for champions. Just Do It.</p>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h6 class="fw-bold mb-3">Quick Links</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="/" class="text-white-50">Home</a></li>
+                        <li><a href="/products.html" class="text-white-50">Products</a></li>
+                        <li><a href="/about.html" class="text-white-50">About</a></li>
+                        <li><a href="/contact.html" class="text-white-50">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h6 class="fw-bold mb-3">Customer Service</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="/help.html" class="text-white-50">Help Center</a></li>
+                        <li><a href="/returns.html" class="text-white-50">Returns</a></li>
+                        <li><a href="/shipping.html" class="text-white-50">Shipping</a></li>
+                        <li><a href="/size-guide.html" class="text-white-50">Size Guide</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h6 class="fw-bold mb-3">Follow Us</h6>
+                    <div class="social-links">
+                        <a href="#" class="text-white me-3"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-white me-3"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-white me-3"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="text-white me-3"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-4">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; 2024 Snevo. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="/privacy.html" class="text-white-50 me-3">Privacy Policy</a>
+                    <a href="/terms.html" class="text-white-50">Terms of Service</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Font Awesome -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Custom Scripts -->
+    <script src="../assets/js/api.js"></script>
+    <script src="../assets/js/auth.js"></script>
+    <script src="../assets/js/main.js"></script>
+    <script src="../assets/js/animations.js"></script>
+</body>
+</html>
+
