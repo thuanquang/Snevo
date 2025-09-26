@@ -1,379 +1,219 @@
 /**
  * Product Controller
- * Handles product browsing, search, and details
+ * Handles product browsing, search, and details using OOP principles
  */
 
 import constants from '../../config/constants.js';
-import Product from '../models/Product.js';
+import { productModel } from '../models/Product.js';
 import Category from '../models/Category.js';
+import { userModel } from '../models/User.js';
+import BaseController from '../utils/BaseController.js';
+import { ValidationError, NotFoundError } from '../utils/ErrorClasses.js';
 
-class ProductController {
+class ProductController extends BaseController {
+    constructor() {
+        super();
+        this.productModel = productModel;
+    }
+
     /**
      * Get all products with filtering and pagination
      */
-    static async getProducts(req, res) {
-        try {
-            const {
-                page = 1,
-                limit = 20,
-                category,
-                color,
-                size,
-                min_price,
-                max_price,
-                sort = 'created_at',
-                order = 'desc'
-            } = req.query;
-
-            const filters = {
-                category,
-                color,
-                size,
-                min_price: min_price ? parseFloat(min_price) : null,
-                max_price: max_price ? parseFloat(max_price) : null
-            };
-
-            const pagination = {
-                page: parseInt(page),
-                limit: Math.min(parseInt(limit), constants.PAGINATION.MAX_LIMIT)
-            };
-
-            const sortOptions = {
-                field: sort,
-                order: order.toLowerCase() === 'asc' ? 'asc' : 'desc'
-            };
-
-            const result = await Product.findAll(filters, pagination, sortOptions);
-
-            res.json({
-                success: true,
-                data: {
-                    products: result.products,
-                    pagination: {
-                        current_page: pagination.page,
-                        per_page: pagination.limit,
-                        total: result.total,
-                        total_pages: Math.ceil(result.total / pagination.limit)
-                    },
-                    filters: filters
-                }
+    async getProducts(req, res) {
+        return this.handleRequest(req, res, async (req, res) => {
+            const pagination = this.getPaginationParams(req, {
+                page: 1,
+                limit: 20
             });
 
-        } catch (error) {
-            console.error('Get products error:', error);
-            res.json({
-                success: false,
-                error: constants.ERROR_MESSAGES.GENERAL.INTERNAL_ERROR
-            }, constants.HTTP_STATUS.INTERNAL_SERVER_ERROR);
-        }
+            const filters = this.getFilterParams(req, [
+                'category', 'color', 'size', 'min_price', 'max_price', 'brand'
+            ]);
+
+            // Convert price filters to numbers
+            if (filters.min_price) filters.min_price = parseFloat(filters.min_price);
+            if (filters.max_price) filters.max_price = parseFloat(filters.max_price);
+
+            const sortOptions = {
+                field: req.query.sort || 'created_at',
+                order: req.query.order || 'desc'
+            };
+
+            const result = await this.productModel.findAll(filters, pagination, sortOptions);
+
+            this.sendPaginatedResponse(res, result, pagination);
+        });
     }
 
     /**
      * Get product by ID
      */
-    static async getProductById(req, res) {
-        try {
+    async getProductById(req, res) {
+        return this.handleRequest(req, res, async (req, res) => {
             const { id } = req.params;
 
-            if (!id || isNaN(parseInt(id))) {
-                return res.json({
-                    success: false,
-                    error: 'Valid product ID is required'
-                }, constants.HTTP_STATUS.BAD_REQUEST);
-            }
-
-            const product = await Product.findById(parseInt(id));
-
-            if (!product) {
-                return res.json({
-                    success: false,
-                    error: constants.ERROR_MESSAGES.PRODUCT.NOT_FOUND
-                }, constants.HTTP_STATUS.NOT_FOUND);
-            }
-
-            res.json({
-                success: true,
-                data: {
-                    product
-                }
+            this.validateRequest({ id }, {
+                id: { required: true, type: 'integer' }
             });
 
-        } catch (error) {
-            console.error('Get product by ID error:', error);
-            res.json({
-                success: false,
-                error: constants.ERROR_MESSAGES.GENERAL.INTERNAL_ERROR
-            }, constants.HTTP_STATUS.INTERNAL_SERVER_ERROR);
-        }
+            const product = await this.productModel.findById(parseInt(id));
+
+            if (!product) {
+                throw new NotFoundError('Product');
+            }
+
+            this.sendResponse(res, { product });
+        });
     }
 
     /**
      * Search products
      */
-    static async searchProducts(req, res) {
-        try {
-            const {
-                q: query,
-                page = 1,
-                limit = 20,
-                category,
-                min_price,
-                max_price
-            } = req.query;
+    async searchProducts(req, res) {
+        return this.handleRequest(req, res, async (req, res) => {
+            const { q: query } = req.query;
 
             if (!query || query.trim().length < 2) {
-                return res.json({
-                    success: false,
-                    error: 'Search query must be at least 2 characters long'
-                }, constants.HTTP_STATUS.BAD_REQUEST);
+                throw new ValidationError('Search query must be at least 2 characters long');
             }
+
+            const pagination = this.getPaginationParams(req, {
+                page: 1,
+                limit: 20
+            });
 
             const filters = {
                 query: query.trim(),
-                category,
-                min_price: min_price ? parseFloat(min_price) : null,
-                max_price: max_price ? parseFloat(max_price) : null
+                ...this.getFilterParams(req, ['category', 'min_price', 'max_price'])
             };
 
-            const pagination = {
-                page: parseInt(page),
-                limit: Math.min(parseInt(limit), constants.PAGINATION.MAX_LIMIT)
-            };
+            // Convert price filters to numbers
+            if (filters.min_price) filters.min_price = parseFloat(filters.min_price);
+            if (filters.max_price) filters.max_price = parseFloat(filters.max_price);
 
-            const result = await Product.search(filters, pagination);
+            const result = await this.productModel.search(filters, pagination);
 
-            res.json({
-                success: true,
-                data: {
-                    products: result.products,
-                    pagination: {
-                        current_page: pagination.page,
-                        per_page: pagination.limit,
-                        total: result.total,
-                        total_pages: Math.ceil(result.total / pagination.limit)
-                    },
-                    query: query
-                }
-            });
-
-        } catch (error) {
-            console.error('Search products error:', error);
-            res.json({
-                success: false,
-                error: constants.ERROR_MESSAGES.GENERAL.INTERNAL_ERROR
-            }, constants.HTTP_STATUS.INTERNAL_SERVER_ERROR);
-        }
+            this.sendPaginatedResponse(res, result, pagination, null);
+        });
     }
 
     /**
      * Get products by category
      */
-    static async getProductsByCategory(req, res) {
-        try {
+    async getProductsByCategory(req, res) {
+        return this.handleRequest(req, res, async (req, res) => {
             const { categoryId } = req.params;
-            const {
-                page = 1,
-                limit = 20,
-                sort = 'created_at',
-                order = 'desc'
-            } = req.query;
 
-            if (!categoryId || isNaN(parseInt(categoryId))) {
-                return res.json({
-                    success: false,
-                    error: 'Valid category ID is required'
-                }, constants.HTTP_STATUS.BAD_REQUEST);
-            }
-
-            const pagination = {
-                page: parseInt(page),
-                limit: Math.min(parseInt(limit), constants.PAGINATION.MAX_LIMIT)
-            };
-
-            const sortOptions = {
-                field: sort,
-                order: order.toLowerCase() === 'asc' ? 'asc' : 'desc'
-            };
-
-            const result = await Product.findByCategory(parseInt(categoryId), pagination, sortOptions);
-
-            res.json({
-                success: true,
-                data: {
-                    products: result.products,
-                    category: result.category,
-                    pagination: {
-                        current_page: pagination.page,
-                        per_page: pagination.limit,
-                        total: result.total,
-                        total_pages: Math.ceil(result.total / pagination.limit)
-                    }
-                }
+            this.validateRequest({ categoryId }, {
+                categoryId: { required: true, type: 'integer' }
             });
 
-        } catch (error) {
-            console.error('Get products by category error:', error);
-            res.json({
-                success: false,
-                error: constants.ERROR_MESSAGES.GENERAL.INTERNAL_ERROR
-            }, constants.HTTP_STATUS.INTERNAL_SERVER_ERROR);
-        }
+            const pagination = this.getPaginationParams(req, {
+                page: 1,
+                limit: 20
+            });
+
+            const sortOptions = {
+                field: req.query.sort || 'created_at',
+                order: req.query.order || 'desc'
+            };
+
+            const result = await this.productModel.findByCategory(parseInt(categoryId), pagination, sortOptions);
+
+            this.sendPaginatedResponse(res, {
+                data: result.products,
+                total: result.total,
+                totalPages: result.totalPages
+            }, pagination, null);
+        });
     }
 
     /**
      * Get all categories
      */
-    static async getCategories(req, res) {
-        try {
+    async getCategories(req, res) {
+        return this.handleRequest(req, res, async (req, res) => {
             const categories = await Category.findAll();
 
-            res.json({
-                success: true,
-                data: {
-                    categories
-                }
-            });
-
-        } catch (error) {
-            console.error('Get categories error:', error);
-            res.json({
-                success: false,
-                error: constants.ERROR_MESSAGES.GENERAL.INTERNAL_ERROR
-            }, constants.HTTP_STATUS.INTERNAL_SERVER_ERROR);
-        }
+            this.sendResponse(res, { categories });
+        });
     }
 
     /**
      * Get featured products
      */
-    static async getFeaturedProducts(req, res) {
-        try {
-            const { limit = 10 } = req.query;
+    async getFeaturedProducts(req, res) {
+        return this.handleRequest(req, res, async (req, res) => {
+            const limit = Math.min(parseInt(req.query.limit || 10), 50);
 
-            const products = await Product.getFeatured(parseInt(limit));
+            const products = await this.productModel.getFeatured(limit);
 
-            res.json({
-                success: true,
-                data: {
-                    products
-                }
-            });
-
-        } catch (error) {
-            console.error('Get featured products error:', error);
-            res.json({
-                success: false,
-                error: constants.ERROR_MESSAGES.GENERAL.INTERNAL_ERROR
-            }, constants.HTTP_STATUS.INTERNAL_SERVER_ERROR);
-        }
+            this.sendResponse(res, { products });
+        });
     }
 
     /**
      * Get product variants
      */
-    static async getProductVariants(req, res) {
-        try {
+    async getProductVariants(req, res) {
+        return this.handleRequest(req, res, async (req, res) => {
             const { id } = req.params;
 
-            if (!id || isNaN(parseInt(id))) {
-                return res.json({
-                    success: false,
-                    error: 'Valid product ID is required'
-                }, constants.HTTP_STATUS.BAD_REQUEST);
-            }
-
-            const variants = await Product.getVariants(parseInt(id));
-
-            res.json({
-                success: true,
-                data: {
-                    variants
-                }
+            this.validateRequest({ id }, {
+                id: { required: true, type: 'integer' }
             });
 
-        } catch (error) {
-            console.error('Get product variants error:', error);
-            res.json({
-                success: false,
-                error: constants.ERROR_MESSAGES.GENERAL.INTERNAL_ERROR
-            }, constants.HTTP_STATUS.INTERNAL_SERVER_ERROR);
-        }
+            const variants = await this.productModel.getVariants(parseInt(id));
+
+            this.sendResponse(res, { variants });
+        });
     }
 
     /**
      * Get product reviews
      */
-    static async getProductReviews(req, res) {
-        try {
+    async getProductReviews(req, res) {
+        return this.handleRequest(req, res, async (req, res) => {
             const { id } = req.params;
-            const { page = 1, limit = 10 } = req.query;
 
-            if (!id || isNaN(parseInt(id))) {
-                return res.json({
-                    success: false,
-                    error: 'Valid product ID is required'
-                }, constants.HTTP_STATUS.BAD_REQUEST);
-            }
-
-            const pagination = {
-                page: parseInt(page),
-                limit: Math.min(parseInt(limit), constants.PAGINATION.MAX_LIMIT)
-            };
-
-            const result = await Product.getReviews(parseInt(id), pagination);
-
-            res.json({
-                success: true,
-                data: {
-                    reviews: result.reviews,
-                    pagination: {
-                        current_page: pagination.page,
-                        per_page: pagination.limit,
-                        total: result.total,
-                        total_pages: Math.ceil(result.total / pagination.limit)
-                    },
-                    rating_summary: result.rating_summary
-                }
+            this.validateRequest({ id }, {
+                id: { required: true, type: 'integer' }
             });
 
-        } catch (error) {
-            console.error('Get product reviews error:', error);
-            res.json({
-                success: false,
-                error: constants.ERROR_MESSAGES.GENERAL.INTERNAL_ERROR
-            }, constants.HTTP_STATUS.INTERNAL_SERVER_ERROR);
-        }
+            const pagination = this.getPaginationParams(req, {
+                page: 1,
+                limit: 10
+            });
+
+            const result = await this.productModel.getReviews(parseInt(id), pagination);
+
+            this.sendPaginatedResponse(res, result, pagination);
+        });
     }
 
     /**
      * Create product review
      */
-    static async createProductReview(req, res) {
-        try {
+    async createProductReview(req, res) {
+        return this.handleRequest(req, res, async (req, res) => {
+            const user = this.requireAuth(req);
             const { id } = req.params;
             const { rating, comment } = req.body;
 
-            if (!id || isNaN(parseInt(id))) {
-                return res.json({
-                    success: false,
-                    error: 'Valid product ID is required'
-                }, constants.HTTP_STATUS.BAD_REQUEST);
-            }
+            // Validate input
+            this.validateRequest({ id }, {
+                id: { required: true, type: 'integer' }
+            });
 
-            if (!rating || rating < 1 || rating > 5) {
-                return res.json({
-                    success: false,
-                    error: 'Rating must be between 1 and 5'
-                }, constants.HTTP_STATUS.BAD_REQUEST);
-            }
+            this.validateRequest(req.body, {
+                rating: { required: true, type: 'integer', min: 1, max: 5 },
+                comment: { required: false, type: 'string', maxLength: 1000 }
+            });
 
-            // Get user ID from database
-            const userDetails = await User.findByEmail(req.user.email);
+            // Get user details from database
+            const userDetails = await userModel.findByEmail(user.email);
             if (!userDetails) {
-                return res.json({
-                    success: false,
-                    error: constants.ERROR_MESSAGES.AUTH.ACCOUNT_NOT_FOUND
-                }, constants.HTTP_STATUS.NOT_FOUND);
+                throw new NotFoundError('User account');
             }
 
             const reviewData = {
@@ -383,33 +223,119 @@ class ProductController {
                 comment: comment || null
             };
 
-            const review = await Product.createReview(reviewData);
+            const review = await this.productModel.createReview(reviewData);
 
-            res.json({
-                success: true,
-                message: 'Review created successfully',
-                data: {
-                    review
-                }
-            }, constants.HTTP_STATUS.CREATED);
+            this.sendResponse(res, { review }, 'Review created successfully', constants.HTTP_STATUS.CREATED);
+        });
+    }
 
-        } catch (error) {
-            console.error('Create product review error:', error);
-            
-            if (error.message.includes('duplicate')) {
-                return res.json({
-                    success: false,
-                    error: 'You have already reviewed this product'
-                }, constants.HTTP_STATUS.CONFLICT);
-            }
+    /**
+     * Get related products
+     */
+    async getRelatedProducts(req, res) {
+        return this.handleRequest(req, res, async (req, res) => {
+            const { id } = req.params;
 
-            res.json({
-                success: false,
-                error: constants.ERROR_MESSAGES.GENERAL.INTERNAL_ERROR
-            }, constants.HTTP_STATUS.INTERNAL_SERVER_ERROR);
-        }
+            this.validateRequest({ id }, {
+                id: { required: true, type: 'integer' }
+            });
+
+            const limit = Math.min(parseInt(req.query.limit || 4), 12);
+            const products = await this.productModel.getRelatedProducts(parseInt(id), limit);
+
+            this.sendResponse(res, { products });
+        });
+    }
+
+    /**
+     * Update product stock (admin only)
+     */
+    async updateProductStock(req, res) {
+        return this.handleRequest(req, res, async (req, res) => {
+            const user = this.requireRole(req, ['admin', 'seller']);
+            const { variantId } = req.params;
+            const { quantity, operation = 'set' } = req.body;
+
+            this.validateRequest({ variantId }, {
+                variantId: { required: true, type: 'integer' }
+            });
+
+            this.validateRequest(req.body, {
+                quantity: { required: true, type: 'integer', min: 0 },
+                operation: { required: false, type: 'string', enum: ['set', 'increment', 'decrement'] }
+            });
+
+            const updatedVariant = await this.productModel.updateStock(
+                parseInt(variantId), 
+                parseInt(quantity), 
+                operation
+            );
+
+            this.sendResponse(res, { variant: updatedVariant }, 'Stock updated successfully');
+        });
+    }
+
+    /**
+     * Create new product (admin/seller only)
+     */
+    async createProduct(req, res) {
+        return this.handleRequest(req, res, async (req, res) => {
+            const user = this.requireRole(req, ['admin', 'seller']);
+
+            this.validateRequest(req.body, {
+                shoe_name: { required: true, type: 'string', minLength: 2, maxLength: 200 },
+                description: { required: false, type: 'string', maxLength: 2000 },
+                base_price: { required: true, type: 'number', min: 0 },
+                category_id: { required: true, type: 'integer' },
+                brand: { required: false, type: 'string', maxLength: 100 },
+                image_url: { required: false, type: 'string' }
+            });
+
+            const product = await this.productModel.create(req.body);
+
+            this.sendResponse(res, { product }, 'Product created successfully', constants.HTTP_STATUS.CREATED);
+        });
+    }
+
+    /**
+     * Update product (admin/seller only)
+     */
+    async updateProduct(req, res) {
+        return this.handleRequest(req, res, async (req, res) => {
+            const user = this.requireRole(req, ['admin', 'seller']);
+            const { id } = req.params;
+
+            this.validateRequest({ id }, {
+                id: { required: true, type: 'integer' }
+            });
+
+            const product = await this.productModel.updateById(parseInt(id), req.body);
+
+            this.sendResponse(res, { product }, 'Product updated successfully');
+        });
+    }
+
+    /**
+     * Delete product (admin only)
+     */
+    async deleteProduct(req, res) {
+        return this.handleRequest(req, res, async (req, res) => {
+            const user = this.requireRole(req, ['admin']);
+            const { id } = req.params;
+
+            this.validateRequest({ id }, {
+                id: { required: true, type: 'integer' }
+            });
+
+            await this.productModel.deleteById(parseInt(id));
+
+            this.sendResponse(res, null, 'Product deleted successfully');
+        });
     }
 }
 
-export default ProductController;
+// Create a singleton instance for use in routes
+const productController = new ProductController();
 
+export default ProductController;
+export { productController };

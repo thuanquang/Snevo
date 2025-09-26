@@ -1,0 +1,262 @@
+<!-- Header Component - Reusable navigation header -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top header-component">
+    <div class="container">
+        <!-- Logo -->
+        <a class="navbar-brand header-logo fw-bold fs-2" href="/">SNEVO</a>
+        
+        <!-- Mobile menu toggle -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <!-- Navigation menu -->
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <!-- Main navigation -->
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link header-nav-link" href="/">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link header-nav-link" href="/frontend/pages/products.html">Products</a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle header-nav-link" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Categories
+                    </a>
+                    <ul class="dropdown-menu" id="categoriesDropdown">
+                        <!-- Categories will be loaded dynamically -->
+                        <li><a class="dropdown-item" href="/frontend/pages/products.html?category=1">Running Shoes</a></li>
+                        <li><a class="dropdown-item" href="/frontend/pages/products.html?category=2">Basketball Shoes</a></li>
+                        <li><a class="dropdown-item" href="/frontend/pages/products.html?category=3">Casual Shoes</a></li>
+                        <li><a class="dropdown-item" href="/frontend/pages/products.html?category=4">Training Shoes</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link header-nav-link" href="#about">About</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link header-nav-link" href="#contact">Contact</a>
+                </li>
+            </ul>
+            
+            <!-- Right side navigation -->
+            <ul class="navbar-nav">
+                <!-- Search toggle -->
+                <li class="nav-item">
+                    <a class="nav-link header-nav-link" href="#" id="searchToggle" aria-label="Search">
+                        <i class="fas fa-search"></i>
+                    </a>
+                </li>
+                
+                <!-- Cart -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link header-nav-link position-relative" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger header-cart-badge" id="cartCount">
+                            0
+                        </span>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-end p-0" style="min-width: 300px;" id="cartDropdown">
+                        <div class="dropdown-item text-center text-muted">Your cart is empty</div>
+                    </div>
+                </li>
+                
+                <!-- User menu -->
+                <li class="nav-item dropdown" id="userMenu" style="display: none;">
+                    <a class="nav-link dropdown-toggle header-nav-link" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-user"></i>
+                        <span id="userName"></span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="/frontend/pages/profile.html">
+                            <i class="fas fa-user me-2"></i>Profile
+                        </a></li>
+                        <li><a class="dropdown-item" href="/frontend/pages/orders.html">
+                            <i class="fas fa-box me-2"></i>My Orders
+                        </a></li>
+                        <li><a class="dropdown-item" href="#" id="wishlistLink">
+                            <i class="fas fa-heart me-2"></i>Wishlist
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#" id="logoutBtn">
+                            <i class="fas fa-sign-out-alt me-2"></i>Logout
+                        </a></li>
+                    </ul>
+                </li>
+                
+                <!-- Auth buttons (shown when not logged in) -->
+                <li class="nav-item" id="authButtons">
+                    <a class="nav-link header-nav-link" href="/frontend/pages/login.html">
+                        <i class="fas fa-sign-in-alt me-1"></i>Login
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Search Overlay -->
+<div class="search-overlay d-none" id="searchOverlay">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="search-box">
+                    <input type="text" class="form-control form-control-lg" placeholder="Search for shoes..." id="searchInput" aria-label="Search products">
+                    <button class="btn btn-dark" id="searchButton" aria-label="Search">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+                <button class="btn btn-link text-white mt-3" onclick="document.getElementById('searchOverlay').classList.add('d-none')">
+                    <i class="fas fa-times me-2"></i>Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Header component functionality
+(function() {
+    'use strict';
+    
+    // Wait for DOM to be ready
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeHeader();
+    });
+    
+    function initializeHeader() {
+        // Search toggle functionality
+        const searchToggle = document.getElementById('searchToggle');
+        const searchOverlay = document.getElementById('searchOverlay');
+        const searchInput = document.getElementById('searchInput');
+        const searchButton = document.getElementById('searchButton');
+        
+        if (searchToggle && searchOverlay) {
+            searchToggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                toggleSearch();
+            });
+            
+            // Close search on overlay click
+            searchOverlay.addEventListener('click', function(e) {
+                if (e.target === searchOverlay) {
+                    toggleSearch();
+                }
+            });
+            
+            // Search functionality
+            if (searchInput && searchButton) {
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        performSearch();
+                    }
+                });
+                
+                searchButton.addEventListener('click', performSearch);
+            }
+        }
+        
+        // Update auth UI based on current state
+        updateAuthUI();
+        
+        // Load categories dynamically if available
+        loadCategories();
+        
+        // Update cart count
+        updateCartCount();
+    }
+    
+    function toggleSearch() {
+        const searchOverlay = document.getElementById('searchOverlay');
+        const searchInput = document.getElementById('searchInput');
+        
+        if (searchOverlay) {
+            searchOverlay.classList.toggle('d-none');
+            
+            if (!searchOverlay.classList.contains('d-none')) {
+                setTimeout(() => {
+                    if (searchInput) {
+                        searchInput.focus();
+                    }
+                }, 100);
+            }
+        }
+    }
+    
+    function performSearch() {
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput && searchInput.value.trim()) {
+            const query = searchInput.value.trim();
+            window.location.href = `/frontend/pages/products.html?search=${encodeURIComponent(query)}`;
+        }
+    }
+    
+    function updateAuthUI() {
+        const authButtons = document.getElementById('authButtons');
+        const userMenu = document.getElementById('userMenu');
+        const userName = document.getElementById('userName');
+        
+        // Check if user is authenticated (this will be enhanced by AuthManager)
+        if (window.authManager && window.authManager.isAuthenticated()) {
+            const user = window.authManager.getCurrentUser();
+            
+            if (authButtons) authButtons.style.display = 'none';
+            if (userMenu) userMenu.style.display = 'block';
+            if (userName && user) {
+                userName.textContent = user.username || user.full_name || 'User';
+            }
+        } else {
+            if (authButtons) authButtons.style.display = 'block';
+            if (userMenu) userMenu.style.display = 'none';
+        }
+    }
+    
+    function loadCategories() {
+        const categoriesDropdown = document.getElementById('categoriesDropdown');
+        
+        // This will be enhanced when productManager is available
+        if (window.productManager && categoriesDropdown) {
+            window.productManager.getCategories().then(categories => {
+                const dropdownHTML = categories.map(category => `
+                    <li><a class="dropdown-item" href="/frontend/pages/products.html?category=${category.category_id}">
+                        ${category.category_name}
+                    </a></li>
+                `).join('');
+                categoriesDropdown.innerHTML = dropdownHTML;
+            }).catch(error => {
+                console.error('Failed to load categories:', error);
+            });
+        }
+    }
+    
+    function updateCartCount() {
+        const cartCount = document.getElementById('cartCount');
+        
+        // This will be enhanced when productManager is available
+        if (window.productManager && cartCount) {
+            const itemCount = window.productManager.getCartItemCount();
+            cartCount.textContent = itemCount;
+            cartCount.style.display = itemCount > 0 ? 'inline' : 'none';
+        }
+    }
+    
+    // Logout functionality
+    document.addEventListener('click', function(e) {
+        if (e.target && e.target.id === 'logoutBtn') {
+            e.preventDefault();
+            if (window.authManager) {
+                window.authManager.logout().then(() => {
+                    window.location.href = '/frontend/pages/login.html';
+                });
+            }
+        }
+    });
+    
+    // Make functions available globally for other scripts
+    window.headerComponent = {
+        updateAuthUI: updateAuthUI,
+        updateCartCount: updateCartCount,
+        loadCategories: loadCategories
+    };
+})();
+</script>

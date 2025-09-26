@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Products - Snevo</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="../assets/css/main.css" rel="stylesheet">
+    <link href="../assets/css/animations.css" rel="stylesheet">
+    <link href="../assets/css/components.css" rel="stylesheet">
+    <link href="../assets/css/responsive.css" rel="stylesheet">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="../assets/images/favicon.ico">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold fs-2" href="../pages/index.html">SNEVO</a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../pages/index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="../pages/products.html">Products</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            Categories
+                        </a>
+                        <ul class="dropdown-menu" id="categoriesDropdown">
+                            <!-- Categories will be loaded dynamically -->
+                        </ul>
+                    </li>
+                </ul>
+                
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="searchToggle">
+                            <i class="fas fa-search"></i>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link position-relative" href="../pages/cart.html">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="cartCount">
+                                0
+                            </span>
+                        </a>
+                    </li>
+                    <li class="nav-item" id="authButtons">
+                        <a class="nav-link" href="../pages/login.html">Login</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Search Overlay -->
+    <div class="search-overlay d-none" id="searchOverlay">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="search-box">
+                        <input type="text" class="form-control form-control-lg" placeholder="Search for shoes..." id="searchInput">
+                        <button class="btn btn-dark" id="searchButton">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page Header -->
+    <section class="page-header bg-light py-5" style="margin-top: 76px;">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1 class="page-title mb-2">Our Products</h1>
+                    <p class="page-subtitle text-muted mb-0">Discover premium athletic footwear designed for champions</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb justify-content-md-end">
+                            <li class="breadcrumb-item"><a href="../pages/index.html">Home</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Products</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Products Section -->
+    <section class="products-section py-5">
+        <div class="container">
+            <div class="row">
+                <!-- Sidebar Filters -->
+                <div class="col-lg-3 col-md-4">
+                    <div class="filters-sidebar">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">Filters</h5>
+                                <button class="btn btn-sm btn-outline-secondary" id="clearFilters">Clear All</button>
+                            </div>
+                            <div class="card-body">
+                                <!-- Category Filter -->
+                                <div class="filter-group mb-4">
+                                    <h6 class="filter-title">Categories</h6>
+                                    <div class="filter-options" id="categoryFilters">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" value="1" id="category1">
+                                            <label class="form-check-label" for="category1">Running Shoes</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" value="2" id="category2">
+                                            <label class="form-check-label" for="category2">Basketball Shoes</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" value="3" id="category3">
+                                            <label class="form-check-label" for="category3">Casual Shoes</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" value="4" id="category4">
+                                            <label class="form-check-label" for="category4">Training Shoes</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Price Filter -->
+                                <div class="filter-group mb-4">
+                                    <h6 class="filter-title">Price Range</h6>
+                                    <div class="price-range">
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <input type="number" class="form-control form-control-sm" placeholder="Min" id="minPrice">
+                                            </div>
+                                            <div class="col-6">
+                                                <input type="number" class="form-control form-control-sm" placeholder="Max" id="maxPrice">
+                                            </div>
+                                        </div>
+                                        <div class="mt-2">
+                                            <input type="range" class="form-range" min="0" max="500" value="250" id="priceRange">
+                                            <div class="d-flex justify-content-between small text-muted">
+                                                <span>$0</span>
+                                                <span>$500+</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Size Filter -->
+                                <div class="filter-group mb-4">
+                                    <h6 class="filter-title">Size</h6>
+                                    <div class="size-options" id="sizeFilters">
+                                        <div class="btn-group-toggle" data-toggle="buttons">
+                                            <label class="btn btn-outline-secondary btn-sm size-btn">
+                                                <input type="checkbox" value="6"> 6
+                                            </label>
+                                            <label class="btn btn-outline-secondary btn-sm size-btn">
+                                                <input type="checkbox" value="7"> 7
+                                            </label>
+                                            <label class="btn btn-outline-secondary btn-sm size-btn">
+                                                <input type="checkbox" value="8"> 8
+                                            </label>
+                                            <label class="btn btn-outline-secondary btn-sm size-btn">
+                                                <input type="checkbox" value="9"> 9
+                                            </label>
+                                            <label class="btn btn-outline-secondary btn-sm size-btn">
+                                                <input type="checkbox" value="10"> 10
+                                            </label>
+                                            <label class="btn btn-outline-secondary btn-sm size-btn">
+                                                <input type="checkbox" value="11"> 11
+                                            </label>
+                                            <label class="btn btn-outline-secondary btn-sm size-btn">
+                                                <input type="checkbox" value="12"> 12
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Color Filter -->
+                                <div class="filter-group mb-4">
+                                    <h6 class="filter-title">Colors</h6>
+                                    <div class="color-options" id="colorFilters">
+                                        <div class="color-option" data-color="black" style="background-color: #000000;" title="Black"></div>
+                                        <div class="color-option" data-color="white" style="background-color: #ffffff; border: 1px solid #ddd;" title="White"></div>
+                                        <div class="color-option" data-color="red" style="background-color: #dc3545;" title="Red"></div>
+                                        <div class="color-option" data-color="blue" style="background-color: #0d6efd;" title="Blue"></div>
+                                        <div class="color-option" data-color="green" style="background-color: #198754;" title="Green"></div>
+                                        <div class="color-option" data-color="gray" style="background-color: #6c757d;" title="Gray"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Brand Filter -->
+                                <div class="filter-group mb-4">
+                                    <h6 class="filter-title">Brand</h6>
+                                    <div class="filter-options" id="brandFilters">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" value="nike" id="brandNike">
+                                            <label class="form-check-label" for="brandNike">Nike</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" value="adidas" id="brandAdidas">
+                                            <label class="form-check-label" for="brandAdidas">Adidas</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" value="jordan" id="brandJordan">
+                                            <label class="form-check-label" for="brandJordan">Jordan</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Products Grid -->
+                <div class="col-lg-9 col-md-8">
+                    <!-- Toolbar -->
+                    <div class="products-toolbar mb-4">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <div class="results-info">
+                                    <span id="resultsCount">Showing 1-12 of 48 products</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center justify-content-md-end">
+                                    <!-- Sort Dropdown -->
+                                    <div class="me-3">
+                                        <select class="form-select form-select-sm" id="sortSelect">
+                                            <option value="featured">Sort by: Featured</option>
+                                            <option value="price_low">Price: Low to High</option>
+                                            <option value="price_high">Price: High to Low</option>
+                                            <option value="name_asc">Name: A to Z</option>
+                                            <option value="name_desc">Name: Z to A</option>
+                                            <option value="newest">Newest First</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <!-- View Toggle -->
+                                    <div class="btn-group" role="group">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm active" id="gridView" title="Grid View">
+                                            <i class="fas fa-th"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" id="listView" title="List View">
+                                            <i class="fas fa-list"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Loading State -->
+                    <div class="loading-container text-center py-5" id="loadingContainer">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-3 text-muted">Loading products...</p>
+                    </div>
+
+                    <!-- Products Grid Container -->
+                    <div class="products-grid row" id="productsGrid" style="display: none;">
+                        <!-- Products will be loaded dynamically -->
+                    </div>
+
+                    <!-- No Results -->
+                    <div class="no-results text-center py-5" id="noResults" style="display: none;">
+                        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                        <h4>No products found</h4>
+                        <p class="text-muted">Try adjusting your filters or search terms</p>
+                        <button class="btn btn-primary" onclick="clearAllFilters()">Clear Filters</button>
+                    </div>
+
+                    <!-- Pagination -->
+                    <nav aria-label="Products pagination" class="mt-5">
+                        <ul class="pagination justify-content-center" id="pagination">
+                            <!-- Pagination will be generated dynamically -->
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer bg-black text-white py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5 class="fw-bold mb-3">SNEVO</h5>
+                    <p>Premium athletic footwear for champions. Just Do It.</p>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h6 class="fw-bold mb-3">Quick Links</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="../pages/index.html" class="text-white-50">Home</a></li>
+                        <li><a href="../pages/products.html" class="text-white-50">Products</a></li>
+                        <li><a href="#about" class="text-white-50">About</a></li>
+                        <li><a href="#contact" class="text-white-50">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h6 class="fw-bold mb-3">Customer Service</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#help" class="text-white-50">Help Center</a></li>
+                        <li><a href="#returns" class="text-white-50">Returns</a></li>
+                        <li><a href="#shipping" class="text-white-50">Shipping</a></li>
+                        <li><a href="#size-guide" class="text-white-50">Size Guide</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h6 class="fw-bold mb-3">Follow Us</h6>
+                    <div class="social-links">
+                        <a href="#" class="text-white me-3"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-white me-3"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-white me-3"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="text-white me-3"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-4">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; 2024 Snevo. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#privacy" class="text-white-50 me-3">Privacy Policy</a>
+                    <a href="#terms" class="text-white-50">Terms of Service</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Configuration -->
+    <script>
+        const configScript = document.createElement('script');
+        configScript.onerror = function() {
+            const fallbackScript = document.createElement('script');
+            fallbackScript.src = '../assets/js/config.js';
+            document.head.appendChild(fallbackScript);
+        };
+        configScript.src = '../assets/js/config.generated.js';
+        document.head.appendChild(configScript);
+    </script>
+    
+    <!-- Custom Scripts -->
+    <script src="../assets/js/ApiClient.js"></script>
+    <script src="../assets/js/AuthManager.js"></script>
+    <script src="../assets/js/ProductManager.js"></script>
+    <script src="../assets/js/Application.js"></script>
+    <script src="../assets/js/animations.js"></script>
+    
+    <script>
+        // Products page specific functionality
+        (function() {
+            'use strict';
+            
+            let currentFilters = {
+                categories: [],
+                minPrice: null,
+                maxPrice: null,
+                sizes: [],
+                colors: [],
+                brands: [],
+                search: null
+            };
+            
+            let currentSort = 'featured';
+            let currentPage = 1;
+            let productsPerPage = 12;
+            let totalProducts = 0;
+            
+            document.addEventListener('DOMContentLoaded', function() {
+                initializeProductsPage();
+            });
+            
+            function initializeProductsPage() {
+                // Parse URL parameters
+                parseUrlParameters();
+                
+                // Setup event listeners
+                setupEventListeners();
+                
+                // Load initial products
+                loadProducts();
+                
+                // Update UI
+                updateFiltersUI();
+            }
+            
+            function parseUrlParameters() {
+                const urlParams = new URLSearchParams(window.location.search);
+                
+                // Search query
+                if (urlParams.has('search')) {
+                    currentFilters.search = urlParams.get('search');
+                    document.getElementById('searchInput').value = currentFilters.search;
+                }
+                
+                // Category filter
+                if (urlParams.has('category')) {
+                    const categoryId = urlParams.get('category');
+                    currentFilters.categories = [categoryId];
+                }
+                
+                // Sort
+                if (urlParams.has('sort')) {
+                    currentSort = urlParams.get('sort');
+                    document.getElementById('sortSelect').value = currentSort;
+                }
+                
+                // Page
+                if (urlParams.has('page')) {
+                    currentPage = parseInt(urlParams.get('page')) || 1;
+                }
+            }
+            
+            function setupEventListeners() {
+                // Filter change listeners
+                document.querySelectorAll('#categoryFilters input[type="checkbox"]').forEach(checkbox => {
+                    checkbox.addEventListener('change', handleFilterChange);
+                });
+                
+                document.querySelectorAll('#brandFilters input[type="checkbox"]').forEach(checkbox => {
+                    checkbox.addEventListener('change', handleFilterChange);
+                });
+                
+                document.querySelectorAll('.size-btn input').forEach(checkbox => {
+                    checkbox.addEventListener('change', handleFilterChange);
+                });
+                
+                document.querySelectorAll('.color-option').forEach(option => {
+                    option.addEventListener('click', handleColorFilter);
+                });
+                
+                // Price range
+                document.getElementById('priceRange').addEventListener('input', handlePriceRangeChange);
+                document.getElementById('minPrice').addEventListener('change', handlePriceInputChange);
+                document.getElementById('maxPrice').addEventListener('change', handlePriceInputChange);
+                
+                // Sort change
+                document.getElementById('sortSelect').addEventListener('change', handleSortChange);
+                
+                // View toggle
+                document.getElementById('gridView').addEventListener('click', () => setView('grid'));
+                document.getElementById('listView').addEventListener('click', () => setView('list'));
+                
+                // Clear filters
+                document.getElementById('clearFilters').addEventListener('click', clearAllFilters);
+                
+                // Search
+                document.getElementById('searchButton').addEventListener('click', handleSearch);
+                document.getElementById('searchInput').addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        handleSearch();
+                    }
+                });
+            }
+            
+            function handleFilterChange() {
+                updateFiltersFromUI();
+                currentPage = 1; // Reset to first page
+                loadProducts();
+            }
+            
+            function handleColorFilter(e) {
+                const colorOption = e.target;
+                const color = colorOption.dataset.color;
+                
+                colorOption.classList.toggle('selected');
+                
+                if (colorOption.classList.contains('selected')) {
+                    if (!currentFilters.colors.includes(color)) {
+                        currentFilters.colors.push(color);
+                    }
+                } else {
+                    currentFilters.colors = currentFilters.colors.filter(c => c !== color);
+                }
+                
+                currentPage = 1;
+                loadProducts();
+            }
+            
+            function handlePriceRangeChange(e) {
+                const value = parseInt(e.target.value);
+                currentFilters.maxPrice = value === 500 ? null : value;
+                document.getElementById('maxPrice').value = currentFilters.maxPrice || '';
+                
+                currentPage = 1;
+                loadProducts();
+            }
+            
+            function handlePriceInputChange() {
+                const minPrice = document.getElementById('minPrice').value;
+                const maxPrice = document.getElementById('maxPrice').value;
+                
+                currentFilters.minPrice = minPrice ? parseInt(minPrice) : null;
+                currentFilters.maxPrice = maxPrice ? parseInt(maxPrice) : null;
+                
+                // Update range slider
+                if (currentFilters.maxPrice) {
+                    document.getElementById('priceRange').value = currentFilters.maxPrice;
+                }
+                
+                currentPage = 1;
+                loadProducts();
+            }
+            
+            function handleSortChange(e) {
+                currentSort = e.target.value;
+                currentPage = 1;
+                loadProducts();
+            }
+            
+            function handleSearch() {
+                const searchInput = document.getElementById('searchInput');
+                currentFilters.search = searchInput.value.trim();
+                currentPage = 1;
+                loadProducts();
+                
+                // Update URL
+                updateUrl();
+            }
+            
+            function updateFiltersFromUI() {
+                // Categories
+                currentFilters.categories = Array.from(document.querySelectorAll('#categoryFilters input:checked'))
+                    .map(cb => cb.value);
+                
+                // Brands
+                currentFilters.brands = Array.from(document.querySelectorAll('#brandFilters input:checked'))
+                    .map(cb => cb.value);
+                
+                // Sizes
+                currentFilters.sizes = Array.from(document.querySelectorAll('.size-btn input:checked'))
+                    .map(cb => cb.value);
+            }
+            
+            function updateFiltersUI() {
+                // Update category checkboxes
+                currentFilters.categories.forEach(categoryId => {
+                    const checkbox = document.getElementById(`category${categoryId}`);
+                    if (checkbox) checkbox.checked = true;
+                });
+                
+                // Update color selections
+                currentFilters.colors.forEach(color => {
+                    const colorOption = document.querySelector(`[data-color="${color}"]`);
+                    if (colorOption) colorOption.classList.add('selected');
+                });
+            }
+            
+            async function loadProducts() {
+                showLoading();
+                
+                try {
+                    // Simulate API call - replace with actual ProductManager call
+                    const mockProducts = generateMockProducts();
+                    const filteredProducts = applyFilters(mockProducts);
+                    const sortedProducts = applySorting(filteredProducts);
+                    const paginatedProducts = applyPagination(sortedProducts);
+                    
+                    renderProducts(paginatedProducts.products);
+                    renderPagination(paginatedProducts.totalPages);
+                    updateResultsCount(filteredProducts.length);
+                    
+                    hideLoading();
+                } catch (error) {
+                    console.error('Error loading products:', error);
+                    showNoResults();
+                }
+            }
+            
+            function generateMockProducts() {
+                // Mock products data - replace with actual API call
+                const products = [];
+                for (let i = 1; i <= 48; i++) {
+                    products.push({
+                        product_id: i,
+                        product_name: `Nike Air Max ${i}`,
+                        price: Math.floor(Math.random() * 200) + 50,
+                        original_price: Math.floor(Math.random() * 250) + 100,
+                        product_image: `https://via.placeholder.com/300x300?text=Shoe+${i}`,
+                        category_id: Math.floor(Math.random() * 4) + 1,
+                        brand: ['nike', 'adidas', 'jordan'][Math.floor(Math.random() * 3)],
+                        colors: ['black', 'white', 'red', 'blue'].slice(0, Math.floor(Math.random() * 3) + 1),
+                        sizes: [7, 8, 9, 10, 11].slice(0, Math.floor(Math.random() * 4) + 2),
+                        rating: Math.floor(Math.random() * 5) + 1,
+                        review_count: Math.floor(Math.random() * 100) + 5,
+                        stock_quantity: Math.floor(Math.random() * 50) + 1
+                    });
+                }
+                return products;
+            }
+            
+            function applyFilters(products) {
+                return products.filter(product => {
+                    // Category filter
+                    if (currentFilters.categories.length > 0 && 
+                        !currentFilters.categories.includes(product.category_id.toString())) {
+                        return false;
+                    }
+                    
+                    // Brand filter
+                    if (currentFilters.brands.length > 0 && 
+                        !currentFilters.brands.includes(product.brand)) {
+                        return false;
+                    }
+                    
+                    // Price filter
+                    if (currentFilters.minPrice && product.price < currentFilters.minPrice) {
+                        return false;
+                    }
+                    if (currentFilters.maxPrice && product.price > currentFilters.maxPrice) {
+                        return false;
+                    }
+                    
+                    // Size filter
+                    if (currentFilters.sizes.length > 0) {
+                        const hasSize = currentFilters.sizes.some(size => 
+                            product.sizes.includes(parseInt(size))
+                        );
+                        if (!hasSize) return false;
+                    }
+                    
+                    // Color filter
+                    if (currentFilters.colors.length > 0) {
+                        const hasColor = currentFilters.colors.some(color => 
+                            product.colors.includes(color)
+                        );
+                        if (!hasColor) return false;
+                    }
+                    
+                    // Search filter
+                    if (currentFilters.search) {
+                        const searchTerm = currentFilters.search.toLowerCase();
+                        if (!product.product_name.toLowerCase().includes(searchTerm)) {
+                            return false;
+                        }
+                    }
+                    
+                    return true;
+                });
+            }
+            
+            function applySorting(products) {
+                const sorted = [...products];
+                
+                switch (currentSort) {
+                    case 'price_low':
+                        sorted.sort((a, b) => a.price - b.price);
+                        break;
+                    case 'price_high':
+                        sorted.sort((a, b) => b.price - a.price);
+                        break;
+                    case 'name_asc':
+                        sorted.sort((a, b) => a.product_name.localeCompare(b.product_name));
+                        break;
+                    case 'name_desc':
+                        sorted.sort((a, b) => b.product_name.localeCompare(a.product_name));
+                        break;
+                    case 'newest':
+                        sorted.sort((a, b) => b.product_id - a.product_id);
+                        break;
+                    default: // featured
+                        sorted.sort((a, b) => b.rating - a.rating);
+                        break;
+                }
+                
+                return sorted;
+            }
+            
+            function applyPagination(products) {
+                totalProducts = products.length;
+                const totalPages = Math.ceil(totalProducts / productsPerPage);
+                const startIndex = (currentPage - 1) * productsPerPage;
+                const endIndex = startIndex + productsPerPage;
+                
+                return {
+                    products: products.slice(startIndex, endIndex),
+                    totalPages: totalPages
+                };
+            }
+            
+            function renderProducts(products) {
+                const container = document.getElementById('productsGrid');
+                
+                if (products.length === 0) {
+                    showNoResults();
+                    return;
+                }
+                
+                const productsHTML = products.map(product => `
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="card product-card h-100" onclick="viewProduct(${product.product_id})">
+                            <div class="product-image">
+                                <img src="${product.product_image}" alt="${product.product_name}" class="card-img-top">
+                                <div class="product-overlay">
+                                    <div class="product-actions">
+                                        <button class="btn btn-sm btn-light" onclick="event.stopPropagation(); quickView(${product.product_id})">
+                                            <i class="fas fa-eye"></i> Quick View
+                                        </button>
+                                        <button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); addToCart(${product.product_id})">
+                                            <i class="fas fa-shopping-cart"></i> Add to Cart
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <h5 class="product-title">${product.product_name}</h5>
+                                <div class="product-price">
+                                    $${product.price}
+                                    ${product.original_price > product.price ? `<span class="product-price-old">$${product.original_price}</span>` : ''}
+                                </div>
+                                <div class="product-rating">
+                                    <div class="rating-stars">
+                                        ${generateStars(product.rating)}
+                                    </div>
+                                    <span>(${product.review_count} reviews)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                
+                container.innerHTML = productsHTML;
+                container.style.display = 'flex';
+            }
+            
+            function renderPagination(totalPages) {
+                const container = document.getElementById('pagination');
+                
+                if (totalPages <= 1) {
+                    container.innerHTML = '';
+                    return;
+                }
+                
+                let paginationHTML = '';
+                
+                // Previous button
+                if (currentPage > 1) {
+                    paginationHTML += `<li class="page-item"><a class="page-link" href="#" onclick="goToPage(${currentPage - 1})">Previous</a></li>`;
+                }
+                
+                // Page numbers
+                const startPage = Math.max(1, currentPage - 2);
+                const endPage = Math.min(totalPages, currentPage + 2);
+                
+                if (startPage > 1) {
+                    paginationHTML += `<li class="page-item"><a class="page-link" href="#" onclick="goToPage(1)">1</a></li>`;
+                    if (startPage > 2) {
+                        paginationHTML += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                    }
+                }
+                
+                for (let i = startPage; i <= endPage; i++) {
+                    paginationHTML += `<li class="page-item ${i === currentPage ? 'active' : ''}">
+                        <a class="page-link" href="#" onclick="goToPage(${i})">${i}</a>
+                    </li>`;
+                }
+                
+                if (endPage < totalPages) {
+                    if (endPage < totalPages - 1) {
+                        paginationHTML += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                    }
+                    paginationHTML += `<li class="page-item"><a class="page-link" href="#" onclick="goToPage(${totalPages})">${totalPages}</a></li>`;
+                }
+                
+                // Next button
+                if (currentPage < totalPages) {
+                    paginationHTML += `<li class="page-item"><a class="page-link" href="#" onclick="goToPage(${currentPage + 1})">Next</a></li>`;
+                }
+                
+                container.innerHTML = paginationHTML;
+            }
+            
+            function updateResultsCount(total) {
+                const startIndex = (currentPage - 1) * productsPerPage + 1;
+                const endIndex = Math.min(currentPage * productsPerPage, total);
+                
+                document.getElementById('resultsCount').textContent = 
+                    `Showing ${startIndex}-${endIndex} of ${total} products`;
+            }
+            
+            function generateStars(rating) {
+                let stars = '';
+                for (let i = 1; i <= 5; i++) {
+                    if (i <= rating) {
+                        stars += '<i class="fas fa-star"></i>';
+                    } else {
+                        stars += '<i class="far fa-star"></i>';
+                    }
+                }
+                return stars;
+            }
+            
+            function showLoading() {
+                document.getElementById('loadingContainer').style.display = 'block';
+                document.getElementById('productsGrid').style.display = 'none';
+                document.getElementById('noResults').style.display = 'none';
+            }
+            
+            function hideLoading() {
+                document.getElementById('loadingContainer').style.display = 'none';
+            }
+            
+            function showNoResults() {
+                document.getElementById('loadingContainer').style.display = 'none';
+                document.getElementById('productsGrid').style.display = 'none';
+                document.getElementById('noResults').style.display = 'block';
+            }
+            
+            function setView(viewType) {
+                const gridBtn = document.getElementById('gridView');
+                const listBtn = document.getElementById('listView');
+                const container = document.getElementById('productsGrid');
+                
+                if (viewType === 'grid') {
+                    gridBtn.classList.add('active');
+                    listBtn.classList.remove('active');
+                    container.classList.remove('list-view');
+                } else {
+                    listBtn.classList.add('active');
+                    gridBtn.classList.remove('active');
+                    container.classList.add('list-view');
+                }
+            }
+            
+            function updateUrl() {
+                const params = new URLSearchParams();
+                
+                if (currentFilters.search) {
+                    params.set('search', currentFilters.search);
+                }
+                
+                if (currentFilters.categories.length > 0) {
+                    params.set('category', currentFilters.categories[0]);
+                }
+                
+                if (currentSort !== 'featured') {
+                    params.set('sort', currentSort);
+                }
+                
+                if (currentPage > 1) {
+                    params.set('page', currentPage);
+                }
+                
+                const newUrl = params.toString() ? `${window.location.pathname}?${params}` : window.location.pathname;
+                window.history.replaceState({}, '', newUrl);
+            }
+            
+            // Global functions
+            window.clearAllFilters = function() {
+                // Reset filters
+                currentFilters = {
+                    categories: [],
+                    minPrice: null,
+                    maxPrice: null,
+                    sizes: [],
+                    colors: [],
+                    brands: [],
+                    search: null
+                };
+                
+                // Reset UI
+                document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+                document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
+                document.getElementById('minPrice').value = '';
+                document.getElementById('maxPrice').value = '';
+                document.getElementById('priceRange').value = 250;
+                document.getElementById('searchInput').value = '';
+                
+                currentPage = 1;
+                loadProducts();
+            };
+            
+            window.goToPage = function(page) {
+                currentPage = page;
+                loadProducts();
+                updateUrl();
+                
+                // Scroll to top
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            };
+            
+            window.viewProduct = function(productId) {
+                window.location.href = `product-detail.html?id=${productId}`;
+            };
+            
+            window.quickView = function(productId) {
+                // Implement quick view modal
+                console.log('Quick view product:', productId);
+            };
+            
+            window.addToCart = function(productId) {
+                // Implement add to cart
+                console.log('Add to cart:', productId);
+                if (window.app) {
+                    window.app.showToast('Product added to cart!', 'success');
+                }
+            };
+            
+        })();
+    </script>
+    
+    <style>
+        .color-option {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 2px;
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.2s ease;
+        }
+        
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+        
+        .color-option.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-weight: bold;
+            text-shadow: 0 0 2px rgba(0,0,0,0.5);
+        }
+        
+        .size-btn input {
+            display: none;
+        }
+        
+        .size-btn {
+            margin: 2px;
+            min-width: 40px;
+        }
+        
+        .size-btn input:checked + label,
+        .size-btn.active {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+            color: white;
+        }
+        
+        .products-grid.list-view .col-lg-4,
+        .products-grid.list-view .col-md-6 {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+        
+        .products-grid.list-view .product-card {
+            flex-direction: row;
+        }
+        
+        .products-grid.list-view .product-image {
+            width: 200px;
+            height: 150px;
+            flex-shrink: 0;
+        }
+        
+        @media (max-width: 768px) {
+            .filters-sidebar {
+                margin-bottom: 2rem;
+            }
+            
+            .products-toolbar {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .products-toolbar .col-md-6 {
+                text-align: center;
+            }
+        }
+    </style>
+</body>
+</html>

@@ -6,7 +6,7 @@
 import url from 'url';
 import constants from '../../config/constants.js';
 import { optionalAuthMiddleware } from '../middleware/auth.js';
-import ProductController from '../controllers/productController.js';
+import { productController } from '../controllers/productController.js';
 
 /**
  * Product router
@@ -25,50 +25,50 @@ export default async function productRoutes(req, res) {
             switch (true) {
                 // GET /api/products
                 case productPath === '' && method === 'GET':
-                    await ProductController.getProducts(req, res);
+                    await productController.getProducts(req, res);
                     break;
 
                 // GET /api/products/search
                 case productPath === '/search' && method === 'GET':
-                    await ProductController.searchProducts(req, res);
+                    await productController.searchProducts(req, res);
                     break;
 
                 // GET /api/products/categories
                 case productPath === '/categories' && method === 'GET':
-                    await ProductController.getCategories(req, res);
+                    await productController.getCategories(req, res);
                     break;
 
                 // GET /api/products/featured
                 case productPath === '/featured' && method === 'GET':
-                    await ProductController.getFeaturedProducts(req, res);
+                    await productController.getFeaturedProducts(req, res);
                     break;
 
                 // GET /api/products/category/:categoryId
                 case productPath.match(/^\/category\/\d+$/) && method === 'GET':
                     const categoryId = productPath.split('/')[2];
                     req.params = { categoryId };
-                    await ProductController.getProductsByCategory(req, res);
+                    await productController.getProductsByCategory(req, res);
                     break;
 
                 // GET /api/products/:id
                 case productPath.match(/^\/\d+$/) && method === 'GET':
                     const productId = productPath.substring(1);
                     req.params = { id: productId };
-                    await ProductController.getProductById(req, res);
+                    await productController.getProductById(req, res);
                     break;
 
                 // GET /api/products/:id/variants
                 case productPath.match(/^\/\d+\/variants$/) && method === 'GET':
                     const variantProductId = productPath.split('/')[1];
                     req.params = { id: variantProductId };
-                    await ProductController.getProductVariants(req, res);
+                    await productController.getProductVariants(req, res);
                     break;
 
                 // GET /api/products/:id/reviews
                 case productPath.match(/^\/\d+\/reviews$/) && method === 'GET':
                     const reviewProductId = productPath.split('/')[1];
                     req.params = { id: reviewProductId };
-                    await ProductController.getProductReviews(req, res);
+                    await productController.getProductReviews(req, res);
                     break;
 
                 // POST /api/products/:id/reviews (requires auth)
@@ -81,7 +81,7 @@ export default async function productRoutes(req, res) {
                     }
                     const reviewCreateProductId = productPath.split('/')[1];
                     req.params = { id: reviewCreateProductId };
-                    await ProductController.createProductReview(req, res);
+                    await productController.createProductReview(req, res);
                     break;
 
                 default:

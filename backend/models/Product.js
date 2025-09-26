@@ -1,23 +1,66 @@
 /**
  * Product Model
- * Handles product data operations with Supabase
+ * Handles product data operations with Supabase using OOP principles
  */
 
 import { supabase } from '../../config/supabase.js';
 import constants from '../../config/constants.js';
+import BaseModel from '../utils/BaseModel.js';
+import { ValidationError, NotFoundError } from '../utils/ErrorClasses.js';
 
-class Product {
+class Product extends BaseModel {
+    constructor() {
+        super(constants.DATABASE_TABLES.SHOES, 'shoe_id');
+        
+        this.fillable = [
+            'shoe_name', 'description', 'base_price', 'category_id',
+            'brand', 'image_url', 'images', 'specifications', 'is_featured'
+        ];
+        
+        this.validationRules = {
+            shoe_name: {
+                required: true,
+                type: 'string',
+                minLength: 2,
+                maxLength: 200
+            },
+            description: {
+                required: false,
+                type: 'string',
+                maxLength: 2000
+            },
+            base_price: {
+                required: true,
+                type: 'number',
+                min: 0
+            },
+            category_id: {
+                required: true,
+                type: 'integer'
+            },
+            brand: {
+                required: false,
+                type: 'string',
+                maxLength: 100
+            },
+            image_url: {
+                required: false,
+                type: 'string'
+            }
+        };
+    }
+
     /**
      * Find all products with filtering and pagination
      */
-    static async findAll(filters = {}, pagination = {}, sortOptions = {}) {
+    async findAll(filters = {}, pagination = {}, sortOptions = {}) {
         try {
             const { page = 1, limit = 20 } = pagination;
             const { field = 'created_at', order = 'desc' } = sortOptions;
             const offset = (page - 1) * limit;
 
             let query = supabase
-                .from(constants.DATABASE_TABLES.SHOES)
+                .from(this.tableName)
                 .select(`
                     *,
                     categories:category_id (
@@ -43,10 +86,12 @@ class Product {
                 query = query.eq('category_id', filters.category);
             }
 
-            if (filters.min_price || filters.max_price) {
-                // Need to filter by variant price - this is more complex with Supabase
-                // For now, we'll get all products and filter in memory
-                // In production, you might want to create a database view or function
+            if (filters.brand) {
+                query = query.eq('brand', filters.brand);
+            }
+
+            if (filters.is_featured !== undefined) {
+                query = query.eq('is_featured', filters.is_featured);
             }
 
             // Apply sorting
@@ -77,7 +122,10 @@ class Product {
 
             return {
                 products: filteredProducts,
-                total: count || 0
+                total: count || 0,
+                page,
+                limit,
+                totalPages: Math.ceil((count || 0) / limit)
             };
         } catch (error) {
             console.error('Find all products error:', error);
@@ -86,12 +134,12 @@ class Product {
     }
 
     /**
-     * Find product by ID
+     * Override findById to include relationships
      */
-    static async findById(productId) {
+    async findById(productId) {
         try {
             const { data, error } = await supabase
-                .from(constants.DATABASE_TABLES.SHOES)
+                .from(this.tableName)
                 .select(`
                     *,
                     categories:category_id (
@@ -113,7 +161,7 @@ class Product {
                         )
                     )
                 `)
-                .eq('shoe_id', productId)
+                .eq(this.primaryKey, productId)
                 .single();
 
             if (error && error.code !== 'PGRST116') {
@@ -132,14 +180,14 @@ class Product {
     /**
      * Search products
      */
-    static async search(filters = {}, pagination = {}) {
+    async search(filters = {}, pagination = {}) {
         try {
             const { query: searchQuery } = filters;
             const { page = 1, limit = 20 } = pagination;
             const offset = (page - 1) * limit;
 
             let query = supabase
-                .from(constants.DATABASE_TABLES.SHOES)
+                .from(this.tableName)
                 .select(`
                     *,
                     categories:category_id (
@@ -181,7 +229,10 @@ class Product {
 
             return {
                 products: processedProducts,
-                total: count || 0
+                total: count || 0,
+                page,
+                limit,
+                totalPages: Math.ceil((count || 0) / limit)
             };
         } catch (error) {
             console.error('Search products error:', error);
@@ -192,12 +243,11 @@ class Product {
     /**
      * Find products by category
      */
-    static async findByCategory(categoryId, pagination = {}, sortOptions = {}) {
+    async findByCategory(categoryId, pagination = {}, sortOptions = {}) {
         try {
-            const { page = 1, limit = 20 } = pagination;
-            const { field = 'created_at', order = 'desc' } = sortOptions;
-            const offset = (page - 1) * limit;
-
+            const filters = { category: categoryId };
+            const result = await this.findAll(filters, pagination, sortOptions);
+            
             // Get category info
             const { data: category } = await supabase
                 .from(constants.DATABASE_TABLES.CATEGORIES)
@@ -205,47 +255,9 @@ class Product {
                 .eq('category_id', categoryId)
                 .single();
 
-            let query = supabase
-                .from(constants.DATABASE_TABLES.SHOES)
-                .select(`
-                    *,
-                    categories:category_id (
-                        category_name,
-                        description
-                    ),
-                    shoe_variants:${constants.DATABASE_TABLES.SHOE_VARIANTS} (
-                        variant_id,
-                        stock_quantity,
-                        variant_price,
-                        sku,
-                        colors:color_id (
-                            color_name
-                        ),
-                        sizes:size_id (
-                            size_value
-                        )
-                    )
-                `, { count: 'exact' })
-                .eq('category_id', categoryId);
-
-            // Apply sorting
-            const validSortFields = ['shoe_name', 'base_price', 'created_at'];
-            const sortField = validSortFields.includes(field) ? field : 'created_at';
-            query = query.order(sortField, { ascending: order === 'asc' });
-
-            // Apply pagination
-            query = query.range(offset, offset + limit - 1);
-
-            const { data, error, count } = await query;
-
-            if (error) throw error;
-
-            const processedProducts = this.processProductsWithVariants(data || []);
-
             return {
-                products: processedProducts,
-                category,
-                total: count || 0
+                ...result,
+                category
             };
         } catch (error) {
             console.error('Find products by category error:', error);
@@ -256,37 +268,14 @@ class Product {
     /**
      * Get featured products
      */
-    static async getFeatured(limit = 10) {
+    async getFeatured(limit = 10) {
         try {
-            // For now, we'll get the latest products
-            // In a real app, you might have a featured flag or use sales data
-            const { data, error } = await supabase
-                .from(constants.DATABASE_TABLES.SHOES)
-                .select(`
-                    *,
-                    categories:category_id (
-                        category_name,
-                        description
-                    ),
-                    shoe_variants:${constants.DATABASE_TABLES.SHOE_VARIANTS} (
-                        variant_id,
-                        stock_quantity,
-                        variant_price,
-                        sku,
-                        colors:color_id (
-                            color_name
-                        ),
-                        sizes:size_id (
-                            size_value
-                        )
-                    )
-                `)
-                .order('created_at', { ascending: false })
-                .limit(limit);
-
-            if (error) throw error;
-
-            return this.processProductsWithVariants(data || []);
+            const filters = { is_featured: true };
+            const pagination = { page: 1, limit };
+            const sortOptions = { field: 'created_at', order: 'desc' };
+            
+            const result = await this.findAll(filters, pagination, sortOptions);
+            return result.products;
         } catch (error) {
             console.error('Get featured products error:', error);
             throw new Error(`Failed to fetch featured products: ${error.message}`);
@@ -296,7 +285,7 @@ class Product {
     /**
      * Get product variants
      */
-    static async getVariants(productId) {
+    async getVariants(productId) {
         try {
             const { data, error } = await supabase
                 .from(constants.DATABASE_TABLES.SHOE_VARIANTS)
@@ -327,7 +316,7 @@ class Product {
     /**
      * Get product reviews
      */
-    static async getReviews(productId, pagination = {}) {
+    async getReviews(productId, pagination = {}) {
         try {
             const { page = 1, limit = 10 } = pagination;
             const offset = (page - 1) * limit;
@@ -348,6 +337,27 @@ class Product {
             if (error) throw error;
 
             // Get rating summary
+            const ratingSummary = await this.getRatingSummary(productId);
+
+            return {
+                reviews: data || [],
+                total: count || 0,
+                page,
+                limit,
+                totalPages: Math.ceil((count || 0) / limit),
+                rating_summary: ratingSummary
+            };
+        } catch (error) {
+            console.error('Get product reviews error:', error);
+            throw new Error(`Failed to fetch product reviews: ${error.message}`);
+        }
+    }
+
+    /**
+     * Get rating summary for a product
+     */
+    async getRatingSummary(productId) {
+        try {
             const { data: ratingData } = await supabase
                 .from(constants.DATABASE_TABLES.REVIEWS)
                 .select('rating')
@@ -361,7 +371,7 @@ class Product {
                 ? ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length 
                 : 0;
 
-            const ratingSummary = {
+            return {
                 average_rating: Math.round(averageRating * 10) / 10,
                 total_reviews: ratings.length,
                 rating_distribution: {
@@ -372,22 +382,16 @@ class Product {
                     5: ratingCounts[4]
                 }
             };
-
-            return {
-                reviews: data || [],
-                total: count || 0,
-                rating_summary: ratingSummary
-            };
         } catch (error) {
-            console.error('Get product reviews error:', error);
-            throw new Error(`Failed to fetch product reviews: ${error.message}`);
+            console.error('Get rating summary error:', error);
+            throw new Error(`Failed to get rating summary: ${error.message}`);
         }
     }
 
     /**
      * Create product review
      */
-    static async createReview(reviewData) {
+    async createReview(reviewData) {
         try {
             const { data, error } = await supabase
                 .from(constants.DATABASE_TABLES.REVIEWS)
@@ -410,16 +414,45 @@ class Product {
     }
 
     /**
+     * Get related products
+     */
+    async getRelatedProducts(productId, limit = 4) {
+        try {
+            // First get the current product's category
+            const product = await this.findById(productId);
+            if (!product) {
+                throw new NotFoundError('Product');
+            }
+
+            // Find other products in the same category
+            const filters = { category: product.category_id };
+            const pagination = { page: 1, limit: limit + 1 }; // +1 to exclude current product
+            
+            const result = await this.findAll(filters, pagination);
+            
+            // Filter out the current product
+            const relatedProducts = result.products
+                .filter(p => p.shoe_id !== productId)
+                .slice(0, limit);
+
+            return relatedProducts;
+        } catch (error) {
+            console.error('Get related products error:', error);
+            throw new Error(`Failed to get related products: ${error.message}`);
+        }
+    }
+
+    /**
      * Process products with variants to include pricing and availability
      */
-    static processProductsWithVariants(products) {
+    processProductsWithVariants(products) {
         return products.map(product => this.processProductWithVariants(product));
     }
 
     /**
      * Process single product with variants
      */
-    static processProductWithVariants(product) {
+    processProductWithVariants(product) {
         const variants = product.shoe_variants || [];
         
         // Calculate pricing from variants
@@ -448,7 +481,56 @@ class Product {
             variants: variants
         };
     }
+
+    /**
+     * Update product stock
+     */
+    async updateStock(variantId, quantity, operation = 'set') {
+        try {
+            let updateData;
+            
+            if (operation === 'increment') {
+                // Get current stock
+                const { data: variant } = await supabase
+                    .from(constants.DATABASE_TABLES.SHOE_VARIANTS)
+                    .select('stock_quantity')
+                    .eq('variant_id', variantId)
+                    .single();
+                
+                updateData = { stock_quantity: (variant.stock_quantity || 0) + quantity };
+            } else if (operation === 'decrement') {
+                // Get current stock
+                const { data: variant } = await supabase
+                    .from(constants.DATABASE_TABLES.SHOE_VARIANTS)
+                    .select('stock_quantity')
+                    .eq('variant_id', variantId)
+                    .single();
+                
+                const newStock = Math.max(0, (variant.stock_quantity || 0) - quantity);
+                updateData = { stock_quantity: newStock };
+            } else {
+                updateData = { stock_quantity: quantity };
+            }
+
+            const { data, error } = await supabase
+                .from(constants.DATABASE_TABLES.SHOE_VARIANTS)
+                .update(updateData)
+                .eq('variant_id', variantId)
+                .select()
+                .single();
+
+            if (error) throw error;
+            return data;
+        } catch (error) {
+            console.error('Update stock error:', error);
+            throw new Error(`Failed to update stock: ${error.message}`);
+        }
+    }
 }
 
-export default Product;
+// Create a singleton instance for static-like access
+const productModel = new Product();
 
+// Export both the class and instance for flexibility
+export default Product;
+export { productModel };

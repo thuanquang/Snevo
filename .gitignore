@@ -112,6 +112,7 @@ logs
 # Build outputs
 build/
 dist/
+frontend/assets/js/config.generated.js
 
 # Database
 *.sqlite

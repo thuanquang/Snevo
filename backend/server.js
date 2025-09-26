@@ -23,6 +23,7 @@ import authMiddleware from './middleware/auth.js';
 import apiRoutes from './routes/api.js';
 import authRoutes from './routes/auth.js';
 import productRoutes from './routes/products.js';
+import orderRoutes from './routes/orders.js';
 
 // Load environment variables
 dotenv.config();
@@ -63,6 +64,7 @@ class SnevoServer {
         // API Routes
         this.routes.set('/api/auth', authRoutes);
         this.routes.set('/api/products', productRoutes);
+        this.routes.set('/api/orders', orderRoutes);
         this.routes.set('/api', apiRoutes);
     }
 

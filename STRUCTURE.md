@@ -1,48 +1,47 @@
 # PROJECT STRUCTURE - E-COMMERCE NIKE-STYLE WEB APPLICATION
 
-## ARCHITECTURE: MVC Pattern
-- **Model**: Database interactions, business logic, data validation
-- **View**: Frontend templates, UI components, client-side rendering
-- **Controller**: Request handling, routing, API endpoints, business flow coordination
+## ARCHITECTURE: Object-Oriented MVC Pattern
+- **Model**: OOP-based database models extending BaseModel with validation, relationships, and business logic
+- **View**: Component-based frontend with BaseComponent classes and modular UI elements
+- **Controller**: OOP controllers extending BaseController with request handling, validation, and response formatting
 
 ## TECHNOLOGY STACK
-- **Frontend**: Vanilla HTML5, CSS3, JavaScript ES6+, Bootstrap 5.3
-- **Backend**: Node.js (built-in HTTP module, no Express.js)
+- **Frontend**: Vanilla HTML5, CSS3, JavaScript ES6+ Classes, Bootstrap 5.3
+- **Backend**: Node.js (built-in HTTP module, no Express.js) with OOP Architecture
 - **Database**: Supabase PostgreSQL with provided schema
-- **Authentication**: Supabase Auth + Google OAuth
-- **Architecture**: MVC (Model-View-Controller)
+- **Authentication**: Supabase Auth + Google OAuth with OOP AuthManager
+- **Architecture**: Object-Oriented MVC with inheritance, composition, and encapsulation
 
 ## DIRECTORY STRUCTURE
 ```
 /
-├── backend/                    # Server-side application
-│   ├── controllers/           # Request handlers and business logic
-│   │   ├── authController.js  # Authentication logic
-│   │   ├── productController.js # Product management
-│   │   ├── orderController.js # Order processing
-│   │   └── userController.js  # User management
-│   ├── models/               # Database models and business logic
-│   │   ├── database.js       # Supabase connection
-│   │   ├── User.js          # User model
-│   │   ├── Product.js       # Product/Shoe model
-│   │   ├── Order.js         # Order model
-│   │   └── Category.js      # Category model
-│   ├── routes/              # Route definitions
-│   │   ├── api.js           # API route handlers
-│   │   ├── auth.js          # Authentication routes
-│   │   └── products.js      # Product routes
-│   ├── middleware/          # Custom middleware
-│   │   ├── auth.js          # Authentication middleware
-│   │   ├── cors.js          # CORS handling
-│   │   └── validation.js    # Request validation
-│   ├── utils/               # Utility functions
-│   │   ├── helpers.js       # General helpers
-│   │   ├── validation.js    # Data validation
-│   │   └── response.js      # API response formatting
+├── backend/                    # Server-side application (OOP Architecture)
+│   ├── controllers/           # OOP Controllers extending BaseController
+│   │   ├── authController.js  # AuthController class - authentication logic (✓ implemented)
+│   │   ├── productController.js # ProductController class - product management (✓ implemented)
+│   │   └── orderController.js # OrderController class - order processing (✓ implemented)
+│   ├── models/               # OOP Models extending BaseModel
+│   │   ├── User.js          # User model class with validation and relationships (✓ implemented)
+│   │   ├── Product.js       # Product/Shoe model class with variant management (✓ implemented)
+│   │   ├── Order.js         # Order model class with status tracking (✓ implemented)
+│   │   └── Category.js      # Category model class with hierarchy support (✓ implemented)
+│   ├── routes/              # Route definitions using controller instances
+│   │   ├── api.js           # API route handlers (✓ enhanced with comprehensive docs)
+│   │   ├── auth.js          # Authentication routes (✓ implemented)
+│   │   ├── products.js      # Product routes (✓ implemented)
+│   │   └── orders.js        # Order routes (✓ implemented)
+│   ├── middleware/          # Custom middleware functions
+│   │   ├── auth.js          # Authentication middleware (✓ enhanced with role-based access)
+│   │   ├── cors.js          # CORS handling (✓ implemented)
+│   │   └── validation.js    # Request validation (✓ comprehensive validation system)
+│   ├── utils/               # OOP Utility classes and base classes
+│   │   ├── BaseModel.js     # Abstract base model class (✓ implemented)
+│   │   ├── BaseController.js # Abstract base controller class (✓ implemented)
+│   │   └── ErrorClasses.js  # Custom error classes with inheritance (✓ comprehensive)
 │   ├── config/              # Configuration files
 │   │   ├── database.js      # Database configuration
 │   │   └── auth.js          # Authentication configuration
-│   └── server.js            # Main server file (Node.js HTTP)
+│   └── server.js            # Main server class (SnevoServer)
 ├── frontend/               # Client-side application
 │   ├── assets/            # Static assets
 │   │   ├── css/           # Stylesheets
@@ -50,12 +49,16 @@
 │   │   │   ├── animations.css # Nike-style animations
 │   │   │   ├── components.css # Component styles
 │   │   │   └── responsive.css # Responsive design
-│   │   ├── js/            # JavaScript files
-│   │   │   ├── main.js    # Main application logic
-│   │   │   ├── auth.js    # Authentication handling
-│   │   │   ├── products.js # Product browsing logic
-│   │   │   ├── animations.js # Animation controllers
-│   │   │   └── api.js     # API communication
+│   │   ├── js/            # JavaScript OOP classes and modules
+│   │   │   ├── main.js    # Legacy compatibility layer
+│   │   │   ├── config.js  # Frontend configuration (✓ implemented)
+│   │   │   ├── login.js   # Login page functionality (✓ implemented)
+│   │   │   ├── Application.js # Main application class (orchestrates everything)
+│   │   │   ├── AuthManager.js # OOP authentication management class (✓ implemented)
+│   │   │   ├── ProductManager.js # OOP product management class
+│   │   │   ├── BaseComponent.js # Abstract base component class
+│   │   │   ├── ApiClient.js # OOP API client with interceptors (✓ implemented)
+│   │   │   └── animations.js # Animation controllers
 │   │   ├── images/        # Image assets
 │   │   │   ├── products/  # Product images
 │   │   │   ├── icons/     # UI icons
@@ -67,8 +70,8 @@
 │   │   ├── product-card.html # Product card component
 │   │   └── modal.html     # Modal component
 │   ├── pages/             # HTML pages
-│   │   ├── index.html     # Landing page
-│   │   ├── login.html     # Login page
+│   │   ├── index.html     # Landing page (✓ implemented)
+│   │   ├── login.html     # Login page (✓ implemented with Supabase auth)
 │   │   ├── products.html  # Product browsing
 │   │   ├── product-detail.html # Product detail view
 │   │   ├── cart.html      # Shopping cart
@@ -87,35 +90,43 @@
 ├── tests/               # Test files
 │   ├── backend/         # Backend tests
 │   └── frontend/        # Frontend tests
-├── package.json         # Node.js dependencies
+├── package.json         # Node.js dependencies (✓ updated with build scripts)
 ├── .gitignore          # Git ignore rules
+├── env.example         # Environment variables template (✓ implemented)
 ├── .env                # Environment variables (not committed)
-├── README.md           # Project documentation
+├── README.md           # Project documentation (✓ updated)
 ├── schema.sql          # Database schema (existing)
+├── scripts/            # Build and utility scripts (✓ implemented)
+│   ├── build.js        # Main build script with env injection
+│   ├── build-frontend.js # Frontend build with env injection
+│   └── dev-config.js   # Development config generation
+├── docs/               # Documentation
+│   └── BUILD.md        # Build system documentation (✓ implemented)
 ├── STRUCTURE.md        # This file
 └── EXTENSION_FUNCTIONALITY.md # Detailed project functionality
 ```
 
-## MVC IMPLEMENTATION DETAILS
+## OOP MVC IMPLEMENTATION DETAILS
 
 ### MODELS (backend/models/)
-- Handle database operations with Supabase
-- Implement business logic and data validation
-- Manage relationships between entities
-- Handle CRUD operations for Users, Products, Orders, etc.
+- **BaseModel**: Abstract base class with common CRUD operations, validation, and error handling
+- **User Model**: Extends BaseModel with authentication, profile management, and relationship handling
+- **Product Model**: Extends BaseModel with variant management, search, and category relationships
+- **Category Model**: Extends BaseModel with hierarchy support and product counting
+- **Features**: Built-in validation, field filtering, hidden fields, pagination, and caching
 
-### VIEWS (frontend/pages/ + frontend/components/)
-- Pure HTML templates with embedded JavaScript
-- Bootstrap components for responsive design
-- Nike-inspired animations and transitions
-- Modular component system for reusability
+### VIEWS (frontend/assets/js/)
+- **BaseComponent**: Abstract base class for UI components with lifecycle management
+- **Application**: Main orchestration class managing all other components
+- **AuthManager**: Handles authentication state, UI updates, and session management
+- **ProductManager**: Manages product display, cart operations, and API communication
+- **ApiClient**: OOP HTTP client with interceptors, error handling, and retry logic
 
 ### CONTROLLERS (backend/controllers/)
-- Handle HTTP requests and responses
-- Coordinate between Models and Views
-- Implement API endpoints
-- Manage authentication and authorization
-- Process business logic flow
+- **BaseController**: Abstract base class with request handling, validation, and response formatting
+- **AuthController**: Extends BaseController with authentication endpoints and middleware
+- **ProductController**: Extends BaseController with product CRUD, search, and review operations
+- **Features**: Built-in validation, pagination helpers, error handling, and authentication checks
 
 ## KEY FEATURES TO IMPLEMENT
 1. **Landing Page**: Nike-style hero sections, animated product showcases
@@ -125,14 +136,14 @@
 5. **User Management**: Profile, order history, addresses
 6. **Responsive Design**: Mobile-first approach with Bootstrap
 
-## DEVELOPMENT WORKFLOW
-1. Backend API development with Node.js HTTP module
-2. Database integration with Supabase
-3. Frontend UI development with vanilla JS + Bootstrap
-4. Authentication implementation with Supabase Auth
-5. Product catalog and detail pages
-6. Order management system
-7. Testing and optimization
+## OOP DEVELOPMENT WORKFLOW
+1. **Base Classes**: Implement BaseModel, BaseController, BaseComponent with common functionality
+2. **Backend Models**: Create model classes extending BaseModel with specific business logic
+3. **Backend Controllers**: Implement controller classes extending BaseController with endpoint logic
+4. **Frontend Managers**: Create manager classes for authentication, products, and application orchestration
+5. **UI Components**: Build reusable component classes extending BaseComponent
+6. **Integration**: Wire up OOP instances in routes and main application
+7. **Testing & Optimization**: Test class inheritance, encapsulation, and performance
 
 ## PERFORMANCE CONSIDERATIONS
 - Lazy loading for images and components

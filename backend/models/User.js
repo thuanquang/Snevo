@@ -1,38 +1,83 @@
 /**
  * User Model
- * Handles user data operations with Supabase
+ * Handles user data operations with Supabase using OOP principles
  */
 
 import { supabase, supabaseAdmin } from '../../config/supabase.js';
 import constants from '../../config/constants.js';
+import BaseModel from '../utils/BaseModel.js';
+import { ValidationError, ConflictError, NotFoundError } from '../utils/ErrorClasses.js';
 
-class User {
+class User extends BaseModel {
+    constructor() {
+        super(constants.DATABASE_TABLES.USERS, 'user_id');
+        
+        this.fillable = [
+            'email', 'username', 'full_name', 'role', 'password_hash',
+            'phone', 'date_of_birth', 'gender', 'avatar_url'
+        ];
+        
+        this.hidden = ['password_hash', 'password'];
+        
+        this.validationRules = {
+            email: {
+                required: true,
+                type: 'email'
+            },
+            username: {
+                required: true,
+                type: 'string',
+                minLength: 3,
+                maxLength: 50,
+                pattern: /^[a-zA-Z0-9_]+$/
+            },
+            full_name: {
+                required: true,
+                type: 'string',
+                minLength: 2,
+                maxLength: 100
+            },
+            role: {
+                required: false,
+                type: 'string',
+                enum: Object.values(constants.USER_ROLES)
+            },
+            phone: {
+                required: false,
+                type: 'string',
+                pattern: /^\+?[\d\s\-\(\)]+$/
+            },
+            password_hash: {
+                required: true,
+                type: 'string'
+            }
+        };
+    }
+
     /**
-     * Create a new user
+     * Override create to add unique validation
      */
-    static async create(userData) {
-        try {
-            const { data, error } = await supabase
-                .from(constants.DATABASE_TABLES.USERS)
-                .insert([userData])
-                .select()
-                .single();
-
-            if (error) throw error;
-            return data;
-        } catch (error) {
-            console.error('User creation error:', error);
-            throw new Error(`Failed to create user: ${error.message}`);
+    async create(userData) {
+        // Check for existing email
+        if (userData.email && await this.emailExists(userData.email)) {
+            throw new ConflictError('Email already exists');
         }
+
+        // Check for existing username
+        if (userData.username && await this.usernameExists(userData.username)) {
+            throw new ConflictError('Username already exists');
+        }
+
+        return super.create(userData);
     }
 
     /**
      * Find user by email
      */
-    static async findByEmail(email) {
+    async findByEmail(email) {
         try {
             const { data, error } = await supabase
-                .from(constants.DATABASE_TABLES.USERS)
+                .from(this.tableName)
                 .select('*')
                 .eq('email', email)
                 .single();
@@ -41,7 +86,7 @@ class User {
                 throw error;
             }
 
-            return data;
+            return data ? this.hideFields(data) : null;
         } catch (error) {
             console.error('Find user by email error:', error);
             throw new Error(`Failed to find user: ${error.message}`);
@@ -49,34 +94,12 @@ class User {
     }
 
     /**
-     * Find user by ID
-     */
-    static async findById(userId) {
-        try {
-            const { data, error } = await supabase
-                .from(constants.DATABASE_TABLES.USERS)
-                .select('*')
-                .eq('user_id', userId)
-                .single();
-
-            if (error && error.code !== 'PGRST116') {
-                throw error;
-            }
-
-            return data;
-        } catch (error) {
-            console.error('Find user by ID error:', error);
-            throw new Error(`Failed to find user: ${error.message}`);
-        }
-    }
-
-    /**
      * Find user by username
      */
-    static async findByUsername(username) {
+    async findByUsername(username) {
         try {
             const { data, error } = await supabase
-                .from(constants.DATABASE_TABLES.USERS)
+                .from(this.tableName)
                 .select('*')
                 .eq('username', username)
                 .single();
@@ -85,7 +108,7 @@ class User {
                 throw error;
             }
 
-            return data;
+            return data ? this.hideFields(data) : null;
         } catch (error) {
             console.error('Find user by username error:', error);
             throw new Error(`Failed to find user: ${error.message}`);
@@ -95,65 +118,40 @@ class User {
     /**
      * Update user by email
      */
-    static async updateByEmail(email, updates) {
+    async updateByEmail(email, updates) {
         try {
+            // Check for conflicts if updating email or username
+            if (updates.email && updates.email !== email && await this.emailExists(updates.email)) {
+                throw new ConflictError('Email already exists');
+            }
+
+            if (updates.username) {
+                const existingUser = await this.findByEmail(email);
+                if (existingUser && await this.usernameExists(updates.username, existingUser.user_id)) {
+                    throw new ConflictError('Username already exists');
+                }
+            }
+
             const { data, error } = await supabase
-                .from(constants.DATABASE_TABLES.USERS)
+                .from(this.tableName)
                 .update(updates)
                 .eq('email', email)
                 .select()
                 .single();
 
             if (error) throw error;
-            return data;
+            return this.hideFields(data);
         } catch (error) {
+            if (error instanceof ConflictError) throw error;
             console.error('Update user error:', error);
             throw new Error(`Failed to update user: ${error.message}`);
         }
     }
 
     /**
-     * Update user by ID
-     */
-    static async updateById(userId, updates) {
-        try {
-            const { data, error } = await supabase
-                .from(constants.DATABASE_TABLES.USERS)
-                .update(updates)
-                .eq('user_id', userId)
-                .select()
-                .single();
-
-            if (error) throw error;
-            return data;
-        } catch (error) {
-            console.error('Update user by ID error:', error);
-            throw new Error(`Failed to update user: ${error.message}`);
-        }
-    }
-
-    /**
-     * Delete user by ID
-     */
-    static async deleteById(userId) {
-        try {
-            const { error } = await supabase
-                .from(constants.DATABASE_TABLES.USERS)
-                .delete()
-                .eq('user_id', userId);
-
-            if (error) throw error;
-            return true;
-        } catch (error) {
-            console.error('Delete user error:', error);
-            throw new Error(`Failed to delete user: ${error.message}`);
-        }
-    }
-
-    /**
      * Get user addresses
      */
-    static async getAddresses(userId) {
+    async getAddresses(userId) {
         try {
             const { data, error } = await supabase
                 .from(constants.DATABASE_TABLES.ADDRESSES)
@@ -173,7 +171,7 @@ class User {
     /**
      * Add user address
      */
-    static async addAddress(userId, addressData) {
+    async addAddress(userId, addressData) {
         try {
             // If this is set as default, unset other default addresses
             if (addressData.is_default) {
@@ -200,7 +198,7 @@ class User {
     /**
      * Update user address
      */
-    static async updateAddress(userId, addressId, updates) {
+    async updateAddress(userId, addressId, updates) {
         try {
             // If this is set as default, unset other default addresses
             if (updates.is_default) {
@@ -229,7 +227,7 @@ class User {
     /**
      * Delete user address
      */
-    static async deleteAddress(userId, addressId) {
+    async deleteAddress(userId, addressId) {
         try {
             const { error } = await supabase
                 .from(constants.DATABASE_TABLES.ADDRESSES)
@@ -248,7 +246,7 @@ class User {
     /**
      * Get user orders
      */
-    static async getOrders(userId, pagination = {}) {
+    async getOrders(userId, pagination = {}) {
         try {
             const { page = 1, limit = 20 } = pagination;
             const offset = (page - 1) * limit;
@@ -284,7 +282,7 @@ class User {
     /**
      * Get user reviews
      */
-    static async getReviews(userId, pagination = {}) {
+    async getReviews(userId, pagination = {}) {
         try {
             const { page = 1, limit = 20 } = pagination;
             const offset = (page - 1) * limit;
@@ -317,10 +315,10 @@ class User {
     /**
      * Check if username exists
      */
-    static async usernameExists(username, excludeUserId = null) {
+    async usernameExists(username, excludeUserId = null) {
         try {
             let query = supabase
-                .from(constants.DATABASE_TABLES.USERS)
+                .from(this.tableName)
                 .select('user_id')
                 .eq('username', username);
 
@@ -344,10 +342,10 @@ class User {
     /**
      * Check if email exists
      */
-    static async emailExists(email, excludeUserId = null) {
+    async emailExists(email, excludeUserId = null) {
         try {
             let query = supabase
-                .from(constants.DATABASE_TABLES.USERS)
+                .from(this.tableName)
                 .select('user_id')
                 .eq('email', email);
 
@@ -367,7 +365,37 @@ class User {
             throw new Error(`Failed to check email: ${error.message}`);
         }
     }
+
+    /**
+     * Get user statistics
+     */
+    async getUserStats(userId) {
+        try {
+            const [ordersResult, reviewsResult] = await Promise.all([
+                supabase
+                    .from(constants.DATABASE_TABLES.ORDERS)
+                    .select('*', { count: 'exact', head: true })
+                    .eq('user_id', userId),
+                supabase
+                    .from(constants.DATABASE_TABLES.REVIEWS)
+                    .select('*', { count: 'exact', head: true })
+                    .eq('user_id', userId)
+            ]);
+
+            return {
+                total_orders: ordersResult.count || 0,
+                total_reviews: reviewsResult.count || 0
+            };
+        } catch (error) {
+            console.error('Get user stats error:', error);
+            throw new Error(`Failed to get user stats: ${error.message}`);
+        }
+    }
 }
 
-export default User;
+// Create a singleton instance for static-like access
+const userModel = new User();
 
+// Export both the class and instance for flexibility
+export default User;
+export { userModel };

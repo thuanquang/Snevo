@@ -56,7 +56,7 @@ npm install
 
 Copy the environment template:
 ```bash
-cp .env.example .env
+cp env.example .env
 ```
 
 Edit `.env` with your configuration:
@@ -66,19 +66,31 @@ SUPABASE_URL=https://your-project-id.supabase.co
 SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
-# Server Configuration
-PORT=3000
-NODE_ENV=development
-HOST=localhost
+# Database Configuration
+DB_SCHEMA=db_nike
 
-# JWT Configuration
-JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
-JWT_EXPIRES_IN=7d
+# Frontend Configuration
+FRONTEND_URL=http://localhost:3000
+API_BASE_URL=http://localhost:3001
+
+# Environment
+NODE_ENV=development
+
+# App Configuration
+APP_NAME=Snevo
+APP_VERSION=1.0.0
+
+# Authentication
+JWT_SECRET=your-jwt-secret-key
+JWT_EXPIRES_IN=24h
+REFRESH_TOKEN_EXPIRES_IN=7d
 
 # Google OAuth (optional)
 GOOGLE_CLIENT_ID=your-google-client-id
 GOOGLE_CLIENT_SECRET=your-google-client-secret
 ```
+
+> **Important**: The build system now injects environment variables into the frontend during build time for secure credential management. See [Build Documentation](docs/BUILD.md) for details.
 
 ### 3. Database Setup
 
@@ -130,11 +142,22 @@ snevo-ecommerce/
 
 ### Available Scripts
 
+#### Development
+- `npm run dev` - Start development server with config generation and auto-reload
+- `npm run dev:config` - Generate development config from .env file
+
+#### Production
 - `npm start` - Start production server
-- `npm run dev` - Start development server with auto-reload
+- `npm run build` - Full production build with environment variable injection
+- `npm run build:frontend` - Build frontend only with environment variables
+- `npm run serve` - Build and serve production version
+
+#### Testing
 - `npm test` - Run all tests
 - `npm run test:backend` - Run backend tests only
 - `npm run test:frontend` - Run frontend tests only
+
+> **New Build System**: Environment variables are now injected at build time. See [Build Documentation](docs/BUILD.md) for complete details.
 
 ### API Endpoints
 

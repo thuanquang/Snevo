@@ -1,0 +1,576 @@
+<!-- Modal Component - Reusable modal template -->
+<div class="modal fade modal-component" id="{{modalId}}" tabindex="-1" aria-labelledby="{{modalId}}Label" aria-hidden="true">
+    <div class="modal-dialog {{modalSize}}">
+        <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <h5 class="modal-title" id="{{modalId}}Label">{{title}}</h5>
+                <button type="button" class="btn-close modal-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <!-- Modal Body -->
+            <div class="modal-body">
+                {{body}}
+            </div>
+            
+            <!-- Modal Footer -->
+            {{#if showFooter}}
+            <div class="modal-footer">
+                {{#if cancelButton}}
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{cancelButton.text}}</button>
+                {{/if}}
+                {{#if confirmButton}}
+                <button type="button" class="btn {{confirmButton.class}}" id="{{modalId}}Confirm">{{confirmButton.text}}</button>
+                {{/if}}
+            </div>
+            {{/if}}
+        </div>
+    </div>
+</div>
+
+<style>
+/* Modal Component Styles */
+.modal-component {
+    --modal-border-radius: 0.5rem;
+    --modal-shadow: 0 10px 50px rgba(0, 0, 0, 0.3);
+    --modal-backdrop: rgba(0, 0, 0, 0.5);
+}
+
+.modal-component .modal-dialog {
+    transition: transform 0.3s ease-out;
+    transform: translate(0, -50px);
+}
+
+.modal-component.show .modal-dialog {
+    transform: none;
+}
+
+.modal-component .modal-content {
+    border: none;
+    border-radius: var(--modal-border-radius);
+    box-shadow: var(--modal-shadow);
+    overflow: hidden;
+}
+
+.modal-component .modal-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-bottom: 1px solid var(--border-color);
+    padding: 1.5rem;
+}
+
+.modal-component .modal-title {
+    font-weight: 600;
+    color: var(--text-dark);
+    margin: 0;
+}
+
+.modal-component .modal-close {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    color: var(--text-light);
+    cursor: pointer;
+    padding: 0.375rem;
+    border-radius: 0.25rem;
+    transition: all 0.2s ease;
+}
+
+.modal-component .modal-close:hover {
+    color: var(--text-dark);
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.modal-component .modal-body {
+    padding: 1.5rem;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.modal-component .modal-footer {
+    background: #f8f9fa;
+    border-top: 1px solid var(--border-color);
+    padding: 1rem 1.5rem;
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+.modal-component .modal-footer .btn {
+    min-width: 100px;
+}
+
+/* Modal Sizes */
+.modal-component .modal-sm {
+    max-width: 300px;
+}
+
+.modal-component .modal-lg {
+    max-width: 800px;
+}
+
+.modal-component .modal-xl {
+    max-width: 1140px;
+}
+
+.modal-component .modal-fullscreen {
+    width: 100vw;
+    max-width: none;
+    height: 100vh;
+    margin: 0;
+}
+
+.modal-component .modal-fullscreen .modal-content {
+    height: 100vh;
+    border-radius: 0;
+}
+
+/* Loading State */
+.modal-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    color: var(--text-light);
+}
+
+.modal-loading .spinner-border {
+    margin-right: 1rem;
+}
+
+/* Error State */
+.modal-error {
+    text-align: center;
+    padding: 2rem;
+    color: #dc3545;
+}
+
+.modal-error i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+/* Success State */
+.modal-success {
+    text-align: center;
+    padding: 2rem;
+    color: #198754;
+}
+
+.modal-success i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+    .modal-component .modal-dialog {
+        margin: 0.5rem;
+        max-width: calc(100% - 1rem);
+    }
+    
+    .modal-component .modal-header,
+    .modal-component .modal-body,
+    .modal-component .modal-footer {
+        padding: 1rem;
+    }
+    
+    .modal-component .modal-footer {
+        flex-direction: column;
+    }
+    
+    .modal-component .modal-footer .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    .modal-component .modal-footer .btn:last-child {
+        margin-bottom: 0;
+    }
+}
+
+/* Animation Classes */
+.modal-fade-in {
+    animation: modalFadeIn 0.3s ease-out;
+}
+
+.modal-slide-in {
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+.modal-zoom-in {
+    animation: modalZoomIn 0.3s ease-out;
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes modalSlideIn {
+    from {
+        transform: translateX(-100%);
+    }
+    to {
+        transform: translateX(0);
+    }
+}
+
+@keyframes modalZoomIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+</style>
+
+<script>
+// Modal Component JavaScript
+(function() {
+    'use strict';
+    
+    class ModalComponent {
+        constructor() {
+            this.modals = new Map();
+            this.defaultOptions = {
+                size: '',
+                backdrop: true,
+                keyboard: true,
+                focus: true,
+                show: true,
+                animation: 'fade',
+                showFooter: true
+            };
+        }
+        
+        /**
+         * Create a new modal
+         */
+        create(id, options = {}) {
+            const config = { ...this.defaultOptions, ...options };
+            
+            // Generate modal HTML
+            const modalHTML = this.generateModalHTML(id, config);
+            
+            // Add to DOM
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            
+            // Initialize Bootstrap modal
+            const modalElement = document.getElementById(id);
+            const bsModal = new bootstrap.Modal(modalElement, {
+                backdrop: config.backdrop,
+                keyboard: config.keyboard,
+                focus: config.focus
+            });
+            
+            // Store modal reference
+            this.modals.set(id, {
+                element: modalElement,
+                bootstrap: bsModal,
+                config: config
+            });
+            
+            // Setup event listeners
+            this.setupModalEvents(id);
+            
+            // Show modal if requested
+            if (config.show) {
+                this.show(id);
+            }
+            
+            return bsModal;
+        }
+        
+        /**
+         * Generate modal HTML
+         */
+        generateModalHTML(id, config) {
+            const sizeClass = config.size ? `modal-${config.size}` : '';
+            const animationClass = config.animation ? `modal-${config.animation}-in` : '';
+            
+            return `
+                <div class="modal fade modal-component ${animationClass}" id="${id}" tabindex="-1" aria-labelledby="${id}Label" aria-hidden="true">
+                    <div class="modal-dialog ${sizeClass}">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="${id}Label">${config.title || 'Modal'}</h5>
+                                <button type="button" class="btn-close modal-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                ${config.body || ''}
+                            </div>
+                            ${config.showFooter ? this.generateFooterHTML(id, config) : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        /**
+         * Generate modal footer HTML
+         */
+        generateFooterHTML(id, config) {
+            let footerHTML = '<div class="modal-footer">';
+            
+            if (config.cancelButton) {
+                footerHTML += `<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">${config.cancelButton.text || 'Cancel'}</button>`;
+            }
+            
+            if (config.confirmButton) {
+                const btnClass = config.confirmButton.class || 'btn-primary';
+                footerHTML += `<button type="button" class="btn ${btnClass}" id="${id}Confirm">${config.confirmButton.text || 'OK'}</button>`;
+            }
+            
+            footerHTML += '</div>';
+            return footerHTML;
+        }
+        
+        /**
+         * Setup modal event listeners
+         */
+        setupModalEvents(id) {
+            const modal = this.modals.get(id);
+            if (!modal) return;
+            
+            const { element, config } = modal;
+            
+            // Confirm button handler
+            if (config.confirmButton && config.confirmButton.handler) {
+                const confirmBtn = element.querySelector(`#${id}Confirm`);
+                if (confirmBtn) {
+                    confirmBtn.addEventListener('click', (e) => {
+                        config.confirmButton.handler(e, this);
+                    });
+                }
+            }
+            
+            // Modal events
+            element.addEventListener('shown.bs.modal', () => {
+                if (config.onShown) config.onShown(element);
+            });
+            
+            element.addEventListener('hidden.bs.modal', () => {
+                if (config.onHidden) config.onHidden(element);
+                
+                // Auto-destroy if configured
+                if (config.autoDestroy !== false) {
+                    this.destroy(id);
+                }
+            });
+            
+            element.addEventListener('hide.bs.modal', (e) => {
+                if (config.onHide && config.onHide(element) === false) {
+                    e.preventDefault();
+                }
+            });
+        }
+        
+        /**
+         * Show modal
+         */
+        show(id) {
+            const modal = this.modals.get(id);
+            if (modal) {
+                modal.bootstrap.show();
+            }
+        }
+        
+        /**
+         * Hide modal
+         */
+        hide(id) {
+            const modal = this.modals.get(id);
+            if (modal) {
+                modal.bootstrap.hide();
+            }
+        }
+        
+        /**
+         * Toggle modal
+         */
+        toggle(id) {
+            const modal = this.modals.get(id);
+            if (modal) {
+                modal.bootstrap.toggle();
+            }
+        }
+        
+        /**
+         * Update modal content
+         */
+        updateContent(id, content) {
+            const modal = this.modals.get(id);
+            if (modal) {
+                const bodyElement = modal.element.querySelector('.modal-body');
+                if (bodyElement) {
+                    bodyElement.innerHTML = content;
+                }
+            }
+        }
+        
+        /**
+         * Update modal title
+         */
+        updateTitle(id, title) {
+            const modal = this.modals.get(id);
+            if (modal) {
+                const titleElement = modal.element.querySelector('.modal-title');
+                if (titleElement) {
+                    titleElement.textContent = title;
+                }
+            }
+        }
+        
+        /**
+         * Show loading state
+         */
+        showLoading(id, message = 'Loading...') {
+            this.updateContent(id, `
+                <div class="modal-loading">
+                    <div class="spinner-border" role="status"></div>
+                    <span>${message}</span>
+                </div>
+            `);
+        }
+        
+        /**
+         * Show error state
+         */
+        showError(id, message = 'An error occurred') {
+            this.updateContent(id, `
+                <div class="modal-error">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h5>Error</h5>
+                    <p>${message}</p>
+                </div>
+            `);
+        }
+        
+        /**
+         * Show success state
+         */
+        showSuccess(id, message = 'Success!') {
+            this.updateContent(id, `
+                <div class="modal-success">
+                    <i class="fas fa-check-circle"></i>
+                    <h5>Success</h5>
+                    <p>${message}</p>
+                </div>
+            `);
+        }
+        
+        /**
+         * Destroy modal
+         */
+        destroy(id) {
+            const modal = this.modals.get(id);
+            if (modal) {
+                // Hide modal first
+                modal.bootstrap.hide();
+                
+                // Remove from DOM after animation
+                setTimeout(() => {
+                    if (modal.element && modal.element.parentNode) {
+                        modal.element.remove();
+                    }
+                    this.modals.delete(id);
+                }, 300);
+            }
+        }
+        
+        /**
+         * Destroy all modals
+         */
+        destroyAll() {
+            this.modals.forEach((modal, id) => {
+                this.destroy(id);
+            });
+        }
+        
+        /**
+         * Create confirmation modal
+         */
+        confirm(options = {}) {
+            const id = 'confirmModal_' + Date.now();
+            const config = {
+                title: options.title || 'Confirm',
+                body: options.message || 'Are you sure?',
+                size: 'sm',
+                showFooter: true,
+                cancelButton: { text: options.cancelText || 'Cancel' },
+                confirmButton: {
+                    text: options.confirmText || 'OK',
+                    class: options.confirmClass || 'btn-primary',
+                    handler: () => {
+                        if (options.onConfirm) options.onConfirm();
+                        this.hide(id);
+                    }
+                },
+                onHidden: () => {
+                    if (options.onCancel) options.onCancel();
+                }
+            };
+            
+            return this.create(id, config);
+        }
+        
+        /**
+         * Create alert modal
+         */
+        alert(options = {}) {
+            const id = 'alertModal_' + Date.now();
+            const config = {
+                title: options.title || 'Alert',
+                body: options.message || 'Alert message',
+                size: 'sm',
+                showFooter: true,
+                confirmButton: {
+                    text: options.buttonText || 'OK',
+                    class: 'btn-primary',
+                    handler: () => {
+                        if (options.onClose) options.onClose();
+                        this.hide(id);
+                    }
+                }
+            };
+            
+            return this.create(id, config);
+        }
+    }
+    
+    // Create global modal manager instance
+    const modalManager = new ModalComponent();
+    
+    // Make available globally
+    window.ModalComponent = ModalComponent;
+    window.modalManager = modalManager;
+    
+    // Convenience methods
+    window.showModal = function(id, options) {
+        return modalManager.create(id, options);
+    };
+    
+    window.hideModal = function(id) {
+        return modalManager.hide(id);
+    };
+    
+    window.confirmModal = function(options) {
+        return modalManager.confirm(options);
+    };
+    
+    window.alertModal = function(options) {
+        return modalManager.alert(options);
+    };
+    
+})();
+</script>

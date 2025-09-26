@@ -6,7 +6,11 @@
   "type": "module",
   "scripts": {
     "start": "node backend/server.js",
-    "dev": "node --watch backend/server.js",
+    "dev": "npm run dev:config && node --watch backend/server.js",
+    "dev:config": "node scripts/dev-config.js",
+    "build": "node scripts/build.js",
+    "build:frontend": "node scripts/build-frontend.js",
+    "serve": "npm run build && npm start",
     "test": "node --test tests/**/*.test.js",
     "test:backend": "node --test tests/backend/**/*.test.js",
     "test:frontend": "node --test tests/frontend/**/*.test.js",
@@ -34,7 +38,9 @@
     "uuid": "^9.0.1"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
+    "nodemon": "^3.0.1",
+    "fs-extra": "^11.1.1",
+    "glob": "^10.3.10"
   },
   "engines": {
     "node": ">=18.0.0"

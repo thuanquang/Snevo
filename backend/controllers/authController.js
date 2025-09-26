@@ -1,51 +1,35 @@
 /**
  * Authentication Controller
- * Handles user authentication, registration, and profile management
+ * Handles user authentication, registration, and profile management using OOP principles
  */
 
 import { supabase, supabaseAdmin } from '../../config/supabase.js';
 import constants from '../../config/constants.js';
-import User from '../models/User.js';
+import { userModel } from '../models/User.js';
+import BaseController from '../utils/BaseController.js';
+import { ValidationError, AuthenticationError, ConflictError } from '../utils/ErrorClasses.js';
 
-class AuthController {
+class AuthController extends BaseController {
+    constructor() {
+        super();
+        this.userModel = userModel;
+    }
+
     /**
      * Register new user
      */
-    static async register(req, res) {
-        try {
+    async register(req, res) {
+        return this.handleRequest(req, res, async (req, res) => {
             const { email, password, full_name, username, role = 'customer' } = req.body;
 
-            // Validation
-            if (!email || !password || !full_name || !username) {
-                return res.json({
-                    success: false,
-                    error: 'All fields are required'
-                }, constants.HTTP_STATUS.BAD_REQUEST);
-            }
-
-            // Validate email format
-            if (!constants.VALIDATION_RULES.EMAIL.test(email)) {
-                return res.json({
-                    success: false,
-                    error: constants.ERROR_MESSAGES.VALIDATION.INVALID_EMAIL
-                }, constants.HTTP_STATUS.BAD_REQUEST);
-            }
-
-            // Validate password length
-            if (password.length < constants.VALIDATION_RULES.PASSWORD_MIN_LENGTH) {
-                return res.json({
-                    success: false,
-                    error: constants.ERROR_MESSAGES.VALIDATION.INVALID_PASSWORD
-                }, constants.HTTP_STATUS.BAD_REQUEST);
-            }
-
-            // Check if role is valid
-            if (!Object.values(constants.USER_ROLES).includes(role)) {
-                return res.json({
-                    success: false,
-                    error: 'Invalid user role'
-                }, constants.HTTP_STATUS.BAD_REQUEST);
-            }
+            // Validate input data
+            this.validateRequest(req.body, {
+                email: { required: true, type: 'email' },
+                password: { required: true, type: 'string', minLength: constants.VALIDATION_RULES.PASSWORD_MIN_LENGTH },
+                full_name: { required: true, type: 'string', minLength: 2 },
+                username: { required: true, type: 'string', minLength: 3 },
+                role: { required: false, type: 'string', enum: Object.values(constants.USER_ROLES) }
+            });
 
             // Register user with Supabase Auth
             const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -61,10 +45,7 @@ class AuthController {
             });
 
             if (authError) {
-                return res.json({
-                    success: false,
-                    error: authError.message
-                }, constants.HTTP_STATUS.BAD_REQUEST);
+                throw new ValidationError(authError.message);
             }
 
             // Create user record in database
@@ -76,45 +57,33 @@ class AuthController {
                 password_hash: 'handled_by_supabase_auth' // Supabase handles password hashing
             };
 
-            const user = await User.create(userData);
+            const user = await this.userModel.create(userData);
 
-            res.json({
-                success: true,
-                message: constants.SUCCESS_MESSAGES.AUTH.REGISTER_SUCCESS,
-                data: {
-                    user: {
-                        id: authData.user?.id,
-                        email: authData.user?.email,
-                        username,
-                        full_name,
-                        role
-                    },
-                    session: authData.session
-                }
-            }, constants.HTTP_STATUS.CREATED);
-
-        } catch (error) {
-            console.error('Registration error:', error);
-            res.json({
-                success: false,
-                error: error.message || constants.ERROR_MESSAGES.GENERAL.INTERNAL_ERROR
-            }, constants.HTTP_STATUS.INTERNAL_SERVER_ERROR);
-        }
+            this.sendResponse(res, {
+                user: {
+                    id: authData.user?.id,
+                    email: authData.user?.email,
+                    username,
+                    full_name,
+                    role
+                },
+                session: authData.session
+            }, constants.SUCCESS_MESSAGES.AUTH.REGISTER_SUCCESS, constants.HTTP_STATUS.CREATED);
+        });
     }
 
     /**
      * Login user
      */
-    static async login(req, res) {
-        try {
+    async login(req, res) {
+        return this.handleRequest(req, res, async (req, res) => {
             const { email, password } = req.body;
 
-            if (!email || !password) {
-                return res.json({
-                    success: false,
-                    error: 'Email and password are required'
-                }, constants.HTTP_STATUS.BAD_REQUEST);
-            }
+            // Validate input
+            this.validateRequest(req.body, {
+                email: { required: true, type: 'email' },
+                password: { required: true, type: 'string' }
+            });
 
             // Authenticate with Supabase
             const { data, error } = await supabase.auth.signInWithPassword({
@@ -123,153 +92,111 @@ class AuthController {
             });
 
             if (error) {
-                return res.json({
-                    success: false,
-                    error: constants.ERROR_MESSAGES.AUTH.INVALID_CREDENTIALS
-                }, constants.HTTP_STATUS.UNAUTHORIZED);
+                throw new AuthenticationError(constants.ERROR_MESSAGES.AUTH.INVALID_CREDENTIALS);
             }
 
             // Get user details from database
-            const userDetails = await User.findByEmail(email);
+            const userDetails = await this.userModel.findByEmail(email);
 
-            res.json({
-                success: true,
-                message: constants.SUCCESS_MESSAGES.AUTH.LOGIN_SUCCESS,
-                data: {
-                    user: {
-                        id: data.user.id,
-                        email: data.user.email,
-                        username: userDetails?.username,
-                        full_name: userDetails?.full_name,
-                        role: userDetails?.role
-                    },
-                    session: data.session
-                }
-            });
-
-        } catch (error) {
-            console.error('Login error:', error);
-            res.json({
-                success: false,
-                error: constants.ERROR_MESSAGES.GENERAL.INTERNAL_ERROR
-            }, constants.HTTP_STATUS.INTERNAL_SERVER_ERROR);
-        }
+            this.sendResponse(res, {
+                user: {
+                    id: data.user.id,
+                    email: data.user.email,
+                    username: userDetails?.username,
+                    full_name: userDetails?.full_name,
+                    role: userDetails?.role
+                },
+                session: data.session
+            }, constants.SUCCESS_MESSAGES.AUTH.LOGIN_SUCCESS);
+        });
     }
 
     /**
      * Logout user
      */
-    static async logout(req, res) {
-        try {
+    async logout(req, res) {
+        return this.handleRequest(req, res, async (req, res) => {
             const { error } = await supabase.auth.signOut();
 
             if (error) {
-                return res.json({
-                    success: false,
-                    error: error.message
-                }, constants.HTTP_STATUS.BAD_REQUEST);
+                throw new Error(error.message);
             }
 
-            res.json({
-                success: true,
-                message: constants.SUCCESS_MESSAGES.AUTH.LOGOUT_SUCCESS
-            });
-
-        } catch (error) {
-            console.error('Logout error:', error);
-            res.json({
-                success: false,
-                error: constants.ERROR_MESSAGES.GENERAL.INTERNAL_ERROR
-            }, constants.HTTP_STATUS.INTERNAL_SERVER_ERROR);
-        }
+            this.sendResponse(res, null, constants.SUCCESS_MESSAGES.AUTH.LOGOUT_SUCCESS);
+        });
     }
 
     /**
      * Get user profile
      */
-    static async getProfile(req, res) {
-        try {
-            const userDetails = await User.findByEmail(req.user.email);
+    async getProfile(req, res) {
+        return this.handleRequest(req, res, async (req, res) => {
+            const user = this.requireAuth(req);
+            
+            const userDetails = await this.userModel.findByEmail(user.email);
 
             if (!userDetails) {
-                return res.json({
-                    success: false,
-                    error: constants.ERROR_MESSAGES.AUTH.ACCOUNT_NOT_FOUND
-                }, constants.HTTP_STATUS.NOT_FOUND);
+                throw new NotFoundError('User account');
             }
 
-            res.json({
-                success: true,
-                data: {
-                    user: {
-                        id: req.user.id,
-                        email: userDetails.email,
-                        username: userDetails.username,
-                        full_name: userDetails.full_name,
-                        role: userDetails.role,
-                        created_at: userDetails.created_at
-                    }
+            this.sendResponse(res, {
+                user: {
+                    id: user.id,
+                    email: userDetails.email,
+                    username: userDetails.username,
+                    full_name: userDetails.full_name,
+                    role: userDetails.role,
+                    created_at: userDetails.created_at
                 }
             });
-
-        } catch (error) {
-            console.error('Get profile error:', error);
-            res.json({
-                success: false,
-                error: constants.ERROR_MESSAGES.GENERAL.INTERNAL_ERROR
-            }, constants.HTTP_STATUS.INTERNAL_SERVER_ERROR);
-        }
+        });
     }
 
     /**
      * Update user profile
      */
-    static async updateProfile(req, res) {
-        try {
+    async updateProfile(req, res) {
+        return this.handleRequest(req, res, async (req, res) => {
+            const user = this.requireAuth(req);
             const { username, full_name } = req.body;
+
+            // Validate updates
             const updates = {};
-
-            if (username) updates.username = username;
-            if (full_name) updates.full_name = full_name;
-
-            if (Object.keys(updates).length === 0) {
-                return res.json({
-                    success: false,
-                    error: 'No valid fields to update'
-                }, constants.HTTP_STATUS.BAD_REQUEST);
+            if (username) {
+                this.validateRequest({ username }, {
+                    username: { required: true, type: 'string', minLength: 3, maxLength: 50 }
+                });
+                updates.username = username;
+            }
+            
+            if (full_name) {
+                this.validateRequest({ full_name }, {
+                    full_name: { required: true, type: 'string', minLength: 2, maxLength: 100 }
+                });
+                updates.full_name = full_name;
             }
 
-            const updatedUser = await User.updateByEmail(req.user.email, updates);
+            if (Object.keys(updates).length === 0) {
+                throw new ValidationError('No valid fields to update');
+            }
 
-            res.json({
-                success: true,
-                message: constants.SUCCESS_MESSAGES.AUTH.PROFILE_UPDATED,
-                data: {
-                    user: updatedUser
-                }
-            });
+            const updatedUser = await this.userModel.updateByEmail(user.email, updates);
 
-        } catch (error) {
-            console.error('Update profile error:', error);
-            res.json({
-                success: false,
-                error: constants.ERROR_MESSAGES.GENERAL.INTERNAL_ERROR
-            }, constants.HTTP_STATUS.INTERNAL_SERVER_ERROR);
-        }
+            this.sendResponse(res, {
+                user: updatedUser
+            }, constants.SUCCESS_MESSAGES.AUTH.PROFILE_UPDATED);
+        });
     }
 
     /**
      * Refresh authentication token
      */
-    static async refreshToken(req, res) {
-        try {
+    async refreshToken(req, res) {
+        return this.handleRequest(req, res, async (req, res) => {
             const { refresh_token } = req.body;
 
             if (!refresh_token) {
-                return res.json({
-                    success: false,
-                    error: 'Refresh token is required'
-                }, constants.HTTP_STATUS.BAD_REQUEST);
+                throw new ValidationError('Refresh token is required');
             }
 
             const { data, error } = await supabase.auth.refreshSession({
@@ -277,80 +204,50 @@ class AuthController {
             });
 
             if (error) {
-                return res.json({
-                    success: false,
-                    error: error.message
-                }, constants.HTTP_STATUS.UNAUTHORIZED);
+                throw new AuthenticationError(error.message);
             }
 
-            res.json({
-                success: true,
-                data: {
-                    session: data.session
-                }
+            this.sendResponse(res, {
+                session: data.session
             });
-
-        } catch (error) {
-            console.error('Refresh token error:', error);
-            res.json({
-                success: false,
-                error: constants.ERROR_MESSAGES.GENERAL.INTERNAL_ERROR
-            }, constants.HTTP_STATUS.INTERNAL_SERVER_ERROR);
-        }
+        });
     }
 
     /**
      * Forgot password
      */
-    static async forgotPassword(req, res) {
-        try {
+    async forgotPassword(req, res) {
+        return this.handleRequest(req, res, async (req, res) => {
             const { email } = req.body;
 
-            if (!email) {
-                return res.json({
-                    success: false,
-                    error: 'Email is required'
-                }, constants.HTTP_STATUS.BAD_REQUEST);
-            }
+            this.validateRequest(req.body, {
+                email: { required: true, type: 'email' }
+            });
 
             const { error } = await supabase.auth.resetPasswordForEmail(email, {
                 redirectTo: `${process.env.FRONTEND_URL}/reset-password`
             });
 
             if (error) {
-                return res.json({
-                    success: false,
-                    error: error.message
-                }, constants.HTTP_STATUS.BAD_REQUEST);
+                throw new Error(error.message);
             }
 
-            res.json({
-                success: true,
-                message: 'Password reset email sent successfully'
-            });
-
-        } catch (error) {
-            console.error('Forgot password error:', error);
-            res.json({
-                success: false,
-                error: constants.ERROR_MESSAGES.GENERAL.INTERNAL_ERROR
-            }, constants.HTTP_STATUS.INTERNAL_SERVER_ERROR);
-        }
+            this.sendResponse(res, null, 'Password reset email sent successfully');
+        });
     }
 
     /**
      * Reset password
      */
-    static async resetPassword(req, res) {
-        try {
+    async resetPassword(req, res) {
+        return this.handleRequest(req, res, async (req, res) => {
             const { access_token, refresh_token, password } = req.body;
 
-            if (!access_token || !refresh_token || !password) {
-                return res.json({
-                    success: false,
-                    error: 'Access token, refresh token, and new password are required'
-                }, constants.HTTP_STATUS.BAD_REQUEST);
-            }
+            this.validateRequest(req.body, {
+                access_token: { required: true, type: 'string' },
+                refresh_token: { required: true, type: 'string' },
+                password: { required: true, type: 'string', minLength: constants.VALIDATION_RULES.PASSWORD_MIN_LENGTH }
+            });
 
             // Set session with tokens
             const { error: sessionError } = await supabase.auth.setSession({
@@ -359,10 +256,7 @@ class AuthController {
             });
 
             if (sessionError) {
-                return res.json({
-                    success: false,
-                    error: sessionError.message
-                }, constants.HTTP_STATUS.BAD_REQUEST);
+                throw new AuthenticationError(sessionError.message);
             }
 
             // Update password
@@ -371,38 +265,22 @@ class AuthController {
             });
 
             if (error) {
-                return res.json({
-                    success: false,
-                    error: error.message
-                }, constants.HTTP_STATUS.BAD_REQUEST);
+                throw new Error(error.message);
             }
 
-            res.json({
-                success: true,
-                message: 'Password reset successfully'
-            });
-
-        } catch (error) {
-            console.error('Reset password error:', error);
-            res.json({
-                success: false,
-                error: constants.ERROR_MESSAGES.GENERAL.INTERNAL_ERROR
-            }, constants.HTTP_STATUS.INTERNAL_SERVER_ERROR);
-        }
+            this.sendResponse(res, null, 'Password reset successfully');
+        });
     }
 
     /**
      * Google OAuth authentication
      */
-    static async googleAuth(req, res) {
-        try {
+    async googleAuth(req, res) {
+        return this.handleRequest(req, res, async (req, res) => {
             const { id_token } = req.body;
 
             if (!id_token) {
-                return res.json({
-                    success: false,
-                    error: 'Google ID token is required'
-                }, constants.HTTP_STATUS.BAD_REQUEST);
+                throw new ValidationError('Google ID token is required');
             }
 
             const { data, error } = await supabase.auth.signInWithIdToken({
@@ -411,14 +289,11 @@ class AuthController {
             });
 
             if (error) {
-                return res.json({
-                    success: false,
-                    error: error.message
-                }, constants.HTTP_STATUS.BAD_REQUEST);
+                throw new AuthenticationError(error.message);
             }
 
             // Check if user exists in database, create if not
-            let userDetails = await User.findByEmail(data.user.email);
+            let userDetails = await this.userModel.findByEmail(data.user.email);
 
             if (!userDetails) {
                 // Create user record for Google OAuth user
@@ -430,33 +305,116 @@ class AuthController {
                     password_hash: 'google_oauth'
                 };
 
-                userDetails = await User.create(userData);
+                userDetails = await this.userModel.create(userData);
             }
 
-            res.json({
-                success: true,
-                message: constants.SUCCESS_MESSAGES.AUTH.LOGIN_SUCCESS,
-                data: {
-                    user: {
-                        id: data.user.id,
-                        email: data.user.email,
-                        username: userDetails.username,
-                        full_name: userDetails.full_name,
-                        role: userDetails.role
-                    },
-                    session: data.session
-                }
+            this.sendResponse(res, {
+                user: {
+                    id: data.user.id,
+                    email: data.user.email,
+                    username: userDetails.username,
+                    full_name: userDetails.full_name,
+                    role: userDetails.role
+                },
+                session: data.session
+            }, constants.SUCCESS_MESSAGES.AUTH.LOGIN_SUCCESS);
+        });
+    }
+
+    /**
+     * Get user addresses
+     */
+    async getAddresses(req, res) {
+        return this.handleRequest(req, res, async (req, res) => {
+            const user = this.requireAuth(req);
+            const addresses = await this.userModel.getAddresses(user.id);
+            
+            this.sendResponse(res, { addresses });
+        });
+    }
+
+    /**
+     * Add user address
+     */
+    async addAddress(req, res) {
+        return this.handleRequest(req, res, async (req, res) => {
+            const user = this.requireAuth(req);
+            
+            // Validate address data
+            this.validateRequest(req.body, {
+                street: { required: true, type: 'string', maxLength: 255 },
+                city: { required: true, type: 'string', maxLength: 100 },
+                state: { required: true, type: 'string', maxLength: 100 },
+                country: { required: true, type: 'string', maxLength: 100 },
+                zip_code: { required: true, type: 'string', maxLength: 20 },
+                is_default: { required: false, type: 'boolean' }
             });
 
-        } catch (error) {
-            console.error('Google auth error:', error);
-            res.json({
-                success: false,
-                error: constants.ERROR_MESSAGES.GENERAL.INTERNAL_ERROR
-            }, constants.HTTP_STATUS.INTERNAL_SERVER_ERROR);
-        }
+            const address = await this.userModel.addAddress(user.id, req.body);
+            
+            this.sendResponse(res, { address }, 'Address added successfully', constants.HTTP_STATUS.CREATED);
+        });
+    }
+
+    /**
+     * Update user address
+     */
+    async updateAddress(req, res) {
+        return this.handleRequest(req, res, async (req, res) => {
+            const user = this.requireAuth(req);
+            const { addressId } = req.params;
+            
+            const address = await this.userModel.updateAddress(user.id, addressId, req.body);
+            
+            this.sendResponse(res, { address }, 'Address updated successfully');
+        });
+    }
+
+    /**
+     * Delete user address
+     */
+    async deleteAddress(req, res) {
+        return this.handleRequest(req, res, async (req, res) => {
+            const user = this.requireAuth(req);
+            const { addressId } = req.params;
+            
+            await this.userModel.deleteAddress(user.id, addressId);
+            
+            this.sendResponse(res, null, 'Address deleted successfully');
+        });
+    }
+
+    /**
+     * Get user orders
+     */
+    async getOrders(req, res) {
+        return this.handleRequest(req, res, async (req, res) => {
+            const user = this.requireAuth(req);
+            const pagination = this.getPaginationParams(req);
+            
+            const result = await this.userModel.getOrders(user.id, pagination);
+            
+            this.sendPaginatedResponse(res, result, pagination);
+        });
+    }
+
+    /**
+     * Get user reviews
+     */
+    async getReviews(req, res) {
+        return this.handleRequest(req, res, async (req, res) => {
+            const user = this.requireAuth(req);
+            const pagination = this.getPaginationParams(req);
+            
+            const result = await this.userModel.getReviews(user.id, pagination);
+            
+            this.sendPaginatedResponse(res, result, pagination);
+        });
     }
 }
 
-export default AuthController;
+// Create a singleton instance for use in routes
+const authController = new AuthController();
 
+export default AuthController;
+export { authController };
