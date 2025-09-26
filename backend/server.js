@@ -61,7 +61,7 @@ class SnevoServer {
      * Setup application routes
      */
     setupRoutes() {
-        // API Routes
+        // API Routes - Order matters! More specific routes must come first
         this.routes.set('/api/auth', authRoutes);
         this.routes.set('/api/products', productRoutes);
         this.routes.set('/api/orders', orderRoutes);
@@ -109,11 +109,34 @@ class SnevoServer {
         }
 
         try {
-            let filePath = path.join(this.staticPath, pathname === '/' ? '/pages/index.html' : pathname);
+            let filePath;
             
-            // If no extension, assume it's an HTML file
-            if (!path.extname(filePath)) {
-                filePath += '.html';
+            if (pathname === '/') {
+                // Root path - serve index.html from pages directory
+                filePath = path.join(this.staticPath, 'pages', 'index.html');
+            } else if (pathname.endsWith('.html')) {
+                // HTML file - check in pages directory first, then root
+                const pageFilePath = path.join(this.staticPath, 'pages', path.basename(pathname));
+                try {
+                    await fs.stat(pageFilePath);
+                    filePath = pageFilePath;
+                } catch {
+                    // If not in pages directory, try direct path
+                    filePath = path.join(this.staticPath, pathname);
+                }
+            } else if (!path.extname(pathname)) {
+                // No extension - assume HTML file and look in pages directory
+                const pageFilePath = path.join(this.staticPath, 'pages', pathname + '.html');
+                try {
+                    await fs.stat(pageFilePath);
+                    filePath = pageFilePath;
+                } catch {
+                    // If not in pages directory, try direct path
+                    filePath = path.join(this.staticPath, pathname + '.html');
+                }
+            } else {
+                // Static asset - serve directly
+                filePath = path.join(this.staticPath, pathname);
             }
 
             const stats = await fs.stat(filePath);
@@ -198,8 +221,12 @@ class SnevoServer {
     async routeRequest(req, res) {
         const pathname = req.pathname;
 
+        // Sort routes by length (longest first) to match most specific routes first
+        const sortedRoutes = Array.from(this.routes.entries())
+            .sort(([a], [b]) => b.length - a.length);
+
         // Find matching route
-        for (const [routePattern, handler] of this.routes) {
+        for (const [routePattern, handler] of sortedRoutes) {
             if (pathname.startsWith(routePattern)) {
                 req.params = this.extractParams(routePattern, pathname);
                 return await handler(req, res);

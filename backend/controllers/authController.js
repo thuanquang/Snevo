@@ -277,20 +277,21 @@ class AuthController extends BaseController {
      */
     async googleAuth(req, res) {
         return this.handleRequest(req, res, async (req, res) => {
-            const { id_token } = req.body;
+            const { id_token, redirect_url } = req.body;
 
+            // Validate required fields
             if (!id_token) {
                 throw new ValidationError('Google ID token is required');
             }
 
-            const { data, error } = await supabase.auth.signInWithIdToken({
-                provider: 'google',
-                token: id_token
-            });
-
-            if (error) {
-                throw new AuthenticationError(error.message);
+            // Verify Google ID token using Supabase helper
+            const result = await supabaseHelpers.verifyGoogleIdToken(id_token);
+            
+            if (!result.success) {
+                throw new AuthenticationError(result.error || 'Failed to verify Google ID token');
             }
+
+            const { data } = result;
 
             // Check if user exists in database, create if not
             let userDetails = await this.userModel.findByEmail(data.user.email);
@@ -300,12 +301,19 @@ class AuthController extends BaseController {
                 const userData = {
                     email: data.user.email,
                     username: data.user.user_metadata?.full_name?.replace(/\s+/g, '_').toLowerCase() || data.user.email.split('@')[0],
-                    full_name: data.user.user_metadata?.full_name || '',
+                    full_name: data.user.user_metadata?.full_name || data.user.email.split('@')[0],
                     role: 'customer',
-                    password_hash: 'google_oauth'
+                    password_hash: 'google_oauth', // Placeholder for OAuth users
+                    email_verified: true // Google users are pre-verified
                 };
 
-                userDetails = await this.userModel.create(userData);
+                try {
+                    userDetails = await this.userModel.create(userData);
+                    console.log(`✅ Created new user from Google OAuth: ${data.user.email}`);
+                } catch (createError) {
+                    console.error('Error creating Google OAuth user:', createError);
+                    throw new ValidationError('Failed to create user account');
+                }
             }
 
             this.sendResponse(res, {
@@ -314,9 +322,11 @@ class AuthController extends BaseController {
                     email: data.user.email,
                     username: userDetails.username,
                     full_name: userDetails.full_name,
-                    role: userDetails.role
+                    role: userDetails.role,
+                    email_verified: true
                 },
-                session: data.session
+                session: data.session,
+                redirect_url: redirect_url || process.env.FRONTEND_URL || '/'
             }, constants.SUCCESS_MESSAGES.AUTH.LOGIN_SUCCESS);
         });
     }

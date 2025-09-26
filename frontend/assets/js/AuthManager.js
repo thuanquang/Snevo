@@ -53,10 +53,15 @@ class AuthManager {
      * Initialize Supabase client
      */
     initializeSupabase() {
-        // Supabase configuration - these should be set in your environment
-        // For frontend, these are typically set in build process or loaded from a config file
-        const SUPABASE_URL = window.SUPABASE_URL || 'https://your-project-id.supabase.co';
-        const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || 'your-anon-key';
+        // Get configuration from window (set by config.js)
+        const SUPABASE_URL = window.SUPABASE_URL;
+        const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY;
+        
+        // Check if configuration is available and valid
+        if (!window.APP_CONFIG?.features?.supabaseAuth) {
+            console.warn('⚠️  Supabase authentication not configured. Please check your environment variables.');
+            return;
+        }
         
         if (window.supabase && SUPABASE_URL && SUPABASE_ANON_KEY) {
             try {
@@ -64,15 +69,22 @@ class AuthManager {
                     auth: {
                         autoRefreshToken: true,
                         persistSession: true,
-                        detectSessionInUrl: true
+                        detectSessionInUrl: true,
+                        redirectTo: window.location.origin
                     }
                 });
-                console.log('Supabase client initialized successfully');
+                
+                // Set up auth state listener
+                this.supabaseClient.auth.onAuthStateChange((event, session) => {
+                    this.handleAuthStateChange(event, session);
+                });
+                
+                console.log('✅ Supabase client initialized successfully');
             } catch (error) {
-                console.error('Failed to initialize Supabase client:', error);
+                console.error('❌ Failed to initialize Supabase client:', error);
             }
         } else {
-            console.warn('Supabase configuration missing. Google OAuth will not be available.');
+            console.warn('⚠️  Supabase SDK not loaded or configuration missing. Google OAuth will not be available.');
         }
     }
 
@@ -227,24 +239,47 @@ class AuthManager {
      */
     async loginWithGoogle() {
         try {
-            if (!this.supabaseClient) {
-                throw new Error('Supabase client not initialized');
+            // Check if Google OAuth is enabled
+            if (!window.APP_CONFIG?.features?.googleAuth) {
+                throw new Error('Google OAuth is not configured. Please check your environment variables.');
             }
+
+            if (!this.supabaseClient) {
+                throw new Error('Supabase client not initialized. Please check your configuration.');
+            }
+            
+            console.log('🔄 Initiating Google OAuth login...');
             
             const { data, error } = await this.supabaseClient.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: window.location.origin
+                    redirectTo: `${window.location.origin}/`,
+                    queryParams: {
+                        access_type: 'offline',
+                        prompt: 'consent'
+                    }
                 }
             });
             
-            if (error) throw error;
+            if (error) {
+                console.error('Google OAuth error:', error);
+                throw error;
+            }
             
+            console.log('✅ Google OAuth initiated successfully');
             this.emit('googleLoginInitiated');
-            return { success: true };
+            return { success: true, data };
         } catch (error) {
-            console.error('Google login failed:', error);
-            const errorMessage = error.message || 'Google login failed';
+            console.error('❌ Google login failed:', error);
+            let errorMessage = error.message || 'Google login failed';
+            
+            // Provide helpful error messages
+            if (errorMessage.includes('not configured')) {
+                errorMessage = 'Google login is not available. Please contact support.';
+            } else if (errorMessage.includes('client not initialized')) {
+                errorMessage = 'Authentication service is not available. Please refresh the page.';
+            }
+            
             this.emit('googleLoginError', { error: errorMessage });
             return { success: false, error: errorMessage };
         }

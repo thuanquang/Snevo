@@ -132,19 +132,19 @@ export const JWT_CONFIG = {
 };
 
 export const DATABASE_TABLES = {
-    USERS: 'Users',
-    ADDRESSES: 'Addresses',
-    CATEGORIES: 'Categories',
-    SHOES: 'Shoes',
-    COLORS: 'Colors',
-    SIZES: 'Sizes',
-    SHOE_VARIANTS: 'Shoe_Variants',
-    SUPPLIERS: 'Suppliers',
-    IMPORTS: 'Imports',
-    ORDERS: 'Orders',
-    ORDER_ITEMS: 'Order_Items',
-    PAYMENTS: 'Payments',
-    REVIEWS: 'Reviews'
+    USERS: 'users',
+    ADDRESSES: 'addresses',
+    CATEGORIES: 'categories',
+    SHOES: 'shoes',
+    COLORS: 'colors',
+    SIZES: 'sizes',
+    SHOE_VARIANTS: 'shoe_variants',
+    SUPPLIERS: 'suppliers',
+    IMPORTS: 'imports',
+    ORDERS: 'orders',
+    ORDER_ITEMS: 'order_items',
+    PAYMENTS: 'payments',
+    REVIEWS: 'reviews'
 };
 
 export const ERROR_MESSAGES = {

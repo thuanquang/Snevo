@@ -36,8 +36,15 @@ export default class BaseModel {
             }
 
             if (value !== undefined && value !== null) {
-                if (rule.type && typeof value !== rule.type) {
-                    errors.push(`${field} must be of type ${rule.type}`);
+                // Handle custom types like 'email'
+                if (rule.type) {
+                    if (rule.type === 'email') {
+                        if (typeof value !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                            errors.push(`${field} must be a valid email address`);
+                        }
+                    } else if (typeof value !== rule.type) {
+                        errors.push(`${field} must be of type ${rule.type}`);
+                    }
                 }
 
                 if (rule.minLength && value.length < rule.minLength) {

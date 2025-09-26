@@ -113,16 +113,27 @@ window.SUPABASE_ANON_KEY = '${envVars.SUPABASE_ANON_KEY}';
 // API Configuration
 window.API_BASE_URL = '${envVars.API_BASE_URL}';
 
-// App Configuration
+// Validate configuration and determine feature availability
+const isValidSupabaseUrl = '${envVars.SUPABASE_URL}' && !'${envVars.SUPABASE_URL}'.includes('your-project-id') && '${envVars.SUPABASE_URL}'.startsWith('https://');
+const isValidSupabaseKey = '${envVars.SUPABASE_ANON_KEY}' && !'${envVars.SUPABASE_ANON_KEY}'.includes('your-anon-key') && '${envVars.SUPABASE_ANON_KEY}'.length > 50;
+const isValidGoogleClientId = '${envVars.GOOGLE_CLIENT_ID}' && '${envVars.GOOGLE_CLIENT_ID}'.includes('.apps.googleusercontent.com');
+
+// App Configuration with dynamic feature detection
 window.APP_CONFIG = {
     name: '${envVars.APP_NAME}',
     version: '${envVars.APP_VERSION}',
     environment: '${envVars.NODE_ENV}',
     buildTime: '${new Date().toISOString()}',
     features: {
-        googleAuth: ${!!envVars.GOOGLE_CLIENT_ID},
-        emailVerification: true,
-        passwordReset: true
+        googleAuth: isValidGoogleClientId && isValidSupabaseUrl && isValidSupabaseKey,
+        emailVerification: isValidSupabaseUrl && isValidSupabaseKey,
+        passwordReset: isValidSupabaseUrl && isValidSupabaseKey,
+        supabaseAuth: isValidSupabaseUrl && isValidSupabaseKey
+    },
+    validation: {
+        supabaseUrl: isValidSupabaseUrl,
+        supabaseKey: isValidSupabaseKey,
+        googleClientId: isValidGoogleClientId
     }
 };
 
@@ -153,3 +164,4 @@ if (typeof module !== 'undefined' && module.exports) {
 }
 
 buildFrontend();
+

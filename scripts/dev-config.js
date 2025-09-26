@@ -44,16 +44,27 @@ window.SUPABASE_ANON_KEY = '${FRONTEND_ENV_VARS.SUPABASE_ANON_KEY}';
 // API Configuration
 window.API_BASE_URL = '${FRONTEND_ENV_VARS.API_BASE_URL}';
 
-// App Configuration
+// Validate configuration and determine feature availability
+const isValidSupabaseUrl = '${FRONTEND_ENV_VARS.SUPABASE_URL}' && !'${FRONTEND_ENV_VARS.SUPABASE_URL}'.includes('your-project-id') && '${FRONTEND_ENV_VARS.SUPABASE_URL}'.startsWith('https://');
+const isValidSupabaseKey = '${FRONTEND_ENV_VARS.SUPABASE_ANON_KEY}' && !'${FRONTEND_ENV_VARS.SUPABASE_ANON_KEY}'.includes('your-anon-key') && '${FRONTEND_ENV_VARS.SUPABASE_ANON_KEY}'.length > 50;
+const isValidGoogleClientId = '${FRONTEND_ENV_VARS.GOOGLE_CLIENT_ID}' && '${FRONTEND_ENV_VARS.GOOGLE_CLIENT_ID}'.includes('.apps.googleusercontent.com');
+
+// App Configuration with dynamic feature detection
 window.APP_CONFIG = {
     name: '${FRONTEND_ENV_VARS.APP_NAME}',
     version: '${FRONTEND_ENV_VARS.APP_VERSION}',
     environment: 'development',
     buildTime: '${new Date().toISOString()}',
     features: {
-        googleAuth: ${!!FRONTEND_ENV_VARS.GOOGLE_CLIENT_ID},
-        emailVerification: true,
-        passwordReset: true
+        googleAuth: isValidGoogleClientId && isValidSupabaseUrl && isValidSupabaseKey,
+        emailVerification: isValidSupabaseUrl && isValidSupabaseKey,
+        passwordReset: isValidSupabaseUrl && isValidSupabaseKey,
+        supabaseAuth: isValidSupabaseUrl && isValidSupabaseKey
+    },
+    validation: {
+        supabaseUrl: isValidSupabaseUrl,
+        supabaseKey: isValidSupabaseKey,
+        googleClientId: isValidGoogleClientId
     }
 };
 
@@ -107,3 +118,4 @@ if (typeof module !== 'undefined' && module.exports) {
 }
 
 generateDevConfig();
+
