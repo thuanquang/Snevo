@@ -128,7 +128,9 @@ export default class BaseModel {
                 .select()
                 .single();
 
-            if (error) throw new DatabaseError(`Failed to create record: ${error.message}`, error);
+            if (error) {
+                throw new DatabaseError(`Failed to create record: ${error.message}`, error);
+            }
             
             return this.hideFields(result);
         } catch (error) {

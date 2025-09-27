@@ -1,309 +1,203 @@
-# Snevo E-commerce Platform
+# 🚀 Snevo E-commerce Platform
 
 A Nike-inspired e-commerce platform built with Node.js backend and vanilla JavaScript frontend, featuring a complete shoe retail system with authentication, product browsing, and order management.
 
-## 🚀 Features
+## 🎯 Project Status
 
-### Frontend
-- **Nike-style Design**: Modern, animated interface inspired by Nike.com
-- **Vanilla JavaScript**: Pure JS with Bootstrap 5.3 for responsive design
-- **Smooth Animations**: Hardware-accelerated transitions and effects
-- **Product Browsing**: Advanced filtering, search, and product details
-- **User Authentication**: Login/register with Google OAuth support
-- **Shopping Cart**: Complete cart and checkout experience
-- **Responsive Design**: Mobile-first approach with modern UI/UX
-
-### Backend
-- **Node.js HTTP Server**: Built without Express.js using native HTTP module
-- **MVC Architecture**: Clean separation of concerns with models, views, and controllers
-- **Supabase Integration**: PostgreSQL database with real-time features
-- **JWT Authentication**: Secure authentication with refresh tokens
-- **RESTful API**: Complete API for all e-commerce operations
-- **Role-based Access**: Customer and seller role management
-
-### Database
-- **Comprehensive Schema**: Complete shoe retail database with inventory management
-- **Automatic Stock Management**: Triggers for stock updates and order processing
-- **Multi-variant Products**: Size and color variants with individual pricing
-- **Review System**: Product reviews with rating aggregation
-- **Order Management**: Complete order lifecycle with status tracking
+- ✅ **Backend**: Complete OOP MVC with Supabase integration
+- ✅ **Authentication**: Supabase Auth + Google OAuth (environment-dependent)
+- ✅ **API**: Full RESTful API with validation and error handling
+- ✅ **Build System**: Environment variable injection and validation
+- 🚧 **Frontend**: Nike-style UI with animations (in development)
+- 🚧 **Product Browsing**: Advanced filtering and search (in development)
 
 ## 🛠 Technology Stack
 
-- **Frontend**: HTML5, CSS3, JavaScript ES6+, Bootstrap 5.3
+- **Frontend**: Vanilla HTML5, CSS3, JavaScript ES6+ with Bootstrap 5.3
 - **Backend**: Node.js (native HTTP module, no Express.js)
 - **Database**: Supabase (PostgreSQL)
 - **Authentication**: Supabase Auth + Google OAuth
-- **Architecture**: MVC (Model-View-Controller)
-
-## 📋 Prerequisites
-
-- Node.js >= 18.0.0
-- Supabase account
-- Google OAuth credentials (optional)
+- **Architecture**: OOP MVC with inheritance and composition
 
 ## 🚀 Quick Start
 
-### 1. Clone and Install
+### Prerequisites
+- Node.js 18+ 
+- Git
+- Supabase account
 
+### Setup
 ```bash
-git clone <repository-url>
+# Clone repository
+git clone https://github.com/yourusername/snevo-ecommerce.git
 cd snevo-ecommerce
+
+# Install dependencies
 npm install
-```
 
-### 2. Environment Setup
-
-Copy the environment template:
-```bash
+# Set up environment
 cp env.example .env
-```
+# Edit .env with your Supabase credentials
 
-Edit `.env` with your configuration:
-```env
-# Supabase Configuration
-SUPABASE_URL=https://your-project-id.supabase.co
-SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+# Generate development config
+npm run dev:config
 
-# Database Configuration
-DB_SCHEMA=db_nike
-
-# Frontend Configuration
-FRONTEND_URL=http://localhost:3000
-API_BASE_URL=http://localhost:3001
-
-# Environment
-NODE_ENV=development
-
-# App Configuration
-APP_NAME=Snevo
-APP_VERSION=1.0.0
-
-# Authentication
-JWT_SECRET=your-jwt-secret-key
-JWT_EXPIRES_IN=24h
-REFRESH_TOKEN_EXPIRES_IN=7d
-
-# Google OAuth (optional)
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-```
-
-> **Important**: The build system now injects environment variables into the frontend during build time for secure credential management. See [Build Documentation](docs/BUILD.md) for details.
-
-### 3. Database Setup
-
-1. Create a new Supabase project
-2. Run the SQL schema from `schema.sql` in your Supabase SQL editor
-3. Enable authentication in Supabase dashboard
-4. Configure Google OAuth provider (optional)
-
-### 4. Run the Application
-
-Development mode:
-```bash
+# Start development
 npm run dev
 ```
 
-Production mode:
-```bash
-npm start
-```
-
-The application will be available at `http://localhost:3000`
+### Environment Setup
+1. Create Supabase project at [supabase.com](https://supabase.com)
+2. Get credentials from Settings → API
+3. Run `schema.sql` in Supabase SQL editor
+4. Configure authentication providers
 
 ## 📁 Project Structure
 
 ```
 snevo-ecommerce/
-├── backend/                    # Server-side application
-│   ├── controllers/           # Request handlers
-│   ├── models/               # Database models
-│   ├── routes/              # Route definitions
-│   ├── middleware/          # Custom middleware
-│   ├── utils/               # Utility functions
-│   ├── config/              # Configuration files
-│   └── server.js            # Main server file
-├── frontend/               # Client-side application
-│   ├── assets/            # Static assets (CSS, JS, images)
-│   ├── components/        # Reusable UI components
-│   ├── pages/             # HTML pages
-│   └── views/             # MVC view templates
-├── config/                # Project configuration
-├── docs/                  # Documentation
-├── tests/                 # Test files
-├── package.json           # Dependencies and scripts
-├── schema.sql            # Database schema
-└── README.md             # This file
+├── backend/                 # ✅ COMPLETE - OOP MVC Backend
+│   ├── controllers/        # AuthController, ProductController, OrderController
+│   ├── models/            # User, Product, Order, Category (extend BaseModel)
+│   ├── routes/            # API routes with controller instances
+│   ├── middleware/        # Auth, CORS, validation middleware
+│   └── utils/             # BaseModel, BaseController, ErrorClasses
+├── frontend/              # 🚧 IN DEVELOPMENT - Nike-style Frontend
+│   ├── assets/js/         # OOP classes: Application, AuthManager, ProductManager
+│   ├── pages/             # HTML pages with Nike animations
+│   └── components/         # Reusable UI components
+├── config/                # Supabase and app configuration
+├── scripts/               # Build system with environment injection
+└── docs/                  # Documentation
 ```
 
-## 🔧 Development
+## 🔧 Development Commands
 
-### Available Scripts
+```bash
+# Development
+npm run dev              # Start with auto-reload
+npm run dev:config       # Generate frontend config from .env
 
-#### Development
-- `npm run dev` - Start development server with config generation and auto-reload
-- `npm run dev:config` - Generate development config from .env file
+# Building
+npm run build            # Full production build
+npm run build:frontend   # Frontend build only
+npm run serve            # Build and serve production
 
-#### Production
-- `npm start` - Start production server
-- `npm run build` - Full production build with environment variable injection
-- `npm run build:frontend` - Build frontend only with environment variables
-- `npm run serve` - Build and serve production version
+# Testing
+npm test                 # Run all tests
+npm run test:backend     # Backend tests only
+npm run test:frontend    # Frontend tests only
+```
 
-#### Testing
-- `npm test` - Run all tests
-- `npm run test:backend` - Run backend tests only
-- `npm run test:frontend` - Run frontend tests only
+## 🎨 Frontend Development
 
-> **New Build System**: Environment variables are now injected at build time. See [Build Documentation](docs/BUILD.md) for complete details.
+### Architecture
+- **OOP Classes**: Application, AuthManager, ProductManager, ApiClient
+- **Bootstrap 5.3**: Responsive grid system
+- **Nike Animations**: Smooth transitions and hover effects
+- **Component System**: Reusable HTML components
+
+### Key Files
+- `frontend/assets/js/Application.js` - Main orchestrator
+- `frontend/assets/js/AuthManager.js` - Authentication handling
+- `frontend/assets/js/ProductManager.js` - Product operations
+- `frontend/pages/` - HTML pages with Nike-style design
+
+## 🔧 Backend Development
+
+### Architecture (Complete)
+- **Models**: Extend BaseModel with validation and relationships
+- **Controllers**: Extend BaseController with request handling
+- **Routes**: RESTful API with middleware
+- **Middleware**: Auth, CORS, validation
 
 ### API Endpoints
+```
+Authentication:
+POST /api/auth/login
+POST /api/auth/register
+GET /api/auth/profile
 
-#### Authentication
-- `POST /api/auth/register` - User registration
-- `POST /api/auth/login` - User login
-- `POST /api/auth/logout` - User logout
-- `GET /api/auth/profile` - Get user profile
-- `PUT /api/auth/profile` - Update user profile
-- `POST /api/auth/google` - Google OAuth login
+Products:
+GET /api/products
+GET /api/products/:id
+GET /api/products/search
 
-#### Products
-- `GET /api/products` - Get all products (with filtering)
-- `GET /api/products/:id` - Get product details
-- `GET /api/products/search` - Search products
-- `GET /api/products/category/:categoryId` - Get products by category
-- `GET /api/products/:id/variants` - Get product variants
-- `GET /api/products/:id/reviews` - Get product reviews
-- `POST /api/products/:id/reviews` - Create product review
-
-#### Categories
-- `GET /api/products/categories` - Get all categories
-
-#### Orders
-- `GET /api/orders` - Get user orders
-- `POST /api/orders` - Create new order
-- `GET /api/orders/:id` - Get order details
-- `PUT /api/orders/:id/status` - Update order status
-
-### Frontend Pages
-
-- `/` - Landing page with hero sections and featured products
-- `/login.html` - Login page with Google OAuth
-- `/products.html` - Product browsing with filters
-- `/product-detail.html` - Product detail page with variants
-- `/cart.html` - Shopping cart
-- `/profile.html` - User profile and order history
-
-## 🎨 Design Features
-
-### Nike-inspired Animations
-- Smooth page transitions
-- Product hover effects with image zoom
-- Parallax scrolling on hero sections
-- Staggered loading animations
-- Cart slide-in/out animations
-- Form validation with smooth feedback
-
-### Responsive Design
-- Mobile-first approach
-- Bootstrap 5.3 grid system
-- Custom breakpoints for optimal viewing
-- Touch-friendly interactions
-- Optimized images with lazy loading
-
-## 🗄️ Database Schema
-
-The application uses a comprehensive e-commerce database schema with:
-
-- **Users**: Customer and seller management
-- **Products**: Shoes with categories and variants
-- **Inventory**: Stock management with automatic triggers
-- **Orders**: Complete order processing system
-- **Reviews**: Product rating and review system
-- **Addresses**: Multiple address management
-
-See `schema.sql` for complete database structure.
-
-## 🔐 Security Features
-
-- JWT-based authentication
-- Password hashing with Supabase Auth
-- CORS protection
-- Rate limiting on authentication endpoints
-- Input validation and sanitization
-- SQL injection prevention
-- XSS protection
+Orders:
+POST /api/orders
+GET /api/orders
+```
 
 ## 🚀 Deployment
 
-### Frontend Deployment
-The frontend can be deployed to any static hosting service:
-- Netlify
-- Vercel
-- GitHub Pages
-- AWS S3 + CloudFront
-
-### Backend Deployment
-The Node.js backend can be deployed to:
-- Railway
-- Heroku
-- DigitalOcean App Platform
-- AWS EC2
-- Google Cloud Run
-
-### Environment Variables
-Ensure all production environment variables are properly configured:
-- Use strong JWT secrets
-- Configure proper CORS origins
-- Set up production database connections
-- Enable HTTPS in production
-
-## 🧪 Testing
-
-Run tests with:
+### Development Testing
 ```bash
-npm test
+npm run build
+npm run serve
 ```
 
-Test structure:
-- Unit tests for models and controllers
-- Integration tests for API endpoints
-- Frontend tests for user interactions
+### Production Deployment
+- **Frontend**: Deploy `build/frontend/` to static hosting (Netlify, Vercel)
+- **Backend**: Deploy `build/` directory to Node.js hosting (Railway, Heroku)
+- **Database**: Supabase (already configured)
 
-## 🤝 Contributing
+## 📚 Documentation
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+- `docs/BUILD.md` - Build system details
+- `docs/AUTH_SETUP.md` - Authentication setup
+- `STRUCTURE.md` - Complete project structure
+- `EXTENSION_FUNCTIONALITY.md` - Detailed functionality
+
+## 🤝 Team Workflow
+
+### Daily Development
+```bash
+# Start your day
+git pull origin main
+npm run dev
+
+# Work on features
+git checkout -b feature/your-feature-name
+# Make changes
+git add .
+git commit -m "feat: your feature description"
+git push origin feature/your-feature-name
+# Create Pull Request on GitHub
+```
+
+### Code Review Process
+1. Create feature branch
+2. Implement with tests
+3. Create Pull Request
+4. Team review
+5. Merge when approved
+
+## 🔧 Troubleshooting
+
+### Common Issues
+```bash
+# "Module not found"
+npm install
+
+# "Supabase not initialized"
+npm run dev:config
+
+# "Port in use"
+# Kill process or change PORT in .env
+```
+
+### Getting Help
+1. Check console logs
+2. Verify `.env` configuration
+3. Ask team members
+4. Create GitHub issues
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🆘 Support
-
-For support and questions:
-- Create an issue in the GitHub repository
-- Check the documentation in the `docs/` folder
-- Review the API documentation at `/api/docs`
-
-## 🔄 Changelog
-
-### Version 1.0.0
-- Initial release with complete e-commerce functionality
-- Nike-inspired frontend design
-- MVC architecture implementation
-- Supabase integration
-- Authentication system
-- Product management
-- Order processing
-- Review system
+This project is licensed under the MIT License.
 
 ---
 
-Built with ❤️ for modern e-commerce experiences
+**Ready to build something amazing! 🚀**
 
+Built with ❤️ for modern e-commerce experiences

@@ -32,6 +32,9 @@ class LoginPage {
      * Setup all event listeners
      */
     setupEventListeners() {
+        // Check if user is already logged in
+        this.checkExistingAuth();
+        
         // Get form elements
         this.loginForm = document.getElementById('loginForm');
         this.registerForm = document.getElementById('registerForm');
@@ -190,7 +193,15 @@ class LoginPage {
                     window.location.href = returnUrl ? decodeURIComponent(returnUrl) : '/';
                 }, 1500);
             } else {
-                this.showError(result.error || 'Login failed. Please try again.');
+                // Handle specific error types
+                const errorMessage = this.getErrorMessage(result.error);
+                
+                // Check if it's an email verification error
+                if (result.error && result.error.includes('verification link')) {
+                    this.showEmailVerificationNotice();
+                } else {
+                    this.showError(errorMessage);
+                }
             }
         } catch (error) {
             console.error('Login error:', error);
@@ -234,14 +245,22 @@ class LoginPage {
             const result = await authManager.register(userData);
 
             if (result.success) {
-                // Success
-                this.showSuccess('Account created successfully! Please check your email for verification.');
-                
-                // Close modal and redirect
-                setTimeout(() => {
-                    this.registerModal.hide();
-                    window.location.href = '/';
-                }, 2000);
+                // Handle registration with email verification
+                if (result.requiresVerification) {
+                    // Show success message and redirect to verification page
+                    this.showSuccess(result.message || 'Account created! Please check your email for verification.');
+                    setTimeout(() => {
+                        this.registerModal.hide();
+                        window.location.href = '/verify-email.html';
+                    }, 2000);
+                } else {
+                    // Normal registration without verification needed
+                    this.showSuccess('Account created and logged in successfully!');
+                    setTimeout(() => {
+                        this.registerModal.hide();
+                        window.location.href = '/';
+                    }, 2000);
+                }
             } else {
                 this.showError(result.error || 'Registration failed. Please try again.');
             }
@@ -427,6 +446,73 @@ class LoginPage {
                 input.parentElement.style.transform = 'scale(1)';
             });
         });
+    }
+
+    /**
+     * Show email verification notice
+     */
+    showEmailVerificationNotice() {
+        // Create a special notice for email verification
+        const noticeHtml = `
+            <div class="alert alert-warning alert-dismissible fade show" role="alert" style="margin-top: 1rem;">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-envelope-open-text me-2"></i>
+                    <div>
+                        <strong>Email Verification Required</strong><br>
+                        <small>Please check your email and click the verification link before logging in.</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+        
+        // Insert the notice after the login form
+        const loginForm = document.getElementById('loginForm');
+        if (loginForm) {
+            loginForm.insertAdjacentHTML('afterend', noticeHtml);
+        }
+    }
+
+    /**
+     * Check if user is already logged in and redirect if needed
+     */
+    checkExistingAuth() {
+        // Wait for AuthManager to be available
+        if (typeof authManager === 'undefined') {
+            setTimeout(() => this.checkExistingAuth(), 100);
+            return;
+        }
+        
+        // Wait a bit more for AuthManager to fully initialize
+        setTimeout(() => {
+            if (authManager.isAuthenticated()) {
+                console.log('User is already logged in, redirecting...');
+                const urlParams = new URLSearchParams(window.location.search);
+                const returnUrl = urlParams.get('return');
+                const redirectUrl = returnUrl ? decodeURIComponent(returnUrl) : '/';
+                window.location.href = redirectUrl;
+            }
+        }, 500);
+    }
+
+    /**
+     * Get user-friendly error message based on error type
+     */
+    getErrorMessage(error) {
+        if (!error) return 'Login failed. Please try again.';
+        
+        // Check for specific error messages
+        if (error.includes('verification link') || error.includes('Email not confirmed')) {
+            return 'Please check your email and click the verification link before logging in.';
+        } else if (error.includes('Invalid email or password') || error.includes('Invalid login credentials')) {
+            return 'Invalid email or password. Please check your credentials and try again.';
+        } else if (error.includes('No account found') || error.includes('User not found')) {
+            return 'No account found with this email address. Please register first.';
+        } else if (error.includes('Incorrect password') || error.includes('Wrong password')) {
+            return 'Incorrect password. Please try again.';
+        } else {
+            return error; // Return the original error message
+        }
     }
 }
 

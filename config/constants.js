@@ -132,7 +132,7 @@ export const JWT_CONFIG = {
 };
 
 export const DATABASE_TABLES = {
-    USERS: 'users',
+    PROFILES: 'profiles',
     ADDRESSES: 'addresses',
     CATEGORIES: 'categories',
     SHOES: 'shoes',
@@ -144,7 +144,8 @@ export const DATABASE_TABLES = {
     ORDERS: 'orders',
     ORDER_ITEMS: 'order_items',
     PAYMENTS: 'payments',
-    REVIEWS: 'reviews'
+    REVIEWS: 'reviews',
+    WISHLISTS: 'wishlists'
 };
 
 export const ERROR_MESSAGES = {
@@ -157,6 +158,7 @@ export const ERROR_MESSAGES = {
     },
     AUTH: {
         INVALID_CREDENTIALS: 'Invalid email or password',
+        EMAIL_NOT_CONFIRMED: 'Please check your email and click the verification link before logging in.',
         UNAUTHORIZED: 'You are not authorized to access this resource',
         TOKEN_EXPIRED: 'Your session has expired. Please login again',
         ACCOUNT_NOT_FOUND: 'Account not found'

@@ -90,18 +90,18 @@ export function requireRole(roles) {
         }
 
         try {
-            // Get user role from database
-            const { data: userData, error } = await supabase
-                .from(constants.DATABASE_TABLES.USERS)
+            // Get user role from profiles table
+            const { data: profileData, error } = await supabase
+                .from(constants.DATABASE_TABLES.PROFILES)
                 .select('role')
-                .eq('email', req.user.email)
+                .eq('user_id', req.user.id)
                 .single();
 
-            if (error || !userData) {
-                return next(new AuthenticationError('User account not found'));
+            if (error || !profileData) {
+                return next(new AuthenticationError('User profile not found'));
             }
 
-            const userRole = userData.role;
+            const userRole = profileData.role;
             const allowedRoles = Array.isArray(roles) ? roles : [roles];
 
             if (!allowedRoles.includes(userRole)) {
@@ -142,19 +142,19 @@ export function requireOwnership(getUserId) {
         }
 
         try {
-            // Get user role from database
-            const { data: userData, error } = await supabase
-                .from(constants.DATABASE_TABLES.USERS)
+            // Get user role from profiles table
+            const { data: profileData, error } = await supabase
+                .from(constants.DATABASE_TABLES.PROFILES)
                 .select('role, user_id')
-                .eq('email', req.user.email)
+                .eq('user_id', req.user.id)
                 .single();
 
-            if (error || !userData) {
-                return next(new AuthenticationError('User account not found'));
+            if (error || !profileData) {
+                return next(new AuthenticationError('User profile not found'));
             }
 
             // Admin can access any resource
-            if (userData.role === 'admin') {
+            if (profileData.role === 'admin') {
                 return next();
             }
 
@@ -162,7 +162,7 @@ export function requireOwnership(getUserId) {
                 ? getUserId(req) 
                 : req.params[getUserId] || req.body[getUserId];
 
-            if (userData.user_id !== resourceUserId) {
+            if (profileData.user_id !== resourceUserId) {
                 return next(new AuthorizationError('Access denied to this resource'));
             }
 
@@ -183,7 +183,15 @@ export function requireEmailVerification(req, res, next) {
     }
 
     if (!req.user.email_confirmed_at) {
-        return next(new AuthenticationError('Email verification required'));
+        const error = new AuthenticationError('Email verification required. Please check your email and verify your account before accessing this feature.');
+        error.statusCode = 403;
+        error.code = 'EMAIL_VERIFICATION_REQUIRED';
+        error.details = {
+            email: req.user.email,
+            requires_verification: true,
+            verification_url: '/verify-email.html'
+        };
+        return next(error);
     }
 
     next();

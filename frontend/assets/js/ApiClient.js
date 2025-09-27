@@ -41,7 +41,7 @@ class ApiClient {
                 if (error.status === 401) {
                     this.handleUnauthorized();
                 } else if (error.status === 403) {
-                    this.handleForbidden();
+                    this.handleForbidden(error);
                 } else if (error.status >= 500) {
                     this.handleServerError(error);
                 }
@@ -332,11 +332,36 @@ class ApiClient {
     /**
      * Handle forbidden response
      */
-    handleForbidden() {
-        console.warn('Access forbidden');
-        // Could show a toast or modal
-        if (window.showToast) {
-            window.showToast('Access denied - insufficient permissions', 'error');
+    handleForbidden(error) {
+        // Check if it's an email verification error
+        if (error?.response?.data?.code === 'EMAIL_VERIFICATION_REQUIRED') {
+            console.warn('Email verification required');
+            
+            // Emit event for AuthManager to handle
+            if (typeof authManager !== 'undefined') {
+                authManager.emit('emailVerificationRequired', {
+                    message: error.response.data.message,
+                    email: error.response.data.details?.email
+                });
+            }
+            
+            // Show notification
+            if (window.showToast) {
+                window.showToast('Please verify your email to access this feature', 'warning');
+            }
+            
+            // Redirect to verification page if not already there
+            if (!window.location.pathname.includes('verify-email')) {
+                setTimeout(() => {
+                    window.location.href = '/verify-email.html';
+                }, 2000);
+            }
+        } else {
+            console.warn('Access forbidden');
+            // Could show a toast or modal
+            if (window.showToast) {
+                window.showToast('Access denied - insufficient permissions', 'error');
+            }
         }
     }
 
@@ -439,14 +464,18 @@ class AuthAPI {
     }
 
     async resetPassword(token, password) {
+        // Note: Password reset is handled client-side with Supabase
+        // This method is kept for compatibility but should not be used
+        console.warn('Password reset should be handled client-side with Supabase auth');
         const response = await this.client.post('/api/auth/reset-password', { token, password });
         return response.data;
     }
 
-    async googleAuth(idToken) {
-        const response = await this.client.post('/api/auth/google', { id_token: idToken });
+    async resendVerification(email) {
+        const response = await this.client.post('/api/auth/resend-verification', { email });
         return response.data;
     }
+
 }
 
 // Products API

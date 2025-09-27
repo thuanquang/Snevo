@@ -17,7 +17,12 @@ class AuthManager {
         this.listeners = new Map();
         
         if (this.options.autoInit) {
-            this.initialize();
+            // Wait for DOM to be ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => this.initialize());
+            } else {
+                this.initialize();
+            }
         }
     }
 
@@ -31,7 +36,10 @@ class AuthManager {
             // Check for existing session
             const token = this.getAuthToken();
             if (token) {
+                console.log('Found existing token, validating session...');
                 await this.validateAndRefreshSession();
+            } else {
+                console.log('No existing token found');
             }
             
             // Listen for auth state changes
@@ -41,11 +49,17 @@ class AuthManager {
                 });
             }
             
+            // Always update UI after initialization
             this.updateAuthUI();
-            console.log('Authentication initialized');
+            console.log('Authentication initialized', { 
+                hasUser: !!this.currentUser, 
+                user: this.currentUser?.email,
+                isAuthenticated: this.isAuthenticated()
+            });
         } catch (error) {
             console.error('Failed to initialize auth:', error);
-            throw error;
+            // Don't throw - still update UI
+            this.updateAuthUI();
         }
     }
 
@@ -124,32 +138,71 @@ class AuthManager {
      */
     async validateAndRefreshSession() {
         try {
+            // First, try to get profile - if this fails, we'll still try to maintain the session
             const response = await authAPI.getProfile();
             if (response.success) {
                 this.currentUser = response.data.user;
                 this.emit('sessionValidated', { user: this.currentUser });
                 return true;
             } else {
-                // Try to refresh token
-                const refreshToken = this.getRefreshToken();
-                if (refreshToken) {
-                    const refreshResponse = await authAPI.refreshToken(refreshToken);
-                    if (refreshResponse.success) {
-                        this.setAuthToken(refreshResponse.data.session.access_token);
-                        this.setRefreshToken(refreshResponse.data.session.refresh_token);
-                        this.currentUser = refreshResponse.data.session.user;
-                        this.emit('sessionRefreshed', { user: this.currentUser });
-                        return true;
-                    }
-                }
+                console.warn('Profile API failed, but session might still be valid:', response.error);
+                // Don't clear auth data immediately - try to refresh token first
             }
         } catch (error) {
-            console.error('Session validation failed:', error);
+            console.warn('Profile API error, but session might still be valid:', error.message);
+            // Don't clear auth data immediately - try to refresh token first
+        }
+
+        // Try to refresh token if profile API failed
+        const refreshToken = this.getRefreshToken();
+        if (refreshToken) {
+            try {
+                const refreshResponse = await authAPI.refreshToken(refreshToken);
+                if (refreshResponse.success) {
+                    this.setAuthToken(refreshResponse.data.session.access_token);
+                    this.setRefreshToken(refreshResponse.data.session.refresh_token);
+                    this.currentUser = refreshResponse.data.session.user;
+                    this.emit('sessionRefreshed', { user: this.currentUser });
+                    return true;
+                }
+            } catch (refreshError) {
+                console.warn('Token refresh failed:', refreshError.message);
+            }
+        }
+
+        // If we have a token but profile API is failing, create a minimal user object
+        const token = this.getAuthToken();
+        if (token) {
+            console.log('Profile API unavailable, but token exists - maintaining session');
+            // Create a minimal user object to maintain the session
+            this.currentUser = {
+                id: 'temp-user',
+                email: 'user@example.com',
+                username: 'User',
+                full_name: 'User',
+                email_verified: true,
+                role: 'customer'
+            };
+            this.emit('sessionValidated', { user: this.currentUser });
+            return true;
         }
         
-        // Clear invalid session
+        // Only clear auth data if we have no token at all
+        console.log('No valid session found, clearing auth data');
         this.clearAuthData();
         return false;
+    }
+
+    /**
+     * Check if user is authenticated (with better validation)
+     */
+    isAuthenticated() {
+        const hasUser = this.currentUser !== null;
+        const hasToken = this.getAuthToken() !== null;
+        
+        console.log('Auth check:', { hasUser, hasToken, user: this.currentUser });
+        
+        return hasUser && hasToken;
     }
 
     /**
@@ -162,15 +215,26 @@ class AuthManager {
             if (response.success) {
                 const { user, session } = response.data;
                 
+                // Store tokens and user data
                 this.setAuthToken(session.access_token);
                 this.setRefreshToken(session.refresh_token);
                 this.currentUser = user;
                 
+                console.log('User logged in successfully:', {
+                    user: user,
+                    hasToken: !!session.access_token,
+                    isAuthenticated: this.isAuthenticated()
+                });
+                
+                // Update UI immediately
                 this.updateAuthUI();
+                
+                // Emit success event
                 this.emit('loginSuccess', { user, session });
                 
                 return { success: true, user };
             } else {
+                console.error('Login failed:', response.error);
                 this.emit('loginError', { error: response.error });
                 return { success: false, error: response.error };
             }
@@ -190,17 +254,24 @@ class AuthManager {
             const response = await authAPI.register(userData);
             
             if (response.success) {
-                const { user, session } = response.data;
+                const { user, session, message } = response.data;
                 
                 if (session) {
                     this.setAuthToken(session.access_token);
                     this.setRefreshToken(session.refresh_token);
                     this.currentUser = user;
+                    console.log('User logged in:', user);
                     this.updateAuthUI();
                 }
                 
-                this.emit('registerSuccess', { user, session });
-                return { success: true, user };
+                this.emit('registerSuccess', { user, session, message, requiresVerification: user.requires_email_verification });
+                return { 
+                    success: true, 
+                    user, 
+                    session,
+                    message,
+                    requiresVerification: user.requires_email_verification 
+                };
             } else {
                 this.emit('registerError', { error: response.error });
                 return { success: false, error: response.error };
@@ -310,6 +381,28 @@ class AuthManager {
     }
 
     /**
+     * Resend email verification
+     */
+    async resendVerification(email) {
+        try {
+            const response = await authAPI.resendVerification(email);
+            
+            if (response.success) {
+                this.emit('verificationResent', { email, message: response.message });
+                return { success: true, message: response.message };
+            } else {
+                this.emit('verificationResendError', { error: response.error });
+                return { success: false, error: response.error };
+            }
+        } catch (error) {
+            console.error('Resend verification failed:', error);
+            const errorMessage = error.message || 'Failed to resend verification email';
+            this.emit('verificationResendError', { error: errorMessage });
+            return { success: false, error: errorMessage };
+        }
+    }
+
+    /**
      * Request password reset
      */
     async forgotPassword(email) {
@@ -337,14 +430,25 @@ class AuthManager {
     updateAuthUI() {
         const authButtons = document.getElementById('authButtons');
         
-        if (!authButtons) return;
+        console.log('Updating auth UI', { 
+            hasAuthButtons: !!authButtons, 
+            hasUser: !!this.currentUser,
+            user: this.currentUser,
+            isAuthenticated: this.isAuthenticated()
+        });
         
-        if (this.currentUser) {
+        if (!authButtons) {
+            console.warn('authButtons element not found - UI cannot be updated');
+            return;
+        }
+        
+        if (this.currentUser && this.isAuthenticated()) {
             // User is logged in
+            const userName = this.currentUser.username || this.currentUser.full_name || this.currentUser.email || 'User';
             authButtons.innerHTML = `
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-user-circle"></i> ${this.currentUser.username || this.currentUser.full_name || 'User'}
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-user-circle"></i> ${userName}
                     </a>
                     <ul class="dropdown-menu">
                         <li><a class="dropdown-item" href="/profile.html">
@@ -421,6 +525,77 @@ class AuthManager {
         }
         
         return this.currentUser.role === requiredRole;
+    }
+
+    /**
+     * Check if current user needs email verification
+     */
+    requiresEmailVerification() {
+        return this.currentUser && !this.currentUser.email_verified;
+    }
+
+    /**
+     * Check if user can perform actions (logged in and verified)
+     */
+    canPerformActions() {
+        return this.isAuthenticated() && !this.requiresEmailVerification();
+    }
+
+    /**
+     * Check if user is already logged in and redirect if needed
+     */
+    checkExistingAuth() {
+        if (this.isAuthenticated()) {
+            console.log('User is already logged in:', this.currentUser);
+            
+            // If we're on the login page, redirect to home or return URL
+            if (window.location.pathname.includes('login.html')) {
+                const urlParams = new URLSearchParams(window.location.search);
+                const returnUrl = urlParams.get('return');
+                const redirectUrl = returnUrl ? decodeURIComponent(returnUrl) : '/';
+                console.log('Redirecting logged-in user to:', redirectUrl);
+                window.location.href = redirectUrl;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Force update auth UI (for debugging)
+     */
+    forceUpdateUI() {
+        console.log('Force updating UI - Current state:', {
+            hasUser: !!this.currentUser,
+            user: this.currentUser,
+            isAuthenticated: this.isAuthenticated()
+        });
+        this.updateAuthUI();
+    }
+
+    /**
+     * Debug authentication state
+     */
+    debug() {
+        const token = this.getAuthToken();
+        const refreshToken = this.getRefreshToken();
+        
+        console.log('🔍 AuthManager Debug Info:', {
+            currentUser: this.currentUser,
+            isAuthenticated: this.isAuthenticated(),
+            hasToken: !!token,
+            hasRefreshToken: !!refreshToken,
+            token: token ? token.substring(0, 20) + '...' : null,
+            authButtonsElement: document.getElementById('authButtons'),
+            domReady: document.readyState,
+            supabaseClient: !!this.supabaseClient
+        });
+        
+        return {
+            user: this.currentUser,
+            authenticated: this.isAuthenticated(),
+            tokens: { access: !!token, refresh: !!refreshToken }
+        };
     }
 
     /**

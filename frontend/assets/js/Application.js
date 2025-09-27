@@ -48,6 +48,38 @@ class Application {
         try {
             console.log('🚀 Initializing Snevo E-commerce Application...');
             
+            // Wait for AuthManager to be available
+            let attempts = 0;
+            const maxAttempts = 50; // 5 seconds max wait
+            
+            const waitForAuthManager = () => {
+                return new Promise((resolve) => {
+                    const checkAuthManager = () => {
+                        attempts++;
+                        if (typeof authManager !== 'undefined' && authManager) {
+                            console.log('🔐 AuthManager found, initializing...');
+                            resolve();
+                        } else if (attempts < maxAttempts) {
+                            setTimeout(checkAuthManager, 100);
+                        } else {
+                            console.error('❌ AuthManager not found after waiting!');
+                            resolve();
+                        }
+                    };
+                    checkAuthManager();
+                });
+            };
+            
+            await waitForAuthManager();
+            
+            if (typeof authManager !== 'undefined') {
+                console.log('🔐 AuthManager status:', authManager.debug());
+                authManager.forceUpdateUI();
+                
+                // Check for existing authentication
+                this.checkAuthenticationState();
+            }
+            
             // Initialize core managers
             await this.initializeCore();
             
@@ -667,6 +699,74 @@ class Application {
                 console.error(`Error in app event handler for ${eventName}:`, error);
             }
         });
+    }
+
+    /**
+     * Check authentication state and handle redirects
+     */
+    checkAuthenticationState() {
+        if (typeof authManager === 'undefined') {
+            console.warn('AuthManager not available for auth state check');
+            return;
+        }
+
+        console.log('🔍 Checking authentication state...');
+        
+        // Wait a bit for authentication to be fully validated
+        setTimeout(() => {
+            this.performAuthCheck();
+        }, 1000);
+    }
+
+    /**
+     * Perform the actual authentication check
+     */
+    performAuthCheck() {
+        if (typeof authManager === 'undefined') {
+            console.warn('AuthManager not available for auth check');
+            return;
+        }
+
+        const isAuthenticated = authManager.isAuthenticated();
+        const currentPath = window.location.pathname;
+        
+        console.log('🔍 Auth check results:', {
+            isAuthenticated,
+            currentPath,
+            user: authManager.getCurrentUser()
+        });
+        
+        if (isAuthenticated) {
+            console.log('✅ User is authenticated:', authManager.getCurrentUser());
+            
+            // If on login page, redirect to home
+            if (currentPath.includes('login.html')) {
+                console.log('🔄 Redirecting authenticated user from login page');
+                const urlParams = new URLSearchParams(window.location.search);
+                const returnUrl = urlParams.get('return');
+                const redirectUrl = returnUrl ? decodeURIComponent(returnUrl) : '/';
+                window.location.href = redirectUrl;
+            }
+        } else {
+            console.log('❌ User is not authenticated');
+            
+            // Check if we have a token but AuthManager hasn't validated it yet
+            const hasToken = localStorage.getItem('auth_token');
+            if (hasToken) {
+                console.log('🔍 Token exists but not authenticated - waiting for validation...');
+                // Don't redirect immediately, let AuthManager handle it
+                return;
+            }
+            
+            // If on protected pages, redirect to login
+            const protectedPages = ['/profile.html', '/orders.html', '/cart.html'];
+            
+            if (protectedPages.some(page => currentPath.includes(page))) {
+                console.log('🔄 Redirecting unauthenticated user to login');
+                const returnUrl = encodeURIComponent(window.location.href);
+                window.location.href = `/login.html?return=${returnUrl}`;
+            }
+        }
     }
 }
 

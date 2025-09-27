@@ -3,16 +3,16 @@
  * Handles user authentication, registration, and profile management using OOP principles
  */
 
-import { supabase, supabaseAdmin } from '../../config/supabase.js';
+import { supabase } from '../../config/supabase.js';
 import constants from '../../config/constants.js';
-import { userModel } from '../models/User.js';
+import { profileModel } from '../models/Profile.js';
 import BaseController from '../utils/BaseController.js';
-import { ValidationError, AuthenticationError, ConflictError } from '../utils/ErrorClasses.js';
+import { ValidationError, AuthenticationError, ConflictError, NotFoundError } from '../utils/ErrorClasses.js';
 
 class AuthController extends BaseController {
     constructor() {
         super();
-        this.userModel = userModel;
+        this.profileModel = profileModel;
     }
 
     /**
@@ -31,6 +31,20 @@ class AuthController extends BaseController {
                 role: { required: false, type: 'string', enum: Object.values(constants.USER_ROLES) }
             });
 
+            // Check if username is available (with fallback for permission issues)
+            try {
+                const isUsernameAvailable = await this.profileModel.isUsernameAvailable(username);
+                if (!isUsernameAvailable) {
+                    throw new ConflictError('Username already exists');
+                }
+            } catch (error) {
+                if (error.message.includes('permission denied')) {
+                    console.warn('Username availability check failed due to permissions - continuing with registration. Database constraint will prevent duplicates.');
+                } else {
+                    throw error; // Re-throw non-permission errors
+                }
+            }
+
             // Register user with Supabase Auth
             const { data: authData, error: authError } = await supabase.auth.signUp({
                 email,
@@ -48,26 +62,37 @@ class AuthController extends BaseController {
                 throw new ValidationError(authError.message);
             }
 
-            // Create user record in database
-            const userData = {
-                email,
-                username,
-                full_name,
-                role,
-                password_hash: 'handled_by_supabase_auth' // Supabase handles password hashing
-            };
+            // Profile will be auto-created by database trigger
+            // But we can also create it explicitly to ensure it exists
+            if (authData.user?.id) {
+                try {
+                    await this.profileModel.upsertProfile(authData.user.id, {
+                        username,
+                        full_name,
+                        role
+                    });
+                } catch (profileError) {
+                    console.warn('Profile auto-creation failed, but trigger should handle it:', profileError.message);
+                }
+            }
 
-            const user = await this.userModel.create(userData);
-
+            // Determine if email verification is required
+            const emailVerificationRequired = !authData.session; // No session = email verification needed
+            
             this.sendResponse(res, {
                 user: {
                     id: authData.user?.id,
                     email: authData.user?.email,
                     username,
                     full_name,
-                    role
+                    role,
+                    email_verified: authData.user?.email_confirmed_at !== null,
+                    requires_email_verification: emailVerificationRequired
                 },
-                session: authData.session
+                session: authData.session,
+                message: emailVerificationRequired 
+                    ? 'Account created! Please check your email to verify your account before full access.'
+                    : 'Account created and logged in successfully!'
             }, constants.SUCCESS_MESSAGES.AUTH.REGISTER_SUCCESS, constants.HTTP_STATUS.CREATED);
         });
     }
@@ -92,19 +117,56 @@ class AuthController extends BaseController {
             });
 
             if (error) {
-                throw new AuthenticationError(constants.ERROR_MESSAGES.AUTH.INVALID_CREDENTIALS);
+                // Handle specific authentication errors
+                console.log('Supabase auth error details:', {
+                    message: error.message,
+                    status: error.status,
+                    code: error.code
+                });
+
+                if (error.message === 'Email not confirmed' || error.code === 'email_not_confirmed') {
+                    throw new AuthenticationError(constants.ERROR_MESSAGES.AUTH.EMAIL_NOT_CONFIRMED, 401, 'EMAIL_NOT_CONFIRMED');
+                } else if (error.message === 'Invalid login credentials' || error.message === 'Invalid email or password') {
+                    throw new AuthenticationError(constants.ERROR_MESSAGES.AUTH.INVALID_CREDENTIALS);
+                } else if (error.message === 'User not found' || error.message === 'No user found') {
+                    throw new AuthenticationError('No account found with this email address.');
+                } else if (error.message === 'Invalid password' || error.message === 'Wrong password') {
+                    throw new AuthenticationError('Incorrect password. Please try again.');
+                } else {
+                    // Log the actual error for debugging
+                    console.error('Unhandled Supabase auth error:', error);
+                    throw new AuthenticationError(constants.ERROR_MESSAGES.AUTH.INVALID_CREDENTIALS);
+                }
             }
 
-            // Get user details from database
-            const userDetails = await this.userModel.findByEmail(email);
+            // Get user profile from database
+            const profile = await this.profileModel.findByUserId(data.user.id);
+
+            // If no profile exists, create a minimal one (fallback)
+            if (!profile && data.user.id) {
+                try {
+                    const fallbackProfile = await this.profileModel.upsertProfile(data.user.id, {
+                        username: data.user.email.split('@')[0],
+                        full_name: data.user.user_metadata?.full_name || '',
+                        role: 'customer'
+                    });
+                    console.log('Created fallback profile for user:', data.user.id);
+                } catch (profileError) {
+                    console.warn('Failed to create fallback profile:', profileError.message);
+                }
+            }
 
             this.sendResponse(res, {
                 user: {
                     id: data.user.id,
                     email: data.user.email,
-                    username: userDetails?.username,
-                    full_name: userDetails?.full_name,
-                    role: userDetails?.role
+                    email_verified: data.user.email_confirmed_at !== null,
+                    username: profile?.username,
+                    full_name: profile?.full_name,
+                    role: profile?.role || 'customer',
+                    avatar_url: profile?.avatar_url,
+                    created_at: data.user.created_at,
+                    last_sign_in_at: data.user.last_sign_in_at
                 },
                 session: data.session
             }, constants.SUCCESS_MESSAGES.AUTH.LOGIN_SUCCESS);
@@ -112,17 +174,14 @@ class AuthController extends BaseController {
     }
 
     /**
-     * Logout user
+     * Logout user - handled client-side with Supabase OAuth
+     * This endpoint is kept for compatibility but logout is handled client-side
      */
     async logout(req, res) {
         return this.handleRequest(req, res, async (req, res) => {
-            const { error } = await supabase.auth.signOut();
-
-            if (error) {
-                throw new Error(error.message);
-            }
-
-            this.sendResponse(res, null, constants.SUCCESS_MESSAGES.AUTH.LOGOUT_SUCCESS);
+            // For Supabase OAuth, logout is handled entirely client-side
+            // The client calls supabaseClient.auth.signOut() directly
+            this.sendResponse(res, null, 'Logout handled client-side with Supabase OAuth');
         });
     }
 
@@ -133,21 +192,21 @@ class AuthController extends BaseController {
         return this.handleRequest(req, res, async (req, res) => {
             const user = this.requireAuth(req);
             
-            const userDetails = await this.userModel.findByEmail(user.email);
+            const profile = await this.profileModel.findByUserId(user.id);
 
-            if (!userDetails) {
-                throw new NotFoundError('User account');
+            if (!profile) {
+                throw new NotFoundError('User profile not found');
             }
 
             this.sendResponse(res, {
                 user: {
                     id: user.id,
-                    email: userDetails.email,
-                    username: userDetails.username,
-                    full_name: userDetails.full_name,
-                    role: userDetails.role,
-                    created_at: userDetails.created_at
-                }
+                    email: user.email,
+                    email_verified: user.email_confirmed_at !== null,
+                    created_at: user.created_at,
+                    last_sign_in_at: user.last_sign_in_at
+                },
+                profile: profile
             });
         });
     }
@@ -158,33 +217,49 @@ class AuthController extends BaseController {
     async updateProfile(req, res) {
         return this.handleRequest(req, res, async (req, res) => {
             const user = this.requireAuth(req);
-            const { username, full_name } = req.body;
-
-            // Validate updates
-            const updates = {};
-            if (username) {
-                this.validateRequest({ username }, {
-                    username: { required: true, type: 'string', minLength: 3, maxLength: 50 }
-                });
-                updates.username = username;
-            }
+            const allowedFields = ['username', 'full_name', 'avatar_url', 'phone', 'date_of_birth', 'gender'];
             
-            if (full_name) {
-                this.validateRequest({ full_name }, {
-                    full_name: { required: true, type: 'string', minLength: 2, maxLength: 100 }
-                });
-                updates.full_name = full_name;
-            }
+            // Filter only allowed fields
+            const updates = {};
+            allowedFields.forEach(field => {
+                if (req.body[field] !== undefined) {
+                    updates[field] = req.body[field];
+                }
+            });
 
             if (Object.keys(updates).length === 0) {
                 throw new ValidationError('No valid fields to update');
             }
 
-            const updatedUser = await this.userModel.updateByEmail(user.email, updates);
+            const updatedProfile = await this.profileModel.updateByUserId(user.id, updates);
 
             this.sendResponse(res, {
-                user: updatedUser
+                profile: updatedProfile
             }, constants.SUCCESS_MESSAGES.AUTH.PROFILE_UPDATED);
+        });
+    }
+
+    /**
+     * Resend email verification
+     */
+    async resendVerification(req, res) {
+        return this.handleRequest(req, res, async (req, res) => {
+            const { email } = req.body;
+
+            this.validateRequest(req.body, {
+                email: { required: true, type: 'email' }
+            });
+
+            const { error } = await supabase.auth.resend({
+                type: 'signup',
+                email: email
+            });
+
+            if (error) {
+                throw new ValidationError(error.message);
+            }
+
+            this.sendResponse(res, null, 'Verification email sent successfully');
         });
     }
 
@@ -237,99 +312,17 @@ class AuthController extends BaseController {
     }
 
     /**
-     * Reset password
+     * Reset password - handled entirely by Supabase client-side
+     * This endpoint is kept for compatibility but delegates to Supabase
      */
     async resetPassword(req, res) {
         return this.handleRequest(req, res, async (req, res) => {
-            const { access_token, refresh_token, password } = req.body;
-
-            this.validateRequest(req.body, {
-                access_token: { required: true, type: 'string' },
-                refresh_token: { required: true, type: 'string' },
-                password: { required: true, type: 'string', minLength: constants.VALIDATION_RULES.PASSWORD_MIN_LENGTH }
-            });
-
-            // Set session with tokens
-            const { error: sessionError } = await supabase.auth.setSession({
-                access_token,
-                refresh_token
-            });
-
-            if (sessionError) {
-                throw new AuthenticationError(sessionError.message);
-            }
-
-            // Update password
-            const { error } = await supabase.auth.updateUser({
-                password
-            });
-
-            if (error) {
-                throw new Error(error.message);
-            }
-
-            this.sendResponse(res, null, 'Password reset successfully');
+            // For Supabase OAuth flow, password reset is handled client-side
+            // This endpoint returns a message directing users to use the client-side flow
+            this.sendResponse(res, null, 'Password reset is handled client-side with Supabase. Please use the forgot password link in the login form.');
         });
     }
 
-    /**
-     * Google OAuth authentication
-     */
-    async googleAuth(req, res) {
-        return this.handleRequest(req, res, async (req, res) => {
-            const { id_token, redirect_url } = req.body;
-
-            // Validate required fields
-            if (!id_token) {
-                throw new ValidationError('Google ID token is required');
-            }
-
-            // Verify Google ID token using Supabase helper
-            const result = await supabaseHelpers.verifyGoogleIdToken(id_token);
-            
-            if (!result.success) {
-                throw new AuthenticationError(result.error || 'Failed to verify Google ID token');
-            }
-
-            const { data } = result;
-
-            // Check if user exists in database, create if not
-            let userDetails = await this.userModel.findByEmail(data.user.email);
-
-            if (!userDetails) {
-                // Create user record for Google OAuth user
-                const userData = {
-                    email: data.user.email,
-                    username: data.user.user_metadata?.full_name?.replace(/\s+/g, '_').toLowerCase() || data.user.email.split('@')[0],
-                    full_name: data.user.user_metadata?.full_name || data.user.email.split('@')[0],
-                    role: 'customer',
-                    password_hash: 'google_oauth', // Placeholder for OAuth users
-                    email_verified: true // Google users are pre-verified
-                };
-
-                try {
-                    userDetails = await this.userModel.create(userData);
-                    console.log(`✅ Created new user from Google OAuth: ${data.user.email}`);
-                } catch (createError) {
-                    console.error('Error creating Google OAuth user:', createError);
-                    throw new ValidationError('Failed to create user account');
-                }
-            }
-
-            this.sendResponse(res, {
-                user: {
-                    id: data.user.id,
-                    email: data.user.email,
-                    username: userDetails.username,
-                    full_name: userDetails.full_name,
-                    role: userDetails.role,
-                    email_verified: true
-                },
-                session: data.session,
-                redirect_url: redirect_url || process.env.FRONTEND_URL || '/'
-            }, constants.SUCCESS_MESSAGES.AUTH.LOGIN_SUCCESS);
-        });
-    }
 
     /**
      * Get user addresses
@@ -337,7 +330,7 @@ class AuthController extends BaseController {
     async getAddresses(req, res) {
         return this.handleRequest(req, res, async (req, res) => {
             const user = this.requireAuth(req);
-            const addresses = await this.userModel.getAddresses(user.id);
+            const addresses = await this.profileModel.getAddresses(user.id);
             
             this.sendResponse(res, { addresses });
         });
@@ -360,7 +353,7 @@ class AuthController extends BaseController {
                 is_default: { required: false, type: 'boolean' }
             });
 
-            const address = await this.userModel.addAddress(user.id, req.body);
+            const address = await this.profileModel.addAddress(user.id, req.body);
             
             this.sendResponse(res, { address }, 'Address added successfully', constants.HTTP_STATUS.CREATED);
         });
@@ -374,7 +367,7 @@ class AuthController extends BaseController {
             const user = this.requireAuth(req);
             const { addressId } = req.params;
             
-            const address = await this.userModel.updateAddress(user.id, addressId, req.body);
+            const address = await this.profileModel.updateAddress(user.id, addressId, req.body);
             
             this.sendResponse(res, { address }, 'Address updated successfully');
         });
@@ -388,7 +381,7 @@ class AuthController extends BaseController {
             const user = this.requireAuth(req);
             const { addressId } = req.params;
             
-            await this.userModel.deleteAddress(user.id, addressId);
+            await this.profileModel.deleteAddress(user.id, addressId);
             
             this.sendResponse(res, null, 'Address deleted successfully');
         });
@@ -402,7 +395,7 @@ class AuthController extends BaseController {
             const user = this.requireAuth(req);
             const pagination = this.getPaginationParams(req);
             
-            const result = await this.userModel.getOrders(user.id, pagination);
+            const result = await this.profileModel.getOrders(user.id, pagination);
             
             this.sendPaginatedResponse(res, result, pagination);
         });
@@ -416,7 +409,7 @@ class AuthController extends BaseController {
             const user = this.requireAuth(req);
             const pagination = this.getPaginationParams(req);
             
-            const result = await this.userModel.getReviews(user.id, pagination);
+            const result = await this.profileModel.getReviews(user.id, pagination);
             
             this.sendPaginatedResponse(res, result, pagination);
         });

@@ -112,7 +112,19 @@ logs
 # Build outputs
 build/
 dist/
+
+# Generated configuration files
 frontend/assets/js/config.generated.js
+
+# Development files
+frontend/pages/auth-test.html
+frontend/assets/js/auth-debug.js
+frontend/assets/js/auth-persistence.js
+
+# Old schema files (keep only schema.sql)
+schema-db_nike.sql
+schema-supabase.sql
+fix-permissions.sql
 
 # Database
 *.sqlite

@@ -5,7 +5,7 @@
 
 import constants from '../../config/constants.js';
 import { orderModel } from '../models/Order.js';
-import { userModel } from '../models/User.js';
+import { profileModel } from '../models/Profile.js';
 import BaseController from '../utils/BaseController.js';
 import { ValidationError, NotFoundError, AuthorizationError, BusinessLogicError } from '../utils/ErrorClasses.js';
 
@@ -24,8 +24,8 @@ class OrderController extends BaseController {
             const { address_id, items, payment_method, notes } = req.body;
 
             // Get user details from database
-            const userDetails = await userModel.findByEmail(user.email);
-            if (!userDetails) {
+            const userProfile = await profileModel.findByUserId(user.id);
+            if (!userProfile) {
                 throw new NotFoundError('User account');
             }
 
@@ -54,7 +54,7 @@ class OrderController extends BaseController {
             }
 
             // Verify that the address belongs to the user
-            const userAddresses = await userModel.getAddresses(userDetails.user_id);
+            const userAddresses = await profileModel.getAddresses(user.id);
             const selectedAddress = userAddresses.find(addr => addr.address_id === address_id);
             
             if (!selectedAddress) {
@@ -62,7 +62,7 @@ class OrderController extends BaseController {
             }
 
             const orderData = {
-                user_id: userDetails.user_id,
+                user_id: userProfile.user_id,
                 address_id,
                 payment_method: payment_method || constants.PAYMENT_METHODS.CREDIT_CARD,
                 notes,
@@ -83,8 +83,8 @@ class OrderController extends BaseController {
             const user = this.requireAuth(req);
 
             // Get user details from database
-            const userDetails = await userModel.findByEmail(user.email);
-            if (!userDetails) {
+            const userProfile = await profileModel.findByUserId(user.id);
+            if (!userProfile) {
                 throw new NotFoundError('User account');
             }
 
@@ -95,7 +95,7 @@ class OrderController extends BaseController {
 
             const filters = this.getFilterParams(req, ['status', 'payment_status']);
 
-            const result = await this.orderModel.findByUser(userDetails.user_id, pagination, filters);
+            const result = await this.orderModel.findByUser(userProfile.user_id, pagination, filters);
 
             this.sendPaginatedResponse(res, result, pagination);
         });
@@ -120,8 +120,8 @@ class OrderController extends BaseController {
             }
 
             // Check if user owns the order (unless admin)
-            const userDetails = await userModel.findByEmail(user.email);
-            if (userDetails.role !== 'admin' && order.user_id !== userDetails.user_id) {
+            const userProfile = await profileModel.findByUserId(user.id);
+            if (userProfile.role !== 'admin' && order.user_id !== userProfile.user_id) {
                 throw new AuthorizationError('Access denied to this order');
             }
 
@@ -241,8 +241,8 @@ class OrderController extends BaseController {
             }
 
             // Check if user owns the order (unless admin)
-            const userDetails = await userModel.findByEmail(user.email);
-            if (userDetails.role !== 'admin' && order.user_id !== userDetails.user_id) {
+            const userProfile = await profileModel.findByUserId(user.id);
+            if (userProfile.role !== 'admin' && order.user_id !== userProfile.user_id) {
                 throw new AuthorizationError('Access denied to this order');
             }
 
@@ -345,8 +345,8 @@ class OrderController extends BaseController {
 
             // If not admin, only show user's own stats
             if (user.role !== 'admin') {
-                const userDetails = await userModel.findByEmail(user.email);
-                userId = userDetails.user_id;
+                const userProfile = await profileModel.findByUserId(user.id);
+                userId = userProfile.user_id;
             }
 
             // Parse date range if provided
@@ -392,8 +392,8 @@ class OrderController extends BaseController {
             }
 
             // Check if user owns the order
-            const userDetails = await userModel.findByEmail(user.email);
-            if (order.user_id !== userDetails.user_id) {
+            const userProfile = await profileModel.findByUserId(user.id);
+            if (order.user_id !== userProfile.user_id) {
                 throw new AuthorizationError('Access denied to this order');
             }
 

@@ -38,7 +38,8 @@ window.APP_CONFIG = {
     environment: 'development',
     buildTime: new Date().toISOString(),
     features: {
-        googleAuth: isValidGoogleClientId && isValidSupabaseUrl && isValidSupabaseKey,
+        // Google OAuth only needs Supabase config since it's handled by Supabase OAuth
+        googleAuth: isValidSupabaseUrl && isValidSupabaseKey,
         emailVerification: isValidSupabaseUrl && isValidSupabaseKey,
         passwordReset: isValidSupabaseUrl && isValidSupabaseKey,
         supabaseAuth: isValidSupabaseUrl && isValidSupabaseKey
@@ -68,12 +69,12 @@ if (!isValidSupabaseUrl || !isValidSupabaseKey) {
 }
 
 if (!isValidGoogleClientId) {
-    console.warn('⚠️  Google OAuth not configured:');
+    console.warn('⚠️  Google Client ID not configured (optional):');
     console.warn('   • GOOGLE_CLIENT_ID is missing or invalid');
-    console.warn('   • Google authentication will be disabled');
-    console.warn('   • Add your Google Client ID to .env to enable Google OAuth');
+    console.warn('   • Google OAuth is still available through Supabase');
+    console.warn('   • Add your Google Client ID to .env for additional Google integrations');
 } else {
-    console.log('✅ Google OAuth configured and enabled');
+    console.log('✅ Google Client ID configured');
 }
 
 if (window.APP_CONFIG.features.supabaseAuth) {

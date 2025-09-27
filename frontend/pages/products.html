@@ -61,9 +61,11 @@
                             </span>
                         </a>
                     </li>
-                    <li class="nav-item" id="authButtons">
-                        <a class="nav-link" href="../pages/login.html">Login</a>
-                    </li>
+                    <ul class="navbar-nav" id="authButtons">
+                        <li class="nav-item">
+                            <a class="nav-link" href="../pages/login.html">Login</a>
+                        </li>
+                    </ul>
                 </ul>
             </div>
         </div>
@@ -366,10 +368,12 @@
     </script>
     
     <!-- Custom Scripts -->
-    <script src="../assets/js/ApiClient.js"></script>
-    <script src="../assets/js/AuthManager.js"></script>
-    <script src="../assets/js/ProductManager.js"></script>
-    <script src="../assets/js/Application.js"></script>
+    <script type="module" src="../assets/js/ApiClient.js"></script>
+    <script type="module" src="../assets/js/AuthManager.js"></script>
+    <script type="module" src="../assets/js/ProductManager.js"></script>
+    <script type="module" src="../assets/js/EmailVerificationNotice.js"></script>
+    <script type="module" src="../assets/js/Application.js"></script>
+    <script type="module" src="../assets/js/auth-persistence.js"></script>
     <script src="../assets/js/animations.js"></script>
     
     <script>

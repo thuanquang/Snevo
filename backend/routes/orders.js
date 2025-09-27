@@ -5,7 +5,7 @@
 
 import url from 'url';
 import { orderController } from '../controllers/orderController.js';
-import { authMiddleware, requireAuth, requireRole } from '../middleware/auth.js';
+import { authMiddleware, requireAuth, requireRole, requireEmailVerification } from '../middleware/auth.js';
 import { validateBody, validateParams, commonSchemas } from '../middleware/validation.js';
 
 /**
@@ -38,6 +38,7 @@ export default async function orderRoutes(req, res) {
             // POST /api/orders - Create new order
             case pathname === '' && method === 'POST':
                 await requireAuth(req, res, () => {});
+                await requireEmailVerification(req, res, () => {});
                 return await orderController.createOrder(req, res);
 
             // GET /api/orders/stats - Get order statistics

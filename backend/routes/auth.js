@@ -74,9 +74,11 @@ export default async function authRoutes(req, res) {
             case authPath === '/reset-password' && method === 'POST':
                 return await authController.resetPassword(req, res);
 
-            // POST /api/auth/google
-            case authPath === '/google' && method === 'POST':
-                return await authController.googleAuth(req, res);
+            // POST /api/auth/resend-verification
+            case authPath === '/resend-verification' && method === 'POST':
+                await applyMiddleware(authRateLimit)(req, res);
+                return await authController.resendVerification(req, res);
+
 
             default:
                 return res.json({

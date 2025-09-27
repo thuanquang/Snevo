@@ -5,9 +5,14 @@
 
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 
-// Load environment variables
-dotenv.config();
+// Load environment variables from project root regardless of CWD
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const rootDir = join(__dirname, '..');
+dotenv.config({ path: join(rootDir, '.env') });
 
 // Supabase configuration from environment variables
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -140,22 +145,6 @@ export const supabaseHelpers = {
         }
     },
 
-    /**
-     * Verify Google ID token
-     */
-    async verifyGoogleIdToken(idToken) {
-        try {
-            const { data, error } = await supabase.auth.signInWithIdToken({
-                provider: 'google',
-                token: idToken
-            });
-            if (error) throw error;
-            return { success: true, data };
-        } catch (error) {
-            console.error('Error verifying Google ID token:', error);
-            return { success: false, error: error.message };
-        }
-    }
 };
 
 // Export configuration object

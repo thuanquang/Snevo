@@ -6,7 +6,7 @@
 import constants from '../../config/constants.js';
 import { productModel } from '../models/Product.js';
 import Category from '../models/Category.js';
-import { userModel } from '../models/User.js';
+import { profileModel } from '../models/Profile.js';
 import BaseController from '../utils/BaseController.js';
 import { ValidationError, NotFoundError } from '../utils/ErrorClasses.js';
 
@@ -211,14 +211,14 @@ class ProductController extends BaseController {
             });
 
             // Get user details from database
-            const userDetails = await userModel.findByEmail(user.email);
-            if (!userDetails) {
+            const userProfile = await profileModel.findByUserId(user.id);
+            if (!userProfile) {
                 throw new NotFoundError('User account');
             }
 
             const reviewData = {
                 shoe_id: parseInt(id),
-                user_id: userDetails.user_id,
+                user_id: userProfile.user_id,
                 rating: parseInt(rating),
                 comment: comment || null
             };
