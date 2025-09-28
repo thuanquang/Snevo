@@ -190,7 +190,7 @@ class LoginPage {
                 setTimeout(() => {
                     const urlParams = new URLSearchParams(window.location.search);
                     const returnUrl = urlParams.get('return');
-                    window.location.href = returnUrl ? decodeURIComponent(returnUrl) : '/';
+                    window.location.href = returnUrl ? decodeURIComponent(returnUrl) : 'index.html';
                 }, 1500);
             } else {
                 // Handle specific error types
@@ -251,14 +251,14 @@ class LoginPage {
                     this.showSuccess(result.message || 'Account created! Please check your email for verification.');
                     setTimeout(() => {
                         this.registerModal.hide();
-                        window.location.href = '/verify-email.html';
+                        window.location.href = 'verify-email.html';
                     }, 2000);
                 } else {
                     // Normal registration without verification needed
                     this.showSuccess('Account created and logged in successfully!');
                     setTimeout(() => {
                         this.registerModal.hide();
-                        window.location.href = '/';
+                        window.location.href = 'index.html';
                     }, 2000);
                 }
             } else {
@@ -360,7 +360,7 @@ class LoginPage {
             // User is already logged in, redirect to home
             const urlParams = new URLSearchParams(window.location.search);
             const returnUrl = urlParams.get('return');
-            window.location.href = returnUrl ? decodeURIComponent(returnUrl) : '/';
+            window.location.href = returnUrl ? decodeURIComponent(returnUrl) : 'index.html';
         }
     }
 

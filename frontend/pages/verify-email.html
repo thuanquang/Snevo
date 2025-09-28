@@ -21,7 +21,7 @@
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand fw-bold fs-2" href="/">SNEVO</a>
+            <a class="navbar-brand fw-bold fs-2" href="index.html">SNEVO</a>
             
             <div class="navbar-nav ms-auto">
                 <button class="btn btn-outline-light" onclick="authManager.logout()">
@@ -67,7 +67,7 @@
                                 
                                 <hr class="my-3">
                                 
-                                <a href="/" class="btn btn-outline-primary">
+                                <a href="index.html" class="btn btn-outline-primary">
                                     <i class="fas fa-home me-2"></i>Continue Browsing (Limited Access)
                                 </a>
                             </div>
@@ -132,13 +132,13 @@
                     if (!authManager.requiresEmailVerification()) {
                         this.showSuccess('Your email is already verified!');
                         setTimeout(() => {
-                            window.location.href = '/';
+                            window.location.href = 'index.html';
                         }, 2000);
                         return;
                     }
                 } else {
                     // Not logged in, redirect to login
-                    window.location.href = '/login.html';
+                    window.location.href = 'login.html';
                     return;
                 }
                 
@@ -194,7 +194,7 @@
                         this.showSuccess('Email verified successfully! Redirecting...');
                         authManager.currentUser.email_verified = true;
                         setTimeout(() => {
-                            window.location.href = '/';
+                            window.location.href = 'index.html';
                         }, 2000);
                     } else {
                         this.showInfo('Email not yet verified. Please check your inbox and click the verification link.');

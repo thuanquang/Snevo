@@ -21,7 +21,7 @@
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <div class="container">
-            <a class="navbar-brand fw-bold fs-2" href="/">SNEVO</a>
+            <a class="navbar-brand fw-bold fs-2" href="index.html">SNEVO</a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -30,24 +30,15 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="/">Home</a>
+                        <a class="nav-link" href="index.html">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/products.html">Products</a>
+                        <a class="nav-link" href="products.html">Products</a>
                     </li>
                 </ul>
                 
                 <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/cart.html">
-                            <i class="fas fa-shopping-cart"></i>
-                        </a>
-                    </li>
-                    <ul class="navbar-nav" id="authButtons">
-                        <li class="nav-item">
-                            <a class="nav-link" href="/login.html">Login</a>
-                        </li>
-                    </ul>
+                    <!-- No cart or auth buttons on login page since user is not logged in -->
                 </ul>
             </div>
         </div>
@@ -93,7 +84,7 @@
                             <div class="mb-3">
                                 <label for="password" class="form-label fw-semibold">Password</label>
                                 <div class="position-relative">
-                                    <input type="password" class="form-control form-control-lg" id="password" name="password" required minlength="6">
+                                    <input type="password" class="form-control form-control-lg" id="password" name="password">
                                     <button type="button" class="btn btn-link position-absolute top-50 end-0 translate-middle-y" id="togglePassword" style="border: none; background: none; padding-right: 1rem;">
                                         <i class="fas fa-eye" id="togglePasswordIcon"></i>
                                     </button>
@@ -201,7 +192,7 @@
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="agreeTerms" required>
                                 <label class="form-check-label" for="agreeTerms">
-                                    I agree to the <a href="/terms.html" class="text-decoration-none">Terms of Service</a> and <a href="/privacy.html" class="text-decoration-none">Privacy Policy</a>
+                                    I agree to the <a href="terms.html" class="text-decoration-none">Terms of Service</a> and <a href="privacy.html" class="text-decoration-none">Privacy Policy</a>
                                 </label>
                                 <div class="invalid-feedback">
                                     You must agree to the terms and conditions.
@@ -254,22 +245,294 @@
     <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Configuration -->
-    <script>
-        // Try to load generated config first (for development with .env), fallback to default config
-        const configScript = document.createElement('script');
-        configScript.onerror = function() {
-            // Fallback to default config if generated config doesn't exist
-            const fallbackScript = document.createElement('script');
-            fallbackScript.src = '../assets/js/config.js';
-            document.head.appendChild(fallbackScript);
-        };
-        configScript.src = '../assets/js/config.generated.js';
-        document.head.appendChild(configScript);
-    </script>
+    <script src="../assets/js/config.js"></script>
+    
     <!-- Custom Scripts -->
     <script type="module" src="../assets/js/ApiClient.js"></script>
     <script type="module" src="../assets/js/AuthManager.js"></script>
-    <script type="module" src="../assets/js/auth-persistence.js"></script>
-    <script type="module" src="../assets/js/login.js"></script>
+    <script>
+        // Login page integration with main AuthManager
+        class LoginPageManager {
+            constructor() {
+                this.authManager = null;
+                this.init();
+            }
+
+            async init() {
+                console.log('🔧 Initializing login page...');
+                
+                // Wait for AuthManager to be available
+                await this.waitForAuthManager();
+                
+                if (this.authManager) {
+                    this.setupEventListeners();
+                    this.handleAuthRedirect();
+                } else {
+                    console.error('❌ AuthManager not available');
+                    this.showError('Authentication service is not available. Please refresh the page.');
+                }
+            }
+
+            async waitForAuthManager() {
+                let attempts = 0;
+                const maxAttempts = 50; // 5 seconds max wait
+
+                while (attempts < maxAttempts) {
+                    if (window.authManager) {
+                        this.authManager = window.authManager;
+                        console.log('✅ AuthManager found');
+                        return;
+                    }
+                    
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    attempts++;
+                }
+                
+                console.error('❌ AuthManager not found after waiting');
+            }
+
+            async handleAuthRedirect() {
+                console.log('🔍 Checking for auth redirect...');
+                
+                if (!this.authManager) {
+                    console.log('AuthManager not ready yet');
+                    return;
+                }
+
+                // Check if user is already authenticated
+                if (this.authManager.isAuthenticated()) {
+                    console.log('✅ User is already authenticated, redirecting...');
+                    this.showSuccess('You are already logged in. Redirecting...');
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 1500);
+                    return;
+                }
+
+                // Check for OAuth callback
+                const urlParams = new URLSearchParams(window.location.search);
+                const code = urlParams.get('code');
+                const error = urlParams.get('error');
+
+                if (error) {
+                    this.showError(`Authentication error: ${error}`);
+                    return;
+                }
+
+                if (code) {
+                    console.log('🔍 OAuth callback detected, processing...');
+                    this.showSuccess('Processing authentication...');
+                    // The AuthManager will handle the OAuth callback automatically
+                }
+            }
+
+            setupEventListeners() {
+                // Login form
+                const loginForm = document.getElementById('loginForm');
+                if (loginForm) {
+                    loginForm.addEventListener('submit', (e) => this.handleLogin(e));
+                }
+
+                // Google login button
+                const googleButton = document.getElementById('googleLoginButton');
+                if (googleButton) {
+                    googleButton.addEventListener('click', (e) => this.handleGoogleLogin(e));
+                }
+
+                // Register form
+                const registerForm = document.getElementById('registerForm');
+                if (registerForm) {
+                    registerForm.addEventListener('submit', (e) => this.handleRegister(e));
+                }
+
+                // Forgot password form
+                const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+                if (forgotPasswordForm) {
+                    forgotPasswordForm.addEventListener('submit', (e) => this.handleForgotPassword(e));
+                }
+
+                // Show register form
+                const showRegisterLink = document.getElementById('showRegisterForm');
+                if (showRegisterLink) {
+                    showRegisterLink.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const modal = new bootstrap.Modal(document.getElementById('registerModal'));
+                        modal.show();
+                    });
+                }
+
+                // Forgot password link
+                const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+                if (forgotPasswordLink) {
+                    forgotPasswordLink.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const modal = new bootstrap.Modal(document.getElementById('forgotPasswordModal'));
+                        modal.show();
+                    });
+                }
+
+                // Password toggle
+                this.setupPasswordToggle('togglePassword', 'password');
+                this.setupPasswordToggle('toggleRegisterPassword', 'registerPassword');
+            }
+
+            setupPasswordToggle(toggleId, inputId) {
+                const toggle = document.getElementById(toggleId);
+                const input = document.getElementById(inputId);
+                
+                if (toggle && input) {
+                    toggle.addEventListener('click', () => {
+                        const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+                        input.setAttribute('type', type);
+                        
+                        const icon = toggle.querySelector('i');
+                        if (icon) {
+                            icon.classList.toggle('fa-eye');
+                            icon.classList.toggle('fa-eye-slash');
+                        }
+                    });
+                }
+            }
+
+            async handleLogin(event) {
+                event.preventDefault();
+                console.log('🔄 Handling login...');
+
+                const formData = new FormData(event.target);
+                const email = formData.get('email');
+                const password = formData.get('password');
+
+                try {
+                    const result = await this.authManager.login(email, password);
+                    
+                    if (result.success) {
+                        this.showSuccess('Login successful! Redirecting...');
+                        setTimeout(() => {
+                            window.location.href = 'index.html';
+                        }, 1500);
+                    } else {
+                        this.showError(result.error);
+                    }
+                } catch (error) {
+                    console.error('Login error:', error);
+                    this.showError('Login failed. Please try again.');
+                }
+            }
+
+            async handleGoogleLogin(event) {
+                event.preventDefault();
+                console.log('🔄 Handling Google login...');
+
+                if (!this.authManager) {
+                    this.showError('Authentication service is not available. Please refresh the page.');
+                    return;
+                }
+
+                try {
+                    const result = await this.authManager.loginWithGoogle();
+                    
+                    if (result.success) {
+                        this.showSuccess('Redirecting to Google...');
+                    } else {
+                        this.showError(result.error);
+                    }
+                } catch (error) {
+                    console.error('Google login error:', error);
+                    this.showError('Google login failed. Please try again.');
+                }
+            }
+
+            async handleRegister(event) {
+                event.preventDefault();
+                console.log('🔄 Handling registration...');
+
+                const formData = new FormData(event.target);
+                const userData = {
+                    email: formData.get('email'),
+                    password: formData.get('password'),
+                    full_name: formData.get('full_name'),
+                    username: formData.get('username')
+                };
+
+                // Validate password confirmation
+                if (userData.password !== formData.get('confirmPassword')) {
+                    this.showError('Passwords do not match');
+                    return;
+                }
+
+                try {
+                    const result = await this.authManager.register(userData);
+                    
+                    if (result.success) {
+                        this.showSuccess('Registration successful! Please check your email for verification.');
+                        // Close modal
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('registerModal'));
+                        if (modal) modal.hide();
+                    } else {
+                        this.showError(result.error);
+                    }
+                } catch (error) {
+                    console.error('Registration error:', error);
+                    this.showError('Registration failed. Please try again.');
+                }
+            }
+
+            async handleForgotPassword(event) {
+                event.preventDefault();
+                console.log('🔄 Handling forgot password...');
+
+                const formData = new FormData(event.target);
+                const email = formData.get('email');
+
+                try {
+                    const result = await this.authManager.forgotPassword(email);
+                    
+                    if (result.success) {
+                        this.showSuccess('Password reset link sent to your email!');
+                        // Close modal
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('forgotPasswordModal'));
+                        if (modal) modal.hide();
+                    } else {
+                        this.showError(result.error);
+                    }
+                } catch (error) {
+                    console.error('Forgot password error:', error);
+                    this.showError('Failed to send reset email. Please try again.');
+                }
+            }
+
+            showError(message) {
+                const errorContainer = document.getElementById('authError');
+                if (errorContainer) {
+                    errorContainer.innerHTML = `
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            ${message}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    `;
+                }
+            }
+
+            showSuccess(message) {
+                const errorContainer = document.getElementById('authError');
+                if (errorContainer) {
+                    errorContainer.innerHTML = `
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="fas fa-check-circle me-2"></i>
+                            ${message}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔧 Initializing login page...');
+            window.loginPageManager = new LoginPageManager();
+        });
+    </script>
 </body>
 </html>

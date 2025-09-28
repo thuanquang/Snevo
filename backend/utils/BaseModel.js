@@ -3,7 +3,7 @@
  * Provides common database operations and validation
  */
 
-import { supabase } from '../../config/supabase.js';
+import { supabase, supabaseAdmin } from '../../config/supabase.js';
 import constants from '../../config/constants.js';
 import { ValidationError, DatabaseError } from './ErrorClasses.js';
 
@@ -122,7 +122,7 @@ export default class BaseModel {
             this.validate(data);
             const filteredData = this.filterFillable(data);
             
-            const { data: result, error } = await supabase
+            const { data: result, error } = await supabaseAdmin
                 .from(this.tableName)
                 .insert([filteredData])
                 .select()
@@ -146,7 +146,7 @@ export default class BaseModel {
      */
     async findById(id) {
         try {
-            const { data, error } = await supabase
+            const { data, error } = await supabaseAdmin
                 .from(this.tableName)
                 .select('*')
                 .eq(this.primaryKey, id)
@@ -171,7 +171,7 @@ export default class BaseModel {
             const { page = 1, limit = 20, orderBy, orderDirection = 'desc' } = options;
             const offset = (page - 1) * limit;
 
-            let query = supabase
+            let query = supabaseAdmin
                 .from(this.tableName)
                 .select('*', { count: 'exact' });
 
@@ -217,7 +217,7 @@ export default class BaseModel {
             this.validate(data, this.getUpdateValidationRules());
             const filteredData = this.filterFillable(data);
             
-            const { data: result, error } = await supabase
+            const { data: result, error } = await supabaseAdmin
                 .from(this.tableName)
                 .update(filteredData)
                 .eq(this.primaryKey, id)
@@ -240,7 +240,7 @@ export default class BaseModel {
      */
     async deleteById(id) {
         try {
-            const { error } = await supabase
+            const { error } = await supabaseAdmin
                 .from(this.tableName)
                 .delete()
                 .eq(this.primaryKey, id);
@@ -259,7 +259,7 @@ export default class BaseModel {
      */
     async count(filters = {}) {
         try {
-            let query = supabase
+            let query = supabaseAdmin
                 .from(this.tableName)
                 .select('*', { count: 'exact', head: true });
 
@@ -300,7 +300,7 @@ export default class BaseModel {
      */
     async rawQuery(query, params = []) {
         try {
-            const { data, error } = await supabase.rpc(query, params);
+            const { data, error } = await supabaseAdmin.rpc(query, params);
             
             if (error) throw new DatabaseError(`Raw query failed: ${error.message}`, error);
             

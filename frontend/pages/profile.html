@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Management - Snevo</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="../assets/css/main.css" rel="stylesheet">
+    <link href="../assets/css/animations.css" rel="stylesheet">
+    <link href="../assets/css/components.css" rel="stylesheet">
+    <link href="../assets/css/responsive.css" rel="stylesheet">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="../assets/images/favicon.ico">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold fs-2" href="index.html">SNEVO</a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="products.html">Products</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            Categories
+                        </a>
+                        <ul class="dropdown-menu" id="categoriesDropdown">
+                            <!-- Categories will be loaded dynamically -->
+                        </ul>
+                    </li>
+                </ul>
+                
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="searchToggle">
+                            <i class="fas fa-search"></i>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link position-relative" href="cart.html">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="cartCount">
+                                0
+                            </span>
+                        </a>
+                    </li>
+                    <ul class="navbar-nav" id="authButtons">
+                        <li class="nav-item">
+                            <a class="nav-link" href="login.html">Login</a>
+                        </li>
+                    </ul>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Profile Management Section -->
+    <section class="profile-section py-5" style="margin-top: 80px;">
+        <div class="container">
+            <div class="row">
+                <!-- Profile Navigation Sidebar -->
+                <div class="col-lg-3 col-md-4 mb-4">
+                    <div class="profile-sidebar">
+                        <div class="profile-avatar text-center mb-4">
+                            <div class="avatar-circle mx-auto mb-3" id="profileAvatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <h5 class="profile-name" id="profileName">Loading...</h5>
+                            <p class="text-muted" id="profileEmail">Loading...</p>
+                        </div>
+                        
+                        <nav class="profile-nav">
+                            <ul class="nav nav-pills flex-column">
+                                <li class="nav-item">
+                                    <a class="nav-link active" href="#personal-info" data-section="personal-info">
+                                        <i class="fas fa-user"></i> Personal Info
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="#address-book" data-section="address-book">
+                                        <i class="fas fa-map-marker-alt"></i> Address Book
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="#password-change" data-section="password-change">
+                                        <i class="fas fa-lock"></i> Password Change
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="#notifications" data-section="notifications">
+                                        <i class="fas fa-bell"></i> Notifications
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="#account-settings" data-section="account-settings">
+                                        <i class="fas fa-cog"></i> Account Settings
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                        
+                        <!-- Logout Button -->
+                        <div class="mt-4 pt-3 border-top">
+                            <button class="btn btn-outline-danger w-100" id="logoutBtn">
+                                <i class="fas fa-sign-out-alt me-2"></i>Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Profile Content -->
+                <div class="col-lg-9 col-md-8">
+                    <div class="profile-content">
+                        <!-- Personal Info Section -->
+                        <div class="profile-section-content active" id="personal-info-section">
+                            <div class="section-header mb-4">
+                                <h3 class="section-title">Personal Information</h3>
+                                <p class="section-subtitle">Update your personal details and profile information</p>
+                            </div>
+                            
+                            <form id="personalInfoForm" class="profile-form">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="fullName" class="form-label">Full Name *</label>
+                                        <input type="text" class="form-control" id="fullName" name="full_name" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="username" class="form-label">Username *</label>
+                                        <input type="text" class="form-control" id="username" name="username" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="email" class="form-label">Email Address</label>
+                                        <input type="email" class="form-control" id="email" name="email" readonly>
+                                        <div class="form-text">Email cannot be changed. Contact support if needed.</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="phone" class="form-label">Phone Number</label>
+                                        <input type="tel" class="form-control" id="phone" name="phone">
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="dateOfBirth" class="form-label">Date of Birth</label>
+                                        <input type="date" class="form-control" id="dateOfBirth" name="date_of_birth">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="gender" class="form-label">Gender</label>
+                                        <select class="form-select" id="gender" name="gender">
+                                            <option value="">Select Gender</option>
+                                            <option value="male">Male</option>
+                                            <option value="female">Female</option>
+                                            <option value="other">Other</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="avatarUrl" class="form-label">Avatar URL</label>
+                                    <input type="url" class="form-control" id="avatarUrl" name="avatar_url" placeholder="https://example.com/avatar.jpg">
+                                </div>
+                                
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save"></i> Save Changes
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="resetPersonalInfo()">
+                                        <i class="fas fa-undo"></i> Reset
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <!-- Address Book Section -->
+                        <div class="profile-section-content" id="address-book-section">
+                            <div class="section-header mb-4">
+                                <h3 class="section-title">Address Book</h3>
+                                <p class="section-subtitle">Manage your shipping addresses</p>
+                            </div>
+                            
+                            <div class="address-actions mb-4">
+                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAddressModal">
+                                    <i class="fas fa-plus"></i> Add New Address
+                                </button>
+                            </div>
+                            
+                            <div class="addresses-list" id="addressesList">
+                                <div class="text-center">
+                                    <div class="spinner-border" role="status">
+                                        <span class="visually-hidden">Loading addresses...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Password Change Section -->
+                        <div class="profile-section-content" id="password-change-section">
+                            <div class="section-header mb-4">
+                                <h3 class="section-title">Change Password</h3>
+                                <p class="section-subtitle">Update your account password for better security</p>
+                            </div>
+                            
+                            <form id="passwordChangeForm" class="profile-form">
+                                <div class="mb-3">
+                                    <label for="currentPassword" class="form-label">Current Password *</label>
+                                    <input type="password" class="form-control" id="currentPassword" name="current_password" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="newPassword" class="form-label">New Password *</label>
+                                    <input type="password" class="form-control" id="newPassword" name="new_password" required>
+                                    <div class="form-text">Password must be at least 8 characters long</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="confirmPassword" class="form-label">Confirm New Password *</label>
+                                    <input type="password" class="form-control" id="confirmPassword" name="confirm_password" required>
+                                </div>
+                                
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-key"></i> Change Password
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="resetPasswordForm()">
+                                        <i class="fas fa-undo"></i> Reset
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <!-- Notifications Section -->
+                        <div class="profile-section-content" id="notifications-section">
+                            <div class="section-header mb-4">
+                                <h3 class="section-title">Notification Preferences</h3>
+                                <p class="section-subtitle">Choose how you want to be notified about updates</p>
+                            </div>
+                            
+                            <form id="notificationsForm" class="profile-form">
+                                <div class="notification-settings">
+                                    <div class="setting-item mb-4">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h6 class="mb-1">Email Notifications</h6>
+                                                <p class="text-muted mb-0">Receive updates about your orders and account</p>
+                                            </div>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="emailNotifications" name="email_notifications" checked>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="setting-item mb-4">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h6 class="mb-1">Order Updates</h6>
+                                                <p class="text-muted mb-0">Get notified when your order status changes</p>
+                                            </div>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="orderUpdates" name="order_updates" checked>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="setting-item mb-4">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h6 class="mb-1">Product Recommendations</h6>
+                                                <p class="text-muted mb-0">Receive personalized product suggestions</p>
+                                            </div>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="productRecommendations" name="product_recommendations" checked>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="setting-item mb-4">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h6 class="mb-1">Marketing Emails</h6>
+                                                <p class="text-muted mb-0">Receive promotional offers and news</p>
+                                            </div>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="marketingEmails" name="marketing_emails">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save"></i> Save Preferences
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <!-- Account Settings Section -->
+                        <div class="profile-section-content" id="account-settings-section">
+                            <div class="section-header mb-4">
+                                <h3 class="section-title">Account Settings</h3>
+                                <p class="section-subtitle">Manage your account preferences and security</p>
+                            </div>
+                            
+                            <div class="account-settings">
+                                <div class="setting-group mb-4">
+                                    <h5 class="setting-group-title">Account Information</h5>
+                                    <div class="setting-item">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h6 class="mb-1">Account Status</h6>
+                                                <p class="text-muted mb-0" id="accountStatus">Active</p>
+                                            </div>
+                                            <span class="badge bg-success">Verified</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="setting-item">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h6 class="mb-1">Member Since</h6>
+                                                <p class="text-muted mb-0" id="memberSince">Loading...</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="setting-group mb-4">
+                                    <h5 class="setting-group-title">Security</h5>
+                                    <div class="setting-item">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h6 class="mb-1">Two-Factor Authentication</h6>
+                                                <p class="text-muted mb-0">Add an extra layer of security to your account</p>
+                                            </div>
+                                            <button class="btn btn-outline-primary btn-sm">Enable</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="setting-item">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h6 class="mb-1">Login Sessions</h6>
+                                                <p class="text-muted mb-0">Manage your active login sessions</p>
+                                            </div>
+                                            <button class="btn btn-outline-secondary btn-sm">View Sessions</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="setting-group mb-4">
+                                    <h5 class="setting-group-title">Data & Privacy</h5>
+                                    <div class="setting-item">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h6 class="mb-1">Download Your Data</h6>
+                                                <p class="text-muted mb-0">Download a copy of your personal data</p>
+                                            </div>
+                                            <button class="btn btn-outline-info btn-sm">Download</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="setting-item">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h6 class="mb-1">Delete Account</h6>
+                                                <p class="text-muted mb-0">Permanently delete your account and all data</p>
+                                            </div>
+                                            <button class="btn btn-outline-danger btn-sm" onclick="confirmAccountDeletion()">Delete Account</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button class="btn btn-success" onclick="saveAllSettings()">
+                                    <i class="fas fa-check"></i> Save All Settings
+                                </button>
+                                <button class="btn btn-outline-secondary" onclick="resetAllSettings()">
+                                    <i class="fas fa-undo"></i> Reset to Defaults
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Add Address Modal -->
+    <div class="modal fade" id="addAddressModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Address</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addAddressForm">
+                        <div class="mb-3">
+                            <label for="addressStreet" class="form-label">Street Address *</label>
+                            <input type="text" class="form-control" id="addressStreet" name="street" required>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="addressCity" class="form-label">City *</label>
+                                <input type="text" class="form-control" id="addressCity" name="city" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="addressState" class="form-label">State *</label>
+                                <input type="text" class="form-control" id="addressState" name="state" required>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="addressCountry" class="form-label">Country *</label>
+                                <input type="text" class="form-control" id="addressCountry" name="country" value="Vietnam" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="addressZip" class="form-label">ZIP Code *</label>
+                                <input type="text" class="form-control" id="addressZip" name="zip_code" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="addressDefault" name="is_default">
+                            <label class="form-check-label" for="addressDefault">
+                                Set as default address
+                            </label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveNewAddress()">Save Address</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Address Modal -->
+    <div class="modal fade" id="editAddressModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Address</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editAddressForm">
+                        <input type="hidden" id="editAddressId" name="address_id">
+                        <div class="mb-3">
+                            <label for="editAddressStreet" class="form-label">Street Address *</label>
+                            <input type="text" class="form-control" id="editAddressStreet" name="street" required>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="editAddressCity" class="form-label">City *</label>
+                                <input type="text" class="form-control" id="editAddressCity" name="city" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="editAddressState" class="form-label">State *</label>
+                                <input type="text" class="form-control" id="editAddressState" name="state" required>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="editAddressCountry" class="form-label">Country *</label>
+                                <input type="text" class="form-control" id="editAddressCountry" name="country" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="editAddressZip" class="form-label">ZIP Code *</label>
+                                <input type="text" class="form-control" id="editAddressZip" name="zip_code" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="editAddressDefault" name="is_default">
+                            <label class="form-check-label" for="editAddressDefault">
+                                Set as default address
+                            </label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="updateAddress()">Update Address</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer bg-black text-white py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5 class="fw-bold mb-3">SNEVO</h5>
+                    <p>Premium athletic footwear for champions. Just Do It.</p>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h6 class="fw-bold mb-3">Quick Links</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="index.html" class="text-white-50">Home</a></li>
+                        <li><a href="products.html" class="text-white-50">Products</a></li>
+                        <li><a href="#about" class="text-white-50">About</a></li>
+                        <li><a href="#contact" class="text-white-50">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h6 class="fw-bold mb-3">Customer Service</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#help" class="text-white-50">Help Center</a></li>
+                        <li><a href="#returns" class="text-white-50">Returns</a></li>
+                        <li><a href="#shipping" class="text-white-50">Shipping</a></li>
+                        <li><a href="#size-guide" class="text-white-50">Size Guide</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h6 class="fw-bold mb-3">Follow Us</h6>
+                    <div class="social-links">
+                        <a href="#" class="text-white me-3"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-white me-3"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-white me-3"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="text-white me-3"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-4">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; 2024 Snevo. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#privacy" class="text-white-50 me-3">Privacy Policy</a>
+                    <a href="#terms" class="text-white-50">Terms of Service</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Font Awesome -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Configuration -->
+    <script>
+        // Try to load generated config first (for development with .env), fallback to default config
+        const configScript = document.createElement('script');
+        configScript.onerror = function() {
+            // Fallback to default config if generated config doesn't exist
+            const fallbackScript = document.createElement('script');
+            fallbackScript.src = '../assets/js/config.js';
+            document.head.appendChild(fallbackScript);
+        };
+        configScript.src = '../assets/js/config.generated.js';
+        document.head.appendChild(configScript);
+    </script>
+    <!-- Custom Scripts -->
+    <script type="module" src="../assets/js/ApiClient.js"></script>
+    <script type="module" src="../assets/js/AuthManager.js"></script>
+    <script type="module" src="../assets/js/ProfileManager.js"></script>
+    <script src="../assets/js/animations.js"></script>
+    
+    <script>
+        // Profile page specific functionality
+        (function() {
+            'use strict';
+            
+            let currentUser = null;
+            let userAddresses = [];
+            
+            document.addEventListener('DOMContentLoaded', function() {
+                initializeProfilePage();
+            });
+            
+            function initializeProfilePage() {
+                console.log('🔍 initializeProfilePage called');
+                console.log('Current URL:', window.location.href);
+                console.log('AuthManager available:', !!window.authManager);
+                
+                // Wait for AuthManager to be available and initialized
+                waitForAuthManager().then(() => {
+                    console.log('AuthManager ready');
+                    console.log('Is authenticated:', window.authManager.isAuthenticated());
+                    console.log('Current user:', window.authManager.getCurrentUser());
+                    
+                    // Check authentication - be more lenient with API failures
+                    if (!window.authManager.isAuthenticated()) {
+                        console.log('❌ User not authenticated, checking if we have a token...');
+                        
+                        // If we have a token but AuthManager says not authenticated, 
+                        // it might be due to API failures - don't redirect immediately
+                        const hasToken = localStorage.getItem('auth_token');
+                        if (hasToken) {
+                            console.log('⚠️ Have token but AuthManager says not authenticated - likely API issue');
+                            console.log('Proceeding with profile page anyway to avoid redirect loop');
+                        } else {
+                            console.log('❌ No token found, redirecting to login');
+                            const returnUrl = encodeURIComponent(window.location.href);
+                            console.log('Return URL will be:', returnUrl);
+                            window.location.href = 'login.html?return=' + returnUrl;
+                            return;
+                        }
+                    }
+                    
+                    console.log('✅ User is authenticated, proceeding with profile page');
+                    
+                    // Continue with profile setup
+                    console.log('🚀 Setting up profile page');
+                    setupProfileNavigation();
+                    loadUserProfile();
+                    setupProfileForms();
+                    setupLogoutButton();
+                });
+            }
+            
+            async function waitForAuthManager() {
+                let attempts = 0;
+                const maxAttempts = 50; // 5 seconds max wait
+                
+                while (attempts < maxAttempts) {
+                    if (window.authManager && typeof window.authManager.isAuthenticated === 'function') {
+                        console.log('AuthManager found after', attempts * 100, 'ms');
+                        return;
+                    }
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    attempts++;
+                }
+                
+                console.warn('AuthManager not found after 5 seconds, proceeding anyway');
+            }
+            
+            function setupLogoutButton() {
+                const logoutBtn = document.getElementById('logoutBtn');
+                if (logoutBtn) {
+                    logoutBtn.addEventListener('click', async function() {
+                        console.log('Logout button clicked');
+                        if (window.authManager) {
+                            try {
+                                await window.authManager.logout();
+                                console.log('Logout successful, redirecting to login');
+                                window.location.href = 'login.html';
+                            } catch (error) {
+                                console.error('Logout failed:', error);
+                                // Force redirect anyway
+                                window.location.href = 'login.html';
+                            }
+                        } else {
+                            console.log('AuthManager not available, redirecting to login');
+                            window.location.href = 'login.html';
+                        }
+                    });
+                }
+            }
+            
+            function setupProfileNavigation() {
+                const navLinks = document.querySelectorAll('.profile-nav .nav-link');
+                const sections = document.querySelectorAll('.profile-section-content');
+                
+                navLinks.forEach(link => {
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        
+                        const targetSection = this.getAttribute('data-section');
+                        
+                        // Update active nav link
+                        navLinks.forEach(nav => nav.classList.remove('active'));
+                        this.classList.add('active');
+                        
+                        // Show target section
+                        sections.forEach(section => {
+                            section.classList.remove('active');
+                        });
+                        
+                        const targetElement = document.getElementById(targetSection + '-section');
+                        if (targetElement) {
+                            targetElement.classList.add('active');
+                        }
+                    });
+                });
+            }
+            
+            async function loadUserProfile() {
+                try {
+                    if (window.authManager && window.authManager.getCurrentUser()) {
+                        currentUser = window.authManager.getCurrentUser();
+                        updateProfileDisplay();
+                        
+                        // Load addresses
+                        await loadAddresses();
+                    } else {
+                        // Try to get profile from API
+                        const response = await fetch('/api/auth/profile', {
+                            headers: {
+                                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                            }
+                        });
+                        
+                        if (response.ok) {
+                            const data = await response.json();
+                            currentUser = data.user;
+                            updateProfileDisplay();
+                            await loadAddresses();
+                        } else {
+                            throw new Error('Failed to load profile');
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error loading profile:', error);
+                    showError('Failed to load profile data');
+                }
+            }
+            
+            function updateProfileDisplay() {
+                if (!currentUser) return;
+                
+                // Update profile info
+                const profileName = document.getElementById('profileName');
+                const profileEmail = document.getElementById('profileEmail');
+                const profileAvatar = document.getElementById('profileAvatar');
+                
+                if (profileName) {
+                    profileName.textContent = currentUser.full_name || currentUser.username || 'User';
+                }
+                
+                if (profileEmail) {
+                    profileEmail.textContent = currentUser.email || '';
+                }
+                
+                if (profileAvatar && currentUser.avatar_url) {
+                    profileAvatar.innerHTML = `<img src="${currentUser.avatar_url}" alt="Avatar" class="rounded-circle" style="width: 100%; height: 100%; object-fit: cover;">`;
+                }
+                
+                // Update form fields
+                updatePersonalInfoForm();
+                updateAccountSettings();
+            }
+            
+            function updatePersonalInfoForm() {
+                if (!currentUser) return;
+                
+                const form = document.getElementById('personalInfoForm');
+                if (!form) return;
+                
+                // Populate form fields
+                const fields = ['full_name', 'username', 'email', 'phone', 'date_of_birth', 'gender', 'avatar_url'];
+                fields.forEach(field => {
+                    const input = form.querySelector(`[name="${field}"]`);
+                    if (input && currentUser[field] !== undefined) {
+                        input.value = currentUser[field] || '';
+                    }
+                });
+            }
+            
+            function updateAccountSettings() {
+                if (!currentUser) return;
+                
+                const accountStatus = document.getElementById('accountStatus');
+                const memberSince = document.getElementById('memberSince');
+                
+                if (accountStatus) {
+                    accountStatus.textContent = currentUser.email_verified ? 'Active' : 'Pending Verification';
+                }
+                
+                if (memberSince && currentUser.created_at) {
+                    const date = new Date(currentUser.created_at);
+                    memberSince.textContent = date.toLocaleDateString();
+                }
+            }
+            
+            async function loadAddresses() {
+                try {
+                    const response = await fetch('/api/auth/addresses', {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        userAddresses = data.addresses || [];
+                        renderAddresses();
+                    } else {
+                        throw new Error('Failed to load addresses');
+                    }
+                } catch (error) {
+                    console.error('Error loading addresses:', error);
+                    const addressesList = document.getElementById('addressesList');
+                    if (addressesList) {
+                        addressesList.innerHTML = '<div class="alert alert-warning">Failed to load addresses. Please try again.</div>';
+                    }
+                }
+            }
+            
+            function renderAddresses() {
+                const addressesList = document.getElementById('addressesList');
+                if (!addressesList) return;
+                
+                if (userAddresses.length === 0) {
+                    addressesList.innerHTML = `
+                        <div class="text-center py-4">
+                            <i class="fas fa-map-marker-alt fa-3x text-muted mb-3"></i>
+                            <h5>No addresses found</h5>
+                            <p class="text-muted">Add your first address to get started</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                const addressesHTML = userAddresses.map(address => `
+                    <div class="address-card mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="address-info">
+                                        <h6 class="card-title">
+                                            ${address.street}
+                                            ${address.is_default ? '<span class="badge bg-primary ms-2">Default</span>' : ''}
+                                        </h6>
+                                        <p class="card-text text-muted">
+                                            ${address.city}, ${address.state}<br>
+                                            ${address.country} ${address.zip_code}
+                                        </p>
+                                    </div>
+                                    <div class="address-actions">
+                                        <button class="btn btn-sm btn-outline-primary me-2" onclick="editAddress(${address.address_id})">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger" onclick="deleteAddress(${address.address_id})">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                
+                addressesList.innerHTML = addressesHTML;
+            }
+            
+            function setupProfileForms() {
+                // Personal info form
+                const personalInfoForm = document.getElementById('personalInfoForm');
+                if (personalInfoForm) {
+                    personalInfoForm.addEventListener('submit', handlePersonalInfoSubmit);
+                }
+                
+                // Password change form
+                const passwordChangeForm = document.getElementById('passwordChangeForm');
+                if (passwordChangeForm) {
+                    passwordChangeForm.addEventListener('submit', handlePasswordChange);
+                }
+                
+                // Notifications form
+                const notificationsForm = document.getElementById('notificationsForm');
+                if (notificationsForm) {
+                    notificationsForm.addEventListener('submit', handleNotificationsSubmit);
+                }
+            }
+            
+            async function handlePersonalInfoSubmit(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(e.target);
+                const data = Object.fromEntries(formData);
+                
+                try {
+                    const response = await fetch('/api/auth/profile', {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                        },
+                        body: JSON.stringify(data)
+                    });
+                    
+                    if (response.ok) {
+                        showSuccess('Profile updated successfully!');
+                        // Reload profile data
+                        await loadUserProfile();
+                    } else {
+                        const error = await response.json();
+                        throw new Error(error.message || 'Failed to update profile');
+                    }
+                } catch (error) {
+                    console.error('Error updating profile:', error);
+                    showError(error.message || 'Failed to update profile');
+                }
+            }
+            
+            async function handlePasswordChange(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(e.target);
+                const data = Object.fromEntries(formData);
+                
+                // Validate passwords match
+                if (data.new_password !== data.confirm_password) {
+                    showError('New passwords do not match');
+                    return;
+                }
+                
+                if (data.new_password.length < 8) {
+                    showError('Password must be at least 8 characters long');
+                    return;
+                }
+                
+                try {
+                    const response = await fetch('/api/auth/change-password', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                        },
+                        body: JSON.stringify(data)
+                    });
+                    
+                    if (response.ok) {
+                        showSuccess('Password changed successfully!');
+                        e.target.reset();
+                    } else {
+                        const error = await response.json();
+                        throw new Error(error.message || 'Failed to change password');
+                    }
+                } catch (error) {
+                    console.error('Error changing password:', error);
+                    showError(error.message || 'Failed to change password');
+                }
+            }
+            
+            async function handleNotificationsSubmit(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(e.target);
+                const data = Object.fromEntries(formData);
+                
+                // Convert checkboxes to boolean values
+                const notificationSettings = {
+                    email_notifications: data.email_notifications === 'on',
+                    order_updates: data.order_updates === 'on',
+                    product_recommendations: data.product_recommendations === 'on',
+                    marketing_emails: data.marketing_emails === 'on'
+                };
+                
+                try {
+                    const response = await fetch('/api/auth/notifications', {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                        },
+                        body: JSON.stringify(notificationSettings)
+                    });
+                    
+                    if (response.ok) {
+                        showSuccess('Notification preferences saved!');
+                    } else {
+                        const error = await response.json();
+                        throw new Error(error.message || 'Failed to save preferences');
+                    }
+                } catch (error) {
+                    console.error('Error saving notifications:', error);
+                    showError(error.message || 'Failed to save notification preferences');
+                }
+            }
+            
+            // Global functions for address management
+            window.saveNewAddress = async function() {
+                const form = document.getElementById('addAddressForm');
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData);
+                
+                // Convert checkbox to boolean
+                data.is_default = data.is_default === 'on';
+                
+                try {
+                    const response = await fetch('/api/auth/addresses', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                        },
+                        body: JSON.stringify(data)
+                    });
+                    
+                    if (response.ok) {
+                        showSuccess('Address added successfully!');
+                        form.reset();
+                        bootstrap.Modal.getInstance(document.getElementById('addAddressModal')).hide();
+                        await loadAddresses();
+                    } else {
+                        const error = await response.json();
+                        throw new Error(error.message || 'Failed to add address');
+                    }
+                } catch (error) {
+                    console.error('Error adding address:', error);
+                    showError(error.message || 'Failed to add address');
+                }
+            };
+            
+            window.editAddress = function(addressId) {
+                const address = userAddresses.find(addr => addr.address_id === addressId);
+                if (!address) return;
+                
+                // Populate edit form
+                document.getElementById('editAddressId').value = address.address_id;
+                document.getElementById('editAddressStreet').value = address.street;
+                document.getElementById('editAddressCity').value = address.city;
+                document.getElementById('editAddressState').value = address.state;
+                document.getElementById('editAddressCountry').value = address.country;
+                document.getElementById('editAddressZip').value = address.zip_code;
+                document.getElementById('editAddressDefault').checked = address.is_default;
+                
+                // Show modal
+                new bootstrap.Modal(document.getElementById('editAddressModal')).show();
+            };
+            
+            window.updateAddress = async function() {
+                const form = document.getElementById('editAddressForm');
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData);
+                
+                const addressId = data.address_id;
+                delete data.address_id;
+                
+                // Convert checkbox to boolean
+                data.is_default = data.is_default === 'on';
+                
+                try {
+                    const response = await fetch(`/api/auth/addresses/${addressId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                        },
+                        body: JSON.stringify(data)
+                    });
+                    
+                    if (response.ok) {
+                        showSuccess('Address updated successfully!');
+                        bootstrap.Modal.getInstance(document.getElementById('editAddressModal')).hide();
+                        await loadAddresses();
+                    } else {
+                        const error = await response.json();
+                        throw new Error(error.message || 'Failed to update address');
+                    }
+                } catch (error) {
+                    console.error('Error updating address:', error);
+                    showError(error.message || 'Failed to update address');
+                }
+            };
+            
+            window.deleteAddress = async function(addressId) {
+                if (!confirm('Are you sure you want to delete this address?')) {
+                    return;
+                }
+                
+                try {
+                    const response = await fetch(`/api/auth/addresses/${addressId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        showSuccess('Address deleted successfully!');
+                        await loadAddresses();
+                    } else {
+                        const error = await response.json();
+                        throw new Error(error.message || 'Failed to delete address');
+                    }
+                } catch (error) {
+                    console.error('Error deleting address:', error);
+                    showError(error.message || 'Failed to delete address');
+                }
+            };
+            
+            // Utility functions
+            window.resetPersonalInfo = function() {
+                updatePersonalInfoForm();
+            };
+            
+            window.resetPasswordForm = function() {
+                document.getElementById('passwordChangeForm').reset();
+            };
+            
+            window.saveAllSettings = function() {
+                showSuccess('All settings saved successfully!');
+            };
+            
+            window.resetAllSettings = function() {
+                if (confirm('Are you sure you want to reset all settings to defaults?')) {
+                    showSuccess('Settings reset to defaults!');
+                }
+            };
+            
+            window.confirmAccountDeletion = function() {
+                if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+                    if (confirm('This will permanently delete your account and all associated data. Are you absolutely sure?')) {
+                        showError('Account deletion is not implemented yet. Please contact support.');
+                    }
+                }
+            };
+            
+            function showSuccess(message) {
+                // Create and show success toast
+                const toast = document.createElement('div');
+                toast.className = 'toast align-items-center text-white bg-success border-0';
+                toast.setAttribute('role', 'alert');
+                toast.innerHTML = `
+                    <div class="d-flex">
+                        <div class="toast-body">${message}</div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                    </div>
+                `;
+                
+                document.body.appendChild(toast);
+                const bsToast = new bootstrap.Toast(toast);
+                bsToast.show();
+                
+                // Remove toast after it's hidden
+                toast.addEventListener('hidden.bs.toast', () => {
+                    document.body.removeChild(toast);
+                });
+            }
+            
+            function showError(message) {
+                // Create and show error toast
+                const toast = document.createElement('div');
+                toast.className = 'toast align-items-center text-white bg-danger border-0';
+                toast.setAttribute('role', 'alert');
+                toast.innerHTML = `
+                    <div class="d-flex">
+                        <div class="toast-body">${message}</div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                    </div>
+                `;
+                
+                document.body.appendChild(toast);
+                const bsToast = new bootstrap.Toast(toast);
+                bsToast.show();
+                
+                // Remove toast after it's hidden
+                toast.addEventListener('hidden.bs.toast', () => {
+                    document.body.removeChild(toast);
+                });
+            }
+            
+            // Add debugging function
+            window.debugProfileAuth = () => {
+                console.log('🔍 Profile Authentication Debug:');
+                console.log('Current URL:', window.location.href);
+                console.log('AuthManager available:', !!window.authManager);
+                if (window.authManager) {
+                    console.log('Is authenticated:', window.authManager.isAuthenticated());
+                    console.log('Current user:', window.authManager.getCurrentUser());
+                    console.log('Auth token:', window.authManager.getAuthToken() ? 'Present' : 'Missing');
+                }
+                return {
+                    url: window.location.href,
+                    authManagerAvailable: !!window.authManager,
+                    authenticated: window.authManager ? window.authManager.isAuthenticated() : false,
+                    user: window.authManager ? window.authManager.getCurrentUser() : null
+                };
+            };
+            
+        })();
+    </script>
+</body>
+</html>

@@ -17,6 +17,7 @@ CREATE TABLE profiles (
     user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     username VARCHAR(50) UNIQUE NOT NULL,
     full_name VARCHAR(100) NOT NULL,
+    email VARCHAR(255) NOT NULL,
     role VARCHAR(10) CHECK (role IN ('customer', 'seller')) DEFAULT 'customer',
     avatar_url TEXT,
     phone VARCHAR(20),
@@ -101,21 +102,9 @@ CREATE TABLE shoe_variants (
 -- 3. Inventory Management (For Sellers)
 -- ===================================
 
--- Suppliers table
-CREATE TABLE suppliers (
-    supplier_id SERIAL PRIMARY KEY,
-    supplier_name VARCHAR(100) NOT NULL,
-    contact_email VARCHAR(100),
-    phone VARCHAR(20),
-    address TEXT,
-    is_active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
 -- Imports table (now references auth.users directly)
 CREATE TABLE imports (
     import_id SERIAL PRIMARY KEY,
-    supplier_id INTEGER NOT NULL REFERENCES suppliers(supplier_id) ON DELETE RESTRICT,
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE RESTRICT,
     variant_id INTEGER NOT NULL REFERENCES shoe_variants(variant_id) ON DELETE RESTRICT,
     quantity_imported INTEGER NOT NULL CHECK (quantity_imported > 0),
@@ -182,14 +171,6 @@ CREATE TABLE reviews (
     UNIQUE(shoe_id, user_id) -- Each user can only review a product once
 );
 
--- Wishlists table (new feature)
-CREATE TABLE wishlists (
-    wishlist_id SERIAL PRIMARY KEY,
-    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    shoe_id INTEGER NOT NULL REFERENCES shoes(shoe_id) ON DELETE CASCADE,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    UNIQUE(user_id, shoe_id)
-);
 
 -- ===================================
 -- 6. Performance Indexes
@@ -221,7 +202,6 @@ CREATE INDEX idx_variants_is_active ON shoe_variants(is_active);
 
 -- Imports indexes
 CREATE INDEX idx_imports_user_id ON imports(user_id);
-CREATE INDEX idx_imports_supplier_id ON imports(supplier_id);
 CREATE INDEX idx_imports_variant_id ON imports(variant_id);
 CREATE INDEX idx_imports_date ON imports(import_date);
 
@@ -244,9 +224,6 @@ CREATE INDEX idx_reviews_shoe_id ON reviews(shoe_id);
 CREATE INDEX idx_reviews_user_id ON reviews(user_id);
 CREATE INDEX idx_reviews_rating ON reviews(rating);
 
--- Wishlists indexes
-CREATE INDEX idx_wishlists_user_id ON wishlists(user_id);
-CREATE INDEX idx_wishlists_shoe_id ON wishlists(shoe_id);
 
 -- ===================================
 -- 7. Row Level Security (RLS) Policies
@@ -389,12 +366,6 @@ ON reviews FOR ALL
 USING (auth.uid() = user_id)
 WITH CHECK (auth.uid() = user_id);
 
--- Wishlists policies
-DROP POLICY IF EXISTS "Users can manage their own wishlists" ON wishlists;
-CREATE POLICY "Users can manage their own wishlists"
-ON wishlists FOR ALL
-USING (auth.uid() = user_id)
-WITH CHECK (auth.uid() = user_id);
 
 -- ===================================
 -- 8. Triggers and Functions
@@ -558,7 +529,7 @@ BEGIN
     RAISE NOTICE 'Schema: db_nike';
     RAISE NOTICE 'Uses Supabase auth.users with profiles table for role management';
     RAISE NOTICE 'Tables: profiles, addresses, categories, shoes, colors, sizes, shoe_variants,';
-    RAISE NOTICE '        suppliers, imports, orders, order_items, payments, reviews, wishlists';
+    RAISE NOTICE '        imports, orders, order_items, payments, reviews';
     RAISE NOTICE 'Features: RLS enabled, automatic profile creation, stock management';
     RAISE NOTICE 'Ready for e-commerce operations!';
 END $$;

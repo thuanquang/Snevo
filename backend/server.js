@@ -1,326 +1,43 @@
-/**
- * Main Server File
- * Nike-inspired E-commerce Platform
- * Built with Node.js HTTP module (no Express.js)
- */
+// 🚀 Server Entry Point
+// Main server file that starts the application
 
-import http from 'http';
-import url from 'url';
-import path from 'path';
-import fs from 'fs/promises';
-import { fileURLToPath } from 'url';
-import dotenv from 'dotenv';
+const http = require('http');
+const url = require('url');
+const path = require('path');
+const fs = require('fs');
 
-// Import configurations
-import { supabase } from '../config/supabase.js';
-import constants from '../config/constants.js';
-
-// Import middleware
-import corsMiddleware from './middleware/cors.js';
-import authMiddleware from './middleware/auth.js';
-
-// Import routes
-import apiRoutes from './routes/api.js';
-import authRoutes from './routes/auth.js';
-import productRoutes from './routes/products.js';
-import orderRoutes from './routes/orders.js';
-
-// Load environment variables
-dotenv.config();
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Server configuration
-const PORT = process.env.PORT || 3000;
-const HOST = process.env.HOST || 'localhost';
-
-class SnevoServer {
+class Server {
     constructor() {
-        this.server = null;
+        this.port = process.env.PORT || 3000;
         this.routes = new Map();
-        this.middleware = [];
-        this.staticPath = path.join(__dirname, '../frontend');
-        
-        this.setupRoutes();
-        this.setupMiddleware();
     }
 
-    /**
-     * Setup middleware stack
-     */
-    setupMiddleware() {
-        this.middleware = [
-            corsMiddleware,
-            this.parseBody.bind(this),
-            this.serveStatic.bind(this)
-        ];
-    }
-
-    /**
-     * Setup application routes
-     */
-    setupRoutes() {
-        // API Routes - Order matters! More specific routes must come first
-        this.routes.set('/api/auth', authRoutes);
-        this.routes.set('/api/products', productRoutes);
-        this.routes.set('/api/orders', orderRoutes);
-        this.routes.set('/api', apiRoutes);
-    }
-
-    /**
-     * Parse request body for POST/PUT requests
-     */
-    async parseBody(req, res, next) {
-        if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') {
-            let body = '';
-            
-            req.on('data', chunk => {
-                body += chunk.toString();
-            });
-
-            req.on('end', () => {
-                try {
-                    if (req.headers['content-type']?.includes('application/json')) {
-                        req.body = JSON.parse(body);
-                    } else {
-                        req.body = body;
-                    }
-                } catch (error) {
-                    req.body = body;
-                }
-                next();
-            });
-        } else {
-            next();
-        }
-    }
-
-    /**
-     * Serve static files
-     */
-    async serveStatic(req, res, next) {
-        const parsedUrl = url.parse(req.url, true);
-        const pathname = parsedUrl.pathname;
-
-        // Skip API routes
-        if (pathname.startsWith('/api/')) {
-            return next();
-        }
-
-        try {
-            let filePath;
-            
-            if (pathname === '/') {
-                // Root path - serve index.html from pages directory
-                filePath = path.join(this.staticPath, 'pages', 'index.html');
-            } else if (pathname.endsWith('.html')) {
-                // HTML file - check in pages directory first, then root
-                const pageFilePath = path.join(this.staticPath, 'pages', path.basename(pathname));
-                try {
-                    await fs.stat(pageFilePath);
-                    filePath = pageFilePath;
-                } catch {
-                    // If not in pages directory, try direct path
-                    filePath = path.join(this.staticPath, pathname);
-                }
-            } else if (!path.extname(pathname)) {
-                // No extension - assume HTML file and look in pages directory
-                const pageFilePath = path.join(this.staticPath, 'pages', pathname + '.html');
-                try {
-                    await fs.stat(pageFilePath);
-                    filePath = pageFilePath;
-                } catch {
-                    // If not in pages directory, try direct path
-                    filePath = path.join(this.staticPath, pathname + '.html');
-                }
-            } else {
-                // Static asset - serve directly
-                filePath = path.join(this.staticPath, pathname);
-            }
-
-            const stats = await fs.stat(filePath);
-            
-            if (stats.isFile()) {
-                const ext = path.extname(filePath).toLowerCase();
-                const contentType = this.getContentType(ext);
-                
-                res.writeHead(200, { 'Content-Type': contentType });
-                const fileStream = await fs.readFile(filePath);
-                res.end(fileStream);
-                return;
-            }
-        } catch (error) {
-            // File not found, continue to next middleware
-        }
-
-        next();
-    }
-
-    /**
-     * Get content type based on file extension
-     */
-    getContentType(ext) {
-        const mimeTypes = {
-            '.html': 'text/html',
-            '.css': 'text/css',
-            '.js': 'application/javascript',
-            '.json': 'application/json',
-            '.png': 'image/png',
-            '.jpg': 'image/jpeg',
-            '.jpeg': 'image/jpeg',
-            '.gif': 'image/gif',
-            '.svg': 'image/svg+xml',
-            '.ico': 'image/x-icon',
-            '.woff': 'font/woff',
-            '.woff2': 'font/woff2',
-            '.ttf': 'font/ttf',
-            '.eot': 'application/vnd.ms-fontobject'
-        };
-        
-        return mimeTypes[ext] || 'application/octet-stream';
-    }
-
-    /**
-     * Handle incoming requests
-     */
-    async handleRequest(req, res) {
-        const parsedUrl = url.parse(req.url, true);
-        req.query = parsedUrl.query;
-        req.pathname = parsedUrl.pathname;
-
-        // Add response helper methods
-        this.addResponseHelpers(res);
-
-        try {
-            await this.executeMiddleware(req, res, 0);
-        } catch (error) {
-            console.error('Server error:', error);
-            res.json({
-                success: false,
-                error: 'Internal server error'
-            }, constants.HTTP_STATUS.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    /**
-     * Execute middleware chain
-     */
-    async executeMiddleware(req, res, index) {
-        if (index >= this.middleware.length) {
-            return this.routeRequest(req, res);
-        }
-
-        const middleware = this.middleware[index];
-        await middleware(req, res, () => this.executeMiddleware(req, res, index + 1));
-    }
-
-    /**
-     * Route requests to appropriate handlers
-     */
-    async routeRequest(req, res) {
-        const pathname = req.pathname;
-
-        // Sort routes by length (longest first) to match most specific routes first
-        const sortedRoutes = Array.from(this.routes.entries())
-            .sort(([a], [b]) => b.length - a.length);
-
-        // Find matching route
-        for (const [routePattern, handler] of sortedRoutes) {
-            if (pathname.startsWith(routePattern)) {
-                req.params = this.extractParams(routePattern, pathname);
-                return await handler(req, res);
-            }
-        }
-
-        // No route found
-        res.json({
-            success: false,
-            error: 'Route not found'
-        }, constants.HTTP_STATUS.NOT_FOUND);
-    }
-
-    /**
-     * Extract parameters from route
-     */
-    extractParams(pattern, pathname) {
-        const params = {};
-        const patternParts = pattern.split('/');
-        const pathParts = pathname.split('/');
-
-        for (let i = 0; i < patternParts.length; i++) {
-            if (patternParts[i].startsWith(':')) {
-                const paramName = patternParts[i].substring(1);
-                params[paramName] = pathParts[i];
-            }
-        }
-
-        return params;
-    }
-
-    /**
-     * Add helper methods to response object
-     */
-    addResponseHelpers(res) {
-        res.json = (data, statusCode = 200) => {
-            res.writeHead(statusCode, {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': process.env.CORS_ORIGIN || '*',
-                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-            });
-            res.end(JSON.stringify(data));
-        };
-
-        res.html = (content, statusCode = 200) => {
-            res.writeHead(statusCode, { 'Content-Type': 'text/html' });
-            res.end(content);
-        };
-
-        res.redirect = (location, statusCode = 302) => {
-            res.writeHead(statusCode, { 'Location': location });
-            res.end();
-        };
-    }
-
-    /**
-     * Start the server
-     */
+    // Start the server
     start() {
-        this.server = http.createServer((req, res) => {
+        const server = http.createServer((req, res) => {
             this.handleRequest(req, res);
         });
 
-        this.server.listen(PORT, HOST, () => {
-            console.log(`🚀 Snevo E-commerce Server running on http://${HOST}:${PORT}`);
-            console.log(`📁 Serving static files from: ${this.staticPath}`);
-            console.log(`🗄️  Database: Connected to Supabase`);
-            console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+        server.listen(this.port, () => {
+            console.log(`🚀 Server running on port ${this.port}`);
+            console.log(`📱 Environment: ${process.env.NODE_ENV || 'development'}`);
         });
-
-        // Graceful shutdown
-        process.on('SIGTERM', () => this.shutdown());
-        process.on('SIGINT', () => this.shutdown());
     }
 
-    /**
-     * Shutdown server gracefully
-     */
-    shutdown() {
-        console.log('🛑 Shutting down server gracefully...');
-        
-        if (this.server) {
-            this.server.close(() => {
-                console.log('✅ Server closed successfully');
-                process.exit(0);
-            });
-        }
+    // Handle incoming requests
+    handleRequest(req, res) {
+        // TODO: Implement request handling logic
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ message: 'Server is running' }));
+    }
+
+    // Add route
+    addRoute(method, path, handler) {
+        const key = `${method}:${path}`;
+        this.routes.set(key, handler);
     }
 }
 
-// Create and start server
-const server = new SnevoServer();
+// Start the server
+const server = new Server();
 server.start();
-
-export default SnevoServer;
-

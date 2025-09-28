@@ -1,154 +1,187 @@
-# PROJECT STRUCTURE - E-COMMERCE NIKE-STYLE WEB APPLICATION
+# SNEVO E-COMMERCE PLATFORM - NEW STRUCTURE
 
-## ARCHITECTURE: Object-Oriented MVC Pattern
-- **Model**: OOP-based database models extending BaseModel with validation, relationships, and business logic
-- **View**: Component-based frontend with BaseComponent classes and modular UI elements
-- **Controller**: OOP controllers extending BaseController with request handling, validation, and response formatting
+## PROJECT OVERVIEW
+**Name**: Snevo E-commerce Platform  
+**Type**: Nike-inspired shoe e-commerce website  
+**Architecture**: MVC Pattern with Node.js backend and vanilla frontend  
+**Database**: Supabase PostgreSQL with comprehensive shoe retail schema
 
-## TECHNOLOGY STACK
-- **Frontend**: Vanilla HTML5, CSS3, JavaScript ES6+ Classes, Bootstrap 5.3
-- **Backend**: Node.js (built-in HTTP module, no Express.js) with OOP Architecture
-- **Database**: Supabase PostgreSQL with provided schema
-- **Authentication**: Supabase Auth + Google OAuth with OOP AuthManager
-- **Architecture**: Object-Oriented MVC with inheritance, composition, and encapsulation
+## NEW FOLDER STRUCTURE
 
-## DIRECTORY STRUCTURE
 ```
-/
-├── backend/                    # Server-side application (OOP Architecture)
-│   ├── controllers/           # OOP Controllers extending BaseController
-│   │   ├── authController.js  # AuthController class - authentication logic (✓ implemented)
-│   │   ├── productController.js # ProductController class - product management (✓ implemented)
-│   │   └── orderController.js # OrderController class - order processing (✓ implemented)
-│   ├── models/               # OOP Models extending BaseModel
-│   │   ├── User.js          # User model class with validation and relationships (✓ implemented)
-│   │   ├── Product.js       # Product/Shoe model class with variant management (✓ implemented)
-│   │   ├── Order.js         # Order model class with status tracking (✓ implemented)
-│   │   └── Category.js      # Category model class with hierarchy support (✓ implemented)
-│   ├── routes/              # Route definitions using controller instances
-│   │   ├── api.js           # API route handlers (✓ enhanced with comprehensive docs)
-│   │   ├── auth.js          # Authentication routes (✓ implemented)
-│   │   ├── products.js      # Product routes (✓ implemented)
-│   │   └── orders.js        # Order routes (✓ implemented)
-│   ├── middleware/          # Custom middleware functions
-│   │   ├── auth.js          # Authentication middleware (✓ enhanced with role-based access)
-│   │   ├── cors.js          # CORS handling (✓ implemented)
-│   │   └── validation.js    # Request validation (✓ comprehensive validation system)
-│   ├── utils/               # OOP Utility classes and base classes
-│   │   ├── BaseModel.js     # Abstract base model class (✓ implemented)
-│   │   ├── BaseController.js # Abstract base controller class (✓ implemented)
-│   │   └── ErrorClasses.js  # Custom error classes with inheritance (✓ comprehensive)
-│   ├── config/              # Configuration files
-│   │   ├── database.js      # Database configuration
-│   │   └── auth.js          # Authentication configuration
-│   └── server.js            # Main server class (SnevoServer)
-├── frontend/               # Client-side application
-│   ├── assets/            # Static assets
-│   │   ├── css/           # Stylesheets
-│   │   │   ├── main.css   # Main stylesheet
-│   │   │   ├── animations.css # Nike-style animations
-│   │   │   ├── components.css # Component styles
-│   │   │   └── responsive.css # Responsive design
-│   │   ├── js/            # JavaScript OOP classes and modules
-│   │   │   ├── main.js    # Legacy compatibility layer
-│   │   │   ├── config.js  # Frontend configuration (✓ implemented)
-│   │   │   ├── login.js   # Login page functionality (✓ implemented)
-│   │   │   ├── Application.js # Main application class (orchestrates everything)
-│   │   │   ├── AuthManager.js # OOP authentication management class (✓ implemented)
-│   │   │   ├── ProductManager.js # OOP product management class
-│   │   │   ├── BaseComponent.js # Abstract base component class
-│   │   │   ├── ApiClient.js # OOP API client with interceptors (✓ implemented)
-│   │   │   └── animations.js # Animation controllers
-│   │   ├── images/        # Image assets
-│   │   │   ├── products/  # Product images
-│   │   │   ├── icons/     # UI icons
-│   │   │   └── hero/      # Hero section images
-│   │   └── fonts/         # Custom fonts
-│   ├── components/        # Reusable UI components
-│   │   ├── header.html    # Header component
-│   │   ├── footer.html    # Footer component
-│   │   ├── product-card.html # Product card component
-│   │   └── modal.html     # Modal component
-│   ├── pages/             # HTML pages
-│   │   ├── index.html     # Landing page (✓ implemented)
-│   │   ├── login.html     # Login page (✓ implemented with Supabase auth)
-│   │   ├── products.html  # Product browsing
-│   │   ├── product-detail.html # Product detail view
-│   │   ├── cart.html      # Shopping cart
-│   │   └── profile.html   # User profile
-│   └── views/             # MVC Views (templates)
-│       ├── layouts/       # Layout templates
-│       └── partials/      # Partial templates
-├── config/                # Project configuration
-│   ├── .env.example      # Environment variables template
-│   ├── supabase.js       # Supabase configuration
-│   └── constants.js      # Application constants
-├── docs/                 # Documentation
-│   ├── api.md           # API documentation
-│   ├── database.md      # Database schema documentation
-│   └── deployment.md    # Deployment instructions
-├── tests/               # Test files
-│   ├── backend/         # Backend tests
-│   └── frontend/        # Frontend tests
-├── package.json         # Node.js dependencies (✓ updated with build scripts)
-├── .gitignore          # Git ignore rules
-├── env.example         # Environment variables template (✓ implemented)
-├── .env                # Environment variables (not committed)
-├── README.md           # Project documentation (✓ updated)
-├── schema.sql          # Database schema (existing)
-├── scripts/            # Build and utility scripts (✓ implemented)
-│   ├── build.js        # Main build script with env injection
-│   ├── build-frontend.js # Frontend build with env injection
-│   └── dev-config.js   # Development config generation
-├── docs/               # Documentation
-│   └── BUILD.md        # Build system documentation (✓ implemented)
-├── STRUCTURE.md        # This file
-└── EXTENSION_FUNCTIONALITY.md # Detailed project functionality
+snevo/
+├── backend/                           # ⚙️ Backend Node.js OOP MVC
+│   ├── controllers/                   # 🎯 Controllers - Xử lý API requests
+│   │   ├── AuthController.js          # 🔐 Xác thực - Login/register/logout cho users
+│   │   ├── ProfileController.js       # 👨‍💼 Hồ sơ - Quản lý profiles của users
+│   │   ├── AddressController.js       # 🏠 Địa chỉ - CRUD addresses của users
+│   │   ├── CategoryController.js      # 📂 Danh mục - CRUD categories giày
+│   │   ├── ProductController.js       # 👟 Sản phẩm - CRUD shoes table
+│   │   ├── ColorController.js         # 🎨 Màu sắc - CRUD colors table
+│   │   ├── SizeController.js          # 📏 Kích cỡ - CRUD sizes table
+│   │   ├── VariantController.js       # ⭐ Biến thể - CRUD shoe_variants (quan trọng nhất)
+│   │   ├── ImportController.js        # 📥 Nhập kho - CRUD imports từ suppliers
+│   │   ├── OrderController.js         # 🛒 Đơn hàng - CRUD orders
+│   │   ├── OrderItemController.js     # 📋 Chi tiết đơn - CRUD order_items
+│   │   ├── PaymentController.js       # 💳 Thanh toán - CRUD payments
+│   │   └── AdminController.js         # 👑 Admin - Dashboard tổng quan
+│   ├── models/                        # 📊 Models - Theo đúng database schema
+│   │   ├── BaseModel.js               # 🏗️ Base class - Chung cho tất cả models
+│   │   ├── Profile.js                 # 👨‍💼 Model profiles table
+│   │   ├── Address.js                 # 🏠 Model addresses table
+│   │   ├── Category.js                # 📂 Model categories table
+│   │   ├── Shoe.js                    # 👟 Model shoes table
+│   │   ├── Color.js                   # 🎨 Model colors table
+│   │   ├── Size.js                    # 📏 Model sizes table
+│   │   ├── ShoeVariant.js             # ⭐ Model shoe_variants table (trung tâm)
+│   │   ├── Import.js                  # 📥 Model imports table
+│   │   ├── Order.js                   # 🛒 Model orders table
+│   │   ├── OrderItem.js               # 📋 Model order_items table
+│   │   ├── Payment.js                 # 💳 Model payments table
+│   │   └── Review.js                  # ⭐ Model reviews table
+│   ├── routes/                        # 🛣️ API routes - Kết nối endpoints với controllers
+│   │   ├── index.js                   # 🏠 Main router - Tập hợp tất cả routes
+│   │   ├── auth.js                    # 🔐 Auth routes - /api/auth/*
+│   │   ├── users.js                   # 👤 User routes - /api/users/*
+│   │   ├── profiles.js                # 👨‍💼 Profile routes - /api/profiles/*
+│   │   ├── addresses.js               # 🏠 Address routes - /api/addresses/*
+│   │   ├── categories.js              # 📂 Category routes - /api/categories/*
+│   │   ├── products.js                # 👟 Product routes - /api/products/*
+│   │   ├── colors.js                  # 🎨 Color routes - /api/colors/*
+│   │   ├── sizes.js                   # 📏 Size routes - /api/sizes/*
+│   │   ├── variants.js                # ⭐ Variant routes - /api/variants/*
+│   │   ├── imports.js                 # 📥 Import routes - /api/imports/*
+│   │   ├── orders.js                  # 🛒 Order routes - /api/orders/*
+│   │   ├── payments.js                # 💳 Payment routes - /api/payments/*
+│   │   ├── reviews.js                 # ⭐ Review routes - /api/reviews/*
+│   │   └── admin.js                   # 👑 Admin routes - /api/admin/*
+│   ├── middleware/                    # 🛡️ Middleware - Auth, validation, errors
+│   │   ├── auth.js                    # 🔐 JWT authentication middleware
+│   │   ├── admin.js                   # 👑 Admin authorization middleware
+│   │   ├── validation.js              # ✅ Request validation middleware
+│   │   ├── cors.js                    # 🌐 CORS configuration middleware
+│   │   ├── upload.js                  # 📤 File upload middleware
+│   │   └── errors.js                  # 🚨 Global error handling middleware
+│   ├── utils/                         # 🔧 Utilities - Helpers, base classes, tools
+│   │   ├── jwt.js                     # 🎫 JWT token utilities
+│   │   ├── validation.js              # ✅ Validation schemas (Joi)
+│   │   ├── stock.js                   # 📊 Stock calculation utilities
+│   │   ├── constants.js               # 📋 Application constants
+│   │   └── errors.js                  # 🚨 Custom error classes
+│   └── server.js                      # 🚀 Server entry point
+├── frontend/                          # 🎨 Frontend Nike-style
+│   ├── assets/                        # 📦 Static assets
+│   │   ├── css/                       # 🎨 Stylesheets
+│   │   │   ├── main.css               # 🎨 Main Nike-style CSS
+│   │   │   ├── components.css         # 🧩 Component styles
+│   │   │   ├── animations.css         # ✨ Nike animations & transitions
+│   │   │   └── responsive.css         # 📱 Mobile responsive styles
+│   │   ├── js/                        # 💻 OOP JavaScript classes
+│   │   │   ├── Application.js         # 🚀 Main application class
+│   │   │   ├── AuthManager.js         # 🔐 Authentication manager
+│   │   │   ├── UserManager.js         # 👤 User profile manager
+│   │   │   ├── ProductManager.js      # 👟 Product & shoe manager
+│   │   │   ├── VariantManager.js      # ⭐ Shoe variant manager (size/color/stock)
+│   │   │   ├── CategoryManager.js     # 📂 Category manager
+│   │   │   ├── CartManager.js         # 🛍️ Shopping cart manager
+│   │   │   ├── OrderManager.js        # 🛒 Order management
+│   │   │   ├── ReviewManager.js       # ⭐ Review manager
+│   │   │   ├── AdminManager.js        # 👑 Admin dashboard manager
+│   │   │   └── utils.js               # 🔧 Frontend utilities & helpers
+│   │   └── images/                    # 🖼️ Images & assets
+│   │       ├── products/              # 👟 Product images
+│   │       ├── variants/              # ⭐ Variant images (theo màu sắc)
+│   │       ├── categories/            # 📂 Category images
+│   │       └── ui/                    # 🎨 UI elements & icons
+│   ├── pages/                         # 📄 HTML pages với Nike animations
+│   │   ├── index.html                 # 🏠 Homepage với hero banner
+│   │   ├── products.html              # 👟 Product listing page
+│   │   ├── product-detail.html        # 🔍 Product detail với variant selector
+│   │   ├── categories.html            # 📂 Category listing page
+│   │   ├── cart.html                  # 🛍️ Shopping cart page
+│   │   ├── checkout.html              # 💳 Checkout process page
+│   │   ├── orders.html                # 📦 Order history page
+│   │   ├── profile.html               # 👤 User profile page
+│   │   ├── addresses.html             # 🏠 Address management page
+│   │   ├── login.html                 # 🔐 Login page
+│   │   ├── register.html              # 📝 Registration page
+│   │   └── admin.html                 # 👑 Admin dashboard page
+│   └── components/                    # 🧩 Reusable UI components
+│       ├── header.html                # 🎯 Site header với navigation
+│       ├── footer.html                # 🔗 Site footer
+│       ├── product-card.html          # 🃏 Product card component
+│       ├── variant-selector.html      # ⭐ Size/Color selector component
+│       ├── cart-item.html             # 🛍️ Cart item component
+│       ├── review-card.html           # ⭐ Review component
+│       ├── modal.html                 # 🪟 Modal dialog component
+│       └── loading.html               # ⏳ Loading spinner component
+├── config/                            # ⚙️ Configuration files
+│   ├── supabase.js                    # 🗄️ Supabase configuration
+│   ├── app.js                         # 🚀 Application configuration
+│   └── upload.js                      # 📤 File upload configuration
+├── scripts/                           # 📜 Build system & deployment
+│   ├── build.js                       # 🏗️ Build script với environment injection
+│   ├── seed.js                        # 🌱 Database seeding script
+│   └── deploy.js                      # 🚀 Deployment script
+├── docs/                              # 📚 Documentation
+│   ├── README.md                      # 📖 Project overview
+│   ├── API.md                         # 📡 API documentation
+│   ├── DATABASE.md                    # 🗃️ Database schema documentation
+│   ├── SETUP.md                       # 🛠️ Setup instructions
+│   └── DEPLOYMENT.md                  # 🚀 Deployment guide
+└── schema.sql                         # 🗄️ Database schema
 ```
 
-## OOP MVC IMPLEMENTATION DETAILS
+## USER FLOWS
 
-### MODELS (backend/models/)
-- **BaseModel**: Abstract base class with common CRUD operations, validation, and error handling
-- **User Model**: Extends BaseModel with authentication, profile management, and relationship handling
-- **Product Model**: Extends BaseModel with variant management, search, and category relationships
-- **Category Model**: Extends BaseModel with hierarchy support and product counting
-- **Features**: Built-in validation, field filtering, hidden fields, pagination, and caching
+### Flow 1: Authentication & Account Setup
+Homepage → Login through Google only → Email Verification (only to order)→ 
+Profile Setup → Address Addition → Dashboard Welcome
 
-### VIEWS (frontend/assets/js/)
-- **BaseComponent**: Abstract base class for UI components with lifecycle management
-- **Application**: Main orchestration class managing all other components
-- **AuthManager**: Handles authentication state, UI updates, and session management
-- **ProductManager**: Manages product display, cart operations, and API communication
-- **ApiClient**: OOP HTTP client with interceptors, error handling, and retry logic
+### Flow 2: Product Discovery & Browsing
+Homepage → Category Selection → Product Grid → Filter Application (price range, size, color, brand) → 
+Sort Options (ascending/descending in price, name a->z) → Search Function → Filtered Product Results Display
 
-### CONTROLLERS (backend/controllers/)
-- **BaseController**: Abstract base class with request handling, validation, and response formatting
-- **AuthController**: Extends BaseController with authentication endpoints and middleware
-- **ProductController**: Extends BaseController with product CRUD, search, and review operations
-- **Features**: Built-in validation, pagination helpers, error handling, and authentication checks
+### Flow 3: Product Detail & Variant Selection
+Product Card Click → Product Detail Page → Image Gallery → Size Selection → 
+Color Selection → Stock Check → Price Update → Add to Cart
 
-## KEY FEATURES TO IMPLEMENT
-1. **Landing Page**: Nike-style hero sections, animated product showcases
-2. **Authentication**: Supabase Auth with Google OAuth integration
-3. **Product Browsing**: Category filtering, search, pagination
-4. **Product Details**: Image galleries, variant selection, reviews
-5. **User Management**: Profile, order history, addresses
-6. **Responsive Design**: Mobile-first approach with Bootstrap
+### Flow 4: Shopping Cart Management
+Add to Cart → Cart Sidebar Open → Quantity Adjustment → Variant Change → 
+Remove Items → Price Recalculation → Continue Shopping or Checkout
 
-## OOP DEVELOPMENT WORKFLOW
-1. **Base Classes**: Implement BaseModel, BaseController, BaseComponent with common functionality
-2. **Backend Models**: Create model classes extending BaseModel with specific business logic
-3. **Backend Controllers**: Implement controller classes extending BaseController with endpoint logic
-4. **Frontend Managers**: Create manager classes for authentication, products, and application orchestration
-5. **UI Components**: Build reusable component classes extending BaseComponent
-6. **Integration**: Wire up OOP instances in routes and main application
-7. **Testing & Optimization**: Test class inheritance, encapsulation, and performance
+### Flow 5: Checkout Process
+Login only -> cart review → Shipping Address Selection → 
+Delivery Options (mock) → Payment Method (extra: vnpay) → Order Review → Payment Processing (mock if no vnpay) → 
+Order Confirmation
 
-## PERFORMANCE CONSIDERATIONS
-- Lazy loading for images and components
-- Efficient database queries with proper indexing
-- Client-side caching for frequently accessed data
-- Optimized animations for smooth user experience
-- Progressive loading for product catalogs
+### Flow 6: Order History & Management
+Order Confirmation → Email Receipt → Order Tracking Page → Status Updates → 
+Delivery Notification → Order Completion → Review Prompt
+
+### Flow 7: User Profile Management
+Profile Access → Personal Info Edit → Address Book Management (separate from 'profile' table) → 
+Password Change → Notification Preferences → Account Settings Save
+
+### Flow 8: Product Review System
+Under each product
+Review View → Review Form → Rating Selection → 
+Photo Upload → Review Submission → Review Display
+
+### Flow 9: Advanced Search & Filtering
+Search Bar Focus → Search Query → Product Selection
+
+### Flow 10: Admin Product Management
+Admin Login → Dashboard Overview → Product List → Add New Product → 
+Category Assignment → Variant Creation → Price Setting → Image Upload → 
+Product Publish
+
+### Flow 11: Admin Inventory Management
+Inventory Dashboard → Stock Levels Review → Low Stock Alerts (mock) → Import Order → Stock Update → Alert Notification
+
+### Flow 12: Admin Order Processing
+Order Queue → Order Detail View → Status Update → Payment Verification → 
+Shipping Label → Tracking Update → Customer Notification
+
+
 

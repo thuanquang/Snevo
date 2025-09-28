@@ -3,7 +3,7 @@
  * Handles product data operations with Supabase using OOP principles
  */
 
-import { supabase } from '../../config/supabase.js';
+import { supabase, supabaseAdmin } from '../../config/supabase.js';
 import constants from '../../config/constants.js';
 import BaseModel from '../utils/BaseModel.js';
 import { ValidationError, NotFoundError } from '../utils/ErrorClasses.js';

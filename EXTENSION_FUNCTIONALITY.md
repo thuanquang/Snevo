@@ -1,10 +1,11 @@
-# EXTENSION FUNCTIONALITY - E-COMMERCE NIKE-STYLE PROJECT
+# EXTENSION FUNCTIONALITY - SNEVO E-COMMERCE PLATFORM
 
 ## PROJECT OVERVIEW
-**Name**: Snevo E-commerce Platform
-**Type**: Nike-inspired shoe e-commerce website
-**Architecture**: MVC Pattern with Node.js backend and vanilla frontend
-**Database**: Supabase PostgreSQL with comprehensive shoe retail schema
+**Name**: Snevo E-commerce Platform  
+**Type**: Nike-inspired shoe e-commerce website  
+**Architecture**: MVC Pattern with Node.js backend and vanilla frontend  
+**Database**: Supabase PostgreSQL with comprehensive shoe retail schema  
+**Status**: ✅ REFACTORED TO NEW STRUCTURE
 
 ## DETAILED REQUIREMENTS ANALYSIS
 
@@ -28,30 +29,32 @@
 - **API**: RESTful API design
 - **Authentication**: Supabase Auth with Google OAuth
 
-### DATABASE SCHEMA ANALYSIS (from schema.sql)
-**Schema Name**: db_nike
+### DATABASE SCHEMA ANALYSIS (UPDATED - from schema.sql)
+**Schema Name**: db_nike  
+**Status**: ✅ UPDATED - Removed wishlist table, added email column to profiles, removed supplier table  
 **Tables Identified**:
-1. **Users** - Customer and seller management with role-based access
-2. **Addresses** - Multiple address support per user
-3. **Categories** - Shoe categorization system
-4. **Shoes** - Main product table with base information
-5. **Colors & Sizes** - Product variant attributes
-6. **Shoe_Variants** - SKU-based inventory with stock management
-7. **Suppliers** - Supplier management for inventory
-8. **Imports** - Inventory management with automatic stock updates
-9. **Orders** - Order processing with status tracking
-10. **Order_Items** - Order line items with automatic stock deduction
-11. **Payments** - Payment processing with multiple methods
-12. **Reviews** - Product review system with ratings
+1. **profiles** - User profile management with email column (linked to auth.users)
+2. **addresses** - Multiple address support per user
+3. **categories** - Shoe categorization system
+4. **shoes** - Main product table with base information
+5. **colors & sizes** - Product variant attributes
+6. **shoe_variants** - SKU-based inventory with stock management (MOST IMPORTANT)
+7. **imports** - Inventory management with automatic stock updates (NO supplier references)
+8. **orders** - Order processing with status tracking
+9. **order_items** - Order line items with automatic stock deduction
+10. **payments** - Payment processing with multiple methods
+11. **reviews** - Product review system with ratings
 
 **Key Database Features**:
-- Automatic stock management with triggers
-- Role-based user system (customer/seller)
-- Multi-variant product support (color/size combinations)
-- Comprehensive order lifecycle management
-- Review system with rating constraints
-- Address management with default selection
-- Supplier and import tracking
+- ✅ Automatic stock management with triggers
+- ✅ Role-based user system (customer/seller)
+- ✅ Multi-variant product support (color/size combinations)
+- ✅ Comprehensive order lifecycle management
+- ✅ Review system with rating constraints
+- ✅ Address management with default selection
+- ✅ Import tracking (NO supplier dependencies)
+- ✅ Email column in profiles table
+- ✅ Removed wishlist functionality
 
 ## CORE FUNCTIONALITY REQUIREMENTS
 
@@ -73,15 +76,17 @@
 - Lazy loading for performance
 
 ### 2. AUTHENTICATION SYSTEM (✓ ENHANCED & ENVIRONMENT-DEPENDENT)
-**Supabase Integration** (✓ FULLY ENVIRONMENT-DEPENDENT):
+**Supabase Integration** (✓ FULLY ENVIRONMENT-DEPENDENT & OVERHAULED):
 - ✓ Email/password authentication with environment validation
-- ✓ Google OAuth integration with dynamic feature detection
-- ✓ User session management with proper token handling
+- ✓ Unified Google OAuth integration with comprehensive error handling
+- ✓ User session management with proper token handling and OAuth callbacks
 - ✓ Role-based access control (customer/seller)
 - ✓ Password reset functionality with environment-based URLs
 - ✓ Email verification with Supabase integration
 - ✓ Comprehensive environment variable validation
 - ✓ Automatic feature enabling/disabling based on configuration
+- ✓ Backend OAuth callback handling for Google authentication
+- ✓ Unified authentication flow across all pages
 
 **Frontend Components** (✓ ENHANCED WITH CONFIG VALIDATION):
 - ✓ Login page with Nike-inspired design and config-based features
@@ -128,13 +133,17 @@
 - Customer reviews section
 - Related products carousel
 
-### 5. USER MANAGEMENT
-**Profile Features**:
-- Personal information editing
-- Address management (multiple addresses)
-- Order history with status tracking
-- Review management
-- Wishlist management
+### 5. USER MANAGEMENT (✓ ENHANCED WITH COMPREHENSIVE PROFILE SYSTEM)
+**Profile Features** (✓ FULLY IMPLEMENTED):
+- ✓ Personal information editing with form validation
+- ✓ Address management (multiple addresses) with CRUD operations
+- ✓ Order history with status tracking
+- ✓ Review management
+- ✓ Wishlist management
+- ✓ Password change functionality with security validation
+- ✓ Notification preferences management
+- ✓ Account settings with comprehensive options
+- ✓ Nike-style profile interface with smooth navigation
 
 **Seller Features** (if role = 'seller'):
 - Inventory management
@@ -166,11 +175,18 @@ GET /api/orders
 GET /api/orders/:id
 PUT /api/orders/:id/status
 
-User Management:
-GET /api/users/addresses
-POST /api/users/addresses
-PUT /api/users/addresses/:id
-DELETE /api/users/addresses/:id
+User Management (✓ ENHANCED):
+GET /api/auth/profile
+PUT /api/auth/profile
+POST /api/auth/change-password
+GET /api/auth/addresses
+POST /api/auth/addresses
+PUT /api/auth/addresses/:id
+DELETE /api/auth/addresses/:id
+GET /api/auth/orders
+GET /api/auth/reviews
+GET /api/auth/notifications
+PUT /api/auth/notifications
 
 Reviews:
 GET /api/products/:id/reviews

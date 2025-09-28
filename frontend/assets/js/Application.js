@@ -265,7 +265,7 @@ class Application {
         // Auth forms
         const loginForm = document.getElementById('loginForm');
         const registerForm = document.getElementById('registerForm');
-        const googleLoginBtn = document.getElementById('googleLoginBtn');
+        const googleLoginBtn = document.getElementById('googleLoginButton');
         
         if (loginForm) {
             loginForm.addEventListener('submit', (e) => {
@@ -478,7 +478,7 @@ class Application {
                 <strong>Total: ${productManager.formatPrice(total)}</strong>
             </div>
             <div class="dropdown-item">
-                <a href="/cart.html" class="btn btn-primary w-100">View Cart</a>
+                <a href="cart.html" class="btn btn-primary w-100">View Cart</a>
             </div>
         `;
     }
@@ -495,7 +495,7 @@ class Application {
         const categoriesDropdown = document.getElementById('categoriesDropdown');
         if (categoriesDropdown) {
             const dropdownHTML = categories.map(category => `
-                <li><a class="dropdown-item" href="/products.html?category=${category.category_id}">
+                <li><a class="dropdown-item" href="products.html?category=${category.category_id}">
                     ${category.category_name}
                 </a></li>
             `).join('');

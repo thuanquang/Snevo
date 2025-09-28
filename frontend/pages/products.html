@@ -398,6 +398,11 @@
             
             document.addEventListener('DOMContentLoaded', function() {
                 initializeProductsPage();
+                
+                // Ensure AuthManager updates UI
+                if (window.authManager) {
+                    window.authManager.updateAuthUI();
+                }
             });
             
             function initializeProductsPage() {

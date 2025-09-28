@@ -326,7 +326,7 @@ class ApiClient {
         
         // Redirect to login page
         const returnUrl = encodeURIComponent(window.location.href);
-        window.location.href = `/login.html?return=${returnUrl}`;
+        window.location.href = `login.html?return=${returnUrl}`;
     }
 
     /**
@@ -353,7 +353,7 @@ class ApiClient {
             // Redirect to verification page if not already there
             if (!window.location.pathname.includes('verify-email')) {
                 setTimeout(() => {
-                    window.location.href = '/verify-email.html';
+                    window.location.href = 'verify-email.html';
                 }, 2000);
             }
         } else {

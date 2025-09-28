@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Auth Test - Snevo</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        .test-section {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+        }
+        .test-result {
+            margin: 0.5rem 0;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+        }
+        .test-success {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+        .test-error {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+        .test-warning {
+            background-color: #fff3cd;
+            color: #664d03;
+        }
+        .test-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-success { background-color: #28a745; }
+        .status-error { background-color: #dc3545; }
+        .status-warning { background-color: #ffc107; }
+        .status-info { background-color: #17a2b8; }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <h1 class="text-center mb-4">Google Authentication Test</h1>
+                <p class="text-center text-muted mb-4">Comprehensive testing of the unified Google OAuth implementation</p>
+                
+                <!-- Configuration Test -->
+                <div class="test-section">
+                    <h3><i class="fas fa-cog me-2"></i>Configuration Test</h3>
+                    <div id="configResults"></div>
+                    <button class="btn btn-primary" onclick="testConfiguration()">Test Configuration</button>
+                </div>
+                
+                <!-- AuthManager Test -->
+                <div class="test-section">
+                    <h3><i class="fas fa-user-shield me-2"></i>AuthManager Test</h3>
+                    <div id="authManagerResults"></div>
+                    <button class="btn btn-primary" onclick="testAuthManager()">Test AuthManager</button>
+                </div>
+                
+                <!-- Google OAuth Test -->
+                <div class="test-section">
+                    <h3><i class="fab fa-google me-2"></i>Google OAuth Test</h3>
+                    <div id="oauthResults"></div>
+                    <button class="btn btn-warning" onclick="testGoogleOAuth()">Test Google OAuth</button>
+                </div>
+                
+                <!-- Session Management Test -->
+                <div class="test-section">
+                    <h3><i class="fas fa-session me-2"></i>Session Management Test</h3>
+                    <div id="sessionResults"></div>
+                    <button class="btn btn-info" onclick="testSessionManagement()">Test Session Management</button>
+                </div>
+                
+                <!-- Full Integration Test -->
+                <div class="test-section">
+                    <h3><i class="fas fa-check-circle me-2"></i>Full Integration Test</h3>
+                    <div id="integrationResults"></div>
+                    <button class="btn btn-success" onclick="runFullIntegrationTest()">Run Full Integration Test</button>
+                </div>
+                
+                <!-- Manual Google Login -->
+                <div class="test-section">
+                    <h3><i class="fas fa-sign-in-alt me-2"></i>Manual Google Login</h3>
+                    <div id="manualResults"></div>
+                    <button class="btn btn-danger" onclick="testManualGoogleLogin()">Test Manual Google Login</button>
+                </div>
+                
+                <!-- Console Output -->
+                <div class="test-section">
+                    <h3><i class="fas fa-terminal me-2"></i>Console Output</h3>
+                    <div id="consoleOutput" style="background: #f8f9fa; padding: 1rem; border-radius: 0.25rem; font-family: monospace; max-height: 300px; overflow-y: auto;"></div>
+                    <button class="btn btn-secondary" onclick="clearConsole()">Clear Console</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Configuration -->
+    <script src="../assets/js/config.js"></script>
+    
+    <!-- Custom Scripts -->
+    <script type="module" src="../assets/js/ApiClient.js"></script>
+    <script type="module" src="../assets/js/AuthManager.js"></script>
+    
+    <script>
+        // Console capture
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        
+        function captureConsole() {
+            console.log = function(...args) {
+                originalLog.apply(console, args);
+                appendToConsole('LOG', args.join(' '));
+            };
+            
+            console.error = function(...args) {
+                originalError.apply(console, args);
+                appendToConsole('ERROR', args.join(' '));
+            };
+            
+            console.warn = function(...args) {
+                originalWarn.apply(console, args);
+                appendToConsole('WARN', args.join(' '));
+            };
+        }
+        
+        function appendToConsole(type, message) {
+            const consoleOutput = document.getElementById('consoleOutput');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.innerHTML = `<span style="color: #666;">[${timestamp}]</span> <span style="color: ${type === 'ERROR' ? '#dc3545' : type === 'WARN' ? '#ffc107' : '#007bff'};">[${type}]</span> ${message}`;
+            consoleOutput.appendChild(logEntry);
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
+        
+        function clearConsole() {
+            document.getElementById('consoleOutput').innerHTML = '';
+        }
+        
+        function createResultDiv(className, message) {
+            const div = document.createElement('div');
+            div.className = `test-result ${className}`;
+            div.innerHTML = message;
+            return div;
+        }
+        
+        function addResult(containerId, className, message) {
+            const container = document.getElementById(containerId);
+            const div = createResultDiv(className, message);
+            container.appendChild(div);
+        }
+        
+        function clearResults(containerId) {
+            document.getElementById(containerId).innerHTML = '';
+        }
+        
+        // Test functions
+        function testConfiguration() {
+            clearResults('configResults');
+            
+            const tests = [
+                {
+                    name: 'Supabase URL',
+                    test: () => window.SUPABASE_URL && window.SUPABASE_URL.startsWith('https://') && !window.SUPABASE_URL.includes('your-project-id'),
+                    value: window.SUPABASE_URL,
+                    critical: true
+                },
+                {
+                    name: 'Supabase Key',
+                    test: () => window.SUPABASE_ANON_KEY && window.SUPABASE_ANON_KEY.length > 50 && !window.SUPABASE_ANON_KEY.includes('your-anon-key'),
+                    value: window.SUPABASE_ANON_KEY ? 'Present' : 'Missing',
+                    critical: true
+                },
+                {
+                    name: 'APP_CONFIG',
+                    test: () => window.APP_CONFIG && window.APP_CONFIG.features,
+                    value: window.APP_CONFIG ? 'Present' : 'Missing',
+                    critical: true
+                },
+                {
+                    name: 'Google Auth Enabled',
+                    test: () => window.APP_CONFIG?.features?.googleAuth,
+                    value: window.APP_CONFIG?.features?.googleAuth ? 'Enabled' : 'Disabled',
+                    critical: true
+                },
+                {
+                    name: 'Supabase Auth Enabled',
+                    test: () => window.APP_CONFIG?.features?.supabaseAuth,
+                    value: window.APP_CONFIG?.features?.supabaseAuth ? 'Enabled' : 'Disabled',
+                    critical: true
+                }
+            ];
+            
+            let allPassed = true;
+            
+            tests.forEach(test => {
+                const result = test.test();
+                const statusClass = result ? 'test-success' : (test.critical ? 'test-error' : 'test-warning');
+                const statusIcon = result ? '✅' : (test.critical ? '❌' : '⚠️');
+                
+                if (!result && test.critical) allPassed = false;
+                
+                addResult('configResults', statusClass, `${statusIcon} ${test.name}: ${test.value}`);
+            });
+            
+            if (allPassed) {
+                addResult('configResults', 'test-success', '🎉 All configuration tests passed!');
+            } else {
+                addResult('configResults', 'test-error', '❌ Some critical configuration tests failed');
+            }
+        }
+        
+        function testAuthManager() {
+            clearResults('authManagerResults');
+            
+            const tests = [
+                {
+                    name: 'AuthManager Available',
+                    test: () => !!window.authManager,
+                    value: window.authManager ? 'Available' : 'Not available'
+                },
+                {
+                    name: 'Supabase Client',
+                    test: () => window.authManager?.supabaseClient,
+                    value: window.authManager?.supabaseClient ? 'Initialized' : 'Not initialized'
+                },
+                {
+                    name: 'Google OAuth Method',
+                    test: () => typeof window.authManager?.loginWithGoogle === 'function',
+                    value: typeof window.authManager?.loginWithGoogle
+                },
+                {
+                    name: 'Current User',
+                    test: () => window.authManager?.currentUser,
+                    value: window.authManager?.currentUser ? 'Logged in' : 'Not logged in'
+                },
+                {
+                    name: 'Authentication Status',
+                    test: () => window.authManager?.isAuthenticated(),
+                    value: window.authManager?.isAuthenticated() ? 'Authenticated' : 'Not authenticated'
+                }
+            ];
+            
+            tests.forEach(test => {
+                const result = test.test();
+                const statusClass = result ? 'test-success' : 'test-warning';
+                const statusIcon = result ? '✅' : '⚠️';
+                
+                addResult('authManagerResults', statusClass, `${statusIcon} ${test.name}: ${test.value}`);
+            });
+        }
+        
+        function testGoogleOAuth() {
+            clearResults('oauthResults');
+            
+            if (!window.authManager) {
+                addResult('oauthResults', 'test-error', '❌ AuthManager not available');
+                return;
+            }
+            
+            const tests = [
+                {
+                    name: 'Google OAuth Method Available',
+                    test: () => typeof window.authManager.loginWithGoogle === 'function',
+                    value: typeof window.authManager.loginWithGoogle
+                },
+                {
+                    name: 'Supabase Auth Available',
+                    test: () => window.authManager.supabaseClient?.auth,
+                    value: window.authManager.supabaseClient?.auth ? 'Available' : 'Not available'
+                },
+                {
+                    name: 'SignInWithOAuth Method',
+                    test: () => window.authManager.supabaseClient?.auth?.signInWithOAuth,
+                    value: typeof window.authManager.supabaseClient?.auth?.signInWithOAuth
+                },
+                {
+                    name: 'Configuration Valid',
+                    test: () => window.authManager.validateGoogleAuthConfig(),
+                    value: window.authManager.validateGoogleAuthConfig() ? 'Valid' : 'Invalid'
+                }
+            ];
+            
+            tests.forEach(test => {
+                const result = test.test();
+                const statusClass = result ? 'test-success' : 'test-error';
+                const statusIcon = result ? '✅' : '❌';
+                
+                addResult('oauthResults', statusClass, `${statusIcon} ${test.name}: ${test.value}`);
+            });
+        }
+        
+        function testSessionManagement() {
+            clearResults('sessionResults');
+            
+            if (!window.authManager) {
+                addResult('sessionResults', 'test-error', '❌ AuthManager not available');
+                return;
+            }
+            
+            const tests = [
+                {
+                    name: 'Auth Token',
+                    test: () => window.authManager.getAuthToken(),
+                    value: window.authManager.getAuthToken() ? 'Present' : 'Missing'
+                },
+                {
+                    name: 'Refresh Token',
+                    test: () => window.authManager.getRefreshToken(),
+                    value: window.authManager.getRefreshToken() ? 'Present' : 'Missing'
+                },
+                {
+                    name: 'Current User',
+                    test: () => window.authManager.getCurrentUser(),
+                    value: window.authManager.getCurrentUser() ? 'Present' : 'Missing'
+                },
+                {
+                    name: 'Authentication Status',
+                    test: () => window.authManager.isAuthenticated(),
+                    value: window.authManager.isAuthenticated() ? 'Authenticated' : 'Not authenticated'
+                }
+            ];
+            
+            tests.forEach(test => {
+                const result = test.test();
+                const statusClass = result ? 'test-success' : 'test-warning';
+                const statusIcon = result ? '✅' : '⚠️';
+                
+                addResult('sessionResults', statusClass, `${statusIcon} ${test.name}: ${test.value}`);
+            });
+        }
+        
+        function runFullIntegrationTest() {
+            clearResults('integrationResults');
+            
+            addResult('integrationResults', 'test-info', '🔄 Running full integration test...');
+            
+            // Test configuration
+            testConfiguration();
+            
+            // Test AuthManager
+            testAuthManager();
+            
+            // Test Google OAuth
+            testGoogleOAuth();
+            
+            // Test session management
+            testSessionManagement();
+            
+            addResult('integrationResults', 'test-success', '✅ Full integration test completed. Check individual test results above.');
+        }
+        
+        async function testManualGoogleLogin() {
+            clearResults('manualResults');
+            
+            if (!window.authManager) {
+                addResult('manualResults', 'test-error', '❌ AuthManager not available');
+                return;
+            }
+            
+            try {
+                addResult('manualResults', 'test-info', '🔄 Attempting Google login...');
+                
+                const result = await window.authManager.loginWithGoogle();
+                
+                if (result.success) {
+                    addResult('manualResults', 'test-success', '✅ Google OAuth initiated successfully');
+                } else {
+                    addResult('manualResults', 'test-error', `❌ Google OAuth failed: ${result.error}`);
+                }
+                
+            } catch (error) {
+                addResult('manualResults', 'test-error', `❌ Google login error: ${error.message}`);
+            }
+        }
+        
+        // Initialize console capture
+        document.addEventListener('DOMContentLoaded', function() {
+            captureConsole();
+            console.log('Google Auth Test Page Loaded');
+            
+            // Auto-run configuration test
+            setTimeout(() => {
+                testConfiguration();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

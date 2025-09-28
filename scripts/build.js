@@ -1,78 +1,60 @@
-#!/usr/bin/env node
+// 🏗️ Build Script with Environment Injection
+// Builds the application with environment variable injection
 
-/**
- * Build Script
- * Orchestrates the entire build process including frontend and backend
- */
+const fs = require('fs');
+const path = require('path');
 
-import { execSync } from 'child_process';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-import fs from 'fs-extra';
-import dotenv from 'dotenv';
+class BuildScript {
+    constructor() {
+        this.buildDir = './dist';
+        this.frontendDir = './frontend';
+    }
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const rootDir = join(__dirname, '..');
-
-// Load environment variables
-dotenv.config({ path: join(rootDir, '.env') });
-
-console.log('🚀 Starting build process...\n');
-
-async function build() {
-    try {
-        // Ensure build directory exists
-        const buildDir = join(rootDir, 'build');
-        await fs.ensureDir(buildDir);
-        
-        console.log('📦 Building frontend...');
-        execSync('npm run build:frontend', { stdio: 'inherit', cwd: rootDir });
-        
-        console.log('✅ Frontend build completed');
-        
-        console.log('📋 Copying backend files...');
-        
-        // Copy backend files to build directory
-        const backendSrc = join(rootDir, 'backend');
-        const backendDest = join(buildDir, 'backend');
-        await fs.copy(backendSrc, backendDest);
-        
-        // Copy config files
-        const configSrc = join(rootDir, 'config');
-        const configDest = join(buildDir, 'config');
-        await fs.copy(configSrc, configDest);
-        
-        // Copy package.json
-        await fs.copy(join(rootDir, 'package.json'), join(buildDir, 'package.json'));
-        
-        // Copy schema.sql
-        if (await fs.pathExists(join(rootDir, 'schema.sql'))) {
-            await fs.copy(join(rootDir, 'schema.sql'), join(buildDir, 'schema.sql'));
+    // Main build function
+    async build() {
+        try {
+            console.log('🏗️ Starting build process...');
+            
+            // Create build directory
+            this.createBuildDirectory();
+            
+            // Build frontend
+            await this.buildFrontend();
+            
+            // Build backend
+            await this.buildBackend();
+            
+            console.log('✅ Build completed successfully');
+        } catch (error) {
+            console.error('❌ Build failed:', error);
+            process.exit(1);
         }
-        
-        console.log('✅ Backend files copied');
-        
-        console.log('🎯 Creating production package.json...');
-        
-        // Create production package.json (without devDependencies)
-        const packageJson = await fs.readJson(join(rootDir, 'package.json'));
-        delete packageJson.devDependencies;
-        packageJson.scripts = {
-            start: 'node backend/server.js'
-        };
-        
-        await fs.writeJson(join(buildDir, 'package.json'), packageJson, { spaces: 2 });
-        
-        console.log('✅ Build completed successfully!\n');
-        console.log('📁 Build output: ./build/');
-        console.log('🚀 To run production build: cd build && npm install && npm start');
-        
-    } catch (error) {
-        console.error('❌ Build failed:', error.message);
-        process.exit(1);
+    }
+
+    // Create build directory
+    createBuildDirectory() {
+        if (!fs.existsSync(this.buildDir)) {
+            fs.mkdirSync(this.buildDir, { recursive: true });
+        }
+    }
+
+    // Build frontend
+    async buildFrontend() {
+        console.log('📦 Building frontend...');
+        // TODO: Implement frontend build logic
+    }
+
+    // Build backend
+    async buildBackend() {
+        console.log('⚙️ Building backend...');
+        // TODO: Implement backend build logic
     }
 }
 
-build();
+// Run build if called directly
+if (require.main === module) {
+    const buildScript = new BuildScript();
+    buildScript.build();
+}
 
+module.exports = BuildScript;

@@ -133,7 +133,7 @@ class EmailVerificationNotice {
     }
 
     goToVerificationPage() {
-        window.location.href = '/verify-email.html';
+        window.location.href = 'verify-email.html';
     }
 
     dismiss() {
