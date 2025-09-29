@@ -124,7 +124,11 @@ class CartPage {
     redirectToLogin() {
         console.log('🔄 Redirecting to login for cart access');
         const returnUrl = encodeURIComponent(window.location.href);
-        window.location.href = `/login.html?return=${returnUrl}`;
+        if (window.showLoginModal) {
+            window.showLoginModal();
+        } else {
+            window.location.href = `/login.html?return=${returnUrl}`;
+        }
     }
 
     /**

@@ -1,3 +1,22 @@
+Auth/Login Behavior (Google-only)
+--------------------------------
+- Global modal is injected by `frontend/assets/js/Application.js#initializeLoginModal`.
+- Exposes `window.showLoginModal()` to open modal.
+- All anchors pointing to `login.html` are intercepted to open modal instead of navigating.
+- `AuthManager.loginWithGoogle()` now redirects back to `window.location.href` after OAuth.
+- `AuthManager.updateAuthUI()` renders a `Login` link that calls the modal via `#globalLoginLink`.
+- Protected page access triggers modal instead of redirect.
+- Fallbacks: if modal isn’t ready, code falls back to `login.html` navigation in ApiClient/cart.
+
+Files touched:
+- `frontend/assets/js/AuthManager.js`: modal login UI hookup, Google redirect change.
+- `frontend/assets/js/Application.js`: inject modal; intercept `login.html` links; protected page handling.
+- `frontend/assets/js/ApiClient.js`: use modal on 401 redirect if available.
+- `frontend/assets/js/cart.js`: open modal on auth-required paths.
+
+Config prerequisites:
+- `frontend/assets/js/config.js` sets `APP_CONFIG.features.googleAuth` true with valid Supabase config.
+
 # EXTENSION FUNCTIONALITY - SNEVO E-COMMERCE PLATFORM
 
 ## PROJECT OVERVIEW

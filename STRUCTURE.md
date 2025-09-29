@@ -142,10 +142,11 @@ Profile Setup → Address Addition → Dashboard Welcome
 
 - Sections:
   - Header with primary navigation (`Products`, `Categories`, `Cart`, `Orders`, `Profile`, `Login`)
+    - Login opens a Google login modal (no password forms)
   - Hero with primary CTAs (`Shop Now` → `products.html`, `Browse Categories` → `categories.html`)
   - Featured Categories preview (anchors to `categories.html#men|#women|#kids`)
   - Trending products preview (placeholder cards link to `products.html`)
-  - Brand story with CTAs (`login.html`, `profile.html`)
+  - Brand story with CTAs (`login.html` intercepted to modal, `profile.html`)
   - Quick Links (`cart.html`, `checkout.html`, `orders.html`, `addresses.html`)
   - Footer (copyright)
 

@@ -128,8 +128,8 @@
                         return;
                     }
                 } else {
-                    // Not logged in, redirect to login
-                    window.location.href = 'login.html';
+                    // Not logged in, show login modal instead of redirect
+                    if (window.showLoginModal) { window.showLoginModal(); }
                     return;
                 }
                 

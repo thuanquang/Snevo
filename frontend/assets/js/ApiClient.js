@@ -326,7 +326,12 @@ class ApiClient {
         
         // Redirect to login page
         const returnUrl = encodeURIComponent(window.location.href);
-        window.location.href = `login.html?return=${returnUrl}`;
+        // Open modal instead of navigating to login.html
+        if (window.showLoginModal) {
+            window.showLoginModal();
+        } else {
+            window.location.href = `login.html?return=${returnUrl}`;
+        }
     }
 
     /**

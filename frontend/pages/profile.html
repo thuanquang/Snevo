@@ -61,11 +61,7 @@
                             </span>
                         </a>
                     </li>
-                    <ul class="navbar-nav" id="authButtons">
-                        <li class="nav-item">
-                            <a class="nav-link" href="login.html">Login</a>
-                        </li>
-                    </ul>
+                    <ul class="navbar-nav" id="authButtons"></ul>
                 </ul>
             </div>
         </div>
@@ -654,16 +650,15 @@
                         if (window.authManager) {
                             try {
                                 await window.authManager.logout();
-                                console.log('Logout successful, redirecting to login');
-                                window.location.href = 'login.html';
+                                console.log('Logout successful');
+                                if (window.showLoginModal) { window.showLoginModal(); }
                             } catch (error) {
                                 console.error('Logout failed:', error);
-                                // Force redirect anyway
-                                window.location.href = 'login.html';
+                                if (window.showLoginModal) { window.showLoginModal(); }
                             }
                         } else {
-                            console.log('AuthManager not available, redirecting to login');
-                            window.location.href = 'login.html';
+                            console.log('AuthManager not available');
+                            if (window.showLoginModal) { window.showLoginModal(); }
                         }
                     });
                 }

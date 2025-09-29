@@ -447,7 +447,7 @@ class AuthManager {
             const { data, error } = await this.supabaseClient.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: `${window.location.origin}/login.html`,
+                    redirectTo: window.location.href,
                     queryParams: {
                         access_type: 'offline',
                         prompt: 'consent'
@@ -693,9 +693,25 @@ class AuthManager {
             console.log('User is not authenticated, showing login button');
             authButtons.innerHTML = `
                 <li class="nav-item">
-                    <a class="nav-link" href="login.html">Login</a>
+                    <a class="nav-link" href="#" id="globalLoginLink">Login</a>
                 </li>
             `;
+
+            // Wire up modal-based login
+            setTimeout(() => {
+                const loginLink = document.getElementById('globalLoginLink');
+                if (loginLink) {
+                    loginLink.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        if (window.showLoginModal) {
+                            window.showLoginModal();
+                        } else {
+                            // Fallback directly to Google OAuth
+                            this.loginWithGoogle();
+                        }
+                    });
+                }
+            }, 0);
         }
     }
 
