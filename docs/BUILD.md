@@ -67,7 +67,7 @@ npm run dev
 ```
 
 This will:
-1. Generate `frontend/assets/js/config.generated.js` with your .env values
+1. Inject your `.env` values directly into `frontend/assets/js/config.js`
 2. Start the backend server with file watching
 
 ### Production Build
@@ -107,11 +107,10 @@ build/
 
 ## Configuration Loading
 
-The frontend uses a smart configuration loading system:
+The frontend configuration loading is now simplified:
 
-1. **Development**: Tries to load `config.generated.js` (created by `npm run dev:config`)
-2. **Fallback**: Falls back to `config.js` with placeholder values
-3. **Production**: Uses `config.js` with injected environment variables
+1. **Development**: `npm run dev:config` injects `.env` values directly into `frontend/assets/js/config.js`
+2. **Production**: Build process writes injected values to `config.js`
 
 ## Security Features
 
@@ -172,8 +171,8 @@ Common issues and solutions:
 
 | Feature | Development | Production |
 |---------|-------------|------------|
-| Config file | `config.generated.js` or `config.js` | `config.js` (injected) |
-| Environment loading | Runtime from `.env` | Build-time injection |
+| Config file | `config.js` (injected) | `config.js` (injected) |
+| Environment loading | Runtime from `.env` (dev script) | Build-time injection |
 | Google Auth | Enabled if `GOOGLE_CLIENT_ID` set | Enabled if configured |
 | Console warnings | Verbose | Minimal |
 

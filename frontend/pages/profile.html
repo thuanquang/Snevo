@@ -570,18 +570,7 @@
     <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Configuration -->
-    <script>
-        // Try to load generated config first (for development with .env), fallback to default config
-        const configScript = document.createElement('script');
-        configScript.onerror = function() {
-            // Fallback to default config if generated config doesn't exist
-            const fallbackScript = document.createElement('script');
-            fallbackScript.src = '../assets/js/config.js';
-            document.head.appendChild(fallbackScript);
-        };
-        configScript.src = '../assets/js/config.generated.js';
-        document.head.appendChild(configScript);
-    </script>
+    <script src="../assets/js/config.js"></script>
     <!-- Custom Scripts -->
     <script type="module" src="../assets/js/ApiClient.js"></script>
     <script type="module" src="../assets/js/AuthManager.js"></script>

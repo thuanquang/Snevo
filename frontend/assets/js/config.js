@@ -1,45 +1,31 @@
 /**
- * Frontend Configuration - Development Version
- * 
- * ⚠️  IMPORTANT: This file is replaced during production build!
- * 
- * For development:
- * 1. Copy env.example to .env
- * 2. Fill in your actual Supabase credentials
- * 3. Run `npm run dev:config` to generate config from .env
- * 4. Or run `npm run build` for production build with env injection
- * 
- * This development version uses placeholder values and will show warnings.
+ * Frontend Configuration - Development with Environment Variables (Injected)
+ * Generated from .env for development use by scripts/dev-config.js
  */
 
-// Development Configuration
-// These will be replaced with actual environment variables during build
-console.warn('🔧 Using development configuration. Run "npm run dev:config" or "npm run build" to use your .env values.');
-
-// Supabase Configuration (Development placeholders)
-window.SUPABASE_URL = process.env.SUPABASE_URL || 'https://your-project-id.supabase.co';
-window.SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'your-anon-key';
+// Supabase Configuration
+window.SUPABASE_URL = 'https://dmvtnumichfheaduijzh.supabase.co';
+window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtdnRudW1pY2hmaGVhZHVpanpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3OTQxNjcsImV4cCI6MjA3MjM3MDE2N30.UlEoRUSX2v67-KUji5rp_SX3PHHvav7bWWXG0ikYWII';
 
 // API Configuration
-window.API_BASE_URL = process.env.API_BASE_URL || window.location.origin;
+window.API_BASE_URL = 'http://localhost:3001';
 
 // Google OAuth Configuration
-window.GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
+window.GOOGLE_CLIENT_ID = '19098760843-j6ilk2t1o27f0mvujrqinqf90ojsuajf.apps.googleusercontent.com';
 
 // Validate configuration and determine feature availability
-const isValidSupabaseUrl = window.SUPABASE_URL && !window.SUPABASE_URL.includes('your-project-id') && window.SUPABASE_URL.startsWith('https://');
-const isValidSupabaseKey = window.SUPABASE_ANON_KEY && !window.SUPABASE_ANON_KEY.includes('your-anon-key') && window.SUPABASE_ANON_KEY.length > 50;
-const isValidGoogleClientId = window.GOOGLE_CLIENT_ID && window.GOOGLE_CLIENT_ID.includes('.apps.googleusercontent.com');
+const isValidSupabaseUrl = 'https://dmvtnumichfheaduijzh.supabase.co' && !'https://dmvtnumichfheaduijzh.supabase.co'.includes('your-project-id') && 'https://dmvtnumichfheaduijzh.supabase.co'.startsWith('https://');
+const isValidSupabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtdnRudW1pY2hmaGVhZHVpanpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3OTQxNjcsImV4cCI6MjA3MjM3MDE2N30.UlEoRUSX2v67-KUji5rp_SX3PHHvav7bWWXG0ikYWII' && !'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtdnRudW1pY2hmaGVhZHVpanpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3OTQxNjcsImV4cCI6MjA3MjM3MDE2N30.UlEoRUSX2v67-KUji5rp_SX3PHHvav7bWWXG0ikYWII'.includes('your-anon-key') && 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtdnRudW1pY2hmaGVhZHVpanpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3OTQxNjcsImV4cCI6MjA3MjM3MDE2N30.UlEoRUSX2v67-KUji5rp_SX3PHHvav7bWWXG0ikYWII'.length > 50;
+const isValidGoogleClientId = '19098760843-j6ilk2t1o27f0mvujrqinqf90ojsuajf.apps.googleusercontent.com' && '19098760843-j6ilk2t1o27f0mvujrqinqf90ojsuajf.apps.googleusercontent.com'.includes('.apps.googleusercontent.com');
 
 // App Configuration with dynamic feature detection
 window.APP_CONFIG = {
     name: 'Snevo',
     version: '1.0.0',
     environment: 'development',
-    buildTime: new Date().toISOString(),
+    buildTime: '2025-09-29T13:53:55.569Z',
     features: {
-        // Google OAuth only needs Supabase config since it's handled by Supabase OAuth
-        googleAuth: isValidSupabaseUrl && isValidSupabaseKey,
+        googleAuth: isValidGoogleClientId && isValidSupabaseUrl && isValidSupabaseKey,
         emailVerification: isValidSupabaseUrl && isValidSupabaseKey,
         passwordReset: isValidSupabaseUrl && isValidSupabaseKey,
         supabaseAuth: isValidSupabaseUrl && isValidSupabaseKey
@@ -51,34 +37,17 @@ window.APP_CONFIG = {
     }
 };
 
-// Development warnings and guidance
-if (!isValidSupabaseUrl || !isValidSupabaseKey) {
-    console.error('❌ Supabase Configuration Issues:');
-    if (!isValidSupabaseUrl) {
-        console.error('   • SUPABASE_URL is missing or invalid');
-    }
-    if (!isValidSupabaseKey) {
-        console.error('   • SUPABASE_ANON_KEY is missing or invalid');
-    }
-    console.error('');
-    console.error('📝 Setup Instructions:');
-    console.error('   1. Copy env.example to .env');
-    console.error('   2. Fill in your actual Supabase project credentials');
-    console.error('   3. Run "npm run dev:config" to generate config from .env');
-    console.error('');
-}
+// Development info
+console.log('🔧 Development configuration loaded');
+console.log('📊 Supabase URL:', window.SUPABASE_URL);
+console.log('🔑 Google Auth:', window.APP_CONFIG.features.googleAuth ? 'enabled' : 'disabled');
 
-if (!isValidGoogleClientId) {
-    console.warn('⚠️  Google Client ID not configured (optional):');
-    console.warn('   • GOOGLE_CLIENT_ID is missing or invalid');
-    console.warn('   • Google OAuth is still available through Supabase');
-    console.warn('   • Add your Google Client ID to .env for additional Google integrations');
-} else {
-    console.log('✅ Google Client ID configured');
+// Validation warnings
+if (window.SUPABASE_URL.includes('your-project-id')) {
+    console.warn('⚠️  Please set SUPABASE_URL in your .env file');
 }
-
-if (window.APP_CONFIG.features.supabaseAuth) {
-    console.log('✅ Supabase authentication configured and enabled');
+if (window.SUPABASE_ANON_KEY === 'your-anon-key') {
+    console.warn('⚠️  Please set SUPABASE_ANON_KEY in your .env file');
 }
 
 // Export for module systems

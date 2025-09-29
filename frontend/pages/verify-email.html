@@ -93,16 +93,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <!-- Configuration -->
-    <script>
-        const configScript = document.createElement('script');
-        configScript.onerror = function() {
-            const fallbackScript = document.createElement('script');
-            fallbackScript.src = '../assets/js/config.js';
-            document.head.appendChild(fallbackScript);
-        };
-        configScript.src = '../assets/js/config.generated.js';
-        document.head.appendChild(configScript);
-    </script>
+    <script src="../assets/js/config.js"></script>
     
     <!-- Custom Scripts -->
     <script type="module" src="../assets/js/ApiClient.js"></script>

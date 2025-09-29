@@ -2,7 +2,7 @@
 
 /**
  * Development Configuration Generator
- * Creates a temporary config file with environment variables for development
+ * Injects environment variables directly into frontend/assets/js/config.js for development
  */
 
 import { fileURLToPath } from 'url';
@@ -33,8 +33,8 @@ async function generateDevConfig() {
         console.log('🔧 Generating development configuration...');
         
         const configContent = `/**
- * Frontend Configuration - Development with Environment Variables
- * Generated from .env file for development use
+ * Frontend Configuration - Development with Environment Variables (Injected)
+ * Generated from .env for development use by scripts/dev-config.js
  */
 
 // Supabase Configuration
@@ -43,6 +43,9 @@ window.SUPABASE_ANON_KEY = '${FRONTEND_ENV_VARS.SUPABASE_ANON_KEY}';
 
 // API Configuration
 window.API_BASE_URL = '${FRONTEND_ENV_VARS.API_BASE_URL}';
+
+// Google OAuth Configuration
+window.GOOGLE_CLIENT_ID = '${FRONTEND_ENV_VARS.GOOGLE_CLIENT_ID}';
 
 // Validate configuration and determine feature availability
 const isValidSupabaseUrl = '${FRONTEND_ENV_VARS.SUPABASE_URL}' && !'${FRONTEND_ENV_VARS.SUPABASE_URL}'.includes('your-project-id') && '${FRONTEND_ENV_VARS.SUPABASE_URL}'.startsWith('https://');
@@ -68,9 +71,6 @@ window.APP_CONFIG = {
     }
 };
 
-// Google OAuth Configuration
-window.GOOGLE_CLIENT_ID = '${FRONTEND_ENV_VARS.GOOGLE_CLIENT_ID}';
-
 // Development info
 console.log('🔧 Development configuration loaded');
 console.log('📊 Supabase URL:', window.SUPABASE_URL);
@@ -95,12 +95,12 @@ if (typeof module !== 'undefined' && module.exports) {
     };
 }
 `;
-        
-        const configPath = join(rootDir, 'frontend', 'assets', 'js', 'config.generated.js');
+
+        const configPath = join(rootDir, 'frontend', 'assets', 'js', 'config.js');
         await fs.writeFile(configPath, configContent);
-        
-        console.log('✅ Development configuration generated!');
-        console.log('📁 File: frontend/assets/js/config.generated.js');
+
+        console.log('✅ Development configuration injected!');
+        console.log('📁 File: frontend/assets/js/config.js');
         console.log('');
         console.log('Environment variables loaded:');
         Object.keys(FRONTEND_ENV_VARS).forEach(key => {
