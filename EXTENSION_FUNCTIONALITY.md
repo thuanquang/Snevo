@@ -75,6 +75,14 @@
 - Bootstrap components for responsive design
 - Lazy loading for performance
 
+### 1.a Landing Page Prototype Snapshot (Implemented)
+- Header navigation: `Products`, `Categories`, `Cart`, `Orders`, `Profile`, `Login`
+- Hero CTAs: `Shop Now` → `products.html`, `Browse Categories` → `categories.html`
+- Sections: Featured Categories preview, Trending preview, Brand story, Quick Links
+- Quick Links target: `cart.html`, `checkout.html`, `orders.html`, `addresses.html`
+- Scripts included: `Application.js`, `animations.js`, `main.js` (prototype hooks only)
+- All links are direct navigation for now; auth-aware behavior handled on target pages
+
 ### 2. AUTHENTICATION SYSTEM (✓ ENHANCED & ENVIRONMENT-DEPENDENT)
 **Supabase Integration** (✓ FULLY ENVIRONMENT-DEPENDENT & OVERHAULED):
 - ✓ Email/password authentication with environment validation

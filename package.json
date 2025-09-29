@@ -4,6 +4,7 @@
   "description": "Nike-inspired e-commerce platform built with Node.js and vanilla frontend",
   "main": "backend/server.js",
   "type": "module",
+  
   "scripts": {
     "start": "node backend/server.js",
     "dev": "npm run dev:config && node --watch backend/server.js",

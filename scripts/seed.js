@@ -1,7 +1,7 @@
 // 🌱 Database Seeding Script
 // Seeds the database with initial data
 
-const supabaseConfig = require('../config/supabase');
+import supabaseConfig from '../config/supabase.js';
 
 class SeedScript {
     constructor() {
@@ -49,9 +49,9 @@ class SeedScript {
 }
 
 // Run seed if called directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
     const seedScript = new SeedScript();
     seedScript.seed();
 }
 
-module.exports = SeedScript;
+export default SeedScript;

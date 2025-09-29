@@ -10,29 +10,124 @@
     <link rel="stylesheet" href="../assets/css/responsive.css">
 </head>
 <body>
-    <!-- Header -->
+    <!-- Header / Primary Navigation -->
     <header class="nav-nike">
         <div class="container">
-            <h1>Snevo</h1>
+            <div class="nav-brand">
+                <a href="index.html" class="brand-link">Snevo</a>
+            </div>
+            <nav class="nav-links">
+                <a href="products.html" class="nav-link">Products</a>
+                <a href="categories.html" class="nav-link">Categories</a>
+                <a href="cart.html" class="nav-link">Cart</a>
+                <a href="orders.html" class="nav-link">Orders</a>
+                <a href="profile.html" class="nav-link">Profile</a>
+                <a href="login.html" class="nav-link nav-cta">Login</a>
+            </nav>
         </div>
     </header>
 
     <!-- Hero Section -->
     <section class="hero-nike">
         <div class="container">
-            <h1>Welcome to Snevo</h1>
-            <p>Nike-style e-commerce platform</p>
+            <div class="hero-content">
+                <h1>Move. Fast.</h1>
+                <p>Discover the latest sneakers and classics reimagined.</p>
+                <div class="hero-actions">
+                    <a href="products.html" class="btn btn-primary">Shop Now</a>
+                    <a href="categories.html" class="btn btn-outline">Browse Categories</a>
+                </div>
+            </div>
         </div>
     </section>
 
     <!-- Main Content -->
     <main>
-        <div class="container">
-            <h2>Products</h2>
-            <div class="product-grid">
-                <!-- Product cards will be loaded here -->
+        <!-- Featured Categories -->
+        <section class="section categories-preview">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Shop by Category</h2>
+                    <a href="categories.html" class="link">View all</a>
+                </div>
+                <div class="category-grid">
+                    <a class="category-card" href="categories.html#men">
+                        <div class="category-card__image category-men"></div>
+                        <div class="category-card__title">Men</div>
+                    </a>
+                    <a class="category-card" href="categories.html#women">
+                        <div class="category-card__image category-women"></div>
+                        <div class="category-card__title">Women</div>
+                    </a>
+                    <a class="category-card" href="categories.html#kids">
+                        <div class="category-card__image category-kids"></div>
+                        <div class="category-card__title">Kids</div>
+                    </a>
+                </div>
             </div>
-        </div>
+        </section>
+
+        <!-- Trending Products (placeholder links) -->
+        <section class="section trending-preview">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Trending Now</h2>
+                    <a href="products.html" class="link">Shop all</a>
+                </div>
+                <div class="product-grid">
+                    <a class="product-card" href="products.html">
+                        <div class="product-card__image placeholder"></div>
+                        <div class="product-card__info">
+                            <div class="product-card__title">Air Zoom Alpha</div>
+                            <div class="product-card__price">$199</div>
+                        </div>
+                    </a>
+                    <a class="product-card" href="products.html">
+                        <div class="product-card__image placeholder"></div>
+                        <div class="product-card__info">
+                            <div class="product-card__title">React Runner</div>
+                            <div class="product-card__price">$159</div>
+                        </div>
+                    </a>
+                    <a class="product-card" href="products.html">
+                        <div class="product-card__image placeholder"></div>
+                        <div class="product-card__info">
+                            <div class="product-card__title">Classic Court</div>
+                            <div class="product-card__price">$129</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Brand Story / CTA to Login or Profile -->
+        <section class="section brand-story">
+            <div class="container">
+                <div class="brand-grid">
+                    <div class="brand-copy">
+                        <h3>Built for movement.</h3>
+                        <p>Engineered performance and timeless style. Join Snevo to track orders, save addresses, and move faster at checkout.</p>
+                        <div class="cta-row">
+                            <a href="login.html" class="btn btn-primary">Sign in</a>
+                            <a href="profile.html" class="btn btn-ghost">My Account</a>
+                        </div>
+                    </div>
+                    <div class="brand-media placeholder"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Utility Quick Links -->
+        <section class="section quick-links">
+            <div class="container">
+                <div class="quick-links-grid">
+                    <a class="quick-link" href="cart.html">View Cart</a>
+                    <a class="quick-link" href="checkout.html">Checkout</a>
+                    <a class="quick-link" href="orders.html">Order History</a>
+                    <a class="quick-link" href="addresses.html">Manage Addresses</a>
+                </div>
+            </div>
+        </section>
     </main>
 
     <!-- Footer -->
@@ -43,5 +138,16 @@
     </footer>
 
     <script src="../assets/js/Application.js"></script>
+    <script src="../assets/js/animations.js"></script>
+    <script src="../assets/js/main.js"></script>
+    <script>
+    (function () {
+        // Minimal client-side helpers for prototype
+        var navCta = document.querySelector('.nav-cta');
+        if (navCta) {
+            navCta.addEventListener('click', function () {});
+        }
+    })();
+    </script>
 </body>
 </html>

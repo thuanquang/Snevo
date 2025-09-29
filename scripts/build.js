@@ -1,8 +1,8 @@
 // 🏗️ Build Script with Environment Injection
 // Builds the application with environment variable injection
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
 class BuildScript {
     constructor() {
@@ -52,9 +52,9 @@ class BuildScript {
 }
 
 // Run build if called directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
     const buildScript = new BuildScript();
     buildScript.build();
 }
 
-module.exports = BuildScript;
+export default BuildScript;

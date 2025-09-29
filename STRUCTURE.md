@@ -138,6 +138,32 @@ snevo/
 Homepage → Login through Google only → Email Verification (only to order)→ 
 Profile Setup → Address Addition → Dashboard Welcome
 
+## LANDING PAGE (index.html) - PROTOTYPE OVERVIEW
+
+- Sections:
+  - Header with primary navigation (`Products`, `Categories`, `Cart`, `Orders`, `Profile`, `Login`)
+  - Hero with primary CTAs (`Shop Now` → `products.html`, `Browse Categories` → `categories.html`)
+  - Featured Categories preview (anchors to `categories.html#men|#women|#kids`)
+  - Trending products preview (placeholder cards link to `products.html`)
+  - Brand story with CTAs (`login.html`, `profile.html`)
+  - Quick Links (`cart.html`, `checkout.html`, `orders.html`, `addresses.html`)
+  - Footer (copyright)
+
+- Route map from landing:
+  - `/frontend/pages/products.html`
+  - `/frontend/pages/categories.html`
+  - `/frontend/pages/cart.html`
+  - `/frontend/pages/orders.html`
+  - `/frontend/pages/profile.html`
+  - `/frontend/pages/login.html`
+  - `/frontend/pages/checkout.html`
+  - `/frontend/pages/addresses.html`
+
+- Scripts loaded:
+  - `../assets/js/Application.js`
+  - `../assets/js/animations.js`
+  - `../assets/js/main.js`
+
 ### Flow 2: Product Discovery & Browsing
 Homepage → Category Selection → Product Grid → Filter Application (price range, size, color, brand) → 
 Sort Options (ascending/descending in price, name a->z) → Search Function → Filtered Product Results Display
