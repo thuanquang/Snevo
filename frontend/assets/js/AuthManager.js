@@ -766,7 +766,21 @@ class AuthManager {
      * Check if current user needs email verification
      */
     requiresEmailVerification() {
-        return this.currentUser && !this.currentUser.email_verified;
+        if (!this.currentUser) return false;
+
+        // Debug logging for verification check
+        console.log('AuthManager: Checking email verification', {
+            currentUser: this.currentUser,
+            emailVerified: this.currentUser.email_verified,
+            emailVerifiedType: typeof this.currentUser.email_verified
+        });
+
+        // Handle different possible values for email_verified
+        const isVerified = this.currentUser.email_verified === true ||
+                          this.currentUser.email_verified === 'true' ||
+                          (this.currentUser.email_verified && this.currentUser.email_verified.toString() === 'true');
+
+        return !isVerified;
     }
 
     /**

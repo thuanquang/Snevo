@@ -106,3 +106,21 @@ h1, h2, h3, h4, h5, h6 {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+/* Email Verification Notice Styles */
+.email-verification-notice {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 1px solid #dee2e6;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    font-size: 14px;
+    transform: translateY(-100%);
+    opacity: 0;
+    transition: all 0.3s ease-in-out;
+    z-index: 1050;
+    width: 100%;
+}
+
+.email-verification-notice.show {
+    transform: translateY(0);
+    opacity: 1;
+}
