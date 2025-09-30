@@ -1,3 +1,28 @@
+Unified Navbar System
+---------------------
+- Single navbar template in `frontend/components/navbar.html` with Bootstrap styling.
+- `NavbarManager.js` handles rendering, state updates, and page-specific overrides.
+- Each page uses `<div id="navbarRoot" data-navbar-page="pageType"></div>` for injection.
+- Supports `window.NAVBAR_OVERRIDES` and `data-navbar-*` attributes for customizations.
+- Automatically syncs with AuthManager and CartManager for real-time updates.
+- Centralized path resolution handles relative paths based on current page location.
+
+Files added:
+- `frontend/components/navbar.html`: Unified navbar template with placeholders.
+- `frontend/assets/js/NavbarManager.js`: Core navbar management with override support.
+- `frontend/components/navbar-overrides.js`: Preset configurations for different page types.
+
+Integration:
+- `Application.js` initializes NavbarManager after AuthManager.
+- Auth events bridge to `navbarManager.updateAuthState(user, isAuthenticated)`.
+- Cart events bridge to `navbarManager.updateCartCount(count)`.
+- Categories events bridge to `navbarManager.updateCategories(categories)`.
+
+Override Examples:
+- Checkout: `{ hideCart: true, showProgressBar: true, customActions: ['save-progress'] }`
+- Admin: `{ showAdminMenu: true, customActions: ['admin-dashboard', 'logout'] }`
+- Cart: `{ hideCart: true, customActions: ['continue-shopping'] }`
+
 Auth/Login Behavior (Google-only)
 --------------------------------
 - Global modal is injected by `frontend/assets/js/Application.js#initializeLoginModal`.
@@ -6,7 +31,7 @@ Auth/Login Behavior (Google-only)
 - `AuthManager.loginWithGoogle()` now redirects back to `window.location.href` after OAuth.
 - `AuthManager.updateAuthUI()` renders a `Login` link that calls the modal via `#globalLoginLink`.
 - Protected page access triggers modal instead of redirect.
-- Fallbacks: if modal isn’t ready, code falls back to `login.html` navigation in ApiClient/cart.
+- Fallbacks: if modal isn't ready, code falls back to `login.html` navigation in ApiClient/cart.
 
 Files touched:
 - `frontend/assets/js/AuthManager.js`: modal login UI hookup, Google redirect change.

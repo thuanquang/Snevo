@@ -79,6 +79,7 @@ snevo/
 │   │   ├── js/                        # 💻 OOP JavaScript classes
 │   │   │   ├── Application.js         # 🚀 Main application class
 │   │   │   ├── AuthManager.js         # 🔐 Authentication manager
+│   │   │   ├── NavbarManager.js       # 🧭 Unified navbar manager with overrides
 │   │   │   ├── UserManager.js         # 👤 User profile manager
 │   │   │   ├── ProductManager.js      # 👟 Product & shoe manager
 │   │   │   ├── VariantManager.js      # ⭐ Shoe variant manager (size/color/stock)
@@ -107,7 +108,9 @@ snevo/
 │   │   ├── register.html              # 📝 Registration page
 │   │   └── admin.html                 # 👑 Admin dashboard page
 │   └── components/                    # 🧩 Reusable UI components
-│       ├── header.html                # 🎯 Site header với navigation
+│       ├── navbar.html                # 🧭 Unified navbar template with overrides
+│       ├── navbar-overrides.js        # 🔧 Navbar override presets & utilities
+│       ├── header.html                # 🎯 Site header với navigation (legacy)
 │       ├── footer.html                # 🔗 Site footer
 │       ├── product-card.html          # 🃏 Product card component
 │       ├── variant-selector.html      # ⭐ Size/Color selector component
@@ -130,6 +133,38 @@ snevo/
 │   ├── SETUP.md                       # 🛠️ Setup instructions
 │   └── DEPLOYMENT.md                  # 🚀 Deployment guide
 └── schema.sql                         # 🗄️ Database schema
+```
+
+## UNIFIED NAVBAR SYSTEM
+
+### Overview
+The unified navbar system provides consistent navigation across all pages with page-specific overrides support.
+
+### Key Components
+- **`frontend/components/navbar.html`**: Unified navbar template with Bootstrap styling
+- **`frontend/assets/js/NavbarManager.js`**: Manages navbar rendering, state updates, and overrides
+- **`frontend/components/navbar-overrides.js`**: Preset override configurations for different page types
+
+### Implementation
+- **Page Integration**: Each page uses `<div id="navbarRoot" data-navbar-page="pageType"></div>`
+- **Override System**: Supports `window.NAVBAR_OVERRIDES` and `data-navbar-*` attributes
+- **State Synchronization**: Automatically syncs with AuthManager and CartManager
+- **Path Resolution**: Handles relative paths automatically based on current page location
+
+### Override Examples
+```javascript
+// Checkout page - hide cart, show progress
+window.NAVBAR_OVERRIDES = {
+    hideCart: true,
+    showProgressBar: true,
+    customActions: ['save-progress', 'back-to-cart']
+};
+
+// Admin page - show admin menu
+window.NAVBAR_OVERRIDES = {
+    showAdminMenu: true,
+    customActions: ['admin-dashboard', 'logout']
+};
 ```
 
 ## USER FLOWS

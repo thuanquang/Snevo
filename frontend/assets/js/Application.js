@@ -5,6 +5,7 @@
 
 import { authManager } from './AuthManager.js';
 import { productManager } from './ProductManager.js';
+import { navbarManager } from './NavbarManager.js';
 
 class Application {
     constructor(options = {}) {
@@ -122,6 +123,14 @@ class Application {
             await authManager.initialize();
         }
         
+        // Navbar manager initialization
+        console.log('🔄 Initializing NavbarManager from Application...');
+        if (!navbarManager.isInitialized) {
+            await navbarManager.initialize();
+        } else {
+            console.log('⚠️ NavbarManager already initialized');
+        }
+        
         // Product manager should already be initialized
         // Setup event listeners between managers
         this.setupManagerEventListeners();
@@ -134,10 +143,18 @@ class Application {
         // Auth events
         authManager.on('signedIn', (data) => {
             this.handleUserSignedIn(data);
+            // Bridge to navbar manager
+            if (navbarManager.isInitialized) {
+                navbarManager.updateAuthState(data.user, true);
+            }
         });
         
         authManager.on('signedOut', () => {
             this.handleUserSignedOut();
+            // Bridge to navbar manager
+            if (navbarManager.isInitialized) {
+                navbarManager.updateAuthState(null, false);
+            }
         });
         
         authManager.on('loginError', (data) => {
@@ -151,10 +168,19 @@ class Application {
         // Product events
         productManager.on('cartUpdated', (data) => {
             this.updateCartUI(data);
+            // Bridge to navbar manager
+            if (navbarManager.isInitialized) {
+                const cartCount = productManager.getCartItemCount();
+                navbarManager.updateCartCount(cartCount);
+            }
         });
         
         productManager.on('categoriesLoaded', (categories) => {
             this.renderCategories(categories);
+            // Bridge to navbar manager
+            if (navbarManager.isInitialized) {
+                navbarManager.updateCategories(categories);
+            }
         });
         
         productManager.on('featuredProductsLoaded', (products) => {
