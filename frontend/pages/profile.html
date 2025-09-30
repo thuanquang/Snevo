@@ -18,6 +18,258 @@
     
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="../assets/images/favicon.ico">
+
+    <!-- Profile Page Styles -->
+    <style>
+        /* Profile page specific styles */
+        .profile-section {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 2rem;
+        }
+
+        .profile-sidebar {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+            position: sticky;
+            top: 100px;
+        }
+
+        .profile-avatar {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 1rem;
+        }
+
+        .avatar-circle {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+        }
+
+        .profile-nav .nav-link {
+            color: #666;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.25rem;
+            transition: all 0.3s ease;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .profile-nav .nav-link:hover {
+            background: #f8f9fa;
+            color: #333;
+            transform: translateX(5px);
+        }
+
+        .profile-nav .nav-link.active {
+            background: #007bff;
+            color: white;
+            transform: translateX(10px);
+        }
+
+        .profile-nav .nav-link.active::before {
+            content: '';
+            position: absolute;
+            left: -8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 60%;
+            background: #007bff;
+            border-radius: 2px;
+        }
+
+        .profile-section-content {
+            display: none;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+
+        .profile-section-content.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .profile-section-content.fade-in {
+            animation: fadeInSection 0.4s ease-out;
+        }
+
+        @keyframes fadeInSection {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-actions {
+            padding-top: 1.5rem;
+            border-top: 1px solid #eee;
+            margin-top: 1.5rem;
+        }
+
+        .address-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .address-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+
+        .notification-settings .setting-item {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1rem;
+            transition: background-color 0.2s ease;
+        }
+
+        .notification-settings .setting-item:hover {
+            background: #e9ecef;
+        }
+
+        .account-settings .setting-group {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: background-color 0.2s ease;
+        }
+
+        .account-settings .setting-group:hover {
+            background: #e9ecef;
+        }
+
+        .setting-group-title {
+            color: #333;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        /* Enhanced button styles */
+        .btn {
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        /* Loading states */
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Animation classes */
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Form field enhancements */
+        .form-control:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+        .form-control:valid {
+            border-color: #28a745;
+        }
+
+        .form-control:invalid {
+            border-color: #dc3545;
+        }
+
+        /* Success/Error message animations */
+        .toast {
+            animation: slideInRight 0.3s ease-out;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .profile-sidebar {
+                position: static;
+                margin-bottom: 2rem;
+            }
+
+            .profile-section {
+                padding: 1rem;
+            }
+
+            .avatar-circle {
+                width: 60px;
+                height: 60px;
+                font-size: 1.5rem;
+            }
+
+            .profile-nav .nav-link.active::before {
+                display: none;
+            }
+
+            .profile-nav .nav-link.active {
+                transform: none;
+            }
+        }
+
+        /* Accessibility improvements */
+        .profile-nav .nav-link:focus {
+            outline: 2px solid #007bff;
+            outline-offset: 2px;
+        }
+
+        /* Dark mode support (if needed) */
+        @media (prefers-color-scheme: dark) {
+            .profile-section,
+            .profile-sidebar {
+                background: #2d3748;
+                color: #e2e8f0;
+            }
+
+            .profile-nav .nav-link {
+                color: #e2e8f0;
+            }
+
+            .profile-nav .nav-link:hover {
+                background: #4a5568;
+                color: #fff;
+            }
+        }
+    </style>
 </head>
 <body>
     <!-- Unified Navbar Root -->
@@ -135,9 +387,6 @@
                                 <div class="form-actions">
                                     <button type="submit" class="btn btn-primary">
                                         <i class="fas fa-save"></i> Save Changes
-                                    </button>
-                                    <button type="button" class="btn btn-outline-secondary" onclick="resetPersonalInfo()">
-                                        <i class="fas fa-undo"></i> Reset
                                     </button>
                                 </div>
                             </form>
@@ -519,8 +768,8 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Font Awesome -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
-    <!-- Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Supabase JS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <!-- Configuration -->
     <script src="../assets/js/config.js"></script>
     <!-- Custom Scripts -->
@@ -587,41 +836,128 @@
             async function waitForAuthManager() {
                 let attempts = 0;
                 const maxAttempts = 50; // 5 seconds max wait
-                
+
                 while (attempts < maxAttempts) {
                     if (window.authManager && typeof window.authManager.isAuthenticated === 'function') {
                         console.log('AuthManager found after', attempts * 100, 'ms');
+
+                        // Also ensure Supabase client is available
+                        if (!window.supabase && window.APP_CONFIG?.features?.supabaseAuth) {
+                            console.log('🔧 Initializing Supabase client...');
+                            await initializeSupabaseClient();
+                        }
+
                         return;
                     }
                     await new Promise(resolve => setTimeout(resolve, 100));
                     attempts++;
                 }
-                
+
                 console.warn('AuthManager not found after 5 seconds, proceeding anyway');
+            }
+
+            async function initializeSupabaseClient() {
+                if (window.supabase) {
+                    console.log('✅ Supabase client already initialized');
+                    return;
+                }
+
+                if (!window.APP_CONFIG?.features?.supabaseAuth) {
+                    console.warn('⚠️ Supabase authentication not configured');
+                    return;
+                }
+
+                try {
+                    // Import Supabase SDK if not already loaded
+                    if (!window.supabase) {
+                        console.log('⏳ Loading Supabase SDK...');
+
+                        // Wait for Supabase SDK to be available
+                        let sdkAttempts = 0;
+                        while (sdkAttempts < 50 && !window.supabase) {
+                            await new Promise(resolve => setTimeout(resolve, 100));
+                            sdkAttempts++;
+                        }
+
+                        if (!window.supabase) {
+                            console.error('❌ Supabase SDK not loaded');
+                            return;
+                        }
+                    }
+
+                    // Initialize Supabase client
+                    const SUPABASE_URL = window.SUPABASE_URL;
+                    const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY;
+
+                    if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+                        window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+                            auth: {
+                                autoRefreshToken: true,
+                                persistSession: true,
+                                detectSessionInUrl: true
+                            }
+                        });
+                        console.log('✅ Supabase client initialized successfully');
+                    } else {
+                        console.warn('⚠️ Supabase configuration incomplete');
+                    }
+                } catch (error) {
+                    console.error('❌ Failed to initialize Supabase client:', error);
+                }
             }
             
             function setupLogoutButton() {
                 const logoutBtn = document.getElementById('logoutBtn');
                 if (logoutBtn) {
-                    logoutBtn.addEventListener('click', async function() {
-                        console.log('Logout button clicked');
-                        if (window.authManager) {
-                            try {
+                    logoutBtn.addEventListener('click', async function(e) {
+                        e.preventDefault();
+                        console.log('🔓 Logout button clicked');
+
+                        // Disable button to prevent multiple clicks
+                        this.disabled = true;
+                        const originalText = this.innerHTML;
+                        this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Logging out...';
+
+                        try {
+                            if (window.authManager) {
+                                console.log('🔄 Using AuthManager logout...');
                                 await window.authManager.logout();
-                                console.log('Logout successful - redirecting to index.html');
-                                // AuthManager handles the redirect to index.html automatically
-                                // No need to show login modal as user will be redirected
-                            } catch (error) {
-                                console.error('Logout failed:', error);
-                                // If logout fails, still try to redirect or show error
-                                showError('Logout failed. Please try again or refresh the page.');
+                                console.log('✅ Logout successful via AuthManager');
+                            } else {
+                                console.log('⚠️ AuthManager not available, using fallback...');
+                                // Fallback logout
+                                localStorage.removeItem('auth_token');
+                                localStorage.removeItem('refresh_token');
+                                localStorage.removeItem('user_profile');
+
+                                // Also clear Supabase session if available
+                                if (window.supabase && window.supabase.auth) {
+                                    await window.supabase.auth.signOut();
+                                }
+
+                                console.log('✅ Logout successful via fallback');
                             }
-                        } else {
-                            console.log('AuthManager not available');
-                            // Fallback: clear local storage and redirect manually
-                            localStorage.removeItem('auth_token');
-                            localStorage.removeItem('refresh_token');
+
+                            // Force redirect to home page
                             window.location.href = 'index.html';
+
+                        } catch (error) {
+                            console.error('❌ Logout failed:', error);
+
+                            // Re-enable button
+                            this.disabled = false;
+                            this.innerHTML = originalText;
+
+                            // Show error message
+                            showError('Logout failed. Please try again or refresh the page.');
+
+                            // Fallback redirect after error
+                            setTimeout(() => {
+                                localStorage.removeItem('auth_token');
+                                localStorage.removeItem('refresh_token');
+                                localStorage.removeItem('user_profile');
+                                window.location.href = 'index.html';
+                            }, 2000);
                         }
                     });
                 }
@@ -630,25 +966,95 @@
             function setupProfileNavigation() {
                 const navLinks = document.querySelectorAll('.profile-nav .nav-link');
                 const sections = document.querySelectorAll('.profile-section-content');
-                
+
+                console.log('🔧 Setting up profile navigation with', navLinks.length, 'nav links and', sections.length, 'sections');
+
                 navLinks.forEach(link => {
                     link.addEventListener('click', function(e) {
                         e.preventDefault();
-                        
+
                         const targetSection = this.getAttribute('data-section');
-                        
+                        console.log('📋 Navigating to section:', targetSection);
+
+                        if (!targetSection) {
+                            console.warn('⚠️ No data-section attribute found on nav link');
+                            return;
+                        }
+
                         // Update active nav link
-                        navLinks.forEach(nav => nav.classList.remove('active'));
+                        navLinks.forEach(nav => {
+                            nav.classList.remove('active');
+                            nav.setAttribute('aria-selected', 'false');
+                        });
                         this.classList.add('active');
-                        
-                        // Show target section
+                        this.setAttribute('aria-selected', 'true');
+
+                        // Hide all sections with fade effect
                         sections.forEach(section => {
                             section.classList.remove('active');
+                            section.style.display = 'none';
                         });
-                        
+
+                        // Show target section with fade effect
                         const targetElement = document.getElementById(targetSection + '-section');
                         if (targetElement) {
-                            targetElement.classList.add('active');
+                            targetElement.style.display = 'block';
+                            // Add active class after a small delay for smooth transition
+                            setTimeout(() => {
+                                targetElement.classList.add('active');
+                            }, 50);
+                            console.log('✅ Section activated:', targetSection + '-section');
+                        } else {
+                            console.warn('⚠️ Target section not found:', targetSection + '-section');
+                        }
+
+                        // Update URL hash for bookmarking
+                        if (history.replaceState) {
+                            history.replaceState(null, null, `#${targetSection}`);
+                        }
+                    });
+                });
+
+                // Handle initial hash navigation
+                const initialHash = window.location.hash.substring(1);
+                if (initialHash) {
+                    console.log('🔍 Initial hash found:', initialHash);
+                    const initialNavLink = document.querySelector(`[data-section="${initialHash}"]`);
+                    if (initialNavLink) {
+                        initialNavLink.click();
+                    }
+                }
+
+                // Add keyboard navigation support
+                navLinks.forEach((link, index) => {
+                    link.addEventListener('keydown', function(e) {
+                        let nextIndex;
+
+                        switch(e.key) {
+                            case 'ArrowDown':
+                            case 'ArrowRight':
+                                e.preventDefault();
+                                nextIndex = (index + 1) % navLinks.length;
+                                navLinks[nextIndex].focus();
+                                navLinks[nextIndex].click();
+                                break;
+                            case 'ArrowUp':
+                            case 'ArrowLeft':
+                                e.preventDefault();
+                                nextIndex = (index - 1 + navLinks.length) % navLinks.length;
+                                navLinks[nextIndex].focus();
+                                navLinks[nextIndex].click();
+                                break;
+                            case 'Home':
+                                e.preventDefault();
+                                navLinks[0].focus();
+                                navLinks[0].click();
+                                break;
+                            case 'End':
+                                e.preventDefault();
+                                navLinks[navLinks.length - 1].focus();
+                                navLinks[navLinks.length - 1].click();
+                                break;
                         }
                     });
                 });
@@ -658,70 +1064,117 @@
                 try {
                     console.log('🔄 Loading user profile...');
 
-                    // Try to get profile from API first (more reliable than AuthManager user data)
-                    const token = localStorage.getItem('auth_token');
-                    if (!token) {
-                        console.log('No auth token found');
+                    // Get current user from AuthManager first
+                    if (!window.authManager || !window.authManager.isAuthenticated()) {
+                        console.log('No authentication found');
                         showError('Authentication required. Please log in again.');
                         return;
                     }
 
-                    const response = await fetch('/api/auth/profile', {
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json'
-                        }
-                    });
-
-                    if (response.ok) {
-                        const data = await response.json();
-                        console.log('✅ Profile loaded from API:', data);
-                        currentUser = data.user;
-                        updateProfileDisplay();
-                        await loadAddresses();
-                    } else if (response.status === 404) {
-                        console.log('Profile not found - this might be a new user');
-                        // For new users, try to get basic info from AuthManager
-                        if (window.authManager && window.authManager.getCurrentUser()) {
-                            const authUser = window.authManager.getCurrentUser();
-                            currentUser = {
-                                user_id: authUser.id,
-                                email: authUser.email,
-                                username: authUser.username || authUser.email.split('@')[0],
-                                full_name: authUser.full_name || authUser.username || authUser.email.split('@')[0],
-                                role: authUser.role || 'customer',
-                                phone: '',
-                                date_of_birth: null,
-                                gender: '',
-                                avatar_url: authUser.avatar_url || ''
-                            };
-                            console.log('Using AuthManager user data as fallback:', currentUser);
-                            updateProfileDisplay();
-                            await loadAddresses();
-                        } else {
-                            showError('Profile not found and no authentication data available');
-                        }
-                    } else {
-                        const errorData = await response.json().catch(() => ({}));
-                        throw new Error(errorData.message || `Failed to load profile (${response.status})`);
+                    const authUser = window.authManager.getCurrentUser();
+                    if (!authUser) {
+                        console.log('No user data available');
+                        showError('User data not available. Please log in again.');
+                        return;
                     }
+
+                    console.log('🔍 Loading profile for user:', authUser.email);
+
+                    // Try to load from Supabase first, fallback to API
+                    try {
+                        const supabaseProfile = await loadProfileFromSupabase(authUser.id);
+                        if (supabaseProfile) {
+                            currentUser = supabaseProfile;
+                            console.log('✅ Profile loaded from Supabase:', currentUser);
+                        } else {
+                            throw new Error('Profile not found in Supabase');
+                        }
+                    } catch (supabaseError) {
+                        console.log('⚠️ Supabase load failed, trying API:', supabaseError.message);
+
+                        // Fallback to API
+                        const apiProfile = await loadProfileFromAPI(authUser.id);
+                        if (apiProfile) {
+                            currentUser = apiProfile;
+                            console.log('✅ Profile loaded from API:', currentUser);
+                        } else {
+                            throw new Error('Profile not found in API');
+                        }
+                    }
+
+                    updateProfileDisplay();
+                    await loadAddresses();
+
                 } catch (error) {
                     console.error('❌ Error loading profile:', error);
-                    showError(`Failed to load profile data: ${error.message}`);
 
-                    // Fallback to AuthManager data if API fails
+                    // Ultimate fallback - create profile from auth user data
                     if (window.authManager && window.authManager.getCurrentUser()) {
-                        console.log('🔄 Falling back to AuthManager user data');
                         const authUser = window.authManager.getCurrentUser();
                         currentUser = {
                             user_id: authUser.id,
                             email: authUser.email,
                             username: authUser.username || authUser.email.split('@')[0],
                             full_name: authUser.full_name || authUser.username || authUser.email.split('@')[0],
-                            role: authUser.role || 'customer'
+                            role: authUser.role || 'customer',
+                            phone: '',
+                            date_of_birth: null,
+                            gender: '',
+                            avatar_url: authUser.avatar_url || '',
+                            created_at: authUser.created_at || new Date().toISOString(),
+                            updated_at: authUser.updated_at || new Date().toISOString()
                         };
+                        console.log('🔄 Using AuthManager user data as fallback:', currentUser);
                         updateProfileDisplay();
+                        await loadAddresses();
+                    } else {
+                        showError(`Failed to load profile data: ${error.message}`);
                     }
+                }
+            }
+
+            async function loadProfileFromSupabase(userId) {
+                if (!window.supabase) {
+                    throw new Error('Supabase client not available');
+                }
+
+                const { data, error } = await window.supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('user_id', userId)
+                    .single();
+
+                if (error) {
+                    if (error.code === 'PGRST116') { // No rows returned
+                        return null;
+                    }
+                    throw error;
+                }
+
+                return data;
+            }
+
+            async function loadProfileFromAPI(userId) {
+                const token = localStorage.getItem('auth_token');
+                if (!token) {
+                    return null;
+                }
+
+                const response = await fetch('/api/auth/profile', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    return data.user;
+                } else if (response.status === 404) {
+                    return null;
+                } else {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.message || `Failed to load profile (${response.status})`);
                 }
             }
             
@@ -876,6 +1329,12 @@
             async function handlePersonalInfoSubmit(e) {
                 e.preventDefault();
 
+                // Show loading state
+                const submitBtn = e.target.querySelector('button[type="submit"]');
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+                submitBtn.disabled = true;
+
                 const formData = new FormData(e.target);
                 const data = Object.fromEntries(formData);
 
@@ -888,32 +1347,97 @@
                     }
                 });
 
+                // Don't include email in updates as it cannot be changed
+                delete data.email;
+
                 console.log('📝 Submitting profile update:', data);
 
                 try {
-                    const response = await fetch('/api/auth/profile', {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                        },
-                        body: JSON.stringify(data)
-                    });
+                    // Try Supabase first, fallback to API
+                    let updateSuccess = false;
 
-                    if (response.ok) {
-                        const result = await response.json();
-                        console.log('✅ Profile updated successfully:', result);
+                    if (window.supabase && currentUser?.user_id) {
+                        try {
+                            const supabaseResult = await saveProfileToSupabase(currentUser.user_id, data);
+                            if (supabaseResult) {
+                                updateSuccess = true;
+                                console.log('✅ Profile updated in Supabase');
+                            }
+                        } catch (supabaseError) {
+                            console.log('⚠️ Supabase update failed:', supabaseError.message);
+                        }
+                    }
+
+                    // Fallback to API
+                    if (!updateSuccess) {
+                        const apiResult = await saveProfileToAPI(data);
+                        if (apiResult) {
+                            updateSuccess = true;
+                            console.log('✅ Profile updated via API');
+                        }
+                    }
+
+                    if (updateSuccess) {
                         showSuccess('Profile updated successfully!');
                         // Reload profile data to get updated values
                         await loadUserProfile();
                     } else {
-                        const error = await response.json();
-                        console.error('❌ Profile update failed:', error);
-                        throw new Error(error.message || `Failed to update profile (${response.status})`);
+                        throw new Error('Failed to update profile in all services');
                     }
+
                 } catch (error) {
                     console.error('❌ Error updating profile:', error);
                     showError(error.message || 'Failed to update profile. Please try again.');
+                } finally {
+                    // Reset button state
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                }
+            }
+
+            async function saveProfileToSupabase(userId, data) {
+                if (!window.supabase) {
+                    throw new Error('Supabase client not available');
+                }
+
+                const { data: result, error } = await window.supabase
+                    .from('profiles')
+                    .update({
+                        ...data,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('user_id', userId)
+                    .select()
+                    .single();
+
+                if (error) {
+                    throw error;
+                }
+
+                return result;
+            }
+
+            async function saveProfileToAPI(data) {
+                const token = localStorage.getItem('auth_token');
+                if (!token) {
+                    throw new Error('No authentication token available');
+                }
+
+                const response = await fetch('/api/auth/profile', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    return result;
+                } else {
+                    const error = await response.json();
+                    throw new Error(error.message || `Failed to update profile (${response.status})`);
                 }
             }
             
@@ -1106,9 +1630,6 @@
             };
             
             // Utility functions
-            window.resetPersonalInfo = function() {
-                updatePersonalInfoForm();
-            };
             
             window.resetPasswordForm = function() {
                 document.getElementById('passwordChangeForm').reset();
