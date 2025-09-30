@@ -374,11 +374,12 @@ WITH CHECK (auth.uid() = user_id);
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-    INSERT INTO db_nike.profiles (user_id, username, full_name, role)
+    INSERT INTO db_nike.profiles (user_id, username, full_name, email, role)
     VALUES (
         NEW.id,
         COALESCE(NEW.raw_user_meta_data->>'username', SPLIT_PART(NEW.email, '@', 1)),
         COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
+        NEW.email,
         COALESCE(NEW.raw_user_meta_data->>'role', 'customer')
     )
     ON CONFLICT (user_id) DO NOTHING;

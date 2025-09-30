@@ -4,7 +4,6 @@
   "description": "Nike-inspired e-commerce platform built with Node.js and vanilla frontend",
   "main": "backend/server.js",
   "type": "module",
-  
   "scripts": {
     "start": "node backend/server.js",
     "dev": "npm run dev:config && node --watch backend/server.js",
@@ -33,7 +32,9 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.38.0",
     "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
     "dotenv": "^16.6.1",
+    "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "mime-types": "^2.1.35",
     "uuid": "^9.0.1"

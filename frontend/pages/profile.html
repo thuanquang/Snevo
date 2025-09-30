@@ -608,15 +608,20 @@
                         if (window.authManager) {
                             try {
                                 await window.authManager.logout();
-                                console.log('Logout successful');
-                                if (window.showLoginModal) { window.showLoginModal(); }
+                                console.log('Logout successful - redirecting to index.html');
+                                // AuthManager handles the redirect to index.html automatically
+                                // No need to show login modal as user will be redirected
                             } catch (error) {
                                 console.error('Logout failed:', error);
-                                if (window.showLoginModal) { window.showLoginModal(); }
+                                // If logout fails, still try to redirect or show error
+                                showError('Logout failed. Please try again or refresh the page.');
                             }
                         } else {
                             console.log('AuthManager not available');
-                            if (window.showLoginModal) { window.showLoginModal(); }
+                            // Fallback: clear local storage and redirect manually
+                            localStorage.removeItem('auth_token');
+                            localStorage.removeItem('refresh_token');
+                            window.location.href = 'index.html';
                         }
                     });
                 }
@@ -651,32 +656,72 @@
             
             async function loadUserProfile() {
                 try {
-                    if (window.authManager && window.authManager.getCurrentUser()) {
-                        currentUser = window.authManager.getCurrentUser();
+                    console.log('🔄 Loading user profile...');
+
+                    // Try to get profile from API first (more reliable than AuthManager user data)
+                    const token = localStorage.getItem('auth_token');
+                    if (!token) {
+                        console.log('No auth token found');
+                        showError('Authentication required. Please log in again.');
+                        return;
+                    }
+
+                    const response = await fetch('/api/auth/profile', {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log('✅ Profile loaded from API:', data);
+                        currentUser = data.user;
                         updateProfileDisplay();
-                        
-                        // Load addresses
                         await loadAddresses();
-                    } else {
-                        // Try to get profile from API
-                        const response = await fetch('/api/auth/profile', {
-                            headers: {
-                                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                            }
-                        });
-                        
-                        if (response.ok) {
-                            const data = await response.json();
-                            currentUser = data.user;
+                    } else if (response.status === 404) {
+                        console.log('Profile not found - this might be a new user');
+                        // For new users, try to get basic info from AuthManager
+                        if (window.authManager && window.authManager.getCurrentUser()) {
+                            const authUser = window.authManager.getCurrentUser();
+                            currentUser = {
+                                user_id: authUser.id,
+                                email: authUser.email,
+                                username: authUser.username || authUser.email.split('@')[0],
+                                full_name: authUser.full_name || authUser.username || authUser.email.split('@')[0],
+                                role: authUser.role || 'customer',
+                                phone: '',
+                                date_of_birth: null,
+                                gender: '',
+                                avatar_url: authUser.avatar_url || ''
+                            };
+                            console.log('Using AuthManager user data as fallback:', currentUser);
                             updateProfileDisplay();
                             await loadAddresses();
                         } else {
-                            throw new Error('Failed to load profile');
+                            showError('Profile not found and no authentication data available');
                         }
+                    } else {
+                        const errorData = await response.json().catch(() => ({}));
+                        throw new Error(errorData.message || `Failed to load profile (${response.status})`);
                     }
                 } catch (error) {
-                    console.error('Error loading profile:', error);
-                    showError('Failed to load profile data');
+                    console.error('❌ Error loading profile:', error);
+                    showError(`Failed to load profile data: ${error.message}`);
+
+                    // Fallback to AuthManager data if API fails
+                    if (window.authManager && window.authManager.getCurrentUser()) {
+                        console.log('🔄 Falling back to AuthManager user data');
+                        const authUser = window.authManager.getCurrentUser();
+                        currentUser = {
+                            user_id: authUser.id,
+                            email: authUser.email,
+                            username: authUser.username || authUser.email.split('@')[0],
+                            full_name: authUser.full_name || authUser.username || authUser.email.split('@')[0],
+                            role: authUser.role || 'customer'
+                        };
+                        updateProfileDisplay();
+                    }
                 }
             }
             
@@ -830,10 +875,21 @@
             
             async function handlePersonalInfoSubmit(e) {
                 e.preventDefault();
-                
+
                 const formData = new FormData(e.target);
                 const data = Object.fromEntries(formData);
-                
+
+                // Remove empty fields and convert date to ISO string if present
+                Object.keys(data).forEach(key => {
+                    if (data[key] === '' || data[key] === null || data[key] === undefined) {
+                        delete data[key];
+                    } else if (key === 'date_of_birth' && data[key]) {
+                        data[key] = new Date(data[key]).toISOString().split('T')[0];
+                    }
+                });
+
+                console.log('📝 Submitting profile update:', data);
+
                 try {
                     const response = await fetch('/api/auth/profile', {
                         method: 'PUT',
@@ -843,18 +899,21 @@
                         },
                         body: JSON.stringify(data)
                     });
-                    
+
                     if (response.ok) {
+                        const result = await response.json();
+                        console.log('✅ Profile updated successfully:', result);
                         showSuccess('Profile updated successfully!');
-                        // Reload profile data
+                        // Reload profile data to get updated values
                         await loadUserProfile();
                     } else {
                         const error = await response.json();
-                        throw new Error(error.message || 'Failed to update profile');
+                        console.error('❌ Profile update failed:', error);
+                        throw new Error(error.message || `Failed to update profile (${response.status})`);
                     }
                 } catch (error) {
-                    console.error('Error updating profile:', error);
-                    showError(error.message || 'Failed to update profile');
+                    console.error('❌ Error updating profile:', error);
+                    showError(error.message || 'Failed to update profile. Please try again.');
                 }
             }
             
