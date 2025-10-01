@@ -6,12 +6,183 @@ import url from 'url';
 import path from 'path';
 import fs from 'fs';
 import mime from 'mime-types';
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config({
+  path: path.join(process.cwd(), '.env')
+});
+
+// Import controllers and middleware
+import AuthController from './controllers/authController.js';
+import authMiddleware from './middleware/auth.js';
+import createSupabaseConfig from '../config/supabase.js';
+import { initializeModels } from './models/index.js';
 
 class Server {
     constructor() {
         this.port = Number(process.env.PORT) || 3001;
         this.routes = new Map();
         this.maxRetries = 5;
+
+        // Initialize Supabase and models
+        this.initializeDatabase();
+
+        // Initialize controllers
+        this.authController = new AuthController(this.models);
+
+        // Setup routes
+        this.setupRoutes();
+    }
+
+    // Initialize database connection and models
+    initializeDatabase() {
+        try {
+            // Check if Supabase environment variables are set
+            const supabaseUrl = process.env.SUPABASE_URL;
+            const supabaseKey = process.env.SUPABASE_ANON_KEY;
+
+            if (!supabaseUrl || !supabaseKey) {
+                console.warn('⚠️ Supabase environment variables not found, running in mock mode');
+                console.log('🔧 To enable database functionality, set SUPABASE_URL and SUPABASE_ANON_KEY in .env file');
+                this.supabaseClient = null;
+                this.models = {};
+                return;
+            }
+
+            // Initialize Supabase client
+            this.supabaseClient = createSupabaseConfig().getClient();
+
+            if (this.supabaseClient) {
+                console.log('✅ Supabase client initialized');
+                // Initialize models (they now initialize their own supabase config)
+                this.models = initializeModels();
+                console.log('✅ Models initialized');
+            } else {
+                console.warn('⚠️ Supabase client not initialized due to missing configuration');
+                this.models = {};
+            }
+
+        } catch (error) {
+            console.error('❌ Database initialization failed:', error);
+            console.warn('⚠️ Running in mock mode due to database initialization failure');
+            // Continue in mock mode
+            this.supabaseClient = null;
+            this.models = {};
+        }
+    }
+
+    // Setup API routes
+    setupRoutes() {
+        // API routes will be handled in handleRequest method
+        // This method is a placeholder for future route registration
+    }
+
+    // Parse JSON body
+    async parseBody(req) {
+        return new Promise((resolve, reject) => {
+            let body = '';
+            req.on('data', chunk => {
+                body += chunk.toString();
+            });
+            req.on('end', () => {
+                try {
+                    resolve(body ? JSON.parse(body) : {});
+                } catch (err) {
+                    reject(err);
+                }
+            });
+            req.on('error', reject);
+        });
+    }
+
+    // Send JSON response
+    sendJson(res, data, statusCode = 200) {
+        res.writeHead(statusCode, {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+        });
+        res.end(JSON.stringify(data));
+    }
+
+    // Send error response
+    sendError(res, message, statusCode = 500) {
+        this.sendJson(res, { success: false, message }, statusCode);
+    }
+
+    // Handle API routes
+    async handleApiRequest(req, res, pathname) {
+        const method = req.method;
+        const body = await this.parseBody(req);
+
+        try {
+            // Auth routes
+            if (pathname.startsWith('/api/auth/')) {
+                const authPath = pathname.replace('/api/auth/', '');
+
+                // Check authentication for protected routes
+                const protectedRoutes = ['profile', 'logout'];
+                const isProtectedRoute = protectedRoutes.some(route => authPath.startsWith(route));
+
+                if (isProtectedRoute) {
+                    const authResult = await authMiddleware.authenticate(req, res);
+                    if (!authResult || !authResult.success) {
+                        return; // authMiddleware already sent response or failed
+                    }
+                    req.user = authResult.user;
+                }
+
+                switch (authPath) {
+                    case 'login':
+                        if (method === 'POST') {
+                            await this.authController.login(req, res);
+                        } else {
+                            this.sendError(res, 'Method not allowed', 405);
+                        }
+                        break;
+
+                    case 'register':
+                        if (method === 'POST') {
+                            await this.authController.register(req, res);
+                        } else {
+                            this.sendError(res, 'Method not allowed', 405);
+                        }
+                        break;
+
+                    case 'logout':
+                        if (method === 'POST') {
+                            await this.authController.logout(req, res);
+                        } else {
+                            this.sendError(res, 'Method not allowed', 405);
+                        }
+                        break;
+
+                    case 'profile':
+                        if (method === 'GET') {
+                            await this.authController.getProfile(req, res);
+                        } else if (method === 'PUT') {
+                            req.body = body;
+                            await this.authController.updateProfile(req, res);
+                        } else {
+                            this.sendError(res, 'Method not allowed', 405);
+                        }
+                        break;
+
+                    default:
+                        this.sendError(res, 'API endpoint not found', 404);
+                }
+                return;
+            }
+
+            // Other API routes can be added here
+            this.sendError(res, 'API endpoint not found', 404);
+
+        } catch (error) {
+            console.error('API Error:', error);
+            this.sendError(res, 'Internal server error', 500);
+        }
     }
 
     // Start the server
@@ -44,19 +215,17 @@ class Server {
             const parsedUrl = url.parse(req.url || '/');
             const pathname = parsedUrl.pathname || '/';
 
+            // Handle API routes
+            if (pathname.startsWith('/api/')) {
+                this.handleApiRequest(req, res, pathname);
+                return;
+            }
+
             // Base directories
             const frontendRoot = path.join(process.cwd(), 'frontend');
             const assetsRoot = path.join(frontendRoot, 'assets');
             const pagesRoot = path.join(frontendRoot, 'pages');
 
-            // API placeholder routing (reserve /api/* for backend API)
-            if (pathname.startsWith('/api/')) {
-                res.writeHead(501, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ message: 'API not implemented yet' }));
-                return;
-            }
-
-            // Map request path to filesystem path
             let filePath;
             if (pathname === '/' || pathname === '/index.html') {
                 filePath = path.join(pagesRoot, 'index.html');

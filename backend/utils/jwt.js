@@ -26,4 +26,4 @@ class JwtUtils {
     }
 }
 
-module.exports = new JwtUtils();
+export default new JwtUtils();

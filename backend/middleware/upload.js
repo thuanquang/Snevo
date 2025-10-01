@@ -31,4 +31,4 @@ class UploadMiddleware {
     }
 }
 
-module.exports = new UploadMiddleware();
+export default new UploadMiddleware();

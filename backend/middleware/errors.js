@@ -35,4 +35,4 @@ class ErrorMiddleware {
     }
 }
 
-module.exports = new ErrorMiddleware();
+export default new ErrorMiddleware();

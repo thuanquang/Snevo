@@ -1,24 +1,24 @@
 // 🏠 Main Router - Collects all routes
 // Main router that combines all API routes
 
-const express = require('express');
+import express from 'express';
 const router = express.Router();
 
 // Import all route modules
-const authRoutes = require('./auth');
-const userRoutes = require('./users');
-const profileRoutes = require('./profiles');
-const addressRoutes = require('./addresses');
-const categoryRoutes = require('./categories');
-const productRoutes = require('./products');
-const colorRoutes = require('./colors');
-const sizeRoutes = require('./sizes');
-const variantRoutes = require('./variants');
-const importRoutes = require('./imports');
-const orderRoutes = require('./orders');
-const paymentRoutes = require('./payments');
-const reviewRoutes = require('./reviews');
-const adminRoutes = require('./admin');
+import authRoutes from './auth.js';
+import userRoutes from './users.js';
+import profileRoutes from './profiles.js';
+import addressRoutes from './addresses.js';
+import categoryRoutes from './categories.js';
+import productRoutes from './products.js';
+import colorRoutes from './colors.js';
+import sizeRoutes from './sizes.js';
+import variantRoutes from './variants.js';
+import importRoutes from './imports.js';
+import orderRoutes from './orders.js';
+import paymentRoutes from './payments.js';
+import reviewRoutes from './reviews.js';
+import adminRoutes from './admin.js';
 
 // Mount all routes
 router.use('/auth', authRoutes);

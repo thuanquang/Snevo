@@ -37,4 +37,4 @@ class OrderController {
     }
 }
 
-module.exports = OrderController;
+export default OrderController;

@@ -1,10 +1,10 @@
 // 🔐 Auth Routes - /api/auth/*
 // Authentication and authorization routes
 
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const AuthController = require('../controllers/AuthController');
-const authMiddleware = require('../middleware/auth');
+import AuthController from '../controllers/authController.js';
+import authMiddleware from '../middleware/auth.js';
 
 const authController = new AuthController();
 

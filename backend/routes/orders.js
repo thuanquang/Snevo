@@ -1,9 +1,9 @@
 // 🛒 Order Routes - /api/orders/*
 // Order management routes
 
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const OrderController = require('../controllers/OrderController');
+import OrderController from '../controllers/orderController.js';
 
 const orderController = new OrderController();
 

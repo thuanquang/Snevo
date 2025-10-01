@@ -1,11 +1,11 @@
 // 🎨 Color Model - colors table
 // Handles color data management
 
-const BaseModel = require('./BaseModel');
+import BaseModel from '../utils/BaseModel.js';
 
 class Color extends BaseModel {
-    constructor(supabaseClient) {
-        super('colors', supabaseClient);
+    constructor() {
+        super('colors');
     }
 
     // Get active colors
@@ -15,4 +15,4 @@ class Color extends BaseModel {
     }
 }
 
-module.exports = Color;
+export default Color;

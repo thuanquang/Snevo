@@ -19,4 +19,4 @@ class AdminMiddleware {
     }
 }
 
-module.exports = new AdminMiddleware();
+export default new AdminMiddleware();

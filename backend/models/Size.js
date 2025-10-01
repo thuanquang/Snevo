@@ -1,11 +1,11 @@
 // 📏 Size Model - sizes table
 // Handles size data management
 
-const BaseModel = require('./BaseModel');
+import BaseModel from '../utils/BaseModel.js';
 
 class Size extends BaseModel {
-    constructor(supabaseClient) {
-        super('sizes', supabaseClient);
+    constructor() {
+        super('sizes');
     }
 
     // Get active sizes
@@ -21,4 +21,4 @@ class Size extends BaseModel {
     }
 }
 
-module.exports = Size;
+export default Size;

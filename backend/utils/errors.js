@@ -53,7 +53,7 @@ class InternalServerError extends AppError {
     }
 }
 
-module.exports = {
+export {
     AppError,
     ValidationError,
     AuthenticationError,

@@ -1,7 +1,7 @@
 // ✅ Validation Schemas (Joi)
 // Handles request validation schemas using Joi
 
-const Joi = require('joi');
+import Joi from 'joi';
 
 class ValidationSchemas {
     constructor() {
@@ -51,4 +51,4 @@ class ValidationSchemas {
     }
 }
 
-module.exports = new ValidationSchemas();
+export default new ValidationSchemas();

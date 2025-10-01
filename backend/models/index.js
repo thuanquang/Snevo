@@ -2,42 +2,40 @@
 // Central place to initialize and export all models
 
 // Import all models
-const Profile = require('./Profile');
-const Address = require('./Address');
-const Category = require('./Category');
-const Color = require('./Color');
-const Product = require('./Product');
-const Shoe = require('./Shoe');
-const ShoeVariant = require('./ShoeVariant');
-const Size = require('./Size');
-const Order = require('./Order');
-const OrderItem = require('./OrderItem');
-const Payment = require('./Payment');
-const Review = require('./Review');
-const Import = require('./Import');
+import Profile from './Profile.js';
+import Address from './Address.js';
+import Category from './Category.js';
+import Color from './Color.js';
+import Product from './Product.js';
+import Shoe from './Shoe.js';
+import ShoeVariant from './ShoeVariant.js';
+import Size from './Size.js';
+import Order from './Order.js';
+import OrderItem from './OrderItem.js';
+import Payment from './Payment.js';
+import Review from './Review.js';
+import Import from './Import.js';
 
 // Initialize models with Supabase client
 let models = {};
 
-function initializeModels(supabaseClient) {
-    if (!supabaseClient) {
-        throw new Error('Supabase client is required to initialize models');
-    }
+function initializeModels() {
+    // Models now initialize their own supabase config
 
     models = {
-        Profile: new Profile(supabaseClient),
-        Address: new Address(supabaseClient),
-        Category: new Category(supabaseClient),
-        Color: new Color(supabaseClient),
-        Product: new Product(supabaseClient),
-        Shoe: new Shoe(supabaseClient),
-        ShoeVariant: new ShoeVariant(supabaseClient),
-        Size: new Size(supabaseClient),
-        Order: new Order(supabaseClient),
-        OrderItem: new OrderItem(supabaseClient),
-        Payment: new Payment(supabaseClient),
-        Review: new Review(supabaseClient),
-        Import: new Import(supabaseClient)
+        Profile: new Profile(),
+        Address: new Address(),
+        Category: new Category(),
+        Color: new Color(),
+        Product: new Product(),
+        Shoe: new Shoe(),
+        ShoeVariant: new ShoeVariant(),
+        Size: new Size(),
+        Order: new Order(),
+        OrderItem: new OrderItem(),
+        Payment: new Payment(),
+        Review: new Review(),
+        Import: new Import()
     };
 
     console.log('✅ All models initialized with Supabase client');
@@ -47,16 +45,35 @@ function initializeModels(supabaseClient) {
 // Get initialized models (throws error if not initialized)
 function getModels() {
     if (Object.keys(models).length === 0) {
-        throw new Error('Models not initialized. Call initializeModels(supabaseClient) first.');
+        throw new Error('Models not initialized. Call initializeModels() first.');
     }
     return models;
 }
 
 // Export individual models (will throw if not initialized)
-module.exports = {
+export {
     initializeModels,
     getModels,
     // Export model classes for direct use if needed
+    Profile,
+    Address,
+    Category,
+    Color,
+    Product,
+    Shoe,
+    ShoeVariant,
+    Size,
+    Order,
+    OrderItem,
+    Payment,
+    Review,
+    Import
+};
+
+// Also export as default for compatibility
+export default {
+    initializeModels,
+    getModels,
     Profile,
     Address,
     Category,

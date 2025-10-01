@@ -37,4 +37,4 @@ class SizeController {
     }
 }
 
-module.exports = SizeController;
+export default SizeController;

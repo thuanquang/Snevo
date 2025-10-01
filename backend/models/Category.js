@@ -1,11 +1,11 @@
 // 📂 Category Model - categories table
 // Handles shoe category data management
 
-const BaseModel = require('./BaseModel');
+import BaseModel from '../utils/BaseModel.js';
 
 class Category extends BaseModel {
-    constructor(supabaseClient) {
-        super('categories', supabaseClient);
+    constructor() {
+        super('categories');
     }
 
     // Get active categories
@@ -21,4 +21,4 @@ class Category extends BaseModel {
     }
 }
 
-module.exports = Category;
+export default Category;

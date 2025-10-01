@@ -1,11 +1,11 @@
 // 💳 Payment Model - payments table
 // Handles payment data management
 
-const BaseModel = require('./BaseModel');
+import BaseModel from '../utils/BaseModel.js';
 
 class Payment extends BaseModel {
-    constructor(supabaseClient) {
-        super('payments', supabaseClient);
+    constructor() {
+        super('payments');
     }
 
     // Get payments by order ID
@@ -33,4 +33,4 @@ class Payment extends BaseModel {
     }
 }
 
-module.exports = Payment;
+export default Payment;

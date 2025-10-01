@@ -1,9 +1,9 @@
 // 📂 Category Routes - /api/categories/*
 // Shoe category management routes
 
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const CategoryController = require('../controllers/CategoryController');
+import CategoryController from '../controllers/CategoryController.js';
 
 const categoryController = new CategoryController();
 

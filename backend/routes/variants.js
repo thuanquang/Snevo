@@ -1,9 +1,9 @@
 // ⭐ Variant Routes - /api/variants/*
 // Shoe variant management routes
 
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const VariantController = require('../controllers/VariantController');
+import VariantController from '../controllers/VariantController.js';
 
 const variantController = new VariantController();
 

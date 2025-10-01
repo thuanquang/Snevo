@@ -1,11 +1,11 @@
 // 🛒 Order Model - orders table
 // Handles order data management
 
-const BaseModel = require('./BaseModel');
+import BaseModel from '../utils/BaseModel.js';
 
 class Order extends BaseModel {
-    constructor(supabaseClient) {
-        super('orders', supabaseClient);
+    constructor() {
+        super('orders');
     }
 
     // Get orders by user ID
@@ -39,4 +39,4 @@ class Order extends BaseModel {
     }
 }
 
-module.exports = Order;
+export default Order;

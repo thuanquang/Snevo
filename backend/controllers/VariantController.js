@@ -43,4 +43,4 @@ class VariantController {
     }
 }
 
-module.exports = VariantController;
+export default VariantController;

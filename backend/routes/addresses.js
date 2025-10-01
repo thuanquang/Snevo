@@ -1,9 +1,9 @@
 // 🏠 Address Routes - /api/addresses/*
 // User address management routes
 
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const AddressController = require('../controllers/AddressController');
+import AddressController from '../controllers/AddressController.js';
 
 const addressController = new AddressController();
 

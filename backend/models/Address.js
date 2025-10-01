@@ -1,11 +1,11 @@
 // 🏠 Address Model - addresses table
 // Handles user address data management
 
-const BaseModel = require('./BaseModel');
+import BaseModel from '../utils/BaseModel.js';
 
 class Address extends BaseModel {
-    constructor(supabaseClient) {
-        super('addresses', supabaseClient);
+    constructor() {
+        super('addresses');
     }
 
     // Get addresses by user ID
@@ -27,4 +27,4 @@ class Address extends BaseModel {
     }
 }
 
-module.exports = Address;
+export default Address;

@@ -31,4 +31,4 @@ class StockUtils {
     }
 }
 
-module.exports = new StockUtils();
+export default new StockUtils();

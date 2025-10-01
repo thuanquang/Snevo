@@ -48,4 +48,4 @@ class AppConstants {
     }
 }
 
-module.exports = new AppConstants();
+export default new AppConstants();

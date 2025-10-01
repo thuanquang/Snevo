@@ -37,4 +37,4 @@ class AdminController {
     }
 }
 
-module.exports = AdminController;
+export default AdminController;

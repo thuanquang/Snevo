@@ -1,9 +1,9 @@
 // 👑 Admin Routes - /api/admin/*
 // Admin dashboard and management routes
 
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const AdminController = require('../controllers/AdminController');
+import AdminController from '../controllers/AdminController.js';
 
 const adminController = new AdminController();
 

@@ -1,9 +1,9 @@
 // 📏 Size Routes - /api/sizes/*
 // Size management routes
 
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const SizeController = require('../controllers/SizeController');
+import SizeController from '../controllers/SizeController.js';
 
 const sizeController = new SizeController();
 

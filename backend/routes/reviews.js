@@ -1,7 +1,7 @@
 // ⭐ Review Routes - /api/reviews/*
 // Product review management routes
 
-const express = require('express');
+import express from 'express';
 const router = express.Router();
 
 // TODO: Implement review routes

@@ -1,11 +1,11 @@
 // ⭐ Shoe Variant Model - shoe_variants table (most important)
 // Handles shoe variant data management with stock and pricing
 
-const BaseModel = require('./BaseModel');
+import BaseModel from '../utils/BaseModel.js';
 
 class ShoeVariant extends BaseModel {
-    constructor(supabaseClient) {
-        super('shoe_variants', supabaseClient);
+    constructor() {
+        super('shoe_variants');
     }
 
     // Get variants by shoe ID
@@ -39,4 +39,4 @@ class ShoeVariant extends BaseModel {
     }
 }
 
-module.exports = ShoeVariant;
+export default ShoeVariant;

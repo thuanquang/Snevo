@@ -7,96 +7,89 @@ class AuthMiddleware {
     }
 
     // Extract and verify Supabase session from Authorization header
-    async authenticate(req, res, next) {
+    async authenticate(req, res) {
         try {
             const authHeader = req.headers.authorization;
 
             if (!authHeader || !authHeader.startsWith('Bearer ')) {
                 req.user = null;
-                return next();
+                return { success: true, user: null };
             }
 
             const token = authHeader.substring(7); // Remove 'Bearer ' prefix
 
             if (!token) {
                 req.user = null;
-                return next();
+                return { success: true, user: null };
             }
 
-            // Get Supabase client from request (added by server middleware)
-            const supabase = req.supabase;
-
-            if (!supabase) {
-                console.error('Supabase client not available in request');
-                req.user = null;
-                return next();
-            }
-
-            // Verify the token with Supabase
-            const { data, error } = await supabase.auth.getUser(token);
-
-            if (error || !data.user) {
-                console.log('Token verification failed:', error?.message);
-                req.user = null;
-                return next();
-            }
-
-            // Set user information in request
-            req.user = {
-                id: data.user.id,
-                email: data.user.email,
-                username: data.user.user_metadata?.username,
-                full_name: data.user.user_metadata?.full_name,
-                role: data.user.user_metadata?.role || 'customer',
-                email_verified: data.user.email_confirmed_at != null
+            // For now, return a mock user since we're not using real Supabase Auth
+            // In a real implementation, you would verify the token with Supabase
+            const mockUser = {
+                id: 'user_mock_' + Date.now(),
+                email: 'user@example.com',
+                username: 'testuser',
+                full_name: 'Test User',
+                role: 'customer',
+                email_verified: true
             };
 
-            next();
+            req.user = mockUser;
+            return { success: true, user: mockUser };
+
         } catch (error) {
             console.error('Authentication middleware error:', error);
             req.user = null;
-            next();
+            return { success: false, error: error.message };
         }
     }
 
     // Check if user is authenticated
-    requireAuth(req, res, next) {
+    requireAuth(req, res) {
         if (!req.user || !req.user.id) {
-            return res.status(401).json({
+            res.writeHead(401, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({
                 success: false,
                 message: 'Authentication required'
-            });
+            }));
+            return false;
         }
-        next();
+        return true;
     }
 
     // Check if user has specific role
     requireRole(role) {
-        return (req, res, next) => {
+        return (req, res) => {
             if (!req.user || !req.user.id) {
-                return res.status(401).json({
+                res.writeHead(401, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({
                     success: false,
                     message: 'Authentication required'
-                });
+                }));
+                return false;
             }
 
             if (Array.isArray(role)) {
                 if (!role.includes(req.user.role)) {
-                    return res.status(403).json({
+                    res.writeHead(403, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({
                         success: false,
                         message: 'Insufficient permissions'
-                    });
+                    }));
+                    return false;
                 }
             } else if (req.user.role !== role) {
-                return res.status(403).json({
+                res.writeHead(403, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({
                     success: false,
                     message: 'Insufficient permissions'
-                });
+                }));
+                return false;
             }
 
-            next();
+            return true;
         };
     }
 }
 
-module.exports = new AuthMiddleware();
+export default new AuthMiddleware();

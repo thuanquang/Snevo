@@ -1,11 +1,11 @@
 // 📋 Order Item Model - order_items table
 // Handles order item data management
 
-const BaseModel = require('./BaseModel');
+import BaseModel from '../utils/BaseModel.js';
 
 class OrderItem extends BaseModel {
-    constructor(supabaseClient) {
-        super('order_items', supabaseClient);
+    constructor() {
+        super('order_items');
     }
 
     // Get order items by order ID
@@ -27,4 +27,4 @@ class OrderItem extends BaseModel {
     }
 }
 
-module.exports = OrderItem;
+export default OrderItem;

@@ -3,7 +3,7 @@
  * Handles product data operations with Supabase using OOP principles
  */
 
-import { supabase, supabaseAdmin } from '../../config/supabase.js';
+import supabaseConfig from '../../config/supabase.js';
 import constants from '../../config/constants.js';
 import BaseModel from '../utils/BaseModel.js';
 import { ValidationError, NotFoundError } from '../utils/ErrorClasses.js';
@@ -59,7 +59,7 @@ class Product extends BaseModel {
             const { field = 'created_at', order = 'desc' } = sortOptions;
             const offset = (page - 1) * limit;
 
-            let query = supabase
+            let query = supabaseConfig.getAdminClient()
                 .from(this.tableName)
                 .select(`
                     *,
@@ -138,7 +138,7 @@ class Product extends BaseModel {
      */
     async findById(productId) {
         try {
-            const { data, error } = await supabase
+            const { data, error } = await supabaseConfig.getAdminClient()
                 .from(this.tableName)
                 .select(`
                     *,
@@ -186,7 +186,7 @@ class Product extends BaseModel {
             const { page = 1, limit = 20 } = pagination;
             const offset = (page - 1) * limit;
 
-            let query = supabase
+            let query = supabaseConfig.getAdminClient()
                 .from(this.tableName)
                 .select(`
                     *,
@@ -249,7 +249,7 @@ class Product extends BaseModel {
             const result = await this.findAll(filters, pagination, sortOptions);
             
             // Get category info
-            const { data: category } = await supabase
+            const { data: category } = await supabaseConfig.getAdminClient()
                 .from(constants.DATABASE_TABLES.CATEGORIES)
                 .select('*')
                 .eq('category_id', categoryId)
@@ -287,7 +287,7 @@ class Product extends BaseModel {
      */
     async getVariants(productId) {
         try {
-            const { data, error } = await supabase
+            const { data, error } = await supabaseConfig.getAdminClient()
                 .from(constants.DATABASE_TABLES.SHOE_VARIANTS)
                 .select(`
                     *,
@@ -321,7 +321,7 @@ class Product extends BaseModel {
             const { page = 1, limit = 10 } = pagination;
             const offset = (page - 1) * limit;
 
-            const { data, error, count } = await supabase
+            const { data, error, count } = await supabaseConfig.getAdminClient()
                 .from(constants.DATABASE_TABLES.REVIEWS)
                 .select(`
                     *,
@@ -358,7 +358,7 @@ class Product extends BaseModel {
      */
     async getRatingSummary(productId) {
         try {
-            const { data: ratingData } = await supabase
+            const { data: ratingData } = await supabaseConfig.getAdminClient()
                 .from(constants.DATABASE_TABLES.REVIEWS)
                 .select('rating')
                 .eq('shoe_id', productId);
@@ -393,7 +393,7 @@ class Product extends BaseModel {
      */
     async createReview(reviewData) {
         try {
-            const { data, error } = await supabase
+            const { data, error } = await supabaseConfig.getAdminClient()
                 .from(constants.DATABASE_TABLES.REVIEWS)
                 .insert([reviewData])
                 .select(`
@@ -491,7 +491,7 @@ class Product extends BaseModel {
             
             if (operation === 'increment') {
                 // Get current stock
-                const { data: variant } = await supabase
+                const { data: variant } = await supabaseConfig.getAdminClient()
                     .from(constants.DATABASE_TABLES.SHOE_VARIANTS)
                     .select('stock_quantity')
                     .eq('variant_id', variantId)
@@ -500,7 +500,7 @@ class Product extends BaseModel {
                 updateData = { stock_quantity: (variant.stock_quantity || 0) + quantity };
             } else if (operation === 'decrement') {
                 // Get current stock
-                const { data: variant } = await supabase
+                const { data: variant } = await supabaseConfig.getAdminClient()
                     .from(constants.DATABASE_TABLES.SHOE_VARIANTS)
                     .select('stock_quantity')
                     .eq('variant_id', variantId)
@@ -512,7 +512,7 @@ class Product extends BaseModel {
                 updateData = { stock_quantity: quantity };
             }
 
-            const { data, error } = await supabase
+            const { data, error } = await supabaseConfig.getAdminClient()
                 .from(constants.DATABASE_TABLES.SHOE_VARIANTS)
                 .update(updateData)
                 .eq('variant_id', variantId)

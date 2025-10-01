@@ -3,7 +3,7 @@
  * Provides common database operations and validation
  */
 
-import { supabase, supabaseAdmin } from '../../config/supabase.js';
+import createSupabaseConfig from '../../config/supabase.js';
 import constants from '../../config/constants.js';
 import { ValidationError, DatabaseError } from './ErrorClasses.js';
 
@@ -12,12 +12,23 @@ export default class BaseModel {
         if (this.constructor === BaseModel) {
             throw new Error('BaseModel is an abstract class and cannot be instantiated directly');
         }
-        
+
         this.tableName = tableName;
+        this.schemaName = process.env.DB_SCHEMA || 'db_nike'; // Set the schema name for all tables
         this.primaryKey = primaryKey;
         this.validationRules = {};
         this.fillable = [];
         this.hidden = ['password_hash', 'password'];
+
+        // Initialize Supabase client
+        this.supabaseConfig = createSupabaseConfig();
+    }
+
+    /**
+     * Get the fully qualified table name with schema
+     */
+    getQualifiedTableName() {
+        return `${this.schemaName}.${this.tableName}`;
     }
 
     /**
@@ -122,8 +133,8 @@ export default class BaseModel {
             this.validate(data);
             const filteredData = this.filterFillable(data);
             
-            const { data: result, error } = await supabaseAdmin
-                .from(this.tableName)
+            const { data: result, error } = await this.this.supabaseConfig.getAdminClient()
+                .from(this.getQualifiedTableName())
                 .insert([filteredData])
                 .select()
                 .single();
@@ -146,8 +157,8 @@ export default class BaseModel {
      */
     async findById(id) {
         try {
-            const { data, error } = await supabaseAdmin
-                .from(this.tableName)
+            const { data, error } = await this.supabaseConfig.getAdminClient()
+                .from(this.getQualifiedTableName())
                 .select('*')
                 .eq(this.primaryKey, id)
                 .single();
@@ -171,8 +182,8 @@ export default class BaseModel {
             const { page = 1, limit = 20, orderBy, orderDirection = 'desc' } = options;
             const offset = (page - 1) * limit;
 
-            let query = supabaseAdmin
-                .from(this.tableName)
+            let query = this.supabaseConfig.getAdminClient()
+                .from(this.getQualifiedTableName())
                 .select('*', { count: 'exact' });
 
             // Apply filters
@@ -217,8 +228,8 @@ export default class BaseModel {
             this.validate(data, this.getUpdateValidationRules());
             const filteredData = this.filterFillable(data);
             
-            const { data: result, error } = await supabaseAdmin
-                .from(this.tableName)
+            const { data: result, error } = await this.supabaseConfig.getAdminClient()
+                .from(this.getQualifiedTableName())
                 .update(filteredData)
                 .eq(this.primaryKey, id)
                 .select()
@@ -240,8 +251,8 @@ export default class BaseModel {
      */
     async deleteById(id) {
         try {
-            const { error } = await supabaseAdmin
-                .from(this.tableName)
+            const { error } = await this.supabaseConfig.getAdminClient()
+                .from(this.getQualifiedTableName())
                 .delete()
                 .eq(this.primaryKey, id);
 
@@ -259,8 +270,8 @@ export default class BaseModel {
      */
     async count(filters = {}) {
         try {
-            let query = supabaseAdmin
-                .from(this.tableName)
+            let query = this.supabaseConfig.getAdminClient()
+                .from(this.getQualifiedTableName())
                 .select('*', { count: 'exact', head: true });
 
             // Apply filters
@@ -300,7 +311,7 @@ export default class BaseModel {
      */
     async rawQuery(query, params = []) {
         try {
-            const { data, error } = await supabaseAdmin.rpc(query, params);
+            const { data, error } = await this.supabaseConfig.getAdminClient().rpc(query, params);
             
             if (error) throw new DatabaseError(`Raw query failed: ${error.message}`, error);
             

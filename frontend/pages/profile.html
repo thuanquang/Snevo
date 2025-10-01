@@ -12,6 +12,75 @@
     <link href="../assets/css/animations.css" rel="stylesheet">
     <link href="../assets/css/components.css" rel="stylesheet">
     <link href="../assets/css/responsive.css" rel="stylesheet">
+
+    <!-- Profile Page Styles -->
+    <style>
+        .profile-section-content {
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .profile-section-content:not(.active) {
+            opacity: 0;
+            transform: translateY(20px);
+            display: none !important;
+        }
+
+        .profile-nav .nav-link {
+            transition: all 0.2s ease;
+            border-radius: 8px;
+            margin-bottom: 4px;
+        }
+
+        .profile-nav .nav-link:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+            transform: translateX(4px);
+        }
+
+        .profile-nav .nav-link.active {
+            background-color: #007bff;
+            color: white;
+            box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+        }
+
+        .profile-form .form-actions {
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .section-header {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .section-subtitle {
+            color: #6c757d;
+            font-size: 0.95rem;
+        }
+
+        .form-actions .btn {
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .profile-sidebar {
+            position: sticky;
+            top: 100px;
+        }
+
+        @media (max-width: 991.98px) {
+            .profile-sidebar {
+                position: static;
+            }
+        }
+    </style>
     
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -91,53 +160,79 @@
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <label for="fullName" class="form-label">Full Name *</label>
-                                        <input type="text" class="form-control" id="fullName" name="full_name" required>
+                                        <input type="text" class="form-control" id="fullName" name="full_name"
+                                               required minlength="2" maxlength="100"
+                                               pattern="^[a-zA-Z\s]+$"
+                                               title="Full name should only contain letters and spaces">
+                                        <div class="form-text">Enter your full legal name</div>
                                     </div>
                                     <div class="col-md-6 mb-3">
                                         <label for="username" class="form-label">Username *</label>
-                                        <input type="text" class="form-control" id="username" name="username" required>
+                                        <input type="text" class="form-control" id="username" name="username"
+                                               required minlength="3" maxlength="50"
+                                               pattern="^[a-zA-Z0-9_]+$"
+                                               title="Username can only contain letters, numbers, and underscores">
+                                        <div class="form-text">Choose a unique username for your account</div>
                                     </div>
                                 </div>
-                                
+
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <label for="email" class="form-label">Email Address</label>
                                         <input type="email" class="form-control" id="email" name="email" readonly>
-                                        <div class="form-text">Email cannot be changed. Contact support if needed.</div>
+                                        <div class="form-text text-muted">Email cannot be changed. Contact support if needed.</div>
                                     </div>
                                     <div class="col-md-6 mb-3">
                                         <label for="phone" class="form-label">Phone Number</label>
-                                        <input type="tel" class="form-control" id="phone" name="phone">
+                                        <input type="tel" class="form-control" id="phone" name="phone"
+                                               pattern="^[0-9+\-\s()]{10,20}$"
+                                               title="Please enter a valid phone number">
+                                        <div class="form-text">Enter your contact phone number</div>
                                     </div>
                                 </div>
-                                
+
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <label for="dateOfBirth" class="form-label">Date of Birth</label>
                                         <input type="date" class="form-control" id="dateOfBirth" name="date_of_birth">
+                                        <div class="form-text">Your date of birth (optional)</div>
                                     </div>
                                     <div class="col-md-6 mb-3">
                                         <label for="gender" class="form-label">Gender</label>
                                         <select class="form-select" id="gender" name="gender">
-                                            <option value="">Select Gender</option>
+                                            <option value="">Prefer not to say</option>
                                             <option value="male">Male</option>
                                             <option value="female">Female</option>
                                             <option value="other">Other</option>
                                         </select>
+                                        <div class="form-text">Select your gender (optional)</div>
                                     </div>
                                 </div>
-                                
+
                                 <div class="mb-3">
                                     <label for="avatarUrl" class="form-label">Avatar URL</label>
-                                    <input type="url" class="form-control" id="avatarUrl" name="avatar_url" placeholder="https://example.com/avatar.jpg">
+                                    <input type="url" class="form-control" id="avatarUrl" name="avatar_url"
+                                           placeholder="https://example.com/avatar.jpg"
+                                           pattern="^https?://.*\.(jpg|jpeg|png|gif|webp)$"
+                                           title="Please enter a valid image URL (jpg, png, gif, webp)">
+                                    <div class="form-text">Enter a URL to your profile picture</div>
                                 </div>
-                                
+
+                                <!-- Loading indicator -->
+                                <div id="personalInfoLoading" class="alert alert-info d-none">
+                                    <i class="fas fa-spinner fa-spin me-2"></i>
+                                    Saving your profile information...
+                                </div>
+
+                                <!-- Success/Error messages -->
+                                <div id="personalInfoMessage" class="d-none"></div>
+
                                 <div class="form-actions">
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="fas fa-save"></i> Save Changes
+                                    <button type="submit" class="btn btn-primary" id="savePersonalInfoBtn">
+                                        <i class="fas fa-save me-2"></i>Save Changes
                                     </button>
-                                    <button type="button" class="btn btn-outline-secondary" onclick="resetPersonalInfo()">
-                                        <i class="fas fa-undo"></i> Reset
+                                    <button type="button" class="btn btn-outline-secondary" onclick="refreshPersonalInfo()">
+                                        <i class="fas fa-refresh"></i> Refresh Data
                                     </button>
                                 </div>
                             </form>
@@ -605,50 +700,238 @@
                 if (logoutBtn) {
                     logoutBtn.addEventListener('click', async function() {
                         console.log('Logout button clicked');
-                        if (window.authManager) {
-                            try {
+
+                        // Disable button and show loading state
+                        logoutBtn.disabled = true;
+                        logoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Logging out...';
+
+                        try {
+                            if (window.authManager) {
+                                console.log('Using AuthManager logout');
                                 await window.authManager.logout();
-                                console.log('Logout successful - redirecting to index.html');
-                                // AuthManager handles the redirect to index.html automatically
-                                // No need to show login modal as user will be redirected
-                            } catch (error) {
-                                console.error('Logout failed:', error);
-                                // If logout fails, still try to redirect or show error
-                                showError('Logout failed. Please try again or refresh the page.');
+                                console.log('Logout successful via AuthManager');
+                                // AuthManager handles redirect and auth state clearing
+                            } else {
+                                console.log('AuthManager not available, using fallback');
+                                // Fallback logout process
+                                await performLogout();
                             }
-                        } else {
-                            console.log('AuthManager not available');
-                            // Fallback: clear local storage and redirect manually
-                            localStorage.removeItem('auth_token');
-                            localStorage.removeItem('refresh_token');
-                            window.location.href = 'index.html';
+                        } catch (error) {
+                            console.error('Logout error:', error);
+
+                            // If AuthManager logout failed, try fallback
+                            if (window.authManager) {
+                                console.log('AuthManager logout failed, trying fallback');
+                                try {
+                                    await performLogout();
+                                } catch (fallbackError) {
+                                    console.error('Fallback logout also failed:', fallbackError);
+                                    showError('Logout failed. Please clear your browser data and refresh the page.');
+                                    // Reset button state
+                                    logoutBtn.disabled = false;
+                                    logoutBtn.innerHTML = '<i class="fas fa-sign-out-alt me-2"></i>Logout';
+                                }
+                            } else {
+                                showError('Logout failed. Please try again or refresh the page.');
+                                // Reset button state
+                                logoutBtn.disabled = false;
+                                logoutBtn.innerHTML = '<i class="fas fa-sign-out-alt me-2"></i>Logout';
+                            }
                         }
                     });
+                }
+            }
+
+            async function performLogout() {
+                console.log('Performing manual logout');
+
+                // Show logout success message before clearing data
+                showLogoutSuccessToast();
+
+                try {
+                    // Small delay to let user see the message
+                    await new Promise(resolve => setTimeout(resolve, 500));
+
+                    // Clear all authentication data
+                    const tokensCleared = clearAuthenticationData();
+
+                    // Clear any additional session data
+                    clearSessionData();
+
+                    // Update UI if AuthManager is available
+                    if (window.authManager) {
+                        window.authManager.clearAuthData();
+                        window.authManager.updateAuthUI();
+                        window.authManager.emit('logout');
+                    }
+
+                    // Verify logout was successful
+                    const verification = verifyAuthDataCleared();
+                    const logoutSuccessful = Object.values(verification).every(value => value === true);
+
+                    if (logoutSuccessful) {
+                        console.log('✅ Logout completed successfully');
+                    } else {
+                        console.warn('⚠️ Some auth data may still exist after logout:', verification);
+                    }
+
+                    // Redirect to home page
+                    console.log('Redirecting to index.html after logout');
+                    window.location.href = 'index.html';
+
+                } catch (error) {
+                    console.error('❌ Error during logout process:', error);
+                    showError('Logout process failed. Please clear your browser data and refresh the page.');
+
+                    // Force redirect after a timeout as fallback
+                    setTimeout(() => {
+                        console.log('🔄 Force redirecting after error');
+                        window.location.href = 'index.html';
+                    }, 3000);
+                }
+            }
+
+            function clearAuthenticationData() {
+                const clearedTokens = {
+                    authToken: !!localStorage.getItem('auth_token'),
+                    refreshToken: !!localStorage.getItem('refresh_token'),
+                    supabaseSession: !!localStorage.getItem('supabase.auth.token'),
+                    supabaseUser: !!localStorage.getItem('supabase.auth.user')
+                };
+
+                // Clear all auth tokens
+                localStorage.removeItem('auth_token');
+                localStorage.removeItem('refresh_token');
+
+                // Clear Supabase auth data if present
+                localStorage.removeItem('supabase.auth.token');
+                localStorage.removeItem('supabase.auth.refreshToken');
+                localStorage.removeItem('supabase.auth.user');
+
+                // Clear any cookies related to auth
+                document.cookie.split(";").forEach(cookie => {
+                    const eqPos = cookie.indexOf("=");
+                    const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+                    if (name.includes('auth') || name.includes('session') || name.includes('token') ||
+                        name.includes('supabase') || name.includes('user')) {
+                        document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+                        document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=" + window.location.hostname;
+                    }
+                });
+
+                // Verify that data was cleared
+                const verification = verifyAuthDataCleared();
+
+                console.log('Authentication data cleared:', clearedTokens);
+                console.log('Verification result:', verification);
+
+                return { clearedTokens, verification };
+            }
+
+            function verifyAuthDataCleared() {
+                const verification = {
+                    authTokenCleared: !localStorage.getItem('auth_token'),
+                    refreshTokenCleared: !localStorage.getItem('refresh_token'),
+                    supabaseSessionCleared: !localStorage.getItem('supabase.auth.token'),
+                    supabaseUserCleared: !localStorage.getItem('supabase.auth.user'),
+                    authManagerStateCleared: true, // Will be checked if AuthManager exists
+                    authManagerUserCleared: true   // Will be checked if AuthManager exists
+                };
+
+                // Check if AuthManager state is cleared
+                if (window.authManager) {
+                    verification.authManagerStateCleared = !window.authManager.isAuthenticated();
+                    verification.authManagerUserCleared = !window.authManager.getCurrentUser();
+                }
+
+                const allCleared = Object.values(verification).every(value => value === true);
+
+                if (!allCleared) {
+                    console.warn('Some authentication data may not have been cleared properly:', verification);
+                }
+
+                return verification;
+            }
+
+            function clearSessionData() {
+                // Clear any application-specific session data
+                const sessionKeys = [
+                    'user_preferences',
+                    'cart_data',
+                    'last_activity',
+                    'session_id'
+                ];
+
+                sessionKeys.forEach(key => {
+                    if (localStorage.getItem(key)) {
+                        localStorage.removeItem(key);
+                        console.log('Cleared session data:', key);
+                    }
+                });
+
+                // Clear sessionStorage as well
+                if (typeof sessionStorage !== 'undefined') {
+                    sessionStorage.clear();
+                    console.log('SessionStorage cleared');
                 }
             }
             
             function setupProfileNavigation() {
                 const navLinks = document.querySelectorAll('.profile-nav .nav-link');
                 const sections = document.querySelectorAll('.profile-section-content');
-                
+
+                // Initially hide all sections except the active one
+                sections.forEach(section => {
+                    section.style.display = 'none';
+                });
+
+                // Show the default active section (Personal Info)
+                const personalInfoSection = document.getElementById('personal-info-section');
+                if (personalInfoSection) {
+                    personalInfoSection.style.display = 'block';
+                }
+
                 navLinks.forEach(link => {
                     link.addEventListener('click', function(e) {
                         e.preventDefault();
-                        
+
                         const targetSection = this.getAttribute('data-section');
-                        
+
                         // Update active nav link
                         navLinks.forEach(nav => nav.classList.remove('active'));
                         this.classList.add('active');
-                        
-                        // Show target section
+
+                        // Hide all sections with fade effect
                         sections.forEach(section => {
-                            section.classList.remove('active');
+                            if (section.classList.contains('active')) {
+                                section.classList.remove('active');
+                                section.style.opacity = '0';
+                                setTimeout(() => {
+                                    section.style.display = 'none';
+                                }, 300);
+                            }
                         });
-                        
+
+                        // Show target section with fade effect
                         const targetElement = document.getElementById(targetSection + '-section');
                         if (targetElement) {
-                            targetElement.classList.add('active');
+                            setTimeout(() => {
+                                targetElement.style.display = 'block';
+                                targetElement.style.opacity = '0';
+                                targetElement.classList.add('active');
+
+                                // Trigger reflow for animation
+                                targetElement.offsetHeight;
+
+                                targetElement.style.opacity = '1';
+                                targetElement.style.transform = 'translateY(0)';
+                            }, 100);
+                        }
+
+                        // Scroll to top of content area
+                        const profileContent = document.querySelector('.profile-content');
+                        if (profileContent) {
+                            profileContent.scrollIntoView({ behavior: 'smooth', block: 'start' });
                         }
                     });
                 });
@@ -876,21 +1159,54 @@
             async function handlePersonalInfoSubmit(e) {
                 e.preventDefault();
 
-                const formData = new FormData(e.target);
-                const data = Object.fromEntries(formData);
+                const submitBtn = document.getElementById('savePersonalInfoBtn');
+                const loadingIndicator = document.getElementById('personalInfoLoading');
+                const messageDiv = document.getElementById('personalInfoMessage');
+                const form = e.target;
 
-                // Remove empty fields and convert date to ISO string if present
-                Object.keys(data).forEach(key => {
-                    if (data[key] === '' || data[key] === null || data[key] === undefined) {
-                        delete data[key];
-                    } else if (key === 'date_of_birth' && data[key]) {
-                        data[key] = new Date(data[key]).toISOString().split('T')[0];
-                    }
-                });
+                // Show loading state
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+                loadingIndicator.classList.remove('d-none');
 
-                console.log('📝 Submitting profile update:', data);
+                // Clear previous messages
+                messageDiv.classList.add('d-none');
+                messageDiv.className = 'd-none';
 
                 try {
+                    const formData = new FormData(form);
+                    const data = Object.fromEntries(formData);
+
+                    // Remove empty fields and convert date to ISO string if present
+                    Object.keys(data).forEach(key => {
+                        if (data[key] === '' || data[key] === null || data[key] === undefined) {
+                            delete data[key];
+                        } else if (key === 'date_of_birth' && data[key]) {
+                            data[key] = new Date(data[key]).toISOString().split('T')[0];
+                        }
+                    });
+
+                    // Validate required fields
+                    if (!data.full_name || data.full_name.trim().length < 2) {
+                        throw new Error('Full name must be at least 2 characters long');
+                    }
+
+                    if (!data.username || data.username.trim().length < 3) {
+                        throw new Error('Username must be at least 3 characters long');
+                    }
+
+                    // Validate phone number format if provided
+                    if (data.phone && !/^[0-9+\-\s()]{10,20}$/.test(data.phone)) {
+                        throw new Error('Please enter a valid phone number');
+                    }
+
+                    // Validate avatar URL format if provided
+                    if (data.avatar_url && !/^https?:\/\/.*\.(jpg|jpeg|png|gif|webp)$/i.test(data.avatar_url)) {
+                        throw new Error('Avatar URL must be a valid image URL (jpg, png, gif, webp)');
+                    }
+
+                    console.log('📝 Submitting profile update:', data);
+
                     const response = await fetch('/api/auth/profile', {
                         method: 'PUT',
                         headers: {
@@ -903,17 +1219,39 @@
                     if (response.ok) {
                         const result = await response.json();
                         console.log('✅ Profile updated successfully:', result);
-                        showSuccess('Profile updated successfully!');
+
+                        // Show success message
+                        messageDiv.className = 'alert alert-success';
+                        messageDiv.innerHTML = '<i class="fas fa-check-circle me-2"></i>Profile updated successfully!';
+                        messageDiv.classList.remove('d-none');
+
                         // Reload profile data to get updated values
                         await loadUserProfile();
+
+                        // Auto-hide success message after 3 seconds
+                        setTimeout(() => {
+                            messageDiv.classList.add('d-none');
+                        }, 3000);
+
                     } else {
                         const error = await response.json();
                         console.error('❌ Profile update failed:', error);
                         throw new Error(error.message || `Failed to update profile (${response.status})`);
                     }
+
                 } catch (error) {
                     console.error('❌ Error updating profile:', error);
-                    showError(error.message || 'Failed to update profile. Please try again.');
+
+                    // Show error message
+                    messageDiv.className = 'alert alert-danger';
+                    messageDiv.innerHTML = `<i class="fas fa-exclamation-triangle me-2"></i>${error.message || 'Failed to update profile. Please try again.'}`;
+                    messageDiv.classList.remove('d-none');
+
+                } finally {
+                    // Hide loading state
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-save me-2"></i>Save Changes';
+                    loadingIndicator.classList.add('d-none');
                 }
             }
             
@@ -1106,8 +1444,10 @@
             };
             
             // Utility functions
-            window.resetPersonalInfo = function() {
-                updatePersonalInfoForm();
+            window.refreshPersonalInfo = function() {
+                console.log('🔄 Refreshing personal info data...');
+                loadUserProfile();
+                showSuccess('Profile data refreshed successfully!');
             };
             
             window.resetPasswordForm = function() {
@@ -1139,21 +1479,26 @@
                 toast.setAttribute('role', 'alert');
                 toast.innerHTML = `
                     <div class="d-flex">
-                        <div class="toast-body">${message}</div>
+                        <div class="toast-body">
+                            <i class="fas fa-check-circle me-2"></i>${message}
+                        </div>
                         <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
                     </div>
                 `;
-                
+
                 document.body.appendChild(toast);
-                const bsToast = new bootstrap.Toast(toast);
+                const bsToast = new bootstrap.Toast(toast, {
+                    delay: 3000,
+                    autohide: true
+                });
                 bsToast.show();
-                
+
                 // Remove toast after it's hidden
                 toast.addEventListener('hidden.bs.toast', () => {
                     document.body.removeChild(toast);
                 });
             }
-            
+
             function showError(message) {
                 // Create and show error toast
                 const toast = document.createElement('div');
@@ -1161,19 +1506,64 @@
                 toast.setAttribute('role', 'alert');
                 toast.innerHTML = `
                     <div class="d-flex">
-                        <div class="toast-body">${message}</div>
+                        <div class="toast-body">
+                            <i class="fas fa-exclamation-triangle me-2"></i>${message}
+                        </div>
                         <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
                     </div>
                 `;
-                
+
                 document.body.appendChild(toast);
-                const bsToast = new bootstrap.Toast(toast);
+                const bsToast = new bootstrap.Toast(toast, {
+                    delay: 5000,
+                    autohide: true
+                });
                 bsToast.show();
-                
+
                 // Remove toast after it's hidden
                 toast.addEventListener('hidden.bs.toast', () => {
                     document.body.removeChild(toast);
                 });
+            }
+
+            function showLogoutSuccessToast() {
+                // Create and show logout success toast (positioned to be visible during redirect)
+                const toast = document.createElement('div');
+                toast.className = 'toast align-items-center text-white bg-info border-0';
+                toast.setAttribute('role', 'alert');
+                toast.innerHTML = `
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <i class="fas fa-sign-out-alt me-2"></i>Logging out...
+                        </div>
+                    </div>
+                `;
+
+                // Position the toast in the center of the screen
+                toast.style.position = 'fixed';
+                toast.style.top = '50%';
+                toast.style.left = '50%';
+                toast.style.transform = 'translate(-50%, -50%)';
+                toast.style.zIndex = '9999';
+                toast.style.minWidth = '200px';
+
+                document.body.appendChild(toast);
+                const bsToast = new bootstrap.Toast(toast, {
+                    delay: 1000,
+                    autohide: true
+                });
+                bsToast.show();
+
+                // Remove toast after it's hidden (or after a timeout)
+                const removeToast = () => {
+                    if (document.body.contains(toast)) {
+                        document.body.removeChild(toast);
+                    }
+                };
+
+                toast.addEventListener('hidden.bs.toast', removeToast);
+                // Fallback removal after 2 seconds
+                setTimeout(removeToast, 2000);
             }
             
             // Add debugging function

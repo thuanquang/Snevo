@@ -1,9 +1,9 @@
 // 👟 Product Routes - /api/products/*
 // Shoe product management routes
 
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const ProductController = require('../controllers/ProductController');
+import ProductController from '../controllers/productController.js';
 
 const productController = new ProductController();
 

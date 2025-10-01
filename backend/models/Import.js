@@ -1,11 +1,11 @@
 // 📥 Import Model - imports table
 // Handles inventory import data management
 
-const BaseModel = require('./BaseModel');
+import BaseModel from '../utils/BaseModel.js';
 
 class Import extends BaseModel {
-    constructor(supabaseClient) {
-        super('imports', supabaseClient);
+    constructor() {
+        super('imports');
     }
 
     // Get imports by user ID
@@ -27,4 +27,4 @@ class Import extends BaseModel {
     }
 }
 
-module.exports = Import;
+export default Import;

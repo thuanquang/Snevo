@@ -1,9 +1,9 @@
 // 📥 Import Routes - /api/imports/*
 // Inventory import management routes
 
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const ImportController = require('../controllers/ImportController');
+import ImportController from '../controllers/ImportController.js';
 
 const importController = new ImportController();
 

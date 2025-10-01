@@ -37,4 +37,4 @@ class ImportController {
     }
 }
 
-module.exports = ImportController;
+export default ImportController;

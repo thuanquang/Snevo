@@ -1,9 +1,9 @@
 // 💳 Payment Routes - /api/payments/*
 // Payment management routes
 
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const PaymentController = require('../controllers/PaymentController');
+import PaymentController from '../controllers/PaymentController.js';
 
 const paymentController = new PaymentController();
 

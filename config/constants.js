@@ -131,7 +131,26 @@ export const JWT_CONFIG = {
     ALGORITHM: 'HS256'
 };
 
+// Table names (schema is now handled by Supabase client configuration)
 export const DATABASE_TABLES = {
+    PROFILES: 'profiles',
+    ADDRESSES: 'addresses',
+    CATEGORIES: 'categories',
+    SHOES: 'shoes',
+    COLORS: 'colors',
+    SIZES: 'sizes',
+    SHOE_VARIANTS: 'shoe_variants',
+    SUPPLIERS: 'suppliers',
+    IMPORTS: 'imports',
+    ORDERS: 'orders',
+    ORDER_ITEMS: 'order_items',
+    PAYMENTS: 'payments',
+    REVIEWS: 'reviews',
+    WISHLISTS: 'wishlists'
+};
+
+// Table names without schema prefix (for BaseModel constructor)
+export const TABLE_NAMES = {
     PROFILES: 'profiles',
     ADDRESSES: 'addresses',
     CATEGORIES: 'categories',
@@ -243,6 +262,7 @@ export default {
     CORS_CONFIG,
     JWT_CONFIG,
     DATABASE_TABLES,
+    TABLE_NAMES,
     ERROR_MESSAGES,
     SUCCESS_MESSAGES,
     FRONTEND_ROUTES,

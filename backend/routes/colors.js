@@ -1,9 +1,9 @@
 // 🎨 Color Routes - /api/colors/*
 // Color management routes
 
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const ColorController = require('../controllers/ColorController');
+import ColorController from '../controllers/ColorController.js';
 
 const colorController = new ColorController();
 

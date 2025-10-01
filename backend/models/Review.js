@@ -1,11 +1,11 @@
 // ⭐ Review Model - reviews table
 // Handles product review data management
 
-const BaseModel = require('./BaseModel');
+import BaseModel from '../utils/BaseModel.js';
 
 class Review extends BaseModel {
-    constructor(supabaseClient) {
-        super('reviews', supabaseClient);
+    constructor() {
+        super('reviews');
     }
 
     // Get reviews by shoe ID
@@ -33,4 +33,4 @@ class Review extends BaseModel {
     }
 }
 
-module.exports = Review;
+export default Review;

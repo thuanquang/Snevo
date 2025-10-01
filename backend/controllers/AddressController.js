@@ -37,4 +37,4 @@ class AddressController {
     }
 }
 
-module.exports = AddressController;
+export default AddressController;

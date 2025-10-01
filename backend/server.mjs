@@ -7,6 +7,12 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { createClient } from '@supabase/supabase-js';
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config({
+  path: path.join(process.cwd(), '.env')
+});
 
 // Import middleware and utilities
 import authMiddleware from './middleware/auth.js';

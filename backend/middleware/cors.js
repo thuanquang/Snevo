@@ -27,4 +27,4 @@ class CorsMiddleware {
     }
 }
 
-module.exports = new CorsMiddleware();
+export default new CorsMiddleware();

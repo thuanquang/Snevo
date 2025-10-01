@@ -1,11 +1,11 @@
 // 👟 Shoe Model - shoes table
 // Handles shoe product data management
 
-const BaseModel = require('./BaseModel');
+import BaseModel from '../utils/BaseModel.js';
 
 class Shoe extends BaseModel {
-    constructor(supabaseClient) {
-        super('shoes', supabaseClient);
+    constructor() {
+        super('shoes');
     }
 
     // Get active shoes
@@ -33,4 +33,4 @@ class Shoe extends BaseModel {
     }
 }
 
-module.exports = Shoe;
+export default Shoe;

@@ -37,4 +37,4 @@ class ColorController {
     }
 }
 
-module.exports = ColorController;
+export default ColorController;
