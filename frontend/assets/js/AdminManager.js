@@ -61,7 +61,7 @@ class AdminManager {
         this.bindUI();
         this.initModals();
         await this.preloadData();
-        await Promise.all([this.loadCategories(), this.loadVariants()]);
+        await Promise.all([this.loadCategories(), this.loadShoes(), this.loadVariants()]);
     }
 
     bindUI() {
@@ -79,6 +79,9 @@ class AdminManager {
             btn.addEventListener('click', () => this.openVariantModal());
         });
 
+        const newShoeBtn = document.getElementById('btnNewShoe');
+        if (newShoeBtn) newShoeBtn.addEventListener('click', () => this.openShoeModal());
+
         const search = document.getElementById('variantSearch');
         if (search) search.addEventListener('input', () => this.renderVariants());
 
@@ -90,6 +93,9 @@ class AdminManager {
 
         const stockForm = document.getElementById('stockForm');
         if (stockForm) stockForm.addEventListener('submit', (e) => this.submitStock(e));
+
+        const shoeForm = document.getElementById('shoeForm');
+        if (shoeForm) shoeForm.addEventListener('submit', (e) => this.submitShoe(e));
     }
 
     initModals() {
@@ -97,6 +103,7 @@ class AdminManager {
             this.modals.category = new bootstrap.Modal(document.getElementById('categoryModal'));
             this.modals.variant = new bootstrap.Modal(document.getElementById('variantModal'));
             this.modals.stock = new bootstrap.Modal(document.getElementById('stockModal'));
+            this.modals.shoe = new bootstrap.Modal(document.getElementById('shoeModal'));
         } catch (e) {
             console.warn('Bootstrap modal not available', e);
         }
@@ -105,15 +112,17 @@ class AdminManager {
     async preloadData() {
         // Load lookup tables
         const client = this.sb.schema(this.schema);
-        const [shoes, colors, sizes] = await Promise.all([
+        const [shoes, colors, sizes, categories] = await Promise.all([
             client.from('shoes').select('shoe_id, shoe_name').order('shoe_name'),
             client.from('colors').select('color_id, color_name').order('color_name'),
-            client.from('sizes').select('size_id, size_value, size_type').order('size_value')
+            client.from('sizes').select('size_id, size_value, size_type').order('size_value'),
+            client.from('categories').select('category_id, category_name').order('category_name')
         ]);
 
         this.state.shoes = shoes.data || [];
         this.state.colors = colors.data || [];
         this.state.sizes = sizes.data || [];
+        this.state.categories = categories.data || this.state.categories;
 
         // Fill selects
         const shoeSel = document.getElementById('variant_shoe');
@@ -122,6 +131,9 @@ class AdminManager {
         if (shoeSel) shoeSel.innerHTML = this.state.shoes.map(s => `<option value="${s.shoe_id}">${s.shoe_name}</option>`).join('');
         if (colorSel) colorSel.innerHTML = this.state.colors.map(c => `<option value="${c.color_id}">${c.color_name}</option>`).join('');
         if (sizeSel) sizeSel.innerHTML = this.state.sizes.map(s => `<option value="${s.size_id}">${s.size_value} ${s.size_type}</option>`).join('');
+
+        const shoeCatSel = document.getElementById('shoe_category');
+        if (shoeCatSel) shoeCatSel.innerHTML = this.state.categories.map(c => `<option value="${c.category_id}">${c.category_name}</option>`).join('');
     }
 
     // Categories
@@ -134,6 +146,126 @@ class AdminManager {
         }
         this.state.categories = data || [];
         this.renderCategories();
+    }
+
+    // Shoes
+    async loadShoes() {
+        const { data, error } = await this.sb.schema(this.schema).from('shoes').select('*').order('created_at', { ascending: false });
+        if (error) {
+            console.error('Load shoes error:', error);
+            this.toast(error.message || 'Failed to load shoes', 'error');
+            return;
+        }
+        // join with categories
+        const catMap = new Map(this.state.categories.map(c => [c.category_id, c]));
+        this.state.shoes = data || [];
+        const joined = this.state.shoes.map(s => ({ ...s, category: catMap.get(s.category_id) || null }));
+        this.renderShoes(joined);
+    }
+
+    renderShoes(rows) {
+        const tbody = document.getElementById('shoesTableBody');
+        if (!tbody) return;
+        tbody.innerHTML = rows.map(s => `
+            <tr>
+                <td>${s.shoe_id}</td>
+                <td>${this.escapeHtml(s.category?.category_name || '')}</td>
+                <td>${this.escapeHtml(s.shoe_name || '')}</td>
+                <td>${Number(s.base_price || 0).toFixed(2)}</td>
+                <td><span class="badge ${s.is_active ? 'bg-success' : 'bg-secondary'}">${s.is_active ? 'Yes' : 'No'}</span></td>
+                <td class="d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-primary" data-action="edit-shoe" data-id="${s.shoe_id}"><i class="fas fa-edit"></i></button>
+                    <button class="btn btn-sm btn-outline-danger" data-action="delete-shoe" data-id="${s.shoe_id}"><i class="fas fa-trash"></i></button>
+                </td>
+            </tr>
+        `).join('');
+
+        tbody.querySelectorAll('button[data-action="edit-shoe"]').forEach(btn => btn.addEventListener('click', (e) => {
+            const id = Number(e.currentTarget.getAttribute('data-id'));
+            const s = this.state.shoes.find(x => x.shoe_id === id);
+            if (s) this.openShoeModal(s);
+        }));
+
+        tbody.querySelectorAll('button[data-action="delete-shoe"]').forEach(btn => btn.addEventListener('click', (e) => {
+            const id = Number(e.currentTarget.getAttribute('data-id'));
+            this.deleteShoe(id);
+        }));
+    }
+
+    openShoeModal(shoe = null) {
+        const title = document.getElementById('shoeModalTitle');
+        const idEl = document.getElementById('shoe_id');
+        const catEl = document.getElementById('shoe_category');
+        const nameEl = document.getElementById('shoe_name');
+        const descEl = document.getElementById('shoe_description');
+        const priceEl = document.getElementById('shoe_base_price');
+        const imgEl = document.getElementById('shoe_image_url');
+        const actEl = document.getElementById('shoe_active');
+
+        if (shoe) {
+            title.textContent = 'Edit Shoe';
+            idEl.value = shoe.shoe_id;
+            catEl.value = String(shoe.category_id);
+            nameEl.value = shoe.shoe_name || '';
+            descEl.value = shoe.description || '';
+            priceEl.value = shoe.base_price ?? '';
+            imgEl.value = shoe.image_url || '';
+            actEl.checked = !!shoe.is_active;
+        } else {
+            title.textContent = 'New Shoe';
+            idEl.value = '';
+            catEl.value = catEl.options[0]?.value || '';
+            nameEl.value = '';
+            descEl.value = '';
+            priceEl.value = '';
+            imgEl.value = '';
+            actEl.checked = true;
+        }
+        this.modals.shoe?.show();
+    }
+
+    async submitShoe(e) {
+        e.preventDefault();
+        const id = Number(document.getElementById('shoe_id').value || 0);
+        const category_id = Number(document.getElementById('shoe_category').value);
+        const shoe_name = (document.getElementById('shoe_name').value || '').trim();
+        const description = (document.getElementById('shoe_description').value || '').trim();
+        const base_price = Number(document.getElementById('shoe_base_price').value || 0);
+        const image_url = (document.getElementById('shoe_image_url').value || '').trim();
+        const is_active = document.getElementById('shoe_active').checked;
+
+        if (!category_id || !shoe_name || base_price < 0) {
+            return this.toast('Please fill required fields with valid values', 'error');
+        }
+
+        const client = this.sb.schema(this.schema).from('shoes');
+        let result;
+        if (id > 0) {
+            result = await client.update({ category_id, shoe_name, description, base_price, image_url, is_active }).eq('shoe_id', id).select('*').single();
+        } else {
+            result = await client.insert({ category_id, shoe_name, description, base_price, image_url, is_active }).select('*').single();
+        }
+
+        if (result.error) {
+            console.error('Save shoe error:', result.error);
+            this.toast(result.error.message || 'Failed to save shoe', 'error');
+            return;
+        }
+        this.modals.shoe?.hide();
+        await this.loadShoes();
+        this.toast('Shoe saved', 'success');
+    }
+
+    async deleteShoe(id) {
+        if (!confirm('Delete this shoe?')) return;
+        const { error } = await this.sb.schema(this.schema).from('shoes').delete().eq('shoe_id', id);
+        if (error) {
+            console.error('Delete shoe error:', error);
+            this.toast(error.message || 'Failed to delete shoe', 'error');
+            return;
+        }
+        await this.loadShoes();
+        this.toast('Shoe deleted', 'success');
     }
 
     renderCategories() {

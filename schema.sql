@@ -367,6 +367,65 @@ WITH CHECK (auth.uid() = user_id);
 
 
 -- ===================================
+-- Seller management policies (frontend writes)
+-- ===================================
+
+-- Allow sellers to fully manage categories
+ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Sellers can manage categories" ON categories;
+CREATE POLICY "Sellers can manage categories"
+ON categories FOR ALL
+USING (
+    EXISTS (
+        SELECT 1 FROM profiles p
+        WHERE p.user_id = auth.uid() AND p.role = 'seller'
+    )
+)
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM profiles p
+        WHERE p.user_id = auth.uid() AND p.role = 'seller'
+    )
+);
+
+-- Allow sellers to fully manage shoes
+ALTER TABLE shoes ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Sellers can manage shoes" ON shoes;
+CREATE POLICY "Sellers can manage shoes"
+ON shoes FOR ALL
+USING (
+    EXISTS (
+        SELECT 1 FROM profiles p
+        WHERE p.user_id = auth.uid() AND p.role = 'seller'
+    )
+)
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM profiles p
+        WHERE p.user_id = auth.uid() AND p.role = 'seller'
+    )
+);
+
+-- Allow sellers to fully manage variants
+ALTER TABLE shoe_variants ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Sellers can manage variants" ON shoe_variants;
+CREATE POLICY "Sellers can manage variants"
+ON shoe_variants FOR ALL
+USING (
+    EXISTS (
+        SELECT 1 FROM profiles p
+        WHERE p.user_id = auth.uid() AND p.role = 'seller'
+    )
+)
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM profiles p
+        WHERE p.user_id = auth.uid() AND p.role = 'seller'
+    )
+);
+
+
+-- ===================================
 -- 8. Triggers and Functions
 -- ===================================
 
