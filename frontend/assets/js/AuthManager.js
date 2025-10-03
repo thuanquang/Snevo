@@ -15,6 +15,7 @@ class AuthManager {
             ...options
         };
         this.listeners = new Map();
+        this.profileRoleLoaded = false;
         
         if (this.options.autoInit) {
             // Wait for DOM to be ready
@@ -24,6 +25,39 @@ class AuthManager {
                 this.initialize();
             }
         }
+    }
+
+    /**
+     * Fetch profile from db_nike.profiles and attach role to currentUser
+     */
+    async fetchAndAttachProfileRole(userId) {
+        try {
+            if (!this.supabaseClient) return false;
+            const { data, error } = await this.supabaseClient
+                .schema('db_nike')
+                .from('profiles')
+                .select('username, full_name, email, role')
+                .eq('user_id', userId)
+                .single();
+            if (error) {
+                console.warn('Failed to fetch profile role:', error.message || error);
+                return false;
+            }
+            if (this.currentUser) {
+                this.currentUser = {
+                    ...this.currentUser,
+                    username: data?.username || this.currentUser.username,
+                    full_name: data?.full_name || this.currentUser.full_name,
+                    email: data?.email || this.currentUser.email,
+                    role: data?.role || this.currentUser.role || 'customer'
+                };
+                this.profileRoleLoaded = true;
+                return true;
+            }
+        } catch (e) {
+            console.warn('fetchAndAttachProfileRole error:', e?.message || e);
+        }
+        return false;
     }
 
     /**
@@ -42,6 +76,20 @@ class AuthManager {
                 console.log('No existing token found');
             }
             
+            // If Supabase client is available, try to load current user and profile role
+            if (this.supabaseClient?.auth) {
+                try {
+                    const { data } = await this.supabaseClient.auth.getUser();
+                    if (data?.user) {
+                        // Ensure currentUser is set from Supabase user and attach role from profiles
+                        this.currentUser = data.user;
+                        await this.fetchAndAttachProfileRole(data.user.id);
+                    }
+                } catch (e) {
+                    console.warn('Supabase getUser failed:', e?.message || e);
+                }
+            }
+
             // Listen for auth state changes
             if (this.supabaseClient) {
                 this.supabaseClient.auth.onAuthStateChange((event, session) => {
@@ -191,7 +239,10 @@ class AuthManager {
                     this.setAuthToken(session.access_token);
                     this.setRefreshToken(session.refresh_token);
                     this.currentUser = session.user;
-                    this.updateAuthUI();
+                    // Fetch role from db_nike.profiles and update UI accordingly
+                    this.fetchAndAttachProfileRole(session.user.id).finally(() => {
+                        this.updateAuthUI();
+                    });
                     this.emit('signedIn', { user: this.currentUser, session });
                     
                     // Handle OAuth redirect
@@ -243,6 +294,14 @@ class AuthManager {
             const response = await authAPI.getProfile();
             if (response.success) {
                 this.currentUser = response.data.user;
+                // Ensure role is attached from profiles table
+                if (this.currentUser?.id && this.supabaseClient) {
+                    try {
+                        await this.fetchAndAttachProfileRole(this.currentUser.id);
+                    } catch (e) {
+                        console.warn('Failed to attach role after profile fetch:', e?.message || e);
+                    }
+                }
                 this.emit('sessionValidated', { user: this.currentUser });
                 return true;
             } else {
@@ -282,6 +341,14 @@ class AuthManager {
                     this.setAuthToken(refreshResponse.data.session.access_token);
                     this.setRefreshToken(refreshResponse.data.session.refresh_token);
                     this.currentUser = refreshResponse.data.session.user;
+                    // Attach role after refresh as well
+                    if (this.currentUser?.id && this.supabaseClient) {
+                        try {
+                            await this.fetchAndAttachProfileRole(this.currentUser.id);
+                        } catch (e) {
+                            console.warn('Failed to attach role after refresh:', e?.message || e);
+                        }
+                    }
                     this.emit('sessionRefreshed', { user: this.currentUser });
                     return true;
                 }
@@ -293,15 +360,14 @@ class AuthManager {
         // If we have a token but profile API is failing, create a minimal user object
         const token = this.getAuthToken();
         if (token) {
-            console.log('Profile API unavailable, but token exists - maintaining session');
-            // Create a minimal user object to maintain the session
+            console.log('Profile API unavailable, but token exists - maintaining limited session (no role)');
+            // Maintain a limited session without assigning a role to avoid misleading UI
             this.currentUser = {
                 id: 'temp-user',
                 email: 'user@example.com',
                 username: 'User',
                 full_name: 'User',
-                email_verified: true,
-                role: 'customer'
+                email_verified: true
             };
             this.emit('sessionValidated', { user: this.currentUser });
             return true;
@@ -644,7 +710,10 @@ class AuthManager {
             return;
         }
         
-        if (this.currentUser && this.isAuthenticated()) {
+        const isAuthed = this.isAuthenticated();
+        const role = this.currentUser?.role;
+
+        if (this.currentUser && isAuthed && role) {
             // User is logged in
             const userName = this.currentUser.username || this.currentUser.full_name || this.currentUser.email || 'User';
             console.log('User is authenticated, updating UI for:', userName);
@@ -666,9 +735,11 @@ class AuthManager {
                 }
             };
             
+            const targetPage = role === 'seller' ? 'admin.html' : 'profile.html';
+            const linkId = role === 'seller' ? 'adminLink' : 'profileLink';
             authButtons.innerHTML = `
                 <li class="nav-item">
-                    <a class="nav-link" href="${getRelativePath('profile.html')}" id="profileLink">
+                    <a class="nav-link" href="${getRelativePath(targetPage)}" id="${linkId}">
                         <i class="fas fa-user-circle"></i> ${userName}
                     </a>
                 </li>
@@ -676,16 +747,9 @@ class AuthManager {
             
             // Add click handler for profile link
             setTimeout(() => {
-                const profileLink = document.getElementById('profileLink');
-                
-                console.log('Profile link found:', profileLink);
-                console.log('Profile link href:', profileLink ? profileLink.href : 'Not found');
-                
-                if (profileLink) {
-                    profileLink.addEventListener('click', function(e) {
-                        console.log('Profile link clicked - navigating to:', profileLink.href);
-                        // Let the default navigation behavior work
-                    });
+                const roleLink = document.getElementById('adminLink') || document.getElementById('profileLink');
+                if (roleLink) {
+                    console.log('Role link found:', roleLink, 'href:', roleLink.href);
                 }
             }, 50);
         } else {
