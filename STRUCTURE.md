@@ -1,4 +1,4 @@
-# SNEVO E-COMMERCE PLATFORM - NEW STRUCTURE
+# SNEVO E-COMMERCE PLATFORM - NEW STRUCTURE (updated)
 
 ## PROJECT OVERVIEW
 **Name**: Snevo E-commerce Platform  
@@ -143,6 +143,8 @@ The unified navbar system provides consistent navigation across all pages with p
 ### Key Components
 - **`frontend/components/navbar.html`**: Unified navbar template with Bootstrap styling
 - **`frontend/assets/js/NavbarManager.js`**: Manages navbar rendering, state updates, and overrides
+  - Role-aware integration: works with `AuthManager.updateAuthUI()` output (`#authButtons`)
+  - Seller users will see link to `admin.html`; customers to `profile.html`
 - **`frontend/components/navbar-overrides.js`**: Preset override configurations for different page types
 
 ### Implementation
@@ -150,6 +152,13 @@ The unified navbar system provides consistent navigation across all pages with p
 - **Override System**: Supports `window.NAVBAR_OVERRIDES` and `data-navbar-*` attributes
 - **State Synchronization**: Automatically syncs with AuthManager and CartManager
 - **Path Resolution**: Handles relative paths automatically based on current page location
+
+### Auth/Role Integration (Updated)
+- `AuthManager.updateAuthUI()` now renders admin/profile links only when a valid session AND a real `currentUser.role` are present; otherwise it renders a Login button.
+- After validating or refreshing a session, `AuthManager` attaches role data from `db_nike.profiles` using `fetchAndAttachProfileRole(userId)`.
+- Temporary sessions created when the profile API is unavailable no longer assign a role, preventing misleading admin/profile links.
+- `AdminManager.initialize()` revalidates the session, ensures role is attached, and only then enforces `seller` access.
+- `profile.html` revalidates session on load and strictly redirects to login when not authenticated.
 
 ### Override Examples
 ```javascript
@@ -233,10 +242,11 @@ Photo Upload → Review Submission → Review Display
 ### Flow 9: Advanced Search & Filtering
 Search Bar Focus → Search Query → Product Selection
 
-### Flow 10: Admin Product Management
-Admin Login → Dashboard Overview → Product List → Add New Product → 
-Category Assignment → Variant Creation → Price Setting → Image Upload → 
-Product Publish
+### Flow 10: Admin Product & Inventory Management (Supabase frontend)
+Seller Login → Admin Dashboard →
+- Categories: list/create/update/delete (subject to RLS permissions)
+- Variants (`shoe_variants`): list/create/update/delete
+- Stock: add via `imports` insert (triggers stock increase)
 
 ### Flow 11: Admin Inventory Management
 Inventory Dashboard → Stock Levels Review → Low Stock Alerts (mock) → Import Order → Stock Update → Alert Notification
