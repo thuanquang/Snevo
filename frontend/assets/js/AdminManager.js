@@ -19,12 +19,33 @@ class AdminManager {
     async initialize() {
         // Require auth and seller role
         if (!window.authManager) return alert('Auth not available');
+
+        // Revalidate/refresh session before checks
+        try {
+            if (window.authManager && typeof window.authManager.validateAndRefreshSession === 'function') {
+                await window.authManager.validateAndRefreshSession();
+            }
+        } catch (e) {
+            console.warn('Session revalidation failed:', e);
+        }
+
         if (!window.authManager.isAuthenticated()) {
             const returnUrl = encodeURIComponent(window.location.href);
             window.location.href = `login.html?return=${returnUrl}`;
             return;
         }
-        const user = window.authManager.getCurrentUser();
+        let user = window.authManager.getCurrentUser();
+
+        // Ensure role is attached before enforcing seller-only access
+        if (user && !user.role && window.authManager.supabaseClient) {
+            try {
+                await window.authManager.fetchAndAttachProfileRole(user.id);
+                user = window.authManager.getCurrentUser();
+            } catch (e) {
+                console.warn('Failed to attach profile role:', e);
+            }
+        }
+
         if (!user || user.role !== 'seller') {
             alert('Access denied. Seller role required.');
             window.location.href = 'index.html';

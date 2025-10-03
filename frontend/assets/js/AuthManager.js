@@ -294,6 +294,14 @@ class AuthManager {
             const response = await authAPI.getProfile();
             if (response.success) {
                 this.currentUser = response.data.user;
+                // Ensure role is attached from profiles table
+                if (this.currentUser?.id && this.supabaseClient) {
+                    try {
+                        await this.fetchAndAttachProfileRole(this.currentUser.id);
+                    } catch (e) {
+                        console.warn('Failed to attach role after profile fetch:', e?.message || e);
+                    }
+                }
                 this.emit('sessionValidated', { user: this.currentUser });
                 return true;
             } else {
@@ -333,6 +341,14 @@ class AuthManager {
                     this.setAuthToken(refreshResponse.data.session.access_token);
                     this.setRefreshToken(refreshResponse.data.session.refresh_token);
                     this.currentUser = refreshResponse.data.session.user;
+                    // Attach role after refresh as well
+                    if (this.currentUser?.id && this.supabaseClient) {
+                        try {
+                            await this.fetchAndAttachProfileRole(this.currentUser.id);
+                        } catch (e) {
+                            console.warn('Failed to attach role after refresh:', e?.message || e);
+                        }
+                    }
                     this.emit('sessionRefreshed', { user: this.currentUser });
                     return true;
                 }
@@ -344,15 +360,14 @@ class AuthManager {
         // If we have a token but profile API is failing, create a minimal user object
         const token = this.getAuthToken();
         if (token) {
-            console.log('Profile API unavailable, but token exists - maintaining session');
-            // Create a minimal user object to maintain the session
+            console.log('Profile API unavailable, but token exists - maintaining limited session (no role)');
+            // Maintain a limited session without assigning a role to avoid misleading UI
             this.currentUser = {
                 id: 'temp-user',
                 email: 'user@example.com',
                 username: 'User',
                 full_name: 'User',
-                email_verified: true,
-                role: 'customer'
+                email_verified: true
             };
             this.emit('sessionValidated', { user: this.currentUser });
             return true;
@@ -695,11 +710,12 @@ class AuthManager {
             return;
         }
         
-        if (this.currentUser && this.isAuthenticated()) {
+        const isAuthed = this.isAuthenticated();
+        const role = this.currentUser?.role;
+
+        if (this.currentUser && isAuthed && role) {
             // User is logged in
             const userName = this.currentUser.username || this.currentUser.full_name || this.currentUser.email || 'User';
-            // Ensure role exists (fallback to customer)
-            const role = this.currentUser.role || 'customer';
             console.log('User is authenticated, updating UI for:', userName);
             
             // Determine correct relative path based on current page

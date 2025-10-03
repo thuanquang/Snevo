@@ -644,28 +644,26 @@
                 console.log('AuthManager available:', !!window.authManager);
                 
                 // Wait for AuthManager to be available and initialized
-                waitForAuthManager().then(() => {
+                waitForAuthManager().then(async () => {
                     console.log('AuthManager ready');
                     console.log('Is authenticated:', window.authManager.isAuthenticated());
                     console.log('Current user:', window.authManager.getCurrentUser());
                     
-                    // Check authentication - be more lenient with API failures
-                    if (!window.authManager.isAuthenticated()) {
-                        console.log('❌ User not authenticated, checking if we have a token...');
-                        
-                        // If we have a token but AuthManager says not authenticated, 
-                        // it might be due to API failures - don't redirect immediately
-                        const hasToken = localStorage.getItem('auth_token');
-                        if (hasToken) {
-                            console.log('⚠️ Have token but AuthManager says not authenticated - likely API issue');
-                            console.log('Proceeding with profile page anyway to avoid redirect loop');
-                        } else {
-                            console.log('❌ No token found, redirecting to login');
-                            const returnUrl = encodeURIComponent(window.location.href);
-                            console.log('Return URL will be:', returnUrl);
-                            window.location.href = 'login.html?return=' + returnUrl;
-                            return;
+                    // Revalidate session first to avoid stale state
+                    try {
+                        if (window.authManager && typeof window.authManager.validateAndRefreshSession === 'function') {
+                            await window.authManager.validateAndRefreshSession();
                         }
+                    } catch (e) {
+                        console.warn('Profile page revalidation failed:', e);
+                    }
+
+                    // Enforce authentication strictly for profile
+                    if (!window.authManager.isAuthenticated()) {
+                        console.log('❌ Not authenticated after revalidation, redirecting to login');
+                        const returnUrl = encodeURIComponent(window.location.href);
+                        window.location.href = 'login.html?return=' + returnUrl;
+                        return;
                     }
                     
                     console.log('✅ User is authenticated, proceeding with profile page');
