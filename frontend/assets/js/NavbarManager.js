@@ -291,7 +291,7 @@ class NavbarManager {
         const navbarRoot = document.getElementById('navbarRoot');
         
         const navbarHTML = `
-            <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top shadow-sm" id="unifiedNavbar" style="margin: 0; padding-left: 30px; padding-right: 30px;">
+            <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top " id="unifiedNavbar" style="margin: 0;">
                 <div class="container">
                     <a class="navbar-brand" href="#" data-navbar-brand>
                         <img src="../assets/images/ui/logo.svg" alt="SNEVO" height="50">

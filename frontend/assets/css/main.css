@@ -15,6 +15,13 @@ body {
     background-color: #fff;
 }
 
+/* Custom container width */
+.container {
+    max-width: 1980px !important;
+    padding-left: 60px;
+    padding-right: 60px;
+}
+
 /* Nike-style typography */
 h1, h2, h3, h4, h5, h6 {
     font-weight: 700;
@@ -105,6 +112,28 @@ h1, h2, h3, h4, h5, h6 {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+/* Brand Carousel Animation */
+.brands-slider {
+    animation: slideLogos 20s linear infinite;
+    display: flex;
+    align-items: center;
+}
+
+.brand-item {
+    transition: all 0.3s ease;
+    opacity: 0.7;
+}
+
+.brand-item:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+@keyframes slideLogos {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
 }
 
 /* Email Verification Notice Styles */
