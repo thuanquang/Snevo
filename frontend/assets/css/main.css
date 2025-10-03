@@ -58,15 +58,6 @@ h1, h2, h3, h4, h5, h6 {
     transition: none;
 }
 
-/* Remove hover effects for product cards */
-.product-card {
-    transition: none !important;
-}
-
-.product-card:hover {
-    transform: none !important;
-    box-shadow: none !important;
-}
 
 /* Nike-style navigation */
 .nav-nike {
