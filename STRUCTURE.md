@@ -1,4 +1,4 @@
-# SNEVO E-COMMERCE PLATFORM - NEW STRUCTURE
+# SNEVO E-COMMERCE PLATFORM - NEW STRUCTURE (updated)
 
 ## PROJECT OVERVIEW
 **Name**: Snevo E-commerce Platform  
@@ -143,6 +143,8 @@ The unified navbar system provides consistent navigation across all pages with p
 ### Key Components
 - **`frontend/components/navbar.html`**: Unified navbar template with Bootstrap styling
 - **`frontend/assets/js/NavbarManager.js`**: Manages navbar rendering, state updates, and overrides
+  - Role-aware integration: works with `AuthManager.updateAuthUI()` output (`#authButtons`)
+  - Seller users will see link to `admin.html`; customers to `profile.html`
 - **`frontend/components/navbar-overrides.js`**: Preset override configurations for different page types
 
 ### Implementation
@@ -233,10 +235,11 @@ Photo Upload → Review Submission → Review Display
 ### Flow 9: Advanced Search & Filtering
 Search Bar Focus → Search Query → Product Selection
 
-### Flow 10: Admin Product Management
-Admin Login → Dashboard Overview → Product List → Add New Product → 
-Category Assignment → Variant Creation → Price Setting → Image Upload → 
-Product Publish
+### Flow 10: Admin Product & Inventory Management (Supabase frontend)
+Seller Login → Admin Dashboard →
+- Categories: list/create/update/delete (subject to RLS permissions)
+- Variants (`shoe_variants`): list/create/update/delete
+- Stock: add via `imports` insert (triggers stock increase)
 
 ### Flow 11: Admin Inventory Management
 Inventory Dashboard → Stock Levels Review → Low Stock Alerts (mock) → Import Order → Stock Update → Alert Notification

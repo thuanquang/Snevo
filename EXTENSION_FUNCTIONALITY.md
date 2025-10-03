@@ -24,12 +24,13 @@ Override Examples:
 - Cart: `{ hideCart: true, customActions: ['continue-shopping'] }`
 
 Auth/Login Behavior (Google-only)
---------------------------------
+---------------------------------
 - Global modal is injected by `frontend/assets/js/Application.js#initializeLoginModal`.
 - Exposes `window.showLoginModal()` to open modal.
 - All anchors pointing to `login.html` are intercepted to open modal instead of navigating.
 - `AuthManager.loginWithGoogle()` now redirects back to `window.location.href` after OAuth.
 - `AuthManager.updateAuthUI()` renders a `Login` link that calls the modal via `#globalLoginLink`.
+- Role-aware navbar: when authenticated, customers see a link to `profile.html`; sellers see a link to `admin.html`.
 - Protected page access triggers modal instead of redirect.
 - Fallbacks: if modal isn't ready, code falls back to `login.html` navigation in ApiClient/cart.
 
