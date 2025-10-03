@@ -647,7 +647,7 @@ class AuthManager {
         if (this.currentUser && this.isAuthenticated()) {
             // User is logged in
             const userName = this.currentUser.username || this.currentUser.full_name || this.currentUser.email || 'User';
-            console.log('User is authenticated, updating UI with user dropdown for:', userName);
+            console.log('User is authenticated, updating UI for:', userName);
             
             // Determine correct relative path based on current page
             const getRelativePath = (targetPage) => {

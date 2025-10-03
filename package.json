@@ -34,7 +34,6 @@
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
-    "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "mime-types": "^2.1.35",
     "uuid": "^9.0.1"
