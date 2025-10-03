@@ -54,9 +54,18 @@ h1, h2, h3, h4, h5, h6 {
     transition: all 0.3s ease;
 }
 
-.card-nike:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+.card-nike {
+    transition: none;
+}
+
+/* Remove hover effects for product cards */
+.product-card {
+    transition: none !important;
+}
+
+.product-card:hover {
+    transform: none !important;
+    box-shadow: none !important;
 }
 
 /* Nike-style navigation */
