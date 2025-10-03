@@ -28,7 +28,7 @@ export default class BaseModel {
      * Get the fully qualified table name with schema
      */
     getQualifiedTableName() {
-        return `${this.schemaName}.${this.tableName}`;
+        return `${this.tableName}`;
     }
 
     /**
