@@ -20,22 +20,46 @@ class AuthController {
                 return;
             }
 
-            // For now, return a mock successful login
-            // In a real implementation, you would validate against Supabase Auth
-            const mockUser = {
-                id: 'user_' + Date.now(),
+            // Import Supabase config
+            const createSupabaseConfig = (await import('../../config/supabase.js')).default;
+            const supabaseConfig = createSupabaseConfig();
+
+            // Use real Supabase Auth
+            const { data, error } = await supabaseConfig.getClient().auth.signInWithPassword({
                 email: email,
-                username: email.split('@')[0],
-                full_name: email.split('@')[0],
-                role: 'customer'
-            };
+                password: password
+            });
+
+            if (error) {
+                res.writeHead(401, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({
+                    success: false,
+                    message: 'Invalid email or password'
+                }));
+                return;
+            }
+
+            // Get user profile data if models are available
+            const Profile = this.models?.Profile;
+            let profile = null;
+
+            if (Profile && data.user) {
+                profile = await Profile.findByUserId(data.user.id);
+            }
 
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({
                 success: true,
                 message: 'Login successful',
-                user: mockUser,
-                token: 'mock_jwt_token_' + Date.now()
+                user: {
+                    id: data.user.id,
+                    email: data.user.email,
+                    username: data.user.user_metadata?.username || data.user.email?.split('@')[0],
+                    full_name: data.user.user_metadata?.full_name || '',
+                    role: data.user.user_metadata?.role || 'customer'
+                },
+                token: data.session?.access_token,
+                profile: profile
             }));
         } catch (error) {
             console.error('Login error:', error);
@@ -61,22 +85,44 @@ class AuthController {
                 return;
             }
 
-            // For now, return a mock successful registration
-            // In a real implementation, you would create user in Supabase Auth
-            const mockUser = {
-                id: 'user_' + Date.now(),
+            // Import Supabase config
+            const createSupabaseConfig = (await import('../../config/supabase.js')).default;
+            const supabaseConfig = createSupabaseConfig();
+
+            // Use real Supabase Auth
+            const { data, error } = await supabaseConfig.getClient().auth.signUp({
                 email: email,
-                username: username || email.split('@')[0],
-                full_name: full_name || username || email.split('@')[0],
-                role: 'customer'
-            };
+                password: password,
+                options: {
+                    data: {
+                        username: username || email.split('@')[0],
+                        full_name: full_name || username || email.split('@')[0],
+                        role: 'customer'
+                    }
+                }
+            });
+
+            if (error) {
+                res.writeHead(400, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({
+                    success: false,
+                    message: error.message
+                }));
+                return;
+            }
 
             res.writeHead(201, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({
                 success: true,
-                message: 'Registration successful',
-                user: mockUser,
-                token: 'mock_jwt_token_' + Date.now()
+                message: 'Registration successful. Please check your email for verification.',
+                user: {
+                    id: data.user?.id,
+                    email: data.user?.email,
+                    username: data.user?.user_metadata?.username,
+                    full_name: data.user?.user_metadata?.full_name,
+                    role: data.user?.user_metadata?.role || 'customer'
+                },
+                token: data.session?.access_token
             }));
         } catch (error) {
             console.error('Registration error:', error);
@@ -133,29 +179,14 @@ class AuthController {
                 return;
             }
 
-            // Use models from controller instance or mock for testing
+            // Use models from controller instance
             const Profile = this.models?.Profile;
 
             if (!Profile) {
-                // Return mock profile for testing when database is not available
-                const mockProfile = {
-                    user_id: userId,
-                    username: 'testuser',
-                    full_name: 'Test User',
-                    email: 'user@example.com',
-                    role: 'customer',
-                    phone: '',
-                    date_of_birth: null,
-                    gender: '',
-                    avatar_url: '',
-                    created_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString()
-                };
-
-                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.writeHead(500, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({
-                    success: true,
-                    user: mockProfile
+                    success: false,
+                    message: 'Profile model not available'
                 }));
                 return;
             }
@@ -214,30 +245,14 @@ class AuthController {
                 return;
             }
 
-            // Use models from controller instance or mock for testing
+            // Use models from controller instance
             const Profile = this.models?.Profile;
 
             if (!Profile) {
-                // Return mock updated profile for testing when database is not available
-                const mockUpdatedProfile = {
-                    user_id: userId,
-                    username: updates.username || 'testuser',
-                    full_name: updates.full_name || 'Test User',
-                    email: 'user@example.com',
-                    role: 'customer',
-                    phone: updates.phone || '',
-                    date_of_birth: updates.date_of_birth || null,
-                    gender: updates.gender || '',
-                    avatar_url: updates.avatar_url || '',
-                    created_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString()
-                };
-
-                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.writeHead(500, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({
-                    success: true,
-                    message: 'Profile updated successfully',
-                    user: mockUpdatedProfile
+                    success: false,
+                    message: 'Profile model not available'
                 }));
                 return;
             }

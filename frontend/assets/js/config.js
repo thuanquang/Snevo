@@ -23,7 +23,7 @@ window.APP_CONFIG = {
     name: 'Snevo',
     version: '1.0.0',
     environment: 'development',
-    buildTime: '2025-10-03T01:59:07.796Z',
+    buildTime: '2025-10-03T02:24:56.916Z',
     features: {
         googleAuth: isValidGoogleClientId && isValidSupabaseUrl && isValidSupabaseKey,
         emailVerification: isValidSupabaseUrl && isValidSupabaseKey,

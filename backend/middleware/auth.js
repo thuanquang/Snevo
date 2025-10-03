@@ -18,24 +18,35 @@ class AuthMiddleware {
 
             const token = authHeader.substring(7); // Remove 'Bearer ' prefix
 
-            if (!token) {
+            if (!token || token.startsWith('mock_')) {
                 req.user = null;
                 return { success: true, user: null };
             }
 
-            // For now, return a mock user since we're not using real Supabase Auth
-            // In a real implementation, you would verify the token with Supabase
-            const mockUser = {
-                id: 'user_mock_' + Date.now(),
-                email: 'user@example.com',
-                username: 'testuser',
-                full_name: 'Test User',
-                role: 'customer',
-                email_verified: true
+            // Import Supabase config here to avoid circular dependencies
+            const createSupabaseConfig = (await import('../../config/supabase.js')).default;
+            const supabaseConfig = createSupabaseConfig();
+
+            // Verify the JWT token with Supabase
+            const { data, error } = await supabaseConfig.getClient().auth.getUser(token);
+
+            if (error || !data.user) {
+                req.user = null;
+                return { success: true, user: null };
+            }
+
+            // Convert Supabase user to our expected format
+            const user = {
+                id: data.user.id, // This will be a valid UUID
+                email: data.user.email,
+                username: data.user.user_metadata?.username || data.user.email?.split('@')[0],
+                full_name: data.user.user_metadata?.full_name || '',
+                role: data.user.user_metadata?.role || 'customer',
+                email_verified: data.user.email_confirmed_at != null
             };
 
-            req.user = mockUser;
-            return { success: true, user: mockUser };
+            req.user = user;
+            return { success: true, user: user };
 
         } catch (error) {
             console.error('Authentication middleware error:', error);
