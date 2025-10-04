@@ -4,26 +4,26 @@
  */
 
 // Supabase Configuration
-window.SUPABASE_URL = 'https://your-project-id.supabase.co';
-window.SUPABASE_ANON_KEY = 'your-supabase-anon-key-here';
+window.SUPABASE_URL = 'https://dmvtnumichfheaduijzh.supabase.co';
+window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtdnRudW1pY2hmaGVhZHVpanpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3OTQxNjcsImV4cCI6MjA3MjM3MDE2N30.UlEoRUSX2v67-KUji5rp_SX3PHHvav7bWWXG0ikYWII';
 
 // API Configuration
 window.API_BASE_URL = 'http://localhost:3001';
 
 // Google OAuth Configuration
-window.GOOGLE_CLIENT_ID = 'your-google-client-id.apps.googleusercontent.com';
+window.GOOGLE_CLIENT_ID = '19098760843-j6ilk2t1o27f0mvujrqinqf90ojsuajf.apps.googleusercontent.com';
 
 // Validate configuration and determine feature availability
-const isValidSupabaseUrl = 'https://your-project-id.supabase.co' && !'https://your-project-id.supabase.co'.includes('your-project-id') && 'https://your-project-id.supabase.co'.startsWith('https://');
-const isValidSupabaseKey = 'your-supabase-anon-key-here' && !'your-supabase-anon-key-here'.includes('your-anon-key') && 'your-supabase-anon-key-here'.length > 50;
-const isValidGoogleClientId = 'your-google-client-id.apps.googleusercontent.com' && 'your-google-client-id.apps.googleusercontent.com'.includes('.apps.googleusercontent.com');
+const isValidSupabaseUrl = 'https://dmvtnumichfheaduijzh.supabase.co' && !'https://dmvtnumichfheaduijzh.supabase.co'.includes('your-project-id') && 'https://dmvtnumichfheaduijzh.supabase.co'.startsWith('https://');
+const isValidSupabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtdnRudW1pY2hmaGVhZHVpanpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3OTQxNjcsImV4cCI6MjA3MjM3MDE2N30.UlEoRUSX2v67-KUji5rp_SX3PHHvav7bWWXG0ikYWII' && !'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtdnRudW1pY2hmaGVhZHVpanpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3OTQxNjcsImV4cCI6MjA3MjM3MDE2N30.UlEoRUSX2v67-KUji5rp_SX3PHHvav7bWWXG0ikYWII'.includes('your-anon-key') && 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtdnRudW1pY2hmaGVhZHVpanpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3OTQxNjcsImV4cCI6MjA3MjM3MDE2N30.UlEoRUSX2v67-KUji5rp_SX3PHHvav7bWWXG0ikYWII'.length > 50;
+const isValidGoogleClientId = '19098760843-j6ilk2t1o27f0mvujrqinqf90ojsuajf.apps.googleusercontent.com' && '19098760843-j6ilk2t1o27f0mvujrqinqf90ojsuajf.apps.googleusercontent.com'.includes('.apps.googleusercontent.com');
 
 // App Configuration with dynamic feature detection
 window.APP_CONFIG = {
     name: 'Snevo',
     version: '1.0.0',
     environment: 'development',
-    buildTime: '2025-10-03T16:36:47.007Z',
+    buildTime: '2025-10-04T03:50:01.126Z',
     features: {
         googleAuth: isValidGoogleClientId && isValidSupabaseUrl && isValidSupabaseKey,
         emailVerification: isValidSupabaseUrl && isValidSupabaseKey,
