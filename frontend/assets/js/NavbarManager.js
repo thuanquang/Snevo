@@ -96,16 +96,18 @@ class NavbarManager {
      */
     createFallbackTemplate() {
         return `
-            <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top" id="unifiedNavbar">
+            <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top shadow-sm" id="unifiedNavbar" style="margin: 0; padding-left: 30px; padding-right: 30px;">
                 <div class="container">
-                    <a class="navbar-brand fw-bold fs-2" href="#" data-navbar-brand>SNEVO</a>
+                    <a class="navbar-brand" href="#" data-navbar-brand>
+                        <img src="../assets/images/ui/logo.svg" alt="SNEVO" height="50">
+                    </a>
                     
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                         <span class="navbar-toggler-icon"></span>
                     </button>
                     
                     <div class="collapse navbar-collapse" id="navbarNav">
-                        <ul class="navbar-nav me-auto">
+                        <ul class="navbar-nav mx-auto" style="gap: 80px;">
                             <li class="nav-item">
                                 <a class="nav-link" href="#" data-navbar-link="home">Home</a>
                             </li>
@@ -289,16 +291,18 @@ class NavbarManager {
         const navbarRoot = document.getElementById('navbarRoot');
         
         const navbarHTML = `
-            <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top" id="unifiedNavbar">
+            <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top " id="unifiedNavbar" style="margin: 0;">
                 <div class="container">
-                    <a class="navbar-brand fw-bold fs-2" href="#" data-navbar-brand>SNEVO</a>
+                    <a class="navbar-brand" href="#" data-navbar-brand>
+                        <img src="../assets/images/ui/logo.svg" alt="SNEVO" height="50">
+                    </a>
                     
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                         <span class="navbar-toggler-icon"></span>
                     </button>
                     
                     <div class="collapse navbar-collapse" id="navbarNav">
-                        <ul class="navbar-nav me-auto">
+                        <ul class="navbar-nav mx-auto" style="gap: 80px;">
                             <li class="nav-item">
                                 <a class="nav-link" href="#" data-navbar-link="home">Home</a>
                             </li>
@@ -315,7 +319,7 @@ class NavbarManager {
                             </li>
                         </ul>
                         
-                        <ul class="navbar-nav">
+                        <ul class="navbar-nav" style="gap: 30px;">
                             <li class="nav-item">
                                 <a class="nav-link" href="#" id="searchToggle">
                                     <i class="fas fa-search"></i>
@@ -329,11 +333,13 @@ class NavbarManager {
                                     </span>
                                 </a>
                             </li>
-                            <ul class="navbar-nav" id="authButtons">
-                                <li class="nav-item">
-                                    <a class="nav-link" href="#" id="globalLoginLink">Login</a>
-                                </li>
-                            </ul>
+                            <li class="nav-item" style=" border-radius: 32px;">
+                                <ul class="navbar-nav" id="authButtons">
+                                    <li class="nav-item">
+                                        <a class="nav-link px-4 fw-medium" style="color: white !important;" href="#" id="globalLoginLink">Login</a>
+                                    </li>
+                                </ul>
+                            </li>
                         </ul>
                     </div>
                 </div>

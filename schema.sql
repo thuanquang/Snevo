@@ -2,22 +2,25 @@
 -- Schema: db_nike
 -- Uses Supabase auth.users directly with profiles table for role management
 
+
 -- Create schema if it doesn't exist
 CREATE SCHEMA IF NOT EXISTS db_nike;
+
 
 -- Set search path to use the db_nike schema
 SET search_path TO db_nike;
 
+
 -- ===================================
 -- 1. User Profile Management
 -- ===================================
+
 
 -- Profiles table for app-specific user data (linked to auth.users)
 CREATE TABLE profiles (
     user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     username VARCHAR(50) UNIQUE NOT NULL,
     full_name VARCHAR(100) NOT NULL,
-    email VARCHAR(255) NOT NULL,
     role VARCHAR(10) CHECK (role IN ('customer', 'seller')) DEFAULT 'customer',
     avatar_url TEXT,
     phone VARCHAR(20),
@@ -26,6 +29,7 @@ CREATE TABLE profiles (
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
 
 -- Addresses table (now references auth.users directly)
 CREATE TABLE addresses (
@@ -40,9 +44,11 @@ CREATE TABLE addresses (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+
 -- ===================================
 -- 2. Product Management (Shoes)
 -- ===================================
+
 
 -- Categories table
 CREATE TABLE categories (
@@ -53,6 +59,7 @@ CREATE TABLE categories (
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
 
 -- Shoes table
 CREATE TABLE shoes (
@@ -67,6 +74,7 @@ CREATE TABLE shoes (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+
 -- Colors table
 CREATE TABLE colors (
     color_id SERIAL PRIMARY KEY,
@@ -75,6 +83,7 @@ CREATE TABLE colors (
     is_active BOOLEAN DEFAULT TRUE
 );
 
+
 -- Sizes table
 CREATE TABLE sizes (
     size_id SERIAL PRIMARY KEY,
@@ -82,6 +91,7 @@ CREATE TABLE sizes (
     size_type VARCHAR(20) DEFAULT 'US', -- US, EU, UK, etc.
     is_active BOOLEAN DEFAULT TRUE
 );
+
 
 -- Shoe variants table
 CREATE TABLE shoe_variants (
@@ -98,13 +108,28 @@ CREATE TABLE shoe_variants (
     UNIQUE(shoe_id, color_id, size_id)
 );
 
+
 -- ===================================
 -- 3. Inventory Management (For Sellers)
 -- ===================================
 
+
+-- Suppliers table
+CREATE TABLE suppliers (
+    supplier_id SERIAL PRIMARY KEY,
+    supplier_name VARCHAR(100) NOT NULL,
+    contact_email VARCHAR(100),
+    phone VARCHAR(20),
+    address TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+
 -- Imports table (now references auth.users directly)
 CREATE TABLE imports (
     import_id SERIAL PRIMARY KEY,
+    supplier_id INTEGER NOT NULL REFERENCES suppliers(supplier_id) ON DELETE RESTRICT,
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE RESTRICT,
     variant_id INTEGER NOT NULL REFERENCES shoe_variants(variant_id) ON DELETE RESTRICT,
     quantity_imported INTEGER NOT NULL CHECK (quantity_imported > 0),
@@ -114,9 +139,11 @@ CREATE TABLE imports (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+
 -- ===================================
 -- 4. Sales Management (For Customers)
 -- ===================================
+
 
 -- Orders table (now references auth.users directly)
 CREATE TABLE orders (
@@ -133,6 +160,7 @@ CREATE TABLE orders (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+
 -- Order items table
 CREATE TABLE order_items (
     order_item_id SERIAL PRIMARY KEY,
@@ -142,6 +170,7 @@ CREATE TABLE order_items (
     price_per_unit DECIMAL(10,2) NOT NULL CHECK (price_per_unit >= 0),
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
 
 -- Payments table
 CREATE TABLE payments (
@@ -155,9 +184,11 @@ CREATE TABLE payments (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+
 -- ===================================
 -- 5. Additional Features
 -- ===================================
+
 
 -- Reviews table (now references auth.users directly)
 CREATE TABLE reviews (
@@ -172,21 +203,35 @@ CREATE TABLE reviews (
 );
 
 
+-- Wishlists table (new feature)
+CREATE TABLE wishlists (
+    wishlist_id SERIAL PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    shoe_id INTEGER NOT NULL REFERENCES shoes(shoe_id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(user_id, shoe_id)
+);
+
+
 -- ===================================
 -- 6. Performance Indexes
 -- ===================================
+
 
 -- Profiles indexes
 CREATE INDEX idx_profiles_username ON profiles(username);
 CREATE INDEX idx_profiles_role ON profiles(role);
 CREATE INDEX idx_profiles_created_at ON profiles(created_at);
 
+
 -- Addresses indexes
 CREATE INDEX idx_addresses_user_id ON addresses(user_id);
 CREATE INDEX idx_addresses_is_default ON addresses(is_default);
 
+
 -- Categories indexes
 CREATE INDEX idx_categories_is_active ON categories(is_active);
+
 
 -- Shoes indexes
 CREATE INDEX idx_shoes_category_id ON shoes(category_id);
@@ -194,30 +239,37 @@ CREATE INDEX idx_shoes_name ON shoes(shoe_name);
 CREATE INDEX idx_shoes_is_active ON shoes(is_active);
 CREATE INDEX idx_shoes_base_price ON shoes(base_price);
 
+
 -- Shoe variants indexes
 CREATE INDEX idx_variants_shoe_id ON shoe_variants(shoe_id);
 CREATE INDEX idx_variants_sku ON shoe_variants(sku);
 CREATE INDEX idx_variants_stock ON shoe_variants(stock_quantity);
 CREATE INDEX idx_variants_is_active ON shoe_variants(is_active);
 
+
 -- Imports indexes
 CREATE INDEX idx_imports_user_id ON imports(user_id);
+CREATE INDEX idx_imports_supplier_id ON imports(supplier_id);
 CREATE INDEX idx_imports_variant_id ON imports(variant_id);
 CREATE INDEX idx_imports_date ON imports(import_date);
+
 
 -- Orders indexes
 CREATE INDEX idx_orders_user_id ON orders(user_id);
 CREATE INDEX idx_orders_status ON orders(status);
 CREATE INDEX idx_orders_date ON orders(order_date);
 
+
 -- Order items indexes
 CREATE INDEX idx_order_items_order_id ON order_items(order_id);
 CREATE INDEX idx_order_items_variant_id ON order_items(variant_id);
+
 
 -- Payments indexes
 CREATE INDEX idx_payments_order_id ON payments(order_id);
 CREATE INDEX idx_payments_status ON payments(status);
 CREATE INDEX idx_payments_date ON payments(payment_date);
+
 
 -- Reviews indexes
 CREATE INDEX idx_reviews_shoe_id ON reviews(shoe_id);
@@ -225,9 +277,15 @@ CREATE INDEX idx_reviews_user_id ON reviews(user_id);
 CREATE INDEX idx_reviews_rating ON reviews(rating);
 
 
+-- Wishlists indexes
+CREATE INDEX idx_wishlists_user_id ON wishlists(user_id);
+CREATE INDEX idx_wishlists_shoe_id ON wishlists(shoe_id);
+
+
 -- ===================================
 -- 7. Row Level Security (RLS) Policies
 -- ===================================
+
 
 -- Enable RLS on all user-related tables
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
@@ -236,6 +294,8 @@ ALTER TABLE imports ENABLE ROW LEVEL SECURITY;
 ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE order_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
+ALTER TABLE wishlists ENABLE ROW LEVEL SECURITY;
+
 
 -- Profiles policies
 DROP POLICY IF EXISTS "Users can manage their own profile" ON profiles;
@@ -244,12 +304,14 @@ ON profiles FOR ALL
 USING (auth.uid() = user_id)
 WITH CHECK (auth.uid() = user_id);
 
+
 -- Addresses policies
 DROP POLICY IF EXISTS "Users can manage their own addresses" ON addresses;
 CREATE POLICY "Users can manage their own addresses"
 ON addresses FOR ALL
 USING (auth.uid() = user_id)
 WITH CHECK (auth.uid() = user_id);
+
 
 -- Public read access for product-related tables
 ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
@@ -258,30 +320,36 @@ ALTER TABLE colors ENABLE ROW LEVEL SECURITY;
 ALTER TABLE sizes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE shoe_variants ENABLE ROW LEVEL SECURITY;
 
+
 DROP POLICY IF EXISTS "Anyone can view active categories" ON categories;
 CREATE POLICY "Anyone can view active categories"
 ON categories FOR SELECT
 USING (is_active = true);
+
 
 DROP POLICY IF EXISTS "Anyone can view active shoes" ON shoes;
 CREATE POLICY "Anyone can view active shoes"
 ON shoes FOR SELECT
 USING (is_active = true);
 
+
 DROP POLICY IF EXISTS "Anyone can view active colors" ON colors;
 CREATE POLICY "Anyone can view active colors"
 ON colors FOR SELECT
 USING (is_active = true);
+
 
 DROP POLICY IF EXISTS "Anyone can view active sizes" ON sizes;
 CREATE POLICY "Anyone can view active sizes"
 ON sizes FOR SELECT
 USING (is_active = true);
 
+
 DROP POLICY IF EXISTS "Anyone can view active shoe variants" ON shoe_variants;
 CREATE POLICY "Anyone can view active shoe variants"
 ON shoe_variants FOR SELECT
 USING (is_active = true);
+
 
 -- Imports policies (sellers only)
 DROP POLICY IF EXISTS "Sellers can manage imports" ON imports;
@@ -290,19 +358,20 @@ ON imports FOR ALL
 USING (
     auth.uid() = user_id AND
     EXISTS (
-        SELECT 1 FROM profiles 
-        WHERE user_id = auth.uid() 
+        SELECT 1 FROM profiles
+        WHERE user_id = auth.uid()
         AND role = 'seller'
     )
 )
 WITH CHECK (
     auth.uid() = user_id AND
     EXISTS (
-        SELECT 1 FROM profiles 
-        WHERE user_id = auth.uid() 
+        SELECT 1 FROM profiles
+        WHERE user_id = auth.uid()
         AND role = 'seller'
     )
 );
+
 
 -- Orders policies
 DROP POLICY IF EXISTS "Users can view their own orders" ON orders;
@@ -310,10 +379,12 @@ CREATE POLICY "Users can view their own orders"
 ON orders FOR SELECT
 USING (auth.uid() = user_id);
 
+
 DROP POLICY IF EXISTS "Users can create their own orders" ON orders;
 CREATE POLICY "Users can create their own orders"
 ON orders FOR INSERT
 WITH CHECK (auth.uid() = user_id);
+
 
 DROP POLICY IF EXISTS "Users can update their own pending orders" ON orders;
 CREATE POLICY "Users can update their own pending orders"
@@ -321,37 +392,40 @@ ON orders FOR UPDATE
 USING (auth.uid() = user_id AND status = 'pending')
 WITH CHECK (auth.uid() = user_id);
 
+
 -- Order items policies
 DROP POLICY IF EXISTS "Users can view items from their orders" ON order_items;
 CREATE POLICY "Users can view items from their orders"
 ON order_items FOR SELECT
 USING (
     EXISTS (
-        SELECT 1 FROM orders 
-        WHERE orders.order_id = order_items.order_id 
+        SELECT 1 FROM orders
+        WHERE orders.order_id = order_items.order_id
         AND orders.user_id = auth.uid()
     )
 );
+
 
 DROP POLICY IF EXISTS "Users can manage items in their orders" ON order_items;
 CREATE POLICY "Users can manage items in their orders"
 ON order_items FOR ALL
 USING (
     EXISTS (
-        SELECT 1 FROM orders 
-        WHERE orders.order_id = order_items.order_id 
+        SELECT 1 FROM orders
+        WHERE orders.order_id = order_items.order_id
         AND orders.user_id = auth.uid()
         AND orders.status = 'pending'
     )
 )
 WITH CHECK (
     EXISTS (
-        SELECT 1 FROM orders 
-        WHERE orders.order_id = order_items.order_id 
+        SELECT 1 FROM orders
+        WHERE orders.order_id = order_items.order_id
         AND orders.user_id = auth.uid()
         AND orders.status = 'pending'
     )
 );
+
 
 -- Reviews policies
 DROP POLICY IF EXISTS "Anyone can view reviews" ON reviews;
@@ -359,9 +433,18 @@ CREATE POLICY "Anyone can view reviews"
 ON reviews FOR SELECT
 USING (true);
 
+
 DROP POLICY IF EXISTS "Users can manage their own reviews" ON reviews;
 CREATE POLICY "Users can manage their own reviews"
 ON reviews FOR ALL
+USING (auth.uid() = user_id)
+WITH CHECK (auth.uid() = user_id);
+
+
+-- Wishlists policies
+DROP POLICY IF EXISTS "Users can manage their own wishlists" ON wishlists;
+CREATE POLICY "Users can manage their own wishlists"
+ON wishlists FOR ALL
 USING (auth.uid() = user_id)
 WITH CHECK (auth.uid() = user_id);
 
@@ -429,16 +512,16 @@ WITH CHECK (
 -- 8. Triggers and Functions
 -- ===================================
 
+
 -- Function to handle new user registration
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-    INSERT INTO db_nike.profiles (user_id, username, full_name, email, role)
+    INSERT INTO db_nike.profiles (user_id, username, full_name, role)
     VALUES (
         NEW.id,
         COALESCE(NEW.raw_user_meta_data->>'username', SPLIT_PART(NEW.email, '@', 1)),
         COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
-        NEW.email,
         COALESCE(NEW.raw_user_meta_data->>'role', 'customer')
     )
     ON CONFLICT (user_id) DO NOTHING;
@@ -446,11 +529,13 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+
 -- Trigger to automatically create profile on user registration
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
     AFTER INSERT ON auth.users
     FOR EACH ROW EXECUTE FUNCTION handle_new_user();
+
 
 -- Function to update profile updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -461,28 +546,33 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+
 -- Triggers for updated_at columns
 CREATE TRIGGER update_profiles_updated_at
     BEFORE UPDATE ON profiles
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+
 CREATE TRIGGER update_shoes_updated_at
     BEFORE UPDATE ON shoes
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
 
 CREATE TRIGGER update_shoe_variants_updated_at
     BEFORE UPDATE ON shoe_variants
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+
 CREATE TRIGGER update_orders_updated_at
     BEFORE UPDATE ON orders
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
 
 -- Function to automatically update stock when importing
 CREATE OR REPLACE FUNCTION update_stock_on_import()
 RETURNS TRIGGER AS $$
 BEGIN
-    UPDATE shoe_variants 
+    UPDATE shoe_variants
     SET stock_quantity = stock_quantity + NEW.quantity_imported,
         updated_at = NOW()
     WHERE variant_id = NEW.variant_id;
@@ -490,11 +580,13 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+
 -- Trigger for stock updates on import
 CREATE TRIGGER trigger_update_stock_on_import
     AFTER INSERT ON imports
     FOR EACH ROW
     EXECUTE FUNCTION update_stock_on_import();
+
 
 -- Function to check and update stock on order
 CREATE OR REPLACE FUNCTION check_and_update_stock_on_order()
@@ -502,21 +594,22 @@ RETURNS TRIGGER AS $$
 BEGIN
     -- Check stock availability
     IF (SELECT stock_quantity FROM shoe_variants WHERE variant_id = NEW.variant_id) < NEW.quantity THEN
-        RAISE EXCEPTION 'Insufficient stock for variant_id: %. Available: %, Requested: %', 
-            NEW.variant_id, 
+        RAISE EXCEPTION 'Insufficient stock for variant_id: %. Available: %, Requested: %',
+            NEW.variant_id,
             (SELECT stock_quantity FROM shoe_variants WHERE variant_id = NEW.variant_id),
             NEW.quantity;
     END IF;
-    
+   
     -- Deduct stock
-    UPDATE shoe_variants 
+    UPDATE shoe_variants
     SET stock_quantity = stock_quantity - NEW.quantity,
         updated_at = NOW()
     WHERE variant_id = NEW.variant_id;
-    
+   
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
 
 -- Trigger for stock check and deduction on order
 CREATE TRIGGER trigger_check_and_update_stock_on_order
@@ -524,23 +617,25 @@ CREATE TRIGGER trigger_check_and_update_stock_on_order
     FOR EACH ROW
     EXECUTE FUNCTION check_and_update_stock_on_order();
 
+
 -- Function to restore stock on order cancellation
 CREATE OR REPLACE FUNCTION restore_stock_on_cancel()
 RETURNS TRIGGER AS $$
 BEGIN
     -- Only restore stock when order status changes from non-cancelled to cancelled
     IF OLD.status != 'cancelled' AND NEW.status = 'cancelled' THEN
-        UPDATE shoe_variants 
+        UPDATE shoe_variants
         SET stock_quantity = stock_quantity + oi.quantity,
             updated_at = NOW()
         FROM order_items oi
-        WHERE oi.order_id = NEW.order_id 
+        WHERE oi.order_id = NEW.order_id
         AND shoe_variants.variant_id = oi.variant_id;
     END IF;
-    
+   
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
 
 -- Trigger for stock restoration on order cancellation
 CREATE TRIGGER trigger_restore_stock_on_cancel
@@ -548,9 +643,11 @@ CREATE TRIGGER trigger_restore_stock_on_cancel
     FOR EACH ROW
     EXECUTE FUNCTION restore_stock_on_cancel();
 
+
 -- ===================================
 -- 9. Initial Data (Optional)
 -- ===================================
+
 
 -- Insert default categories
 INSERT INTO categories (category_name, description) VALUES
@@ -559,6 +656,7 @@ INSERT INTO categories (category_name, description) VALUES
 ('Lifestyle', 'Casual shoes for everyday wear'),
 ('Training', 'Cross-training shoes for gym workouts'),
 ('Football', 'Soccer cleats and football boots');
+
 
 -- Insert default colors
 INSERT INTO colors (color_name, hex_code) VALUES
@@ -571,6 +669,7 @@ INSERT INTO colors (color_name, hex_code) VALUES
 ('Navy', '#000080'),
 ('Brown', '#8B4513');
 
+
 -- Insert default sizes (US sizing)
 INSERT INTO sizes (size_value, size_type) VALUES
 ('6', 'US'), ('6.5', 'US'), ('7', 'US'), ('7.5', 'US'),
@@ -578,9 +677,11 @@ INSERT INTO sizes (size_value, size_type) VALUES
 ('10', 'US'), ('10.5', 'US'), ('11', 'US'), ('11.5', 'US'),
 ('12', 'US'), ('13', 'US'), ('14', 'US');
 
+
 -- ===================================
 -- 10. Completion Message
 -- ===================================
+
 
 DO $$
 BEGIN
@@ -588,7 +689,9 @@ BEGIN
     RAISE NOTICE 'Schema: db_nike';
     RAISE NOTICE 'Uses Supabase auth.users with profiles table for role management';
     RAISE NOTICE 'Tables: profiles, addresses, categories, shoes, colors, sizes, shoe_variants,';
-    RAISE NOTICE '        imports, orders, order_items, payments, reviews';
+    RAISE NOTICE '        suppliers, imports, orders, order_items, payments, reviews, wishlists';
     RAISE NOTICE 'Features: RLS enabled, automatic profile creation, stock management';
     RAISE NOTICE 'Ready for e-commerce operations!';
 END $$;
+
+

@@ -6,15 +6,17 @@
     background: #fff;
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    transition: all 0.3s ease;
     cursor: pointer;
 }
 
-.product-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+.product-card {
+    transition: none !important;
 }
+
+.product-card:hover {
+    transform: none !important;
+    box-shadow: none !important;
+} 
 
 .product-card-image {
     width: 100%;
@@ -23,9 +25,6 @@
     transition: transform 0.3s ease;
 }
 
-.product-card:hover .product-card-image {
-    transform: scale(1.05);
-}
 
 .product-card-content {
     padding: 20px;
