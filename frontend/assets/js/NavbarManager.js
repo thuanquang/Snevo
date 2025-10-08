@@ -284,6 +284,82 @@ class NavbarManager {
     }
 
     /**
+ * Initialize scroll behavior for navbar
+ * Hides navbar on scroll down, shows on scroll up
+ */
+initScrollBehavior() {
+    let lastScrollTop = 0;
+    let ticking = false;
+    const scrollThreshold = 50; // Giảm threshold để nhạy hơn
+    const navbarRoot = document.getElementById('navbarRoot');
+    
+    if (!navbarRoot) {
+        console.warn('⚠️ NavbarRoot not found for scroll behavior');
+        return;
+    }
+    
+    console.log('✅ Navbar scroll behavior initialized');
+    
+    // Đảm bảo navbar có style ban đầu
+    navbarRoot.style.position = 'fixed';
+    navbarRoot.style.top = '0';
+    navbarRoot.style.left = '0';
+    navbarRoot.style.right = '0';
+    navbarRoot.style.zIndex = '1000';
+    navbarRoot.style.transform = 'translateY(0)';
+    navbarRoot.style.transition = 'transform 0.3s ease-in-out';
+    
+    const updateNavbar = () => {
+        const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+        
+        // Luôn hiện navbar ở đầu trang
+        if (currentScroll <= scrollThreshold) {
+            navbarRoot.style.transform = 'translateY(0)';
+            lastScrollTop = currentScroll;
+            ticking = false;
+            return;
+        }
+        
+        // Tính delta để kiểm tra hướng scroll
+        const scrollDelta = currentScroll - lastScrollTop;
+        
+        // Scroll xuống (delta > 5 để tránh scroll nhỏ)
+        if (scrollDelta > 5 && currentScroll > scrollThreshold) {
+            navbarRoot.style.transform = 'translateY(-100%)';
+            console.log('📉 Hiding navbar');
+        } 
+        // Scroll lên (delta < -5)
+        else if (scrollDelta < -5) {
+            navbarRoot.style.transform = 'translateY(0)';
+            console.log('📈 Showing navbar');
+        }
+        
+        lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
+        ticking = false;
+    };
+    
+    // Sử dụng requestAnimationFrame để tối ưu performance
+    window.addEventListener('scroll', () => {
+        if (!ticking) {
+            window.requestAnimationFrame(updateNavbar);
+            ticking = true;
+        }
+    }, { passive: true });
+    
+    // Thêm event listener cho touchmove trên mobile
+    let touchStartY = 0;
+    let touchEndY = 0;
+    
+    document.addEventListener('touchstart', (e) => {
+        touchStartY = e.touches[0].clientY;
+    }, { passive: true });
+    
+    document.addEventListener('touchmove', (e) => {
+        touchEndY = e.touches[0].clientY;
+    }, { passive: true });
+};
+
+    /**
      * Create navbar directly in DOM
      */
     createNavbarDirectly() {
@@ -291,7 +367,7 @@ class NavbarManager {
         const navbarRoot = document.getElementById('navbarRoot');
         
         const navbarHTML = `
-            <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top " id="unifiedNavbar" style="margin: 0;">
+            <nav class="navbar navbar-expand-lg navbar-light bg-transparent fixed-top " id="unifiedNavbar" style="margin: 0;">
                 <div class="container">
                     <a class="navbar-brand" href="#" data-navbar-brand>
                         <img src="../assets/images/ui/logo.svg" alt="SNEVO" height="50">
@@ -349,6 +425,12 @@ class NavbarManager {
         navbarRoot.innerHTML = navbarHTML;
         console.log('✅ Navbar created directly');
         
+        // Update paths
+        this.updatePaths();
+
+        // Initialize scroll behavior
+        this.initScrollBehavior();
+
         // Update paths
         this.updatePaths();
     }
