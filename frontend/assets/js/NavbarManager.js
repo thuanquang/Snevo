@@ -372,18 +372,16 @@ initScrollBehavior() {
                     <a class="navbar-brand" href="#" data-navbar-brand>
                         <img src="../assets/images/ui/logo.svg" alt="SNEVO" height="50">
                     </a>
-                    
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                         <span class="navbar-toggler-icon"></span>
                     </button>
-                    
                     <div class="collapse navbar-collapse" id="navbarNav">
                         <ul class="navbar-nav mx-auto" style="gap: 80px;">
                             <li class="nav-item">
                                 <a class="nav-link" href="#" data-navbar-link="home">Home</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="#" data-navbar-link="products">Products</a>
+                                <a class="nav-link" href="#" data-navbar-link="products">Shop</a>
                             </li>
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
@@ -398,12 +396,12 @@ initScrollBehavior() {
                         <ul class="navbar-nav" style="gap: 30px;">
                             <li class="nav-item">
                                 <a class="nav-link" href="#" id="searchToggle">
-                                    <i class="fas fa-search"></i>
+                                    <img src="../assets/images/ui/search.svg" alt="Search" height="23" width="23">
                                 </a>
                             </li>
                             <li class="nav-item" id="cartNavItem">
                                 <a class="nav-link position-relative" href="#" data-navbar-link="cart">
-                                    <i class="fas fa-shopping-cart"></i>
+                                    <img src="../assets/images/ui/cart.svg" alt="Cart" height="23" width="23">
                                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="cartCount">
                                         0
                                     </span>
