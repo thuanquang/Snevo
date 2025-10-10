@@ -1,7 +1,10 @@
 // backend/models/Color.js
-import supabaseConfig from '../../config/supabase.js';
+import createSupabaseConfig from '../../config/supabase.js';
+
 import BaseModel from '../utils/BaseModel.js';
 import constants from '../../config/constants.js';
+
+const supabaseConfig = createSupabaseConfig();
 
 class Color extends BaseModel {
   constructor() {
