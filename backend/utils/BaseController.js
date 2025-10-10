@@ -275,7 +275,8 @@ export default class BaseController {
             ...(data && { data })
         };
 
-        res.json(response, statusCode);
+        res.writeHead(statusCode, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(response));
     }
 
     /**
@@ -288,7 +289,8 @@ export default class BaseController {
             ...(details && { details })
         };
 
-        res.json(response, statusCode);
+        res.writeHead(statusCode, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(response));
     }
 
     /**
@@ -309,7 +311,8 @@ export default class BaseController {
             }
         };
 
-        res.json(response);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(response));
     }
 
     /**
