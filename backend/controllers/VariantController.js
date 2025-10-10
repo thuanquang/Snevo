@@ -267,6 +267,287 @@ class VariantController extends BaseController {
       }
     });
   }
+
+  /**
+   * GET /api/variants/find
+   * Find variant by composite key (shoe_id, color_id, size_id)
+   */
+  async findVariantByComposite(req, res) {
+    return this.handleRequest(req, res, async () => {
+      try {
+        const { shoe_id, color_id, size_id } = req.query;
+
+        this.validateRequest(
+          { 
+            shoe_id: parseInt(shoe_id), 
+            color_id: parseInt(color_id), 
+            size_id: parseInt(size_id) 
+          },
+          {
+            shoe_id: {
+              required: true,
+              type: 'integer',
+              min: 1
+            },
+            color_id: {
+              required: true,
+              type: 'integer',
+              min: 1
+            },
+            size_id: {
+              required: true,
+              type: 'integer',
+              min: 1
+            }
+          }
+        );
+
+        const variant = await this.ShoeVariant.findByComposite(
+          parseInt(shoe_id),
+          parseInt(color_id),
+          parseInt(size_id)
+        );
+
+        if (!variant) {
+          this.sendError(
+            res,
+            'Variant not found',
+            constants.HTTP_STATUS.NOT_FOUND
+          );
+          return;
+        }
+
+        this.sendResponse(
+          res,
+          variant,
+          'Variant found successfully'
+        );
+      } catch (error) {
+        throw error;
+      }
+    });
+  }
+
+  /**
+   * GET /api/variants/sku/:sku
+   * Get variant by SKU
+   */
+  async getVariantBySku(req, res) {
+    return this.handleRequest(req, res, async () => {
+      try {
+        const { sku } = req.params;
+
+        this.validateRequest(
+          { sku },
+          {
+            sku: {
+              required: true,
+              type: 'string',
+              maxLength: 50
+            }
+          }
+        );
+
+        const variant = await this.ShoeVariant.findBySku(sku);
+
+        if (!variant) {
+          this.sendError(
+            res,
+            'Variant not found',
+            constants.HTTP_STATUS.NOT_FOUND
+          );
+          return;
+        }
+
+        this.sendResponse(
+          res,
+          variant,
+          'Variant fetched successfully'
+        );
+      } catch (error) {
+        throw error;
+      }
+    });
+  }
+
+  /**
+   * GET /api/variants/low-stock
+   * Get low stock variants (Admin/Seller only)
+   */
+  async getLowStockVariants(req, res) {
+    return this.handleRequest(req, res, async () => {
+      try {
+        this.requireRole(req, ['seller', 'admin']);
+
+        const { threshold = 10 } = req.query;
+
+        const variants = await this.ShoeVariant.findLowStock(parseInt(threshold));
+
+        this.sendResponse(
+          res,
+          variants,
+          'Low stock variants fetched successfully'
+        );
+      } catch (error) {
+        throw error;
+      }
+    });
+  }
+
+  /**
+   * GET /api/variants/shoe/:shoeId/color/:colorId
+   * Get variants by shoe and color
+   */
+  async getVariantsByColor(req, res) {
+    return this.handleRequest(req, res, async () => {
+      try {
+        const { shoeId, colorId } = req.params;
+
+        this.validateRequest(
+          { 
+            shoeId: parseInt(shoeId), 
+            colorId: parseInt(colorId) 
+          },
+          {
+            shoeId: {
+              required: true,
+              type: 'integer',
+              min: 1
+            },
+            colorId: {
+              required: true,
+              type: 'integer',
+              min: 1
+            }
+          }
+        );
+
+        // Get all variants for this shoe and color
+        const allVariants = await this.ShoeVariant.findByShoeId(parseInt(shoeId));
+        const variants = allVariants.filter(v => v.color_id === parseInt(colorId));
+
+        this.sendResponse(
+          res,
+          variants,
+          'Variants fetched successfully'
+        );
+      } catch (error) {
+        throw error;
+      }
+    });
+  }
+
+  /**
+   * POST /api/variants/bulk
+   * Bulk create variants (Admin/Seller only)
+   */
+  async bulkCreateVariants(req, res) {
+    return this.handleRequest(req, res, async () => {
+      try {
+        this.requireRole(req, ['seller', 'admin']);
+
+        const { variants } = req.body;
+
+        if (!Array.isArray(variants) || variants.length === 0) {
+          this.sendError(
+            res,
+            'variants must be a non-empty array',
+            constants.HTTP_STATUS.BAD_REQUEST
+          );
+          return;
+        }
+
+        // Validate each variant
+        for (const variant of variants) {
+          this.validateRequest(variant, {
+            shoe_id: {
+              required: true,
+              type: 'integer'
+            },
+            color_id: {
+              required: true,
+              type: 'integer'
+            },
+            size_id: {
+              required: true,
+              type: 'integer'
+            },
+            sku: {
+              required: true,
+              type: 'string',
+              maxLength: 50
+            },
+            stock_quantity: {
+              required: false,
+              type: 'integer',
+              min: 0
+            },
+            variant_price: {
+              required: false,
+              type: 'number',
+              min: 0
+            }
+          });
+        }
+
+        const createdVariants = await this.ShoeVariant.bulkCreate(variants);
+
+        this.sendResponse(
+          res,
+          createdVariants,
+          `${createdVariants.length} variants created successfully`,
+          constants.HTTP_STATUS.CREATED
+        );
+      } catch (error) {
+        throw error;
+      }
+    });
+  }
+
+  /**
+   * POST /api/variants/:id/check-stock
+   * Check stock availability
+   */
+  async checkStock(req, res) {
+    return this.handleRequest(req, res, async () => {
+      try {
+        const { id } = req.params;
+        const { quantity } = req.body;
+
+        this.validateRequest(
+          { 
+            id: parseInt(id), 
+            quantity: parseInt(quantity) 
+          },
+          {
+            id: {
+              required: true,
+              type: 'integer',
+              min: 1
+            },
+            quantity: {
+              required: true,
+              type: 'integer',
+              min: 1
+            }
+          }
+        );
+
+        const stockInfo = await this.ShoeVariant.checkStock(
+          parseInt(id),
+          parseInt(quantity)
+        );
+
+        this.sendResponse(
+          res,
+          stockInfo,
+          'Stock check completed successfully'
+        );
+      } catch (error) {
+        throw error;
+      }
+    });
+  }
 }
 
 export default VariantController;

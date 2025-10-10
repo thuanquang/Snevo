@@ -45,6 +45,26 @@ Files touched:
 Config prerequisites:
 - `frontend/assets/js/config.js` sets `APP_CONFIG.features.googleAuth` true with valid Supabase config.
 
+Variant Controller Bug Fix (Oct 2025)
+--------------------------------------
+✅ FIXED: Missing methods in VariantController that were being called from variants.js routes
+- Added `findVariantByComposite(req, res)` - GET /api/variants/find with query params
+- Added `getVariantBySku(req, res)` - GET /api/variants/sku/:sku
+- Added `getLowStockVariants(req, res)` - GET /api/variants/low-stock (seller/admin only)
+- Added `getVariantsByColor(req, res)` - GET /api/variants/shoe/:shoeId/color/:colorId
+- Added `bulkCreateVariants(req, res)` - POST /api/variants/bulk (seller/admin only)
+- Added `checkStock(req, res)` - POST /api/variants/:id/check-stock
+
+All methods include:
+- Proper request validation with type checking
+- Error handling with appropriate HTTP status codes
+- Integration with ShoeVariant model methods
+- Role-based access control where needed (seller/admin)
+- Comprehensive response messages
+
+Files modified:
+- `backend/controllers/VariantController.js`: Added 6 new controller methods
+
 # EXTENSION FUNCTIONALITY - SNEVO E-COMMERCE PLATFORM
 
 ## PROJECT OVERVIEW
