@@ -300,6 +300,12 @@ class ProductManager {
       this.currentFilters.sizes.push(sizeId);
     }
 
+    console.log('🔄 Size filter changed:', this.currentFilters.sizes);
+    
+    // Update UI
+    this.updateSizeFiltersUI();
+    
+    // Reload products
     this.currentPage = 1;
     await this.loadProducts();
   }
@@ -696,43 +702,19 @@ class ProductManager {
     resultsCount.textContent = `Showing ${startIndex}-${endIndex} of ${total} products`;
   }
     /**
-     * ⭐ THÊM METHOD MỚI: Toggle size filter
-     */
-    toggleSizeFilter(sizeId) {
-        const index = this.currentFilters.sizes.indexOf(sizeId);
-        
-        if (index > -1) {
-            // Remove size
-            this.currentFilters.sizes.splice(index, 1);
-        } else {
-            // Add size
-            this.currentFilters.sizes.push(sizeId);
-        }
-        
-        console.log('🔄 Size filter changed:', this.currentFilters.sizes);
-        
-        // Update UI
-        this.updateSizeFiltersUI();
-        
-        // Reload products
-        this.currentPage = 1;
-        this.loadProducts();
-    }
-
-    /**
-     * ⭐ THÊM METHOD MỚI: Update size filters UI
-     */
-    updateSizeFiltersUI() {
-        const sizeButtons = document.querySelectorAll('.size-option');
-        sizeButtons.forEach(btn => {
-            const sizeId = parseInt(btn.dataset.sizeId);
-            if (this.currentFilters.sizes.includes(sizeId)) {
-                btn.classList.add('active');
-            } else {
-                btn.classList.remove('active');
-            }
-        });
-    }
+   * ⭐ NEW: Update size filters UI
+   */
+  updateSizeFiltersUI() {
+    const sizeButtons = document.querySelectorAll('.size-option');
+    sizeButtons.forEach(btn => {
+      const sizeId = parseInt(btn.dataset.sizeId);
+      if (this.currentFilters.sizes.includes(sizeId)) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+  }
   /**
    * Show loading state
    */
