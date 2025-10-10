@@ -483,62 +483,112 @@ class AuthAPI {
 
 }
 
-// Products API
+// Products API - UPDATED to match your backend routes
 class ProductsAPI {
-    constructor(client) {
-        this.client = client;
+  constructor(client) {
+    this.client = client;
+  }
+
+  /**
+   * Get all products with filters
+   */
+  async getProducts(params = {}) {
+    const response = await this.client.get('/api/products', params);
+    return response.data;
+  }
+    /**
+     * Get all colors
+     */
+    async getColors() {
+    const response = await this.client.get('/api/colors', { active_only: true });
+    return response.data;
     }
 
-    async getProducts(params = {}) {
-        const response = await this.client.get('/api/products', params);
-        return response.data;
+    /**
+     * Get all sizes
+     */
+    async getSizes(sizeType = null) {
+    const params = sizeType ? { size_type: sizeType } : { active_only: true };
+    const response = await this.client.get('/api/sizes', params);
+    return response.data;
     }
+  /**
+   * Get single product by ID
+   */
+  async getProduct(id) {
+    const response = await this.client.get(`/api/products/${id}`);
+    return response.data;
+  }
 
-    async getProduct(id) {
-        const response = await this.client.get(`/api/products/${id}`);
-        return response.data;
-    }
+  /**
+   * Search products
+   */
+  async searchProducts(query, params = {}) {
+    const response = await this.client.get('/api/products/search', { q: query, ...params });
+    return response.data;
+  }
 
-    async searchProducts(query, params = {}) {
-        const response = await this.client.get('/api/products/search', { q: query, ...params });
-        return response.data;
-    }
+  /**
+   * Get products by category
+   */
+  async getProductsByCategory(categoryId, params = {}) {
+    const response = await this.client.get('/api/products', { 
+      category_id: categoryId, 
+      ...params 
+    });
+    return response.data;
+  }
 
-    async getProductsByCategory(categoryId, params = {}) {
-        const response = await this.client.get(`/api/products/category/${categoryId}`, params);
-        return response.data;
-    }
+  /**
+   * Get all categories
+   */
+  async getCategories(params = {}) {
+    const response = await this.client.get('/api/categories', params);
+    return response.data;
+  }
 
-    async getFeaturedProducts(limit = 10) {
-        const response = await this.client.get('/api/products/featured', { limit });
-        return response.data;
-    }
+  /**
+   * Get category by ID
+   */
+  async getCategory(id, params = {}) {
+    const response = await this.client.get(`/api/categories/${id}`, params);
+    return response.data;
+  }
 
-    async getCategories() {
-        const response = await this.client.get('/api/products/categories');
-        return response.data;
-    }
+  /**
+   * Get product variants by shoe ID
+   */
+  async getProductVariants(shoeId) {
+    const response = await this.client.get('/api/variants', { shoe_id: shoeId });
+    return response.data;
+  }
 
-    async getProductVariants(productId) {
-        const response = await this.client.get(`/api/products/${productId}/variants`);
-        return response.data;
-    }
+  /**
+   * Get variant by ID
+   */
+  async getVariant(variantId) {
+    const response = await this.client.get(`/api/variants/${variantId}`);
+    return response.data;
+  }
 
-    async getProductReviews(productId, params = {}) {
-        const response = await this.client.get(`/api/products/${productId}/reviews`, params);
-        return response.data;
-    }
+  /**
+   * Get all colors
+   */
+  async getColors() {
+    const response = await this.client.get('/api/colors', { active_only: true });
+    return response.data;
+  }
 
-    async createProductReview(productId, reviewData) {
-        const response = await this.client.post(`/api/products/${productId}/reviews`, reviewData);
-        return response.data;
-    }
-
-    async getRelatedProducts(productId, limit = 4) {
-        const response = await this.client.get(`/api/products/${productId}/related`, { limit });
-        return response.data;
-    }
+  /**
+   * Get all sizes
+   */
+  async getSizes(sizeType = null) {
+    const params = sizeType ? { size_type: sizeType } : { active_only: true };
+    const response = await this.client.get('/api/sizes', params);
+    return response.data;
+  }
 }
+
 
 // Orders API
 class OrdersAPI {

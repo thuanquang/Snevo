@@ -1,40 +1,187 @@
+// backend/controllers/SizeController.js
 // 📏 Size Controller - CRUD sizes table
 // Handles size management for shoe variants
 
-class SizeController {
-    constructor() {
-        // Initialize size controller
-    }
+import BaseController from '../utils/BaseController.js';
+import constants from '../../config/constants.js';
 
-    // Get all sizes
-    async getSizes(req, res) {
-        // TODO: Implement get sizes logic
-        res.status(501).json({ message: 'Get sizes endpoint not implemented yet' });
-    }
+class SizeController extends BaseController {
+  constructor() {
+    super();
+    this.Size = null;
+  }
 
-    // Get specific size
-    async getSize(req, res) {
-        // TODO: Implement get size logic
-        res.status(501).json({ message: 'Get size endpoint not implemented yet' });
-    }
+  setModels(models) {
+    this.Size = models.Size;
+  }
 
-    // Create new size
-    async createSize(req, res) {
-        // TODO: Implement create size logic
-        res.status(501).json({ message: 'Create size endpoint not implemented yet' });
-    }
+  /**
+   * GET /api/sizes
+   * Get all sizes
+   */
+  async getSizes(req, res) {
+    return this.handleRequest(req, res, async () => {
+      try {
+        const { active_only, size_type } = req.query;
 
-    // Update size
-    async updateSize(req, res) {
-        // TODO: Implement update size logic
-        res.status(501).json({ message: 'Update size endpoint not implemented yet' });
-    }
+        let sizes;
+        if (size_type) {
+          sizes = await this.Size.findByType(size_type);
+        } else if (active_only === 'true') {
+          sizes = await this.Size.findActive();
+        } else {
+          const result = await this.Size.findAll();
+          sizes = result.data;
+        }
 
-    // Delete size
-    async deleteSize(req, res) {
-        // TODO: Implement delete size logic
-        res.status(501).json({ message: 'Delete size endpoint not implemented yet' });
-    }
+        this.sendResponse(
+          res,
+          sizes,
+          'Sizes fetched successfully'
+        );
+      } catch (error) {
+        throw error;
+      }
+    });
+  }
+
+  /**
+   * GET /api/sizes/:id
+   * Get specific size
+   */
+  async getSize(req, res) {
+    return this.handleRequest(req, res, async () => {
+      try {
+        const { id } = req.params;
+
+        this.validateRequest(
+          { id: parseInt(id) },
+          {
+            id: {
+              required: true,
+              type: 'integer',
+              min: 1
+            }
+          }
+        );
+
+        const size = await this.Size.findById(parseInt(id));
+
+        this.sendResponse(
+          res,
+          size,
+          'Size fetched successfully'
+        );
+      } catch (error) {
+        throw error;
+      }
+    });
+  }
+
+  /**
+   * POST /api/sizes
+   * Create new size (Admin only)
+   */
+  async createSize(req, res) {
+    return this.handleRequest(req, res, async () => {
+      try {
+        this.requireRole(req, ['admin']);
+
+        this.validateRequest(req.body, {
+          size_value: {
+            required: true,
+            type: 'string',
+            maxLength: 10
+          },
+          size_type: {
+            required: false,
+            type: 'string',
+            maxLength: 20
+          }
+        });
+
+        const newSize = await this.Size.create(req.body);
+
+        this.sendResponse(
+          res,
+          newSize,
+          'Size created successfully',
+          constants.HTTP_STATUS.CREATED
+        );
+      } catch (error) {
+        throw error;
+      }
+    });
+  }
+
+  /**
+   * PUT /api/sizes/:id
+   * Update size (Admin only)
+   */
+  async updateSize(req, res) {
+    return this.handleRequest(req, res, async () => {
+      try {
+        this.requireRole(req, ['admin']);
+
+        const { id } = req.params;
+
+        this.validateRequest(
+          { ...req.body, id: parseInt(id) },
+          {
+            id: {
+              required: true,
+              type: 'integer',
+              min: 1
+            },
+            size_value: {
+              required: false,
+              type: 'string',
+              maxLength: 10
+            },
+            size_type: {
+              required: false,
+              type: 'string',
+              maxLength: 20
+            }
+          }
+        );
+
+        const updatedSize = await this.Size.update(parseInt(id), req.body);
+
+        this.sendResponse(
+          res,
+          updatedSize,
+          'Size updated successfully'
+        );
+      } catch (error) {
+        throw error;
+      }
+    });
+  }
+
+  /**
+   * DELETE /api/sizes/:id
+   * Delete size (Admin only)
+   */
+  async deleteSize(req, res) {
+    return this.handleRequest(req, res, async () => {
+      try {
+        this.requireRole(req, ['admin']);
+
+        const { id } = req.params;
+
+        await this.Size.update(parseInt(id), { is_active: false });
+
+        this.sendResponse(
+          res,
+          null,
+          'Size deleted successfully'
+        );
+      } catch (error) {
+        throw error;
+      }
+    });
+  }
 }
 
 export default SizeController;
