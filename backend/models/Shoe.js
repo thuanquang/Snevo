@@ -278,7 +278,7 @@ class Shoe extends BaseModel {
    */
   async findByIdWithDetails(shoeId) {
     try {
-      const { data, error } = await supabaseConfig.adminClient()
+      const { data, error } = await supabaseConfig.getAdminClient()
         .from(this.tableName)
         .select(`
           *,
