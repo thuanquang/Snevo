@@ -44,43 +44,6 @@ h1, h2, h3, h4, h5, h6 {
     will-change: transform;
 }
 
-/* Nike-style buttons */
-.btn-nike {
-    background: #000;
-    color: #fff;
-    border: none;
-    padding: 12px 24px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    transition: all 0.3s ease;
-    cursor: pointer;
-}
-
-.btn-nike:hover {
-    background: #333;
-    transform: translateY(-2px);
-}
-
-/* Nike-style cards */
-.card-nike {
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
-}
-
-.card-nike {
-    transition: none;
-}
-
-
-/* Nike-style navigation */
-.nav-nike {
-    background: #fff;
-    border-bottom: 1px solid #e5e5e5;
-    padding: 16px 0;
-}
 
 
 /* Nike-style product grid */
@@ -91,21 +54,6 @@ h1, h2, h3, h4, h5, h6 {
     padding: 40px 0;
 }
 
-/* Nike-style animations */
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.fade-in-up {
-    animation: fadeInUp 0.6s ease-out;
-}
 
 /* Nike-style loading states */
 .loading-nike {
@@ -186,17 +134,18 @@ h1, h2, h3, h4, h5, h6 {
 .hero-vertical-text {
     position: absolute;
     top: 50%;
-    transform: translateX(-42.75%) translateY(-19.5%) rotate(-90deg);
+    transform: translateX(-42.75%) translateY(-19.2%) rotate(-90deg);
     transform-origin: center center;
     font-family: 'Poppins', sans-serif;
-    font-size: 130px;
+    font-size: clamp(60px, 8.4vw, 130px); /* Auto responsive */
     font-weight: 700;
     color: #fff;
     z-index: 2;
     white-space: nowrap;
     pointer-events: none;
     user-select: none;
-    overflow: visible !important;
+    overflow: hidden !important;
+    transition: all 0.3s ease; /* Smooth transition */
 }
 
 
@@ -208,7 +157,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .brands-slider {
-    animation: slideLogos 30s linear infinite;
+    animation: slideLogos 40s linear infinite;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -403,4 +352,11 @@ h1, h2, h3, h4, h5, h6 {
 .email-verification-notice.show {
     transform: translateY(0);
     opacity: 1;
+}
+
+
+@media (max-width: 991px) {
+    .hero-vertical-text {
+        display: none;
+    }
 }
