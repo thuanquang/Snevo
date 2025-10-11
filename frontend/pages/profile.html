@@ -877,6 +877,10 @@
                 // Wait for AuthManager to be available and initialized
                 waitForAuthManager().then(async () => {
                     console.log('AuthManager ready');
+                    
+                    // Wait for AuthService to be fully initialized
+                    await waitForAuthService();
+                    
                     console.log('Is authenticated:', window.authManager.isAuthenticated());
                     console.log('Current user:', window.authManager.getCurrentUser());
                     
@@ -891,9 +895,11 @@
 
                     // Enforce authentication strictly for profile
                     if (!window.authManager.isAuthenticated()) {
-                        console.log('❌ Not authenticated after revalidation, redirecting to login');
-                        const returnUrl = encodeURIComponent(window.location.href);
-                        window.location.href = 'login.html?return=' + returnUrl;
+                        console.log('❌ Not authenticated after revalidation, showing login modal');
+                        // Show login modal instead of redirecting
+                        if (window.showLoginModal) {
+                            window.showLoginModal();
+                        }
                         return;
                     }
                     
@@ -924,11 +930,31 @@
                 console.warn('AuthManager not found after 5 seconds, proceeding anyway');
             }
             
+            async function waitForAuthService() {
+                console.log('🔍 Waiting for AuthService initialization...');
+                let attempts = 0;
+                const maxAttempts = 50; // 5 seconds max wait
+                
+                while (attempts < maxAttempts) {
+                    if (window.authService && window.authService.initialized) {
+                        console.log('✅ AuthService is initialized after', attempts * 100, 'ms');
+                        // Add additional delay to ensure session is fully validated
+                        await new Promise(resolve => setTimeout(resolve, 300));
+                        return;
+                    }
+                    
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    attempts++;
+                }
+                
+                console.warn('AuthService not fully initialized after 5 seconds, proceeding anyway');
+            }
+            
             function setupLogoutButton() {
                 const logoutBtn = document.getElementById('logoutBtn');
                 if (logoutBtn) {
                     logoutBtn.addEventListener('click', async function() {
-                        console.log('Logout button clicked');
+                        console.log('Profile logout button clicked');
 
                         // Disable button and show loading state
                         logoutBtn.disabled = true;
@@ -936,21 +962,28 @@
 
                         try {
                             if (window.authManager) {
-                                console.log('Using AuthManager logout');
-                                await window.authManager.logout();
-                                console.log('Logout successful via AuthManager');
+                                console.log('Using AuthManager logout for profile');
+                                const result = await window.authManager.logout();
+                                console.log('Profile logout result:', result);
+                                
+                                // Check if logout was successful
+                                if (result && result.error) {
+                                    throw new Error(result.error.message || 'Logout failed');
+                                }
+                                
+                                console.log('Profile logout successful via AuthManager');
                                 // AuthManager handles redirect and auth state clearing
                             } else {
-                                console.log('AuthManager not available, using fallback');
+                                console.log('AuthManager not available, using fallback for profile');
                                 // Fallback logout process
                                 await performLogout();
                             }
                         } catch (error) {
-                            console.error('Logout error:', error);
+                            console.error('Profile logout error:', error);
 
                             // If AuthManager logout failed, try fallback
                             if (window.authManager) {
-                                console.log('AuthManager logout failed, trying fallback');
+                                console.log('AuthManager logout failed, trying fallback for profile');
                                 try {
                                     await performLogout();
                                 } catch (fallbackError) {

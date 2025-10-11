@@ -55,7 +55,12 @@
                         <div class="tab-pane fade show active" id="categories" role="tabpanel">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h5 class="mb-0">Categories</h5>
-                                <button class="btn btn-primary" id="btnNewCategory"><i class="fas fa-plus"></i> New Category</button>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-primary" id="btnNewCategory"><i class="fas fa-plus"></i> New Category</button>
+                                    <button class="btn btn-outline-danger" id="adminLogoutBtn">
+                                        <i class="fas fa-sign-out-alt"></i> Logout
+                                    </button>
+                                </div>
                             </div>
                             <div class="table-responsive">
                                 <table class="table table-striped align-middle">
@@ -303,5 +308,206 @@
     <script type="module" src="../assets/js/Application.js"></script>
     <script type="module" src="../assets/js/AdminManager.js"></script>
     <script src="../assets/js/animations.js"></script>
+    
+    <script>
+        // Admin page logout functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const adminLogoutBtn = document.getElementById('adminLogoutBtn');
+            if (adminLogoutBtn) {
+                adminLogoutBtn.addEventListener('click', async function() {
+                    console.log('Admin logout button clicked');
+                    
+                    // Disable button and show loading state
+                    adminLogoutBtn.disabled = true;
+                    adminLogoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Logging out...';
+                    
+                    try {
+                        if (window.authManager) {
+                            console.log('Using AuthManager logout');
+                            await window.authManager.logout();
+                            console.log('Logout successful via AuthManager');
+                        } else {
+                            console.log('AuthManager not available, using fallback');
+                            // Fallback logout process
+                            await performAdminLogout();
+                        }
+                    } catch (error) {
+                        console.error('Logout error:', error);
+                        
+                        // If AuthManager logout failed, try fallback
+                        if (window.authManager) {
+                            console.log('AuthManager logout failed, trying fallback');
+                            try {
+                                await performAdminLogout();
+                            } catch (fallbackError) {
+                                console.error('Fallback logout also failed:', fallbackError);
+                                showAdminError('Logout failed. Please clear your browser data and refresh the page.');
+                                // Reset button state
+                                adminLogoutBtn.disabled = false;
+                                adminLogoutBtn.innerHTML = '<i class="fas fa-sign-out-alt me-2"></i>Logout';
+                            }
+                        } else {
+                            showAdminError('Logout failed. Please try again or refresh the page.');
+                            // Reset button state
+                            adminLogoutBtn.disabled = false;
+                            adminLogoutBtn.innerHTML = '<i class="fas fa-sign-out-alt me-2"></i>Logout';
+                        }
+                    }
+                });
+            }
+        });
+        
+        async function performAdminLogout() {
+            console.log('Performing manual admin logout');
+            
+            // Show logout success message before clearing data
+            showAdminLogoutSuccessToast();
+            
+            try {
+                // Small delay to let user see the message
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                // Clear all authentication data
+                clearAdminAuthenticationData();
+                
+                // Clear any additional session data
+                clearAdminSessionData();
+                
+                // Update UI if AuthManager is available
+                if (window.authManager) {
+                    window.authManager.clearAuthData();
+                    window.authManager.updateAuthUI();
+                    window.authManager.emit('logout');
+                }
+                
+                // Redirect to home page
+                console.log('Redirecting to index.html after admin logout');
+                window.location.href = 'index.html';
+                
+            } catch (error) {
+                console.error('❌ Error during admin logout process:', error);
+                showAdminError('Logout process failed. Please clear your browser data and refresh the page.');
+                
+                // Force redirect after a timeout as fallback
+                setTimeout(() => {
+                    console.log('🔄 Force redirecting after admin logout error');
+                    window.location.href = 'index.html';
+                }, 3000);
+            }
+        }
+        
+        function clearAdminAuthenticationData() {
+            // Clear all auth tokens
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('refresh_token');
+            
+            // Clear Supabase auth data if present
+            localStorage.removeItem('supabase.auth.token');
+            localStorage.removeItem('supabase.auth.refreshToken');
+            localStorage.removeItem('supabase.auth.user');
+            
+            // Clear any cookies related to auth
+            document.cookie.split(";").forEach(cookie => {
+                const eqPos = cookie.indexOf("=");
+                const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+                if (name.includes('auth') || name.includes('session') || name.includes('token') ||
+                    name.includes('supabase') || name.includes('user')) {
+                    document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+                    document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=" + window.location.hostname;
+                }
+            });
+            
+            console.log('Admin authentication data cleared');
+        }
+        
+        function clearAdminSessionData() {
+            // Clear any application-specific session data
+            const sessionKeys = [
+                'user_preferences',
+                'cart_data',
+                'last_activity',
+                'session_id'
+            ];
+            
+            sessionKeys.forEach(key => {
+                if (localStorage.getItem(key)) {
+                    localStorage.removeItem(key);
+                    console.log('Cleared admin session data:', key);
+                }
+            });
+            
+            // Clear sessionStorage as well
+            if (typeof sessionStorage !== 'undefined') {
+                sessionStorage.clear();
+                console.log('Admin sessionStorage cleared');
+            }
+        }
+        
+        function showAdminLogoutSuccessToast() {
+            // Create and show logout success toast
+            const toast = document.createElement('div');
+            toast.className = 'toast align-items-center text-white bg-info border-0';
+            toast.setAttribute('role', 'alert');
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="fas fa-sign-out-alt me-2"></i>Logging out...
+                    </div>
+                </div>
+            `;
+            
+            // Position the toast in the center of the screen
+            toast.style.position = 'fixed';
+            toast.style.top = '50%';
+            toast.style.left = '50%';
+            toast.style.transform = 'translate(-50%, -50%)';
+            toast.style.zIndex = '9999';
+            toast.style.minWidth = '200px';
+            
+            document.body.appendChild(toast);
+            const bsToast = new bootstrap.Toast(toast, {
+                delay: 1000,
+                autohide: true
+            });
+            bsToast.show();
+            
+            // Remove toast after it's hidden
+            const removeToast = () => {
+                if (document.body.contains(toast)) {
+                    document.body.removeChild(toast);
+                }
+            };
+            
+            toast.addEventListener('hidden.bs.toast', removeToast);
+            setTimeout(removeToast, 2000);
+        }
+        
+        function showAdminError(message) {
+            // Create and show error toast
+            const toast = document.createElement('div');
+            toast.className = 'toast align-items-center text-white bg-danger border-0';
+            toast.setAttribute('role', 'alert');
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="fas fa-exclamation-triangle me-2"></i>${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            `;
+            
+            document.body.appendChild(toast);
+            const bsToast = new bootstrap.Toast(toast, {
+                delay: 5000,
+                autohide: true
+            });
+            bsToast.show();
+            
+            // Remove toast after it's hidden
+            toast.addEventListener('hidden.bs.toast', () => {
+                document.body.removeChild(toast);
+            });
+        }
+    </script>
 </body>
 </html>

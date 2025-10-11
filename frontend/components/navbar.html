@@ -42,9 +42,10 @@
                     </a>
                 </li>
                 <li class="nav-item" style="background-color: #000000; border-radius: 32px;">
-                    <ul class="navbar-nav" id="authButtons">
+                    <ul class="navbar-nav" id="authButtons" data-auth-container>
+                        <!-- Auth buttons will be dynamically updated by AuthManager -->
                         <li class="nav-item">
-                            <a class="nav-link text-white px-4" href="#" data-navbar-link="login">Login</a>
+                            <a class="nav-link text-white px-4" href="#" id="globalLoginLink">Login</a>
                         </li>
                     </ul>
                 </li>

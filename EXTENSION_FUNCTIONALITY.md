@@ -23,24 +23,28 @@ Override Examples:
 - Admin: `{ showAdminMenu: true, customActions: ['admin-dashboard', 'logout'] }`
 - Cart: `{ hideCart: true, customActions: ['continue-shopping'] }`
 
-Auth/Login Behavior (Google-only)
----------------------------------
-- Global modal is injected by `frontend/assets/js/Application.js#initializeLoginModal`.
-- Exposes `window.showLoginModal()` to open modal.
-- All anchors pointing to `login.html` are intercepted to open modal instead of navigating.
-- `AuthManager.loginWithGoogle()` now redirects back to `window.location.href` after OAuth.
-- `AuthManager.updateAuthUI()` renders a `Login` link that calls the modal via `#globalLoginLink`.
-- Role-aware navbar: when authenticated AND role is known, customers see `profile.html`; sellers see `admin.html`. If role unknown, show Login.
-- Protected page access triggers modal instead of redirect.
-- Fallbacks: if modal isn't ready, code falls back to `login.html` navigation in ApiClient/cart.
+Auth/Login Behavior (Simplified Direct Supabase)
+------------------------------------------------
+- Direct Supabase Auth client integration (no backend auth proxy)
+- `AuthService` (`frontend/assets/js/services/AuthService.js`) handles all auth operations
+- Global modal (`LoginModal.js`) calls `authService.loginWithGoogle()` directly
+- User roles fetched from `db_nike.profiles` table after Supabase authentication
+- Role-aware navbar: 'customer' → profile.html, 'seller' → admin.html
+- Session management handled by Supabase `onAuthStateChange` listener
+- No backend AuthController, auth routes, or JWT utilities needed
 
-Files touched:
-- `frontend/assets/js/AuthManager.js`: modal login UI hookup, Google redirect change; attach role after session validate/refresh; gate UI on real role; temp session without role.
-- `frontend/assets/js/Application.js`: inject modal; intercept `login.html` links; protected page handling.
-- `frontend/assets/js/ApiClient.js`: use modal on 401 redirect if available.
-- `frontend/assets/js/cart.js`: open modal on auth-required paths.
-- `frontend/assets/js/AdminManager.js`: revalidate session and attach role before enforcing seller access.
-- `frontend/pages/profile.html`: revalidate session on load; strict redirect to login if invalid.
+Key Files:
+- `frontend/assets/js/services/AuthService.js`: Direct Supabase client operations
+- `frontend/assets/js/AuthManager.js`: Simplified UI wrapper around AuthService
+- `frontend/assets/js/LoginModal.js`: Google OAuth modal using AuthService
+- `frontend/assets/js/Application.js`: Initializes AuthService first
+- `backend/middleware/auth.js`: Token verification only (kept for protected routes)
+- `backend/models/Profile.js`: Role management from db_nike.profiles
+
+Deleted Files (Redundant):
+- `backend/controllers/authController.js` - Supabase handles auth
+- `backend/routes/auth.js` - No backend auth routes needed
+- `backend/utils/jwt.js` - Supabase handles JWT
 
 Config prerequisites:
 - `frontend/assets/js/config.js` sets `APP_CONFIG.features.googleAuth` true with valid Supabase config.
@@ -64,6 +68,83 @@ All methods include:
 
 Files modified:
 - `backend/controllers/VariantController.js`: Added 6 new controller methods
+
+Auth UI Update Timing Fix (Oct 2025)
+-------------------------------------
+✅ FIXED: Auth buttons not updating immediately after first-time Google login
+Issue: Race condition between navbar loading and auth UI updates
+
+Root Causes:
+1. NavbarManager loading navbar.html asynchronously into DOM
+2. AuthManager.updateAuthUI() being called before #authButtons element exists
+3. Profile data (role, username) fetching from database taking time
+4. Multiple components trying to update UI at different times
+
+Fixes Applied:
+1. Modified AuthManager.updateAuthUI() to retry if #authButtons not found
+   - Automatically retries after 100ms if element doesn't exist yet
+   - Prevents silent failure when navbar hasn't loaded
+
+2. Added roleUpdated event listener in Application.js
+   - Listens for when user profile/role is fetched from database
+   - Triggers UI update when role becomes available
+   - Ensures correct admin.html vs profile.html link
+
+3. Improved handleSignedIn timing with multiple scheduled updates
+   - Updates at 300ms, 800ms, and 1500ms after sign-in
+   - Catches profile data whenever it arrives
+   - Handles slow database responses
+
+4. Enhanced event bridging in Application.js
+   - signedIn event triggers delayed auth UI update (200ms)
+   - Ensures navbar is fully loaded before updating
+   - Coordinates between AuthManager and NavbarManager
+
+5. Created database migration script (scripts/fix-profile-trigger.sql)
+   - Fixes potential trigger errors with username field
+   - Ensures proper Google OAuth metadata handling
+   - Adds proper TG_OP checks to avoid accessing OLD on INSERT
+
+Files modified:
+- `frontend/assets/js/AuthManager.js`: Retry logic and improved timing
+- `frontend/assets/js/Application.js`: roleUpdated listener and delayed updates
+- `scripts/fix-profile-trigger.sql`: Database trigger fixes
+
+Testing Notes:
+- Test first-time Google login (new user creation)
+- Test returning user Google login (existing profile)
+- Verify correct link shows (admin.html for sellers, profile.html for customers)
+- Check that hovering shows correct URL immediately after login
+- Ensure no console errors about missing elements
+- Verify profile/admin pages wait for AuthService before checking authentication
+- Confirm login.html is deleted and all references updated to use modal
+
+Login Modal Migration (Oct 2025)
+---------------------------------
+✅ COMPLETED: Removed login.html and migrated to modal-based authentication
+
+Changes:
+1. Deleted `frontend/pages/login.html` - no longer needed
+2. All authentication now handled through global login modal
+3. Updated all redirect logic to show modal instead
+
+Files Modified:
+- Deleted: `frontend/pages/login.html`
+- `frontend/assets/js/AuthManager.js`: Removed login.html redirects
+- `frontend/assets/js/Application.js`: Removed login page redirect logic
+- `frontend/assets/js/NavbarManager.js`: Removed login.html from path mappings
+- `frontend/assets/js/ApiClient.js`: Updated unauthorized handler to use modal only
+- `frontend/assets/js/AdminManager.js`: Updated auth check to use modal
+- `frontend/assets/js/cart.js`: Updated login redirect to use modal
+- `frontend/pages/profile.html`: Added AuthService initialization wait, uses modal for auth
+
+Benefits:
+- Cleaner UX - no page reload required for login
+- Consistent authentication flow across all pages
+- Faster login experience
+- Reduced maintenance - one auth UI to manage
+
+
 
 # EXTENSION FUNCTIONALITY - SNEVO E-COMMERCE PLATFORM
 

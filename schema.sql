@@ -517,14 +517,26 @@ WITH CHECK (
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-    INSERT INTO db_nike.profiles (user_id, username, full_name, role)
+    INSERT INTO db_nike.profiles (user_id, username, full_name, role, avatar_url)
     VALUES (
         NEW.id,
-        COALESCE(NEW.raw_user_meta_data->>'username', SPLIT_PART(NEW.email, '@', 1)),
-        COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
-        COALESCE(NEW.raw_user_meta_data->>'role', 'customer')
+        COALESCE(
+            NEW.raw_user_meta_data->>'username',
+            NEW.raw_user_meta_data->>'preferred_username',
+            SPLIT_PART(NEW.email, '@', 1)
+        ),
+        COALESCE(
+            NEW.raw_user_meta_data->>'full_name',
+            NEW.raw_user_meta_data->>'name',
+            SPLIT_PART(NEW.email, '@', 1)
+        ),
+        COALESCE(NEW.raw_user_meta_data->>'role', 'customer'),
+        NEW.raw_user_meta_data->>'avatar_url'
     )
-    ON CONFLICT (user_id) DO NOTHING;
+    ON CONFLICT (user_id) DO UPDATE SET
+        full_name = COALESCE(EXCLUDED.full_name, profiles.full_name),
+        avatar_url = COALESCE(EXCLUDED.avatar_url, profiles.avatar_url),
+        updated_at = NOW();
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
