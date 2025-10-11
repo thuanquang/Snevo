@@ -3,10 +3,12 @@
  * Handles product data operations with Supabase using OOP principles
  */
 
-import supabaseConfig from '../../config/supabase.js';
+import createSupabaseConfig from '../../config/supabase.js';
 import constants from '../../config/constants.js';
 import BaseModel from '../utils/BaseModel.js';
 import { ValidationError, NotFoundError } from '../utils/ErrorClasses.js';
+
+const supabaseConfig = createSupabaseConfig();
 
 class Product extends BaseModel {
     constructor() {

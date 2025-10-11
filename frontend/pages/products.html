@@ -287,7 +287,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <!-- Configuration -->
-    <script src="../assets/js/config.js"></script>
+    <script src="../assetasfas/js/config.js"></script>
     
     <!-- Custom Scripts -->
     <script type="module" src="../assets/js/ApiClient.js"></script>
@@ -298,563 +298,182 @@
     <script type="module" src="../assets/js/Application.js"></script>
     <script type="module" src="../assets/js/auth-persistence.js"></script>
     <script src="../assets/js/animations.js"></script>
-    
-    <script>
-        // Products page specific functionality
-        (function() {
-            'use strict';
-            
-            let currentFilters = {
-                categories: [],
-                minPrice: null,
-                maxPrice: null,
-                sizes: [],
-                colors: [],
-                brands: [],
-                search: null
-            };
-            
-            let currentSort = 'featured';
-            let currentPage = 1;
-            let productsPerPage = 12;
-            let totalProducts = 0;
-            
-            document.addEventListener('DOMContentLoaded', function() {
-                initializeProductsPage();
-                
-                // Ensure AuthManager updates UI
-                if (window.authManager) {
-                    window.authManager.updateAuthUI();
-                }
-            });
-            
-            function initializeProductsPage() {
-                // Parse URL parameters
-                parseUrlParameters();
-                
-                // Setup event listeners
-                setupEventListeners();
-                
-                // Load initial products
-                loadProducts();
-                
-                // Update UI
-                updateFiltersUI();
+       
+    <style>
+        /* Product Card Styles */
+        .product-card {
+            border: 2px solid #DEDEDE;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            background: white;
+            height: 100%;
+            position: relative;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+            margin-top: 120px;
+        }
+
+        .product-details {
+            padding: 12px 24px;
+            margin-top: -60px;
+            margin-bottom: 40px;
+        }
+
+        .product-title {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 18px;
+            color: #000;
+            margin-bottom: 8px;
+        }
+
+        .product-price {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 20px;
+            color: #000;
+        }
+
+        /* Filter Styles */
+        .filters-sidebar {
+            background: white;
+            border: 2px solid #DEDEDE;
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        /* Color Options */
+        .color-option {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-block;
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .color-option:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .color-option.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-weight: bold;
+            text-shadow: 0 0 2px rgba(0,0,0,0.5);
+        }
+
+        /* Quick View Button */
+        .view-more {
+            width: 48px;
+            height: 48px;
+            background: #000;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s ease, background-color 0.2s ease;
+        }
+
+        .view-more:hover {
+            transform: scale(1.1);
+            background-color: #333;
+        }
+
+        /* Add to Cart Button */
+        .add-to-cart {
+            background-color: #000;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            transition: background-color 0.2s ease;
+            width: 100%;
+            margin-top: 16px;
+        }
+
+        .add-to-cart:hover {
+            background-color: #333;
+        }
+        
+        /* Size filter buttons */
+        .size-option {
+            display: inline-block;
+            padding: 8px 16px;
+            margin: 4px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            color: #333;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .size-option:hover {
+            border-color: #000;
+            background: #f5f5f5;
+        }
+
+        .size-option.active {
+            border-color: #000;
+            background: #000;
+            color: white;
+        }
+
+        .size-option:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .products-grid.list-view .col-lg-4,
+        .products-grid.list-view .col-md-6 {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+        
+        .products-grid.list-view .product-card {
+            flex-direction: row;
+        }
+        
+        .products-grid.list-view .product-image {
+            width: 200px;
+            height: 150px;
+            flex-shrink: 0;
+        }
+        
+        @media (max-width: 768px) {
+            .filters-sidebar {
+                margin-bottom: 2rem;
             }
             
-            function parseUrlParameters() {
-                const urlParams = new URLSearchParams(window.location.search);
-                
-                // Search query
-                if (urlParams.has('search')) {
-                    currentFilters.search = urlParams.get('search');
-                    document.getElementById('searchInput').value = currentFilters.search;
-                }
-                
-                // Category filter
-                if (urlParams.has('category')) {
-                    const categoryId = urlParams.get('category');
-                    currentFilters.categories = [categoryId];
-                }
-                
-                // Sort
-                if (urlParams.has('sort')) {
-                    currentSort = urlParams.get('sort');
-                    document.getElementById('sortSelect').value = currentSort;
-                }
-                
-                // Page
-                if (urlParams.has('page')) {
-                    currentPage = parseInt(urlParams.get('page')) || 1;
-                }
+            .products-toolbar {
+                flex-direction: column;
+                gap: 1rem;
             }
             
-            function setupEventListeners() {
-                // Filter change listeners
-                document.querySelectorAll('#categoryFilters input[type="checkbox"]').forEach(checkbox => {
-                    checkbox.addEventListener('change', handleFilterChange);
-                });
-                
-                document.querySelectorAll('#brandFilters input[type="checkbox"]').forEach(checkbox => {
-                    checkbox.addEventListener('change', handleFilterChange);
-                });
-                
-                document.querySelectorAll('.size-btn input').forEach(checkbox => {
-                    checkbox.addEventListener('change', handleFilterChange);
-                });
-                
-                document.querySelectorAll('.color-option').forEach(option => {
-                    option.addEventListener('click', handleColorFilter);
-                });
-                
-                // Price range
-                document.getElementById('priceRange').addEventListener('input', handlePriceRangeChange);
-                document.getElementById('minPrice').addEventListener('change', handlePriceInputChange);
-                document.getElementById('maxPrice').addEventListener('change', handlePriceInputChange);
-                
-                // Sort change
-                document.getElementById('sortSelect').addEventListener('change', handleSortChange);
-                
-                // View toggle
-                document.getElementById('gridView').addEventListener('click', () => setView('grid'));
-                document.getElementById('listView').addEventListener('click', () => setView('list'));
-                
-                // Clear filters
-                document.getElementById('clearFilters').addEventListener('click', clearAllFilters);
-                
-                // Search
-                document.getElementById('searchButton').addEventListener('click', handleSearch);
-                document.getElementById('searchInput').addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        handleSearch();
-                    }
-                });
+            .products-toolbar .col-md-6 {
+                text-align: center;
             }
-            
-            function handleFilterChange() {
-                updateFiltersFromUI();
-                currentPage = 1; // Reset to first page
-                loadProducts();
-            }
-            
-            function handleColorFilter(e) {
-                const colorOption = e.target;
-                const color = colorOption.dataset.color;
-                
-                colorOption.classList.toggle('selected');
-                
-                if (colorOption.classList.contains('selected')) {
-                    if (!currentFilters.colors.includes(color)) {
-                        currentFilters.colors.push(color);
-                    }
-                } else {
-                    currentFilters.colors = currentFilters.colors.filter(c => c !== color);
-                }
-                
-                currentPage = 1;
-                loadProducts();
-            }
-            
-            function handlePriceRangeChange(e) {
-                const value = parseInt(e.target.value);
-                currentFilters.maxPrice = value === 500 ? null : value;
-                document.getElementById('maxPrice').value = currentFilters.maxPrice || '';
-                
-                currentPage = 1;
-                loadProducts();
-            }
-            
-            function handlePriceInputChange() {
-                const minPrice = document.getElementById('minPrice').value;
-                const maxPrice = document.getElementById('maxPrice').value;
-                
-                currentFilters.minPrice = minPrice ? parseInt(minPrice) : null;
-                currentFilters.maxPrice = maxPrice ? parseInt(maxPrice) : null;
-                
-                // Update range slider
-                if (currentFilters.maxPrice) {
-                    document.getElementById('priceRange').value = currentFilters.maxPrice;
-                }
-                
-                currentPage = 1;
-                loadProducts();
-            }
-            
-            function handleSortChange(e) {
-                currentSort = e.target.value;
-                currentPage = 1;
-                loadProducts();
-            }
-            
-            function handleSearch() {
-                const searchInput = document.getElementById('searchInput');
-                currentFilters.search = searchInput.value.trim();
-                currentPage = 1;
-                loadProducts();
-                
-                // Update URL
-                updateUrl();
-            }
-            
-            function updateFiltersFromUI() {
-                // Categories
-                currentFilters.categories = Array.from(document.querySelectorAll('#categoryFilters input:checked'))
-                    .map(cb => cb.value);
-                
-                // Brands
-                currentFilters.brands = Array.from(document.querySelectorAll('#brandFilters input:checked'))
-                    .map(cb => cb.value);
-                
-                // Sizes
-                currentFilters.sizes = Array.from(document.querySelectorAll('.size-btn input:checked'))
-                    .map(cb => cb.value);
-            }
-            
-            function updateFiltersUI() {
-                // Update category checkboxes
-                currentFilters.categories.forEach(categoryId => {
-                    const checkbox = document.getElementById(`category${categoryId}`);
-                    if (checkbox) checkbox.checked = true;
-                });
-                
-                // Update color selections
-                currentFilters.colors.forEach(color => {
-                    const colorOption = document.querySelector(`[data-color="${color}"]`);
-                    if (colorOption) colorOption.classList.add('selected');
-                });
-            }
-            
-            async function loadProducts() {
-                showLoading();
-                
-                try {
-                    // Simulate API call - replace with actual ProductManager call
-                    const mockProducts = generateMockProducts();
-                    const filteredProducts = applyFilters(mockProducts);
-                    const sortedProducts = applySorting(filteredProducts);
-                    const paginatedProducts = applyPagination(sortedProducts);
-                    
-                    renderProducts(paginatedProducts.products);
-                    renderPagination(paginatedProducts.totalPages);
-                    updateResultsCount(filteredProducts.length);
-                    
-                    hideLoading();
-                } catch (error) {
-                    console.error('Error loading products:', error);
-                    showNoResults();
-                }
-            }
-            
-            function generateMockProducts() {
-                // Mock products data - replace with actual API call
-                const products = [];
-                for (let i = 1; i <= 48; i++) {
-                    products.push({
-                        product_id: i,
-                        product_name: `Nike Air Max ${i}`,
-                        price: Math.floor(Math.random() * 200) + 50,
-                        original_price: Math.floor(Math.random() * 250) + 100,
-                        product_image: `../assets/images/ui/shoes_1.svg`,
-                        category_id: Math.floor(Math.random() * 4) + 1,
-                        brand: ['nike', 'adidas', 'jordan'][Math.floor(Math.random() * 3)],
-                        colors: ['black', 'white', 'red', 'blue'].slice(0, Math.floor(Math.random() * 3) + 1),
-                        sizes: [7, 8, 9, 10, 11].slice(0, Math.floor(Math.random() * 4) + 2),
-                        rating: Math.floor(Math.random() * 5) + 1,
-                        review_count: Math.floor(Math.random() * 100) + 5,
-                        stock_quantity: Math.floor(Math.random() * 50) + 1
-                    });
-                }
-                return products;
-            }
-            
-            function applyFilters(products) {
-                return products.filter(product => {
-                    // Category filter
-                    if (currentFilters.categories.length > 0 && 
-                        !currentFilters.categories.includes(product.category_id.toString())) {
-                        return false;
-                    }
-                    
-                    // Brand filter
-                    if (currentFilters.brands.length > 0 && 
-                        !currentFilters.brands.includes(product.brand)) {
-                        return false;
-                    }
-                    
-                    // Price filter
-                    if (currentFilters.minPrice && product.price < currentFilters.minPrice) {
-                        return false;
-                    }
-                    if (currentFilters.maxPrice && product.price > currentFilters.maxPrice) {
-                        return false;
-                    }
-                    
-                    // Size filter
-                    if (currentFilters.sizes.length > 0) {
-                        const hasSize = currentFilters.sizes.some(size => 
-                            product.sizes.includes(parseInt(size))
-                        );
-                        if (!hasSize) return false;
-                    }
-                    
-                    // Color filter
-                    if (currentFilters.colors.length > 0) {
-                        const hasColor = currentFilters.colors.some(color => 
-                            product.colors.includes(color)
-                        );
-                        if (!hasColor) return false;
-                    }
-                    
-                    // Search filter
-                    if (currentFilters.search) {
-                        const searchTerm = currentFilters.search.toLowerCase();
-                        if (!product.product_name.toLowerCase().includes(searchTerm)) {
-                            return false;
-                        }
-                    }
-                    
-                    return true;
-                });
-            }
-            
-            function applySorting(products) {
-                const sorted = [...products];
-                
-                switch (currentSort) {
-                    case 'price_low':
-                        sorted.sort((a, b) => a.price - b.price);
-                        break;
-                    case 'price_high':
-                        sorted.sort((a, b) => b.price - a.price);
-                        break;
-                    case 'name_asc':
-                        sorted.sort((a, b) => a.product_name.localeCompare(b.product_name));
-                        break;
-                    case 'name_desc':
-                        sorted.sort((a, b) => b.product_name.localeCompare(a.product_name));
-                        break;
-                    case 'newest':
-                        sorted.sort((a, b) => b.product_id - a.product_id);
-                        break;
-                    default: // featured
-                        sorted.sort((a, b) => b.rating - a.rating);
-                        break;
-                }
-                
-                return sorted;
-            }
-            
-            function applyPagination(products) {
-                totalProducts = products.length;
-                const totalPages = Math.ceil(totalProducts / productsPerPage);
-                const startIndex = (currentPage - 1) * productsPerPage;
-                const endIndex = startIndex + productsPerPage;
-                
-                return {
-                    products: products.slice(startIndex, endIndex),
-                    totalPages: totalPages
-                };
-            }
-            
-            function renderProducts(products) {
-                const container = document.getElementById('productsGrid');
-                
-                if (products.length === 0) {
-                    showNoResults();
-                    return;
-                }
-                
-                const productsHTML = products.map(product => `
-                    <div class="col-lg-4 col-md-6 mb-4">
-                        <div class="card product-card h-100" onclick="viewProduct(${product.product_id})">
-                            <div class="product-image">
-                                <img src="${product.product_image}" alt="${product.product_name}" class="card-img-top">
-                                <div class="product-overlay">
-                                    <div class="product-actions">
-                                        <button class="btn btn-sm btn-light" onclick="event.stopPropagation(); quickView(${product.product_id})">
-                                            <i class="fas fa-eye"></i> Quick View
-                                        </button>
-                                        <button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); addToCart(${product.product_id})">
-                                            <i class="fas fa-shopping-cart"></i> Add to Cart
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card-body">
-                                <h5 class="product-title">${product.product_name}</h5>
-                                <div class="product-price">
-                                    $${product.price}
-                                    ${product.original_price > product.price ? `<span class="product-price-old">$${product.original_price}</span>` : ''}
-                                </div>
-                                <div class="product-rating">
-                                    <div class="rating-stars">
-                                        ${generateStars(product.rating)}
-                                    </div>
-                                    <span>(${product.review_count} reviews)</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `).join('');
-                
-                container.innerHTML = productsHTML;
-                container.style.display = 'flex';
-            }
-            
-            function renderPagination(totalPages) {
-                const container = document.getElementById('pagination');
-                
-                if (totalPages <= 1) {
-                    container.innerHTML = '';
-                    return;
-                }
-                
-                let paginationHTML = '';
-                
-                // Previous button
-                if (currentPage > 1) {
-                    paginationHTML += `<li class="page-item"><a class="page-link" href="#" onclick="goToPage(${currentPage - 1})">Previous</a></li>`;
-                }
-                
-                // Page numbers
-                const startPage = Math.max(1, currentPage - 2);
-                const endPage = Math.min(totalPages, currentPage + 2);
-                
-                if (startPage > 1) {
-                    paginationHTML += `<li class="page-item"><a class="page-link" href="#" onclick="goToPage(1)">1</a></li>`;
-                    if (startPage > 2) {
-                        paginationHTML += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
-                    }
-                }
-                
-                for (let i = startPage; i <= endPage; i++) {
-                    paginationHTML += `<li class="page-item ${i === currentPage ? 'active' : ''}">
-                        <a class="page-link" href="#" onclick="goToPage(${i})">${i}</a>
-                    </li>`;
-                }
-                
-                if (endPage < totalPages) {
-                    if (endPage < totalPages - 1) {
-                        paginationHTML += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
-                    }
-                    paginationHTML += `<li class="page-item"><a class="page-link" href="#" onclick="goToPage(${totalPages})">${totalPages}</a></li>`;
-                }
-                
-                // Next button
-                if (currentPage < totalPages) {
-                    paginationHTML += `<li class="page-item"><a class="page-link" href="#" onclick="goToPage(${currentPage + 1})">Next</a></li>`;
-                }
-                
-                container.innerHTML = paginationHTML;
-            }
-            
-            function updateResultsCount(total) {
-                const startIndex = (currentPage - 1) * productsPerPage + 1;
-                const endIndex = Math.min(currentPage * productsPerPage, total);
-                
-                document.getElementById('resultsCount').textContent = 
-                    `Showing ${startIndex}-${endIndex} of ${total} products`;
-            }
-            
-            function generateStars(rating) {
-                let stars = '';
-                for (let i = 1; i <= 5; i++) {
-                    if (i <= rating) {
-                        stars += '<i class="fas fa-star"></i>';
-                    } else {
-                        stars += '<i class="far fa-star"></i>';
-                    }
-                }
-                return stars;
-            }
-            
-            function showLoading() {
-                document.getElementById('loadingContainer').style.display = 'block';
-                document.getElementById('productsGrid').style.display = 'none';
-                document.getElementById('noResults').style.display = 'none';
-            }
-            
-            function hideLoading() {
-                document.getElementById('loadingContainer').style.display = 'none';
-            }
-            
-            function showNoResults() {
-                document.getElementById('loadingContainer').style.display = 'none';
-                document.getElementById('productsGrid').style.display = 'none';
-                document.getElementById('noResults').style.display = 'block';
-            }
-            
-            function setView(viewType) {
-                const gridBtn = document.getElementById('gridView');
-                const listBtn = document.getElementById('listView');
-                const container = document.getElementById('productsGrid');
-                
-                if (viewType === 'grid') {
-                    gridBtn.classList.add('active');
-                    listBtn.classList.remove('active');
-                    container.classList.remove('list-view');
-                } else {
-                    listBtn.classList.add('active');
-                    gridBtn.classList.remove('active');
-                    container.classList.add('list-view');
-                }
-            }
-            
-            function updateUrl() {
-                const params = new URLSearchParams();
-                
-                if (currentFilters.search) {
-                    params.set('search', currentFilters.search);
-                }
-                
-                if (currentFilters.categories.length > 0) {
-                    params.set('category', currentFilters.categories[0]);
-                }
-                
-                if (currentSort !== 'featured') {
-                    params.set('sort', currentSort);
-                }
-                
-                if (currentPage > 1) {
-                    params.set('page', currentPage);
-                }
-                
-                const newUrl = params.toString() ? `${window.location.pathname}?${params}` : window.location.pathname;
-                window.history.replaceState({}, '', newUrl);
-            }
-            
-            // Global functions
-            window.clearAllFilters = function() {
-                // Reset filters
-                currentFilters = {
-                    categories: [],
-                    minPrice: null,
-                    maxPrice: null,
-                    sizes: [],
-                    colors: [],
-                    brands: [],
-                    search: null
-                };
-                
-                // Reset UI
-                document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
-                document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
-                document.getElementById('minPrice').value = '';
-                document.getElementById('maxPrice').value = '';
-                document.getElementById('priceRange').value = 250;
-                document.getElementById('searchInput').value = '';
-                
-                currentPage = 1;
-                loadProducts();
-            };
-            
-            window.goToPage = function(page) {
-                currentPage = page;
-                loadProducts();
-                updateUrl();
-                
-                // Scroll to top
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            };
-            
-            window.viewProduct = function(productId) {
-                window.location.href = `product-detail.html?id=${productId}`;
-            };
-            
-            window.quickView = function(productId) {
-                // Implement quick view modal
-                console.log('Quick view product:', productId);
-            };
-            
-            window.addToCart = function(productId) {
-                // Implement add to cart
-                console.log('Add to cart:', productId);
-                if (window.app) {
-                    window.app.showToast('Product added to cart!', 'success');
-                }
-            };
-            
-        }) ();
-    </script>
+        }       
+    </style>
 </body>
 </html>

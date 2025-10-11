@@ -31,6 +31,13 @@ import corsMiddleware from './middleware/cors.js';
 import createSupabaseConfig from '../config/supabase.js';
 import { initializeModels } from './models/index.js';
 
+// ⭐ Import modular routes for your modules
+import productRoutes from './routes/products.js';
+import variantRoutes from './routes/variants.js';
+import categoryRoutes from './routes/categories.js';
+import colorRoutes from './routes/colors.js';
+import sizeRoutes from './routes/sizes.js';
+
 class Server {
     constructor() {
         this.port = Number(process.env.PORT) || 3001;
@@ -42,14 +49,25 @@ class Server {
 
         // Initialize controllers
         this.authController = new AuthController(this.models);
-        this.productController = new ProductController(this.models);
-        this.categoryController = new CategoryController(this.models);
+
+        this.productController = new ProductController();
+        this.productController.setModels(this.models);
+
+        this.categoryController = new CategoryController();
+        this.categoryController.setModels(this.models);
+
+        this.colorController = new ColorController();
+        this.colorController.setModels(this.models);
+
+        this.sizeController = new SizeController();
+        this.sizeController.setModels(this.models);
+
+        this.variantController = new VariantController();
+        this.variantController.setModels(this.models);  
+
         this.orderController = new OrderController(this.models);
         this.profileController = new ProfileController(this.models);
         this.addressController = new AddressController(this.models);
-        this.colorController = new ColorController(this.models);
-        this.sizeController = new SizeController(this.models);
-        this.variantController = new VariantController(this.models);
         this.importController = new ImportController(this.models);
         this.paymentController = new PaymentController(this.models);
         this.adminController = new AdminController(this.models);
@@ -135,52 +153,78 @@ class Server {
         this.sendJson(res, { success: false, message }, statusCode);
     }
 
-    // Handle API routes
     async handleApiRequest(req, res, pathname) {
         console.log('API Request:', req.method, pathname);
-        const method = req.method;
-        const body = await this.parseBody(req);
-
+        
         try {
-            // Apply CORS middleware
-            corsMiddleware.configure(req, res, () => {});
+        // Apply CORS middleware
+        corsMiddleware.configure(req, res, () => {});
 
-            // Route handlers by path
-            if (pathname.startsWith('/api/auth/')) {
-                await this.handleAuthRoutes(req, res, pathname, method, body);
-            } else if (pathname.startsWith('/api/products/')) {
-                await this.handleProductRoutes(req, res, pathname, method, body);
-            } else if (pathname.startsWith('/api/categories/')) {
-                await this.handleCategoryRoutes(req, res, pathname, method, body);
-            } else if (pathname.startsWith('/api/orders/')) {
-                await this.handleOrderRoutes(req, res, pathname, method, body);
-            } else if (pathname.startsWith('/api/users/')) {
-                await this.handleUserRoutes(req, res, pathname, method, body);
-            } else if (pathname.startsWith('/api/profiles/')) {
-                await this.handleProfileRoutes(req, res, pathname, method, body);
-            } else if (pathname.startsWith('/api/addresses/')) {
-                await this.handleAddressRoutes(req, res, pathname, method, body);
-            } else if (pathname.startsWith('/api/colors/')) {
-                await this.handleColorRoutes(req, res, pathname, method, body);
-            } else if (pathname.startsWith('/api/sizes/')) {
-                await this.handleSizeRoutes(req, res, pathname, method, body);
-            } else if (pathname.startsWith('/api/variants/')) {
-                await this.handleVariantRoutes(req, res, pathname, method, body);
-            } else if (pathname.startsWith('/api/imports/')) {
-                await this.handleImportRoutes(req, res, pathname, method, body);
-            } else if (pathname.startsWith('/api/payments/')) {
-                await this.handlePaymentRoutes(req, res, pathname, method, body);
-            } else if (pathname.startsWith('/api/reviews/')) {
-                await this.handleReviewRoutes(req, res, pathname, method, body);
-            } else if (pathname.startsWith('/api/admin/')) {
-                await this.handleAdminRoutes(req, res, pathname, method, body);
-            } else {
-                this.sendError(res, 'API endpoint not found', 404);
-            }
+        // Handle OPTIONS preflight
+        if (req.method === 'OPTIONS') {
+            res.writeHead(200);
+            res.end();
+            return;
+        }
+
+        // Parse body for POST/PUT/PATCH requests
+        let body = {};
+        if (['POST', 'PUT', 'PATCH'].includes(req.method)) {
+            body = await this.parseBody(req);
+            req.body = body;
+        }
+
+        // Parse query parameters
+        const parsedUrl = url.parse(req.url, true);
+        req.query = parsedUrl.query || {};
+
+        // ⭐ MODULAR ROUTES (Your modules - use routes/ folder)
+        if (pathname.startsWith('/api/products')) {
+            return productRoutes(req, res, this.productController, pathname);
+        }
+        
+        if (pathname.startsWith('/api/variants')) {
+            return variantRoutes(req, res, this.variantController, pathname);
+        }
+        
+        if (pathname.startsWith('/api/categories')) {
+            return categoryRoutes(req, res, this.categoryController, pathname);
+        }
+        
+        if (pathname.startsWith('/api/colors')) {
+            return colorRoutes(req, res, this.colorController, pathname);
+        }
+        
+        if (pathname.startsWith('/api/sizes')) {
+            return sizeRoutes(req, res, this.sizeController, pathname);
+        }
+
+        // ⭐ BUILT-IN ROUTES (Keep existing handlers)
+        if (pathname.startsWith('/api/auth/')) {
+            await this.handleAuthRoutes(req, res, pathname, req.method, body);
+        } else if (pathname.startsWith('/api/orders/')) {
+            await this.handleOrderRoutes(req, res, pathname, req.method, body);
+        } else if (pathname.startsWith('/api/users/')) {
+            await this.handleUserRoutes(req, res, pathname, req.method, body);
+        } else if (pathname.startsWith('/api/profiles/')) {
+            await this.handleProfileRoutes(req, res, pathname, req.method, body);
+        } else if (pathname.startsWith('/api/addresses/')) {
+            await this.handleAddressRoutes(req, res, pathname, req.method, body);
+        } else if (pathname.startsWith('/api/imports/')) {
+            await this.handleImportRoutes(req, res, pathname, req.method, body);
+        } else if (pathname.startsWith('/api/payments/')) {
+            await this.handlePaymentRoutes(req, res, pathname, req.method, body);
+        } else if (pathname.startsWith('/api/reviews/')) {
+            await this.handleReviewRoutes(req, res, pathname, req.method, body);
+        } else if (pathname.startsWith('/api/admin/')) {
+            await this.handleAdminRoutes(req, res, pathname, req.method, body);
+        } else {
+            this.sendError(res, 'API endpoint not found', 404);
+        }
 
         } catch (error) {
-            console.error('API Error:', error);
-            this.sendError(res, 'Internal server error', 500);
+        console.error('API Error:', error);
+        this.sendError(res, 'Internal server error', 500);
         }
     }
 
@@ -240,111 +284,6 @@ class Server {
                         this.sendError(res, 'API endpoint not found', 404);
                 }
     }
-
-    // Product routes handler
-    async handleProductRoutes(req, res, pathname, method, body) {
-        const productPath = pathname.replace('/api/products', '');
-
-        // Check authentication for protected routes
-        const protectedRoutes = ['/'];
-        const isProtectedRoute = method !== 'GET' && protectedRoutes.some(route => productPath.startsWith(route));
-
-        if (isProtectedRoute) {
-            const authResult = await authMiddleware.authenticate(req, res);
-            if (!authResult || !authResult.success) {
-                return;
-            }
-            req.user = authResult.user;
-        }
-
-        if (productPath === '/' || productPath === '') {
-            if (method === 'GET') {
-                console.log('Handling GET /api/products');
-                try {
-                    res.writeHead(200, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ message: 'Products endpoint working - controllers not implemented yet' }));
-                } catch (error) {
-                    console.error('Error in getProducts:', error);
-                    this.sendError(res, 'Internal server error', 500);
-                }
-            } else if (method === 'POST') {
-                try {
-                    req.body = body;
-                    await this.productController.createProduct(req, res);
-                } catch (error) {
-                    console.error('Error in createProduct:', error);
-                    this.sendError(res, 'Internal server error', 500);
-                }
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else if (productPath.startsWith('/search')) {
-            if (method === 'GET') {
-                await this.productController.searchProducts(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else if (productPath.match(/^\/\d+$/)) {
-            const id = productPath.substring(1);
-            req.params = { id };
-            if (method === 'GET') {
-                await this.productController.getProduct(req, res);
-            } else if (method === 'PUT') {
-                req.body = body;
-                await this.productController.updateProduct(req, res);
-            } else if (method === 'DELETE') {
-                await this.productController.deleteProduct(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else {
-            this.sendError(res, 'API endpoint not found', 404);
-        }
-    }
-
-    // Category routes handler
-    async handleCategoryRoutes(req, res, pathname, method, body) {
-        const categoryPath = pathname.replace('/api/categories', '');
-
-        // Check authentication for protected routes
-        const protectedRoutes = ['/'];
-        const isProtectedRoute = method !== 'GET' && protectedRoutes.some(route => categoryPath.startsWith(route));
-
-        if (isProtectedRoute) {
-            const authResult = await authMiddleware.authenticate(req, res);
-            if (!authResult || !authResult.success) {
-                return;
-            }
-            req.user = authResult.user;
-        }
-
-        if (categoryPath === '/' || categoryPath === '') {
-            if (method === 'GET') {
-                await this.categoryController.getCategories(req, res);
-            } else if (method === 'POST') {
-                req.body = body;
-                await this.categoryController.createCategory(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else if (categoryPath.match(/^\/\d+$/)) {
-            const id = categoryPath.substring(1);
-            req.params = { id };
-            if (method === 'GET') {
-                await this.categoryController.getCategory(req, res);
-            } else if (method === 'PUT') {
-                req.body = body;
-                await this.categoryController.updateCategory(req, res);
-            } else if (method === 'DELETE') {
-                await this.categoryController.deleteCategory(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else {
-            this.sendError(res, 'API endpoint not found', 404);
-        }
-    }
-
     // Order routes handler
     async handleOrderRoutes(req, res, pathname, method, body) {
         const orderPath = pathname.replace('/api/orders', '');
@@ -457,100 +396,6 @@ class Server {
             this.sendError(res, 'API endpoint not found', 404);
         }
     }
-
-    // Color routes handler
-    async handleColorRoutes(req, res, pathname, method, body) {
-        const colorPath = pathname.replace('/api/colors', '');
-
-        if (colorPath === '/' || colorPath === '') {
-            if (method === 'GET') {
-                await this.colorController.getColors(req, res);
-            } else if (method === 'POST') {
-                req.body = body;
-                await this.colorController.createColor(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else if (colorPath.match(/^\/\d+$/)) {
-            const id = colorPath.substring(1);
-            req.params = { id };
-            if (method === 'GET') {
-                await this.colorController.getColor(req, res);
-            } else if (method === 'PUT') {
-                req.body = body;
-                await this.colorController.updateColor(req, res);
-            } else if (method === 'DELETE') {
-                await this.colorController.deleteColor(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else {
-            this.sendError(res, 'API endpoint not found', 404);
-        }
-    }
-
-    // Size routes handler
-    async handleSizeRoutes(req, res, pathname, method, body) {
-        const sizePath = pathname.replace('/api/sizes', '');
-
-        if (sizePath === '/' || sizePath === '') {
-            if (method === 'GET') {
-                await this.sizeController.getSizes(req, res);
-            } else if (method === 'POST') {
-                req.body = body;
-                await this.sizeController.createSize(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else if (sizePath.match(/^\/\d+$/)) {
-            const id = sizePath.substring(1);
-            req.params = { id };
-            if (method === 'GET') {
-                await this.sizeController.getSize(req, res);
-            } else if (method === 'PUT') {
-                req.body = body;
-                await this.sizeController.updateSize(req, res);
-            } else if (method === 'DELETE') {
-                await this.sizeController.deleteSize(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else {
-            this.sendError(res, 'API endpoint not found', 404);
-        }
-    }
-
-    // Variant routes handler
-    async handleVariantRoutes(req, res, pathname, method, body) {
-        const variantPath = pathname.replace('/api/variants', '');
-
-        if (variantPath === '/' || variantPath === '') {
-            if (method === 'GET') {
-                await this.variantController.getVariants(req, res);
-            } else if (method === 'POST') {
-                req.body = body;
-                await this.variantController.createVariant(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else if (variantPath.match(/^\/\d+$/)) {
-            const id = variantPath.substring(1);
-            req.params = { id };
-            if (method === 'GET') {
-                await this.variantController.getVariant(req, res);
-            } else if (method === 'PUT') {
-                req.body = body;
-                await this.variantController.updateVariant(req, res);
-            } else if (method === 'DELETE') {
-                await this.variantController.deleteVariant(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else {
-            this.sendError(res, 'API endpoint not found', 404);
-        }
-    }
-
     // Import routes handler
     async handleImportRoutes(req, res, pathname, method, body) {
         const importPath = pathname.replace('/api/imports', '');

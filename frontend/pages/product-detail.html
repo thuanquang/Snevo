@@ -2,13 +2,746 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Product Detail - Snevo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Detail - Nike Store</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --nike-black: #111111;
+            --nike-gray: #757575;
+            --nike-light-gray: #F5F5F5;
+            --nike-border: #E5E5E5;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            color: var(--nike-black);
+            background-color: #fff;
+        }
+
+        /* Loading State */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 60vh;
+        }
+
+        .loading .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+
+        /* Product Container */
+        .product-detail-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Image Gallery */
+        .product-gallery {
+            position: sticky;
+            top: 20px;
+        }
+
+        .thumbnail-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .thumbnail {
+            width: 80px;
+            height: 80px;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            overflow: hidden;
+            transition: border-color 0.2s;
+        }
+
+        .thumbnail:hover,
+        .thumbnail.active {
+            border-color: var(--nike-black);
+        }
+
+        .thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .main-image {
+            width: 100%;
+            border-radius: 16px;
+            overflow: hidden;
+            background-color: var(--nike-light-gray);
+        }
+
+        .main-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* Product Info */
+        .product-info {
+            padding-left: 40px;
+        }
+
+        .product-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--nike-gray);
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 12px;
+        }
+
+        .product-badge i {
+            color: #FFD700;
+        }
+
+        .product-title {
+            font-size: 32px;
+            font-weight: 600;
+            line-height: 1.2;
+            margin-bottom: 8px;
+        }
+
+        .product-subtitle {
+            color: var(--nike-gray);
+            font-size: 16px;
+            margin-bottom: 24px;
+        }
+
+        .product-price-section {
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+
+        .price-current {
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .price-original {
+            font-size: 20px;
+            color: var(--nike-gray);
+            text-decoration: line-through;
+        }
+
+        .price-discount {
+            background-color: #FF4136;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        /* Product Card Hover Effects */
+        .product-card {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid #e5e5e5;
+        }
+
+        .product-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+            border-color: #111;
+        }
+
+        .product-card:active {
+            transform: translateY(-4px);
+        }
+
+        .product-image {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .product-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .product-card:hover .product-overlay {
+            opacity: 1;
+        }
+
+        .product-actions {
+            z-index: 10;
+        }
+
+        /* Color Selector */
+        .color-selector {
+            margin-bottom: 32px;
+        }
+
+        .color-options {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .color-option {
+            width: 80px;
+            height: 80px;
+            border: 2px solid var(--nike-border);
+            border-radius: 12px;
+            cursor: pointer;
+            overflow: hidden;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .color-option:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .color-option.active {
+            border-color: var(--nike-black);
+            border-width: 3px;
+        }
+
+        .color-option.unavailable {
+            opacity: 0.3;
+            cursor: not-allowed;
+            position: relative;
+        }
+
+        .color-option.unavailable::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: -10%;
+            width: 120%;
+            height: 2px;
+            background-color: #FF4136;
+            transform: translateY(-50%) rotate(-45deg);
+        }
+
+        .color-option img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Size Selector */
+        .size-selector {
+            margin-bottom: 32px;
+        }
+
+        .size-selector-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .size-selector-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .size-guide-link {
+            color: var(--nike-gray);
+            text-decoration: none;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .size-guide-link:hover {
+            color: var(--nike-black);
+        }
+
+        .size-info {
+            color: var(--nike-gray);
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+
+        .size-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .size-option {
+            padding: 12px;
+            border: 1.5px solid var(--nike-border);
+            border-radius: 8px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            background-color: white;
+        }
+
+        .size-option:hover:not(.unavailable) {
+            border-color: var(--nike-black);
+            transform: translateY(-2px);
+        }
+
+        .size-option.active {
+            background-color: var(--nike-black);
+            color: white;
+            border-color: var(--nike-black);
+        }
+
+        .size-option.unavailable {
+            background-color: var(--nike-light-gray);
+            color: var(--nike-gray);
+            text-decoration: line-through;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        /* Add to Bag Button */
+        .add-to-bag-btn {
+            width: 100%;
+            padding: 20px;
+            background-color: var(--nike-black);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 16px;
+        }
+
+        .add-to-bag-btn:hover:not(:disabled) {
+            background-color: #333;
+            transform: scale(1.02);
+        }
+
+        .add-to-bag-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .favorite-btn {
+            width: 100%;
+            padding: 20px;
+            background-color: white;
+            color: var(--nike-black);
+            border: 1.5px solid var(--nike-border);
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .favorite-btn:hover {
+            border-color: var(--nike-black);
+        }
+
+        /* Stock Info */
+        .stock-info {
+            padding: 16px;
+            background-color: var(--nike-light-gray);
+            border-radius: 12px;
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+
+        .stock-info.in-stock {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .stock-info.low-stock {
+            background-color: #fff3e0;
+            color: #f57c00;
+        }
+
+        .stock-info.out-of-stock {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+
+        /* Product Description */
+        .product-description {
+            margin-top: 48px;
+            padding-top: 48px;
+            border-top: 1px solid var(--nike-border);
+        }
+
+        .product-description h3 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .product-description p {
+            color: var(--nike-gray);
+            line-height: 1.8;
+            margin-bottom: 16px;
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .product-info {
+                padding-left: 0;
+                margin-top: 32px;
+            }
+
+            .size-options {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 576px) {
+            .product-title {
+                font-size: 24px;
+            }
+
+            .price-current {
+                font-size: 22px;
+            }
+
+            .size-options {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Alert Messages */
+        .alert-custom {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    /* ⭐ Color Options */
+    .color-option {
+        width: 48px;
+        height: 48px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin: 0 8px 8px 0;
+        border: 2px solid #ddd;
+        transition: all 0.3s;
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .color-option:hover:not(:disabled) {
+        transform: scale(1.05);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    .color-option.selected {
+        border: 3px solid #ee4d2d !important;
+        box-shadow: 0 0 0 2px rgba(238, 77, 45, 0.2);
+    }
+
+    .color-option.unavailable {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+
+    .unavailable-mark {
+        position: absolute;
+        color: #888;
+        font-size: 20px;
+        font-weight: bold;
+    }
+
+    /* ⭐ Size Options */
+    .size-option {
+        padding: 10px 16px;
+        border: 1px solid #ddd;
+        background: white;
+        cursor: pointer;
+        margin: 0 8px 8px 0;
+        border-radius: 4px;
+        transition: all 0.3s;
+        min-width: 60px;
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+
+    .size-option:hover:not(:disabled) {
+        border-color: #ee4d2d;
+        color: #ee4d2d;
+    }
+
+    .size-option.selected {
+        border-color: #ee4d2d !important;
+        color: #ee4d2d !important;
+        background: rgba(238, 77, 45, 0.05);
+    }
+
+    .size-option.unavailable {
+        background: #fafafa;
+        color: #ccc;
+        cursor: not-allowed;
+    }
+
+    .size-option .strikethrough {
+        position: relative;
+        display: inline-block;
+    }
+
+    .size-option .strikethrough::before {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 1px;
+        background: #888;
+        top: 50%;
+        left: 0;
+    }
+
+    .size-option:disabled {
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
+
+    .size-option.low-stock {
+        border-color: #ffb700;
+        animation: pulse-border 1.5s infinite;
+    }
+
+    @keyframes pulse-border {
+        0%, 100% { border-color: #ffb700; }
+        50% { border-color: #ff9500; }
+    }
+
+    .unavailable-mark-size {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #999;
+        font-size: 24px;
+        opacity: 0.3;
+    }
+
+        /* Stock Warning Animation */
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Badge Styles */
+        .badge {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Product Detail Page</h1>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../assets/js/config.js"></script>
+    <div id="navbarRoot" data-navbar-page="products"></div>
+    <!-- Loading State -->
+    <div id="loading" class="loading">
+        <div class="spinner-border text-dark" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <!-- Product Detail Container -->
+    <div id="productDetail" class="product-detail-container" style="display: none;">
+        <div class="row">
+            <!-- Left Column: Image Gallery -->
+            <div class="col-lg-7">
+                <div class="product-gallery">
+                    <!-- Thumbnails (will be populated dynamically) -->
+                    <div id="thumbnailList" class="thumbnail-list mb-4"></div>
+                    
+                    <!-- Main Image -->
+                    <div id="mainImage" class="main-image">
+                        <img src="" alt="Product Image">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Product Info -->
+            <div class="col-lg-5">
+                <div class="product-info">
+                    <!-- Badge -->
+                    <div class="product-badge">
+                        <i class="fas fa-star"></i>
+                        <span>Highly Rated</span>
+                    </div>
+
+                    <!-- Title -->
+                    <h1 id="productTitle" class="product-title">Loading...</h1>
+                    <p id="productSubtitle" class="product-subtitle">Men's Shoes</p>
+
+                    <!-- Price -->
+                    <div class="product-price-section">
+                        <span id="currentPrice" class="price-current">₫0</span>
+                        <span id="originalPrice" class="price-original" style="display: none;">₫0</span>
+                        <span id="discount" class="price-discount" style="display: none;">0% off</span>
+                    </div>
+
+                    <!-- Color Selector -->
+                    <div class="color-selector">
+                        <h3 class="mb-3">Select Color</h3>
+                        <div id="colorOptions" class="color-options">
+                            <!-- Colors will be populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Size Selector -->
+                    <div class="size-selector">
+                        <div class="size-selector-header">
+                            <h3>Select Size</h3>
+                            <a href="#" class="size-guide-link">
+                                <i class="fas fa-ruler"></i>
+                                Size Guide
+                            </a>
+                        </div>
+                        <p class="size-info">Fits small; we recommend ordering half a size up</p>
+                        <div id="sizeOptions" class="size-options">
+                            <!-- Sizes will be populated dynamically -->
+                        </div>
+                    </div>
+                    <div id="stockWarning" style="display: none;"></div>
+                    <!-- Stock Info -->
+                    <div id="stockInfo" class="stock-info" style="display: none;">
+                        <i class="fas fa-info-circle"></i>
+                        <span id="stockMessage"></span>
+                    </div>
+
+                    <!-- Add to Bag Button -->
+                    <button id="addToBagBtn" class="add-to-bag-btn" disabled>
+                        <i class="fas fa-shopping-bag"></i>
+                        Add to Bag
+                    </button>
+
+                    <!-- Favorite Button -->
+                    <button class="favorite-btn">
+                        <i class="far fa-heart"></i>
+                        Favorite
+                    </button>
+
+                    <!-- Product Description -->
+                    <div class="product-description">
+                        <h3>Product Details</h3>
+                        <p id="productDescription">Loading product description...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Container -->
+    <div id="alertContainer"></div>
+    <script type="module" src="../assets/js/NavbarManager.js"></script>
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- ApiClient -->
     <script type="module" src="../assets/js/ApiClient.js"></script>
-    <script type="module" src="../assets/js/AuthManager.js"></script>
+    <!-- Product Detail Manager -->
+    <script src="../assets/js/ProductDetailManager.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                const productId = new URLSearchParams(window.location.search).get('id');
+                if (!productId) {
+                    showAlert('Product not found', 'danger');
+                    setTimeout(() => {
+                        window.location.href = 'products.html';
+                    }, 2000);
+                    return;
+                }
+
+                // ⭐ FIX: Assign to window object
+                if (!window.productDetailManager) {
+                    window.productDetailManager = new ProductDetailManager();
+                }
+                window.productDetailManager.init(productId);
+            }, 100);
+        });
+
+        // Show Alert Helper
+        function showAlert(message, type = 'info') {
+            const alertContainer = document.getElementById('alertContainer');
+            if (!alertContainer) return;
+
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type} alert-dismissible fade show alert-custom`;
+            alert.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            alertContainer.appendChild(alert);
+
+            setTimeout(() => {
+                alert.remove();
+            }, 3000);
+        }
+    </script>
 </body>
 </html>
