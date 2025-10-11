@@ -324,13 +324,11 @@ class ApiClient {
         this.setAuthToken(null);
         this.setRefreshToken(null);
         
-        // Redirect to login page
-        const returnUrl = encodeURIComponent(window.location.href);
-        // Open modal instead of navigating to login.html
+        // Show login modal
         if (window.showLoginModal) {
             window.showLoginModal();
         } else {
-            window.location.href = `login.html?return=${returnUrl}`;
+            console.error('Login modal not available');
         }
     }
 

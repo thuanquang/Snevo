@@ -66,17 +66,6 @@ class AuthManager {
                 this.updateAuthUI();
             }, delay);
         });
-        
-        // Handle OAuth redirect
-        if (window.location.pathname.includes('login.html')) {
-            const urlParams = new URLSearchParams(window.location.search);
-            const returnUrl = urlParams.get('return');
-            const redirectUrl = returnUrl ? decodeURIComponent(returnUrl) : 'index.html';
-            
-            setTimeout(() => {
-                window.location.href = redirectUrl;
-            }, 1000);
-        }
     }
 
     /**
@@ -216,9 +205,76 @@ class AuthManager {
      * Logout user
      */
     async logout() {
-        const result = await this.authService.logout();
-        // UI update happens via event listener
-        return result;
+        try {
+            console.log('🔐 AuthManager: Starting logout process...');
+            
+            // Call AuthService logout
+            const result = await this.authService.logout();
+            
+            // Check for errors in the result
+            if (result && result.error) {
+                console.error('❌ AuthService logout failed:', result.error);
+                throw new Error(result.error.message || 'Logout failed');
+            }
+            
+            // Clear local auth data
+            this.clearAuthData();
+            
+            // Update UI immediately
+            this.updateAuthUI();
+            
+            // Emit logout event
+            this.emit('logout');
+            
+            console.log('✅ AuthManager: Logout completed successfully');
+            return { success: true };
+            
+        } catch (error) {
+            console.error('❌ AuthManager logout error:', error);
+            
+            // Even if logout fails, try to clear local data
+            try {
+                this.clearAuthData();
+                this.updateAuthUI();
+            } catch (clearError) {
+                console.error('❌ Failed to clear auth data:', clearError);
+            }
+            
+            // Re-throw the error for the calling code to handle
+            throw error;
+        }
+    }
+
+    /**
+     * Clear authentication data
+     */
+    clearAuthData() {
+        console.log('🧹 AuthManager: Clearing authentication data...');
+        
+        // Clear local storage
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('refresh_token');
+        localStorage.removeItem('supabase.auth.token');
+        localStorage.removeItem('supabase.auth.refreshToken');
+        localStorage.removeItem('supabase.auth.user');
+        
+        // Clear session storage
+        if (typeof sessionStorage !== 'undefined') {
+            sessionStorage.clear();
+        }
+        
+        // Clear any cookies related to auth
+        document.cookie.split(";").forEach(cookie => {
+            const eqPos = cookie.indexOf("=");
+            const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+            if (name.includes('auth') || name.includes('session') || name.includes('token') ||
+                name.includes('supabase') || name.includes('user')) {
+                document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+                document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=" + window.location.hostname;
+            }
+        });
+        
+        console.log('✅ AuthManager: Authentication data cleared');
     }
 
     /**
@@ -258,8 +314,10 @@ class AuthManager {
      */
     requireAuth() {
         if (!this.isAuthenticated()) {
-            const returnUrl = encodeURIComponent(window.location.href);
-            window.location.href = `login.html?return=${returnUrl}`;
+            // Show login modal instead of redirecting
+            if (window.showLoginModal) {
+                window.showLoginModal();
+            }
             return false;
         }
         return true;

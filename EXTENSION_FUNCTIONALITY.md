@@ -116,6 +116,33 @@ Testing Notes:
 - Verify correct link shows (admin.html for sellers, profile.html for customers)
 - Check that hovering shows correct URL immediately after login
 - Ensure no console errors about missing elements
+- Verify profile/admin pages wait for AuthService before checking authentication
+- Confirm login.html is deleted and all references updated to use modal
+
+Login Modal Migration (Oct 2025)
+---------------------------------
+✅ COMPLETED: Removed login.html and migrated to modal-based authentication
+
+Changes:
+1. Deleted `frontend/pages/login.html` - no longer needed
+2. All authentication now handled through global login modal
+3. Updated all redirect logic to show modal instead
+
+Files Modified:
+- Deleted: `frontend/pages/login.html`
+- `frontend/assets/js/AuthManager.js`: Removed login.html redirects
+- `frontend/assets/js/Application.js`: Removed login page redirect logic
+- `frontend/assets/js/NavbarManager.js`: Removed login.html from path mappings
+- `frontend/assets/js/ApiClient.js`: Updated unauthorized handler to use modal only
+- `frontend/assets/js/AdminManager.js`: Updated auth check to use modal
+- `frontend/assets/js/cart.js`: Updated login redirect to use modal
+- `frontend/pages/profile.html`: Added AuthService initialization wait, uses modal for auth
+
+Benefits:
+- Cleaner UX - no page reload required for login
+- Consistent authentication flow across all pages
+- Faster login experience
+- Reduced maintenance - one auth UI to manage
 
 
 

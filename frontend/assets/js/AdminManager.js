@@ -30,8 +30,10 @@ class AdminManager {
         }
 
         if (!window.authManager.isAuthenticated()) {
-            const returnUrl = encodeURIComponent(window.location.href);
-            window.location.href = `login.html?return=${returnUrl}`;
+            // Show login modal instead of redirecting
+            if (window.showLoginModal) {
+                window.showLoginModal();
+            }
             return;
         }
         let user = window.authManager.getCurrentUser();

@@ -865,15 +865,6 @@ class Application {
         
         if (isAuthenticated) {
             console.log('✅ User is authenticated:', authManager.getCurrentUser());
-            
-            // If on login page, redirect to home
-            if (currentPath.includes('login.html')) {
-                console.log('🔄 Redirecting authenticated user from login page');
-                const urlParams = new URLSearchParams(window.location.search);
-                const returnUrl = urlParams.get('return');
-                const redirectUrl = returnUrl ? decodeURIComponent(returnUrl) : '/';
-                window.location.href = redirectUrl;
-            }
         } else {
             console.log('❌ User is not authenticated');
             
