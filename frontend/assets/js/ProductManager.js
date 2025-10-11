@@ -60,7 +60,7 @@ class ProductManager {
       this.showError('Failed to load products. Please refresh the page.');
     }
   }
-/**
+   /**
    * ⭐ NEW: Load available colors
    */
   async loadColors() {
@@ -399,6 +399,19 @@ class ProductManager {
             }
         });
     }
+    // ⭐ Product card click handler
+    const productsGrid = document.getElementById('productsGrid');
+    if (productsGrid) {
+        productsGrid.addEventListener('click', (e) => {
+            const productCard = e.target.closest('.product-card');
+            if (productCard) {
+                const productId = productCard.dataset.productId;
+                if (productId) {
+                    window.location.href = `product-detail.html?id=${productId}`;
+                }
+            }
+        });
+    }
   }
 
   /**
@@ -558,63 +571,62 @@ class ProductManager {
     });
   }
 
-  /**
-   * Render products (replace mock data rendering)
-   */
-  renderProducts(products) {
-    const container = document.getElementById('productsGrid');
-    
-    if (!container) {
-      console.error('❌ Products grid container not found');
-      return;
-    }
+    renderProducts(products) {
+        const container = document.getElementById('productsGrid');
+        
+        if (!container) {
+        console.error('❌ Products grid container not found');
+        return;
+        }
 
-    if (products.length === 0) {
-      this.showNoResults();
-      return;
-    }
+        if (products.length === 0) {
+        this.showNoResults();
+        return;
+        }
 
-    const productsHTML = products.map(product => {
-      const hasStock = product.stock_info?.has_stock ?? true;
-      const categoryName = product.categories?.category_name || 'Shoes';
-      const imageUrl = product.image_url && product.image_url.trim() !== '' 
-        ? product.image_url 
-        : '/assets/images/ui/thian.jpg';
+        const productsHTML = products.map(product => {
+        const hasStock = product.stock_info?.has_stock ?? true;
+        const categoryName = product.categories?.category_name || 'Shoes';
+        const imageUrl = product.image_url && product.image_url.trim() !== '' 
+            ? product.image_url 
+            : '/assets/images/ui/thian.jpg';
 
-      return `
-        <div class="col-lg-4 col-md-6 mb-4">
-          <div class="card product-card h-100" onclick="productManager.viewProduct(${product.shoe_id})">
-            <div class="product-image">
-              <img src="${imageUrl}" 
-                   alt="${product.shoe_name}" 
-                   class="card-img-top"
-                   onerror="this.src='../assets/images/ui/shoes1.svg'"
-                   loading="lazy">
-              <div class="product-overlay">
-                <div class="product-actions">
-                  <button class="btn btn-sm btn-light" 
-                          onclick="event.stopPropagation(); productManager.quickView(${product.shoe_id})">
-                    <i class="fas fa-eye"></i> Quick View
-                  </button>
+        return `
+            <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card product-card h-100" style="cursor: pointer;" onclick="window.location.href='product-detail.html?id=${product.shoe_id}'">
+                <div class="product-image">
+                <img src="${imageUrl}" 
+                    alt="${product.shoe_name}" 
+                    class="card-img-top"
+                    onerror="this.src='../assets/images/ui/shoes1.svg'"
+                    loading="lazy">
+                <div class="product-overlay">
+                    <div class="product-actions">
+                    <button class="btn btn-sm btn-light" 
+                            onclick="event.stopPropagation(); alert('Quick View - Coming soon!')">
+                        <i class="fas fa-eye"></i> Quick View
+                    </button>
+                    </div>
                 </div>
-              </div>
+                </div>
+                <div class="card-body">
+                <h5 class="product-title">${product.shoe_name}</h5>
+                <div class="product-price">
+                    ${this.formatPrice(product.base_price)}
+                </div>
+                <div class="product-category text-muted small">${categoryName}</div>
+                ${hasStock ? '<span class="badge bg-success">In Stock</span>' : '<span class="badge bg-danger">Out of Stock</span>'}
+                </div>
             </div>
-            <div class="card-body">
-              <h5 class="product-title">${product.shoe_name}</h5>
-              <div class="product-price">
-                ${this.formatPrice(product.base_price)}
-              </div>
-              <div class="product-category text-muted small">${categoryName}</div>
-              ${hasStock ? '<span class="badge bg-success">In Stock</span>' : '<span class="badge bg-danger">Out of Stock</span>'}
             </div>
-          </div>
-        </div>
-      `;
-    }).join('');
+        `;
+        }).join('');
 
-    container.innerHTML = productsHTML;
-    container.style.display = 'flex';
-  }
+        container.innerHTML = productsHTML;
+        container.style.display = 'flex';
+        console.log(`✅ Rendered ${products.length} products`);
+    }
+
 
   /**
    * Render pagination
