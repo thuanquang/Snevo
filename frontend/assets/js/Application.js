@@ -153,6 +153,11 @@ class Application {
             if (navbarManager.isInitialized) {
                 navbarManager.updateAuthState(data.user, true);
             }
+            // Force auth UI update after a small delay to ensure navbar is loaded
+            setTimeout(() => {
+                console.log('🔄 Forcing auth UI update after signedIn event');
+                authManager.updateAuthUI();
+            }, 200);
         });
         
         authManager.on('signedOut', () => {
@@ -169,6 +174,16 @@ class Application {
         
         authManager.on('registerError', (data) => {
             this.showToast(data.error, 'error');
+        });
+        
+        // Listen to role updates to refresh UI when role is fetched
+        authManager.on('roleUpdated', (data) => {
+            console.log('🔄 Role updated event received, updating UI:', data.role);
+            authManager.updateAuthUI();
+            // Also update navbar if needed
+            if (navbarManager.isInitialized) {
+                navbarManager.updateAuthState(data.user, true);
+            }
         });
 
         // Product events

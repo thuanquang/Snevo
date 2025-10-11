@@ -69,6 +69,56 @@ All methods include:
 Files modified:
 - `backend/controllers/VariantController.js`: Added 6 new controller methods
 
+Auth UI Update Timing Fix (Oct 2025)
+-------------------------------------
+✅ FIXED: Auth buttons not updating immediately after first-time Google login
+Issue: Race condition between navbar loading and auth UI updates
+
+Root Causes:
+1. NavbarManager loading navbar.html asynchronously into DOM
+2. AuthManager.updateAuthUI() being called before #authButtons element exists
+3. Profile data (role, username) fetching from database taking time
+4. Multiple components trying to update UI at different times
+
+Fixes Applied:
+1. Modified AuthManager.updateAuthUI() to retry if #authButtons not found
+   - Automatically retries after 100ms if element doesn't exist yet
+   - Prevents silent failure when navbar hasn't loaded
+
+2. Added roleUpdated event listener in Application.js
+   - Listens for when user profile/role is fetched from database
+   - Triggers UI update when role becomes available
+   - Ensures correct admin.html vs profile.html link
+
+3. Improved handleSignedIn timing with multiple scheduled updates
+   - Updates at 300ms, 800ms, and 1500ms after sign-in
+   - Catches profile data whenever it arrives
+   - Handles slow database responses
+
+4. Enhanced event bridging in Application.js
+   - signedIn event triggers delayed auth UI update (200ms)
+   - Ensures navbar is fully loaded before updating
+   - Coordinates between AuthManager and NavbarManager
+
+5. Created database migration script (scripts/fix-profile-trigger.sql)
+   - Fixes potential trigger errors with username field
+   - Ensures proper Google OAuth metadata handling
+   - Adds proper TG_OP checks to avoid accessing OLD on INSERT
+
+Files modified:
+- `frontend/assets/js/AuthManager.js`: Retry logic and improved timing
+- `frontend/assets/js/Application.js`: roleUpdated listener and delayed updates
+- `scripts/fix-profile-trigger.sql`: Database trigger fixes
+
+Testing Notes:
+- Test first-time Google login (new user creation)
+- Test returning user Google login (existing profile)
+- Verify correct link shows (admin.html for sellers, profile.html for customers)
+- Check that hovering shows correct URL immediately after login
+- Ensure no console errors about missing elements
+
+
+
 # EXTENSION FUNCTIONALITY - SNEVO E-COMMERCE PLATFORM
 
 ## PROJECT OVERVIEW

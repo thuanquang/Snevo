@@ -57,16 +57,15 @@ class AuthManager {
         console.log('✅ User signed in:', data.user?.email);
         this.updateAuthUI();
         
-        // Force another UI update after delay to ensure profile is loaded
-        setTimeout(() => {
-            console.log('🔄 Forcing delayed UI update after sign in');
-            this.updateAuthUI();
-        }, 500);
-        
-        setTimeout(() => {
-            console.log('🔄 Final UI update check');
-            this.updateAuthUI();
-        }, 1500);
+        // Force UI updates at intervals to ensure profile is loaded
+        // This handles the race condition where profile data arrives after initial sign-in
+        const updateIntervals = [300, 800, 1500];
+        updateIntervals.forEach(delay => {
+            setTimeout(() => {
+                console.log(`🔄 Scheduled UI update after ${delay}ms`);
+                this.updateAuthUI();
+            }, delay);
+        });
         
         // Handle OAuth redirect
         if (window.location.pathname.includes('login.html')) {
@@ -115,7 +114,9 @@ class AuthManager {
         const authButtons = document.getElementById('authButtons');
         
         if (!authButtons) {
-            console.log('No authButtons element found');
+            console.log('No authButtons element found, retrying in 100ms...');
+            // Retry after a short delay
+            setTimeout(() => this.updateAuthUI(), 100);
             return;
         }
 
