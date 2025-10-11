@@ -3,6 +3,7 @@
  * Orchestrates all components and manages the overall application state
  */
 
+import authService from './services/AuthService.js';
 import { authManager } from './AuthManager.js';
 import { productManager } from './ProductManager.js';
 import { navbarManager } from './NavbarManager.js';
@@ -118,8 +119,13 @@ class Application {
      * Initialize core managers
      */
     async initializeCore() {
-        // Auth manager should already be initialized
-        if (!authManager.isInitialized) {
+        // Initialize AuthService first
+        console.log('🔐 Initializing AuthService...');
+        await authService.initialize();
+        
+        // Auth manager should already be initialized (auto-init on)
+        console.log('🔐 Ensuring AuthManager is initialized...');
+        if (authManager && !authManager.authService.initialized) {
             await authManager.initialize();
         }
         

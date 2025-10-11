@@ -23,24 +23,28 @@ Override Examples:
 - Admin: `{ showAdminMenu: true, customActions: ['admin-dashboard', 'logout'] }`
 - Cart: `{ hideCart: true, customActions: ['continue-shopping'] }`
 
-Auth/Login Behavior (Google-only)
----------------------------------
-- Global modal is injected by `frontend/assets/js/Application.js#initializeLoginModal`.
-- Exposes `window.showLoginModal()` to open modal.
-- All anchors pointing to `login.html` are intercepted to open modal instead of navigating.
-- `AuthManager.loginWithGoogle()` now redirects back to `window.location.href` after OAuth.
-- `AuthManager.updateAuthUI()` renders a `Login` link that calls the modal via `#globalLoginLink`.
-- Role-aware navbar: when authenticated AND role is known, customers see `profile.html`; sellers see `admin.html`. If role unknown, show Login.
-- Protected page access triggers modal instead of redirect.
-- Fallbacks: if modal isn't ready, code falls back to `login.html` navigation in ApiClient/cart.
+Auth/Login Behavior (Simplified Direct Supabase)
+------------------------------------------------
+- Direct Supabase Auth client integration (no backend auth proxy)
+- `AuthService` (`frontend/assets/js/services/AuthService.js`) handles all auth operations
+- Global modal (`LoginModal.js`) calls `authService.loginWithGoogle()` directly
+- User roles fetched from `db_nike.profiles` table after Supabase authentication
+- Role-aware navbar: 'customer' → profile.html, 'seller' → admin.html
+- Session management handled by Supabase `onAuthStateChange` listener
+- No backend AuthController, auth routes, or JWT utilities needed
 
-Files touched:
-- `frontend/assets/js/AuthManager.js`: modal login UI hookup, Google redirect change; attach role after session validate/refresh; gate UI on real role; temp session without role.
-- `frontend/assets/js/Application.js`: inject modal; intercept `login.html` links; protected page handling.
-- `frontend/assets/js/ApiClient.js`: use modal on 401 redirect if available.
-- `frontend/assets/js/cart.js`: open modal on auth-required paths.
-- `frontend/assets/js/AdminManager.js`: revalidate session and attach role before enforcing seller access.
-- `frontend/pages/profile.html`: revalidate session on load; strict redirect to login if invalid.
+Key Files:
+- `frontend/assets/js/services/AuthService.js`: Direct Supabase client operations
+- `frontend/assets/js/AuthManager.js`: Simplified UI wrapper around AuthService
+- `frontend/assets/js/LoginModal.js`: Google OAuth modal using AuthService
+- `frontend/assets/js/Application.js`: Initializes AuthService first
+- `backend/middleware/auth.js`: Token verification only (kept for protected routes)
+- `backend/models/Profile.js`: Role management from db_nike.profiles
+
+Deleted Files (Redundant):
+- `backend/controllers/authController.js` - Supabase handles auth
+- `backend/routes/auth.js` - No backend auth routes needed
+- `backend/utils/jwt.js` - Supabase handles JWT
 
 Config prerequisites:
 - `frontend/assets/js/config.js` sets `APP_CONFIG.features.googleAuth` true with valid Supabase config.

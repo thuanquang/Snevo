@@ -103,22 +103,31 @@ class LoginModal {
         const googleBtn = overlay.querySelector('#gl-google-btn');
         googleBtn.addEventListener('click', async () => {
             try {
-                // Use AuthManager if available, otherwise fallback
-                if (window.authManager && typeof window.authManager.loginWithGoogle === 'function') {
-                    const result = await window.authManager.loginWithGoogle();
-                    if (!result.success && window.showToast) {
-                        window.showToast(result.error || 'Google login failed', 'error');
+                // Use AuthService directly for simpler, faster auth
+                if (window.authService) {
+                    const { error } = await window.authService.loginWithGoogle();
+                    if (error) {
+                        console.error('Google login failed:', error);
+                        if (window.showToast) {
+                            window.showToast(error.message || 'Google login failed', 'error');
+                        } else {
+                            alert('Login failed: ' + error.message);
+                        }
                     }
                 } else {
-                    console.error('AuthManager not available for Google login');
+                    console.error('AuthService not available');
                     if (window.showToast) {
-                        window.showToast('Authentication service not available', 'error');
+                        window.showToast('Authentication service not available. Please refresh the page.', 'error');
+                    } else {
+                        alert('Authentication service not available. Please refresh the page.');
                     }
                 }
             } catch (err) {
                 console.error('Google login error:', err);
                 if (window.showToast) {
                     window.showToast('Google login failed', 'error');
+                } else {
+                    alert('Login failed. Please try again.');
                 }
             }
         });
