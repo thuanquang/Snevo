@@ -153,12 +153,14 @@ The unified navbar system provides consistent navigation across all pages with p
 - **State Synchronization**: Automatically syncs with AuthManager and CartManager
 - **Path Resolution**: Handles relative paths automatically based on current page location
 
-### Auth/Role Integration (Updated)
-- `AuthManager.updateAuthUI()` now renders admin/profile links only when a valid session AND a real `currentUser.role` are present; otherwise it renders a Login button.
-- After validating or refreshing a session, `AuthManager` attaches role data from `db_nike.profiles` using `fetchAndAttachProfileRole(userId)`.
-- Temporary sessions created when the profile API is unavailable no longer assign a role, preventing misleading admin/profile links.
-- `AdminManager.initialize()` revalidates the session, ensures role is attached, and only then enforces `seller` access.
-- `profile.html` revalidates session on load and strictly redirects to login when not authenticated.
+### Auth/Role Integration (Simplified with Direct Supabase)
+- Frontend uses direct Supabase Auth client (no backend auth proxy)
+- `AuthService` handles all authentication operations directly with Supabase
+- User roles fetched from `db_nike.profiles` table after Supabase authentication
+- `AuthManager.updateAuthUI()` renders admin/profile links based on role from profiles table
+- Role-based navigation: 'customer' → profile.html, 'seller' → admin.html
+- No backend auth controller, routes, or JWT utilities needed
+- Session management handled entirely by Supabase client
 
 ### Override Examples
 ```javascript

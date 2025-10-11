@@ -200,8 +200,6 @@ class NavbarManager {
             return 'orders';
         } else if (path.includes('admin.html')) {
             return 'admin';
-        } else if (path.includes('login.html')) {
-            return 'login';
         }
         return 'home';
     }
@@ -488,8 +486,7 @@ initScrollBehavior() {
             'categories': 'categories.html',
             'cart': 'cart.html',
             'profile': 'profile.html',
-            'orders': 'orders.html',
-            'login': 'login.html'
+            'orders': 'orders.html'
         };
         
         const targetPage = pathMap[linkType];
@@ -734,10 +731,45 @@ initScrollBehavior() {
                 break;
             case 'logout':
                 a.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
-                a.addEventListener('click', (e) => {
+                a.addEventListener('click', async (e) => {
                     e.preventDefault();
-                    if (window.authManager) {
-                        window.authManager.logout();
+                    console.log('Navbar logout button clicked');
+                    
+                    // Disable the button and show loading state
+                    a.disabled = true;
+                    a.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Logging out...';
+                    
+                    try {
+                        if (window.authManager) {
+                            console.log('Using AuthManager logout from navbar');
+                            await window.authManager.logout();
+                            console.log('Navbar logout successful via AuthManager');
+                        } else {
+                            console.log('AuthManager not available from navbar, using fallback');
+                            // Fallback logout process
+                            await this.performNavbarLogout();
+                        }
+                    } catch (error) {
+                        console.error('Navbar logout error:', error);
+                        
+                        // If AuthManager logout failed, try fallback
+                        if (window.authManager) {
+                            console.log('AuthManager logout failed from navbar, trying fallback');
+                            try {
+                                await this.performNavbarLogout();
+                            } catch (fallbackError) {
+                                console.error('Fallback navbar logout also failed:', fallbackError);
+                                this.showNavbarError('Logout failed. Please clear your browser data and refresh the page.');
+                                // Reset button state
+                                a.disabled = false;
+                                a.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
+                            }
+                        } else {
+                            this.showNavbarError('Logout failed. Please try again or refresh the page.');
+                            // Reset button state
+                            a.disabled = false;
+                            a.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
+                        }
                     }
                 });
                 break;
@@ -747,6 +779,173 @@ initScrollBehavior() {
         
         li.appendChild(a);
         return li;
+    }
+
+    /**
+     * Perform navbar logout fallback
+     */
+    async performNavbarLogout() {
+        console.log('Performing manual navbar logout');
+        
+        // Show logout success message before clearing data
+        this.showNavbarLogoutSuccessToast();
+        
+        try {
+            // Small delay to let user see the message
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Clear all authentication data
+            this.clearNavbarAuthenticationData();
+            
+            // Clear any additional session data
+            this.clearNavbarSessionData();
+            
+            // Update UI if AuthManager is available
+            if (window.authManager) {
+                window.authManager.clearAuthData();
+                window.authManager.updateAuthUI();
+                window.authManager.emit('logout');
+            }
+            
+            // Redirect to home page
+            console.log('Redirecting to index.html after navbar logout');
+            window.location.href = this.getRelativePath('index.html');
+            
+        } catch (error) {
+            console.error('❌ Error during navbar logout process:', error);
+            this.showNavbarError('Logout process failed. Please clear your browser data and refresh the page.');
+            
+            // Force redirect after a timeout as fallback
+            setTimeout(() => {
+                console.log('🔄 Force redirecting after navbar logout error');
+                window.location.href = this.getRelativePath('index.html');
+            }, 3000);
+        }
+    }
+    
+    /**
+     * Clear navbar authentication data
+     */
+    clearNavbarAuthenticationData() {
+        // Clear all auth tokens
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('refresh_token');
+        
+        // Clear Supabase auth data if present
+        localStorage.removeItem('supabase.auth.token');
+        localStorage.removeItem('supabase.auth.refreshToken');
+        localStorage.removeItem('supabase.auth.user');
+        
+        // Clear any cookies related to auth
+        document.cookie.split(";").forEach(cookie => {
+            const eqPos = cookie.indexOf("=");
+            const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+            if (name.includes('auth') || name.includes('session') || name.includes('token') ||
+                name.includes('supabase') || name.includes('user')) {
+                document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+                document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=" + window.location.hostname;
+            }
+        });
+        
+        console.log('Navbar authentication data cleared');
+    }
+    
+    /**
+     * Clear navbar session data
+     */
+    clearNavbarSessionData() {
+        // Clear any application-specific session data
+        const sessionKeys = [
+            'user_preferences',
+            'cart_data',
+            'last_activity',
+            'session_id'
+        ];
+        
+        sessionKeys.forEach(key => {
+            if (localStorage.getItem(key)) {
+                localStorage.removeItem(key);
+                console.log('Cleared navbar session data:', key);
+            }
+        });
+        
+        // Clear sessionStorage as well
+        if (typeof sessionStorage !== 'undefined') {
+            sessionStorage.clear();
+            console.log('Navbar sessionStorage cleared');
+        }
+    }
+    
+    /**
+     * Show navbar logout success toast
+     */
+    showNavbarLogoutSuccessToast() {
+        // Create and show logout success toast
+        const toast = document.createElement('div');
+        toast.className = 'toast align-items-center text-white bg-info border-0';
+        toast.setAttribute('role', 'alert');
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas fa-sign-out-alt me-2"></i>Logging out...
+                </div>
+            </div>
+        `;
+        
+        // Position the toast in the center of the screen
+        toast.style.position = 'fixed';
+        toast.style.top = '50%';
+        toast.style.left = '50%';
+        toast.style.transform = 'translate(-50%, -50%)';
+        toast.style.zIndex = '9999';
+        toast.style.minWidth = '200px';
+        
+        document.body.appendChild(toast);
+        const bsToast = new bootstrap.Toast(toast, {
+            delay: 1000,
+            autohide: true
+        });
+        bsToast.show();
+        
+        // Remove toast after it's hidden
+        const removeToast = () => {
+            if (document.body.contains(toast)) {
+                document.body.removeChild(toast);
+            }
+        };
+        
+        toast.addEventListener('hidden.bs.toast', removeToast);
+        setTimeout(removeToast, 2000);
+    }
+    
+    /**
+     * Show navbar error message
+     */
+    showNavbarError(message) {
+        // Create and show error toast
+        const toast = document.createElement('div');
+        toast.className = 'toast align-items-center text-white bg-danger border-0';
+        toast.setAttribute('role', 'alert');
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas fa-exclamation-triangle me-2"></i>${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        `;
+        
+        document.body.appendChild(toast);
+        const bsToast = new bootstrap.Toast(toast, {
+            delay: 5000,
+            autohide: true
+        });
+        bsToast.show();
+        
+        // Remove toast after it's hidden
+        toast.addEventListener('hidden.bs.toast', () => {
+            document.body.removeChild(toast);
+        });
     }
 
     /**

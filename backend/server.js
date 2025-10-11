@@ -14,7 +14,6 @@ dotenv.config({
 });
 
 // Import controllers and middleware
-import AuthController from './controllers/authController.js';
 import ProductController from './controllers/productController.js';
 import CategoryController from './controllers/CategoryController.js';
 import OrderController from './controllers/orderController.js';
@@ -48,8 +47,6 @@ class Server {
         this.initializeDatabase();
 
         // Initialize controllers
-        this.authController = new AuthController(this.models);
-
         this.productController = new ProductController();
         this.productController.setModels(this.models);
 
@@ -200,9 +197,8 @@ class Server {
         }
 
         // ⭐ BUILT-IN ROUTES (Keep existing handlers)
-        if (pathname.startsWith('/api/auth/')) {
-            await this.handleAuthRoutes(req, res, pathname, req.method, body);
-        } else if (pathname.startsWith('/api/orders/')) {
+        // Auth routes removed - using Supabase Auth directly on frontend
+        if (pathname.startsWith('/api/orders/')) {
             await this.handleOrderRoutes(req, res, pathname, req.method, body);
         } else if (pathname.startsWith('/api/users/')) {
             await this.handleUserRoutes(req, res, pathname, req.method, body);
@@ -228,62 +224,6 @@ class Server {
         }
     }
 
-    // Auth routes handler
-    async handleAuthRoutes(req, res, pathname, method, body) {
-                const authPath = pathname.replace('/api/auth/', '');
-
-                // Check authentication for protected routes
-                const protectedRoutes = ['profile', 'logout'];
-                const isProtectedRoute = protectedRoutes.some(route => authPath.startsWith(route));
-
-                if (isProtectedRoute) {
-                    const authResult = await authMiddleware.authenticate(req, res);
-                    if (!authResult || !authResult.success) {
-                        return; // authMiddleware already sent response or failed
-                    }
-                    req.user = authResult.user;
-                }
-
-                switch (authPath) {
-                    case 'login':
-                        if (method === 'POST') {
-                            await this.authController.login(req, res);
-                        } else {
-                            this.sendError(res, 'Method not allowed', 405);
-                        }
-                        break;
-
-                    case 'register':
-                        if (method === 'POST') {
-                            await this.authController.register(req, res);
-                        } else {
-                            this.sendError(res, 'Method not allowed', 405);
-                        }
-                        break;
-
-                    case 'logout':
-                        if (method === 'POST') {
-                            await this.authController.logout(req, res);
-                        } else {
-                            this.sendError(res, 'Method not allowed', 405);
-                        }
-                        break;
-
-                    case 'profile':
-                        if (method === 'GET') {
-                            await this.authController.getProfile(req, res);
-                        } else if (method === 'PUT') {
-                            req.body = body;
-                            await this.authController.updateProfile(req, res);
-                        } else {
-                            this.sendError(res, 'Method not allowed', 405);
-                        }
-                        break;
-
-                    default:
-                        this.sendError(res, 'API endpoint not found', 404);
-                }
-    }
     // Order routes handler
     async handleOrderRoutes(req, res, pathname, method, body) {
         const orderPath = pathname.replace('/api/orders', '');
