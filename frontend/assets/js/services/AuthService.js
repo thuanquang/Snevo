@@ -84,7 +84,7 @@ class AuthService {
     /**
      * Fetch user role from db_nike.profiles table
      */
-    async fetchUserRole(userId) {
+    async fetchUserRole(userId, retryCount = 0) {
         if (!this.supabase || !userId) return null;
 
         try {
@@ -95,6 +95,13 @@ class AuthService {
                 .single();
 
             if (error) {
+                // Retry logic for new users whose profile hasn't been created yet
+                if (error.code === 'PGRST116' && retryCount < 3) {
+                    console.log(`Profile not found, retrying... (${retryCount + 1}/3)`);
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    return this.fetchUserRole(userId, retryCount + 1);
+                }
+                
                 console.warn('Failed to fetch user role:', error.message);
                 this.userRole = 'customer'; // Default fallback
                 return this.userRole;
@@ -111,6 +118,12 @@ class AuthService {
                     role: data.role
                 };
             }
+
+            // Emit role updated event
+            this.emit('roleUpdated', { 
+                user: this.currentUser, 
+                role: this.userRole 
+            });
 
             return this.userRole;
         } catch (error) {
@@ -132,6 +145,14 @@ class AuthService {
                     this.currentUser = session.user;
                     await this.fetchUserRole(session.user.id);
                     this.emit('signedIn', { user: this.currentUser, role: this.userRole });
+                    
+                    // Force immediate UI update after profile is loaded
+                    setTimeout(() => {
+                        this.emit('roleUpdated', { 
+                            user: this.currentUser, 
+                            role: this.userRole 
+                        });
+                    }, 100);
                 }
                 break;
 

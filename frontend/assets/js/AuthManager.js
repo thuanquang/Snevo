@@ -38,6 +38,12 @@ class AuthManager {
         this.authService.on('userUpdated', (data) => this.handleUserUpdated(data));
         this.authService.on('initialized', (data) => this.handleInitialized(data));
         
+        // Listen to role updates
+        this.authService.on('roleUpdated', (data) => {
+            console.log('🔄 Role updated, refreshing UI:', data.role);
+            this.updateAuthUI();
+        });
+        
         // Update UI
         this.updateAuthUI();
         
@@ -50,6 +56,17 @@ class AuthManager {
     handleSignedIn(data) {
         console.log('✅ User signed in:', data.user?.email);
         this.updateAuthUI();
+        
+        // Force another UI update after delay to ensure profile is loaded
+        setTimeout(() => {
+            console.log('🔄 Forcing delayed UI update after sign in');
+            this.updateAuthUI();
+        }, 500);
+        
+        setTimeout(() => {
+            console.log('🔄 Final UI update check');
+            this.updateAuthUI();
+        }, 1500);
         
         // Handle OAuth redirect
         if (window.location.pathname.includes('login.html')) {
@@ -108,16 +125,21 @@ class AuthManager {
 
         console.log('Updating auth UI:', { isAuthenticated, role, user: user?.email });
 
-        if (isAuthenticated && user && role) {
-            // User is logged in - show profile/admin link
-            const userName = user.user_metadata?.username || 
-                           user.user_metadata?.full_name || 
+        // Modified: Don't require role to be truthy, just authenticated and user
+        if (isAuthenticated && user) {
+            // Better fallback chain for display name
+            const userName = user.username || 
+                           user.user_metadata?.username || 
+                           user.user_metadata?.full_name ||
+                           user.user_metadata?.name ||
+                           user.full_name ||
                            user.email?.split('@')[0] || 
                            'User';
             
-            // Determine target page based on role
-            const targetPage = role === 'seller' ? 'admin.html' : 'profile.html';
-            const linkId = role === 'seller' ? 'adminLink' : 'profileLink';
+            // Determine target page based on role (default to customer)
+            const userRole = role || 'customer';
+            const targetPage = userRole === 'seller' ? 'admin.html' : 'profile.html';
+            const linkId = userRole === 'seller' ? 'adminLink' : 'profileLink';
             
             // Determine relative path
             const getRelativePath = (page) => {
