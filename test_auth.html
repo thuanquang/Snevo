@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auth Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>AuthService Test</h1>
+    
+    <div id="status" class="status info">Initializing...</div>
+    
+    <div>
+        <button onclick="testLogin()">Test Google Login</button>
+        <button onclick="testLogout()">Test Logout</button>
+        <button onclick="checkAuth()">Check Auth Status</button>
+        <button onclick="testRole()">Test Role Fetch</button>
+    </div>
+    
+    <div id="output"></div>
+
+    <!-- Load Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Load config -->
+    <script src="frontend/assets/js/config.js"></script>
+    
+    <!-- Load AuthService -->
+    <script type="module">
+        import authService from './frontend/assets/js/services/AuthService.js';
+        
+        window.authService = authService;
+        
+        // Initialize auth service
+        authService.initialize().then(() => {
+            updateStatus('AuthService initialized', 'success');
+            checkAuth();
+        }).catch(error => {
+            updateStatus('AuthService failed to initialize: ' + error.message, 'error');
+        });
+        
+        // Listen for auth events
+        authService.on('signedIn', (data) => {
+            updateStatus('User signed in: ' + data.user?.email, 'success');
+            testRole();
+        });
+        
+        authService.on('signedOut', () => {
+            updateStatus('User signed out', 'info');
+        });
+        
+        window.testLogin = async () => {
+            updateStatus('Attempting Google login...', 'info');
+            const result = await authService.loginWithGoogle();
+            if (result.error) {
+                updateStatus('Login failed: ' + result.error.message, 'error');
+            } else {
+                updateStatus('Login initiated successfully', 'success');
+            }
+        };
+        
+        window.testLogout = async () => {
+            updateStatus('Logging out...', 'info');
+            const result = await authService.logout();
+            if (result.error) {
+                updateStatus('Logout failed: ' + result.error.message, 'error');
+            } else {
+                updateStatus('Logged out successfully', 'success');
+            }
+        };
+        
+        window.checkAuth = () => {
+            const isAuth = authService.isAuthenticated();
+            const user = authService.currentUser;
+            const role = authService.getUserRole();
+            
+            updateStatus(`Auth Status: ${isAuth ? 'Authenticated' : 'Not authenticated'}<br>
+                         User: ${user?.email || 'None'}<br>
+                         Role: ${role || 'None'}`, isAuth ? 'success' : 'info');
+        };
+        
+        window.testRole = async () => {
+            if (!authService.currentUser) {
+                updateStatus('No user logged in', 'error');
+                return;
+            }
+            
+            updateStatus('Fetching user role...', 'info');
+            const role = await authService.fetchUserRole(authService.currentUser.id);
+            updateStatus(`User role: ${role}`, 'success');
+        };
+        
+        function updateStatus(message, type) {
+            const status = document.getElementById('status');
+            status.innerHTML = message;
+            status.className = `status ${type}`;
+        }
+    </script>
+</body>
+</html>

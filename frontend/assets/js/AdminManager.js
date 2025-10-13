@@ -1,568 +1,727 @@
-// Admin Manager
+// frontend/assets/js/AdminManager.js
+
+/**
+ * AdminManager - Admin Inventory Management
+ * Responsibilities:
+ * - Load and display shoes with total stock
+ * - Load and display categories
+ * - Handle modal popup for variant details
+ * - Calculate stock from variants
+ * - CRUD operations (placeholders)
+ */
 class AdminManager {
     constructor() {
-        this.sb = null;
-        this.schema = 'db_nike';
-        this.modals = {};
-        this.state = {
-            categories: [],
-            shoes: [],
-            colors: [],
-            sizes: [],
-            variants: [],
-            variantsJoined: []
-        };
-
-        document.addEventListener('DOMContentLoaded', () => this.initialize());
+        this.api = window.productsAPI;
+        
+        // Data State
+        this.shoes = [];
+        this.allShoes = []; // ⭐ Store original unsorted data
+        this.variants = [];
+        this.categories = [];
+        this.colors = [];
+        this.sizes = [];
+        
+        // UI State
+        this.currentShoe = null;
+        this.currentVariants = [];
+        
+       
+        console.log('✅ AdminManager initialized');
     }
 
-    async initialize() {
-        // Require auth and seller role
-        if (!window.authManager) return alert('Auth not available');
-
-        // Revalidate/refresh session before checks
+    /**
+     * Initialize AdminManager
+     */
+    async init() {
         try {
-            if (window.authManager && typeof window.authManager.validateAndRefreshSession === 'function') {
-                await window.authManager.validateAndRefreshSession();
-            }
-        } catch (e) {
-            console.warn('Session revalidation failed:', e);
+            console.log('🔄 Initializing AdminManager...');
+            
+            // Wait for API
+            if (!this.api) {
+                await this.waitForAPI();
+            }           
+            // Load all data in parallel
+            await Promise.all([
+                this.loadShoes(),               
+                this.loadCategories(),
+                this.loadColors(),
+                this.loadSizes()
+            ]);
+            // Auto-sort by stock_desc after loading
+            this.applySortByStock();
+            console.log('✅ AdminManager initialized successfully');
+        } catch (error) {
+            console.error('❌ Init error:', error);
+            this.showError('Failed to load admin data');
         }
-
-        if (!window.authManager.isAuthenticated()) {
-            const returnUrl = encodeURIComponent(window.location.href);
-            window.location.href = `login.html?return=${returnUrl}`;
-            return;
-        }
-        let user = window.authManager.getCurrentUser();
-
-        // Ensure role is attached before enforcing seller-only access
-        if (user && !user.role && window.authManager.supabaseClient) {
-            try {
-                await window.authManager.fetchAndAttachProfileRole(user.id);
-                user = window.authManager.getCurrentUser();
-            } catch (e) {
-                console.warn('Failed to attach profile role:', e);
-            }
-        }
-
-        if (!user || user.role !== 'seller') {
-            alert('Access denied. Seller role required.');
-            window.location.href = 'index.html';
-            return;
-        }
-
-        this.sb = window.authManager.supabaseClient;
-        if (!this.sb) {
-            alert('Supabase not initialized. Refresh the page.');
-            return;
-        }
-
-        this.bindUI();
-        this.initModals();
-        await this.preloadData();
-        await Promise.all([this.loadCategories(), this.loadShoes(), this.loadVariants()]);
     }
 
-    bindUI() {
-        const newCatBtn = document.getElementById('btnNewCategory');
-        if (newCatBtn) newCatBtn.addEventListener('click', () => this.openCategoryModal());
-        // Fallback: also bind by class name if present
-        document.querySelectorAll('.btnNewCategory').forEach(btn => {
-            btn.addEventListener('click', () => this.openCategoryModal());
+    /**
+     * Wait for productsAPI to be available
+     */
+    async waitForAPI() {
+        return new Promise((resolve) => {
+            const check = setInterval(() => {
+                if (window.productsAPI) {
+                    this.api = window.productsAPI;
+                    clearInterval(check);
+                    console.log('✅ API loaded');
+                    resolve();
+                }
+            }, 100);
+            
+            setTimeout(() => {
+                clearInterval(check);
+                resolve();
+            }, 5000);
         });
-
-        const newVarBtn = document.getElementById('btnNewVariant');
-        if (newVarBtn) newVarBtn.addEventListener('click', () => this.openVariantModal());
-        // Fallback: also bind by class name if present
-        document.querySelectorAll('.btnNewVariant').forEach(btn => {
-            btn.addEventListener('click', () => this.openVariantModal());
-        });
-
-        const newShoeBtn = document.getElementById('btnNewShoe');
-        if (newShoeBtn) newShoeBtn.addEventListener('click', () => this.openShoeModal());
-
-        const search = document.getElementById('variantSearch');
-        if (search) search.addEventListener('input', () => this.renderVariants());
-
-        const catForm = document.getElementById('categoryForm');
-        if (catForm) catForm.addEventListener('submit', (e) => this.submitCategory(e));
-
-        const varForm = document.getElementById('variantForm');
-        if (varForm) varForm.addEventListener('submit', (e) => this.submitVariant(e));
-
-        const stockForm = document.getElementById('stockForm');
-        if (stockForm) stockForm.addEventListener('submit', (e) => this.submitStock(e));
-
-        const shoeForm = document.getElementById('shoeForm');
-        if (shoeForm) shoeForm.addEventListener('submit', (e) => this.submitShoe(e));
     }
 
-    initModals() {
-        try {
-            this.modals.category = new bootstrap.Modal(document.getElementById('categoryModal'));
-            this.modals.variant = new bootstrap.Modal(document.getElementById('variantModal'));
-            this.modals.stock = new bootstrap.Modal(document.getElementById('stockModal'));
-            this.modals.shoe = new bootstrap.Modal(document.getElementById('shoeModal'));
-        } catch (e) {
-            console.warn('Bootstrap modal not available', e);
-        }
-    }
+    // ========================================
+    // DATA LOADING METHODS
+    // ========================================
 
-    async preloadData() {
-        // Load lookup tables
-        const client = this.sb.schema(this.schema);
-        const [shoes, colors, sizes, categories] = await Promise.all([
-            client.from('shoes').select('shoe_id, shoe_name').order('shoe_name'),
-            client.from('colors').select('color_id, color_name').order('color_name'),
-            client.from('sizes').select('size_id, size_value, size_type').order('size_value'),
-            client.from('categories').select('category_id, category_name').order('category_name')
-        ]);
-
-        this.state.shoes = shoes.data || [];
-        this.state.colors = colors.data || [];
-        this.state.sizes = sizes.data || [];
-        this.state.categories = categories.data || this.state.categories;
-
-        // Fill selects
-        const shoeSel = document.getElementById('variant_shoe');
-        const colorSel = document.getElementById('variant_color');
-        const sizeSel = document.getElementById('variant_size');
-        if (shoeSel) shoeSel.innerHTML = this.state.shoes.map(s => `<option value="${s.shoe_id}">${s.shoe_name}</option>`).join('');
-        if (colorSel) colorSel.innerHTML = this.state.colors.map(c => `<option value="${c.color_id}">${c.color_name}</option>`).join('');
-        if (sizeSel) sizeSel.innerHTML = this.state.sizes.map(s => `<option value="${s.size_id}">${s.size_value} ${s.size_type}</option>`).join('');
-
-        const shoeCatSel = document.getElementById('shoe_category');
-        if (shoeCatSel) shoeCatSel.innerHTML = this.state.categories.map(c => `<option value="${c.category_id}">${c.category_name}</option>`).join('');
-    }
-
-    // Categories
-    async loadCategories() {
-        const { data, error } = await this.sb.schema(this.schema).from('categories').select('*').order('created_at', { ascending: false });
-        if (error) {
-            console.error('Load categories error:', error);
-            this.toast(error.message || 'Failed to load categories', 'error');
-            return;
-        }
-        this.state.categories = data || [];
-        this.renderCategories();
-    }
-
-    // Shoes
+    /**
+     * Load all shoes
+     */
     async loadShoes() {
-        const { data, error } = await this.sb.schema(this.schema).from('shoes').select('*').order('created_at', { ascending: false });
-        if (error) {
-            console.error('Load shoes error:', error);
-            this.toast(error.message || 'Failed to load shoes', 'error');
+        try {
+            console.log('🔄 Loading ALL shoes...');
+            
+            const response = await this.api.getProducts({
+                include_no_variants: 'true',
+                limit: 100,
+                page: 1
+            });
+            
+            if (response?.success) {
+                this.allShoes = response.data || [];
+                this.shoes = [...this.allShoes]; // Copy for sorting
+                console.log(`✅ Loaded ${this.shoes.length} shoes`);
+            } else {
+                this.allShoes = [];
+                this.shoes = [];
+            }
+            
+            this.renderShoesTable();
+            this.updateStats();
+        } catch (error) {
+            console.error('❌ Load shoes error:', error);
+            this.allShoes = [];
+            this.shoes = [];
+            this.renderShoesTable();
+        }
+    }
+
+    // Apply default sort after loading
+    applySortByStock() {
+        console.log('📊 Applying default sort: stock_desc');
+        
+        this.shoes = [...this.allShoes];
+        this.shoes.sort((a, b) => {
+            const stockA = a.stock_info?.total_stock || 0;
+            const stockB = b.stock_info?.total_stock || 0;
+            return stockB - stockA; // High to Low
+        });
+        
+        this.renderShoesTable();
+    }
+    //Sort handler
+    handleSort() {
+        const sortValue = document.getElementById('sortSelect').value;
+        console.log('📊 Sorting by:', sortValue);
+        
+        if (!sortValue) {
+            // Reset to original order
+            this.shoes = [...this.allShoes];
+            this.renderShoesTable();
             return;
         }
-        // join with categories
-        const catMap = new Map(this.state.categories.map(c => [c.category_id, c]));
-        this.state.shoes = data || [];
-        const joined = this.state.shoes.map(s => ({ ...s, category: catMap.get(s.category_id) || null }));
-        this.renderShoes(joined);
+        
+        // Clone array for sorting
+        this.shoes = [...this.allShoes];
+        
+        switch(sortValue) {
+            case 'stock_desc':
+                this.shoes.sort((a, b) => {
+                    const stockA = a.stock_info?.total_stock || 0;
+                    const stockB = b.stock_info?.total_stock || 0;
+                    return stockB - stockA;
+                });
+                break;
+                
+            case 'stock_asc':
+                this.shoes.sort((a, b) => {
+                    const stockA = a.stock_info?.total_stock || 0;
+                    const stockB = b.stock_info?.total_stock || 0;
+                    return stockA - stockB;
+                });
+                break;
+                
+            case 'name_asc':
+                this.shoes.sort((a, b) => {
+                    const nameA = (a.shoe_name || '').toLowerCase();
+                    const nameB = (b.shoe_name || '').toLowerCase();
+                    return nameA.localeCompare(nameB);
+                });
+                break;
+                
+            case 'name_desc':
+                this.shoes.sort((a, b) => {
+                    const nameA = (a.shoe_name || '').toLowerCase();
+                    const nameB = (b.shoe_name || '').toLowerCase();
+                    return nameB.localeCompare(nameA);
+                });
+                break;
+                
+            case 'price_asc':
+                this.shoes.sort((a, b) => (a.base_price || 0) - (b.base_price || 0));
+                break;
+                
+            case 'price_desc':
+                this.shoes.sort((a, b) => (b.base_price || 0) - (a.base_price || 0));
+                break;
+        }
+        
+        console.log('✅ Sorted:', this.shoes.length, 'products');
+        this.renderShoesTable();
     }
-
-    renderShoes(rows) {
-        const tbody = document.getElementById('shoesTableBody');
-        if (!tbody) return;
-        tbody.innerHTML = rows.map(s => `
-            <tr>
-                <td>${s.shoe_id}</td>
-                <td>${this.escapeHtml(s.category?.category_name || '')}</td>
-                <td>${this.escapeHtml(s.shoe_name || '')}</td>
-                <td>${Number(s.base_price || 0).toFixed(2)}</td>
-                <td><span class="badge ${s.is_active ? 'bg-success' : 'bg-secondary'}">${s.is_active ? 'Yes' : 'No'}</span></td>
-                <td class="d-flex gap-2">
-                    <button class="btn btn-sm btn-outline-primary" data-action="edit-shoe" data-id="${s.shoe_id}"><i class="fas fa-edit"></i></button>
-                    <button class="btn btn-sm btn-outline-danger" data-action="delete-shoe" data-id="${s.shoe_id}"><i class="fas fa-trash"></i></button>
-                </td>
-            </tr>
-        `).join('');
-
-        tbody.querySelectorAll('button[data-action="edit-shoe"]').forEach(btn => btn.addEventListener('click', (e) => {
-            const id = Number(e.currentTarget.getAttribute('data-id'));
-            const s = this.state.shoes.find(x => x.shoe_id === id);
-            if (s) this.openShoeModal(s);
-        }));
-
-        tbody.querySelectorAll('button[data-action="delete-shoe"]').forEach(btn => btn.addEventListener('click', (e) => {
-            const id = Number(e.currentTarget.getAttribute('data-id'));
-            this.deleteShoe(id);
-        }));
+    updateStats() {
+        const totalShoesEl = document.getElementById('totalShoes');
+        const totalCategoriesEl = document.getElementById('totalCategories');
+        const totalColorsEl = document.getElementById('totalColors');
+        const totalSizesEl = document.getElementById('totalSizes');
+        
+        if (totalShoesEl) {
+            totalShoesEl.textContent = this.shoes.length;
+        }
+        
+        if (totalCategoriesEl) {
+            totalCategoriesEl.textContent = this.categories.length;
+        }
+        
+        if (totalColorsEl) {
+            totalColorsEl.textContent = this.colors.length;
+        }
+        
+        if (totalSizesEl) {
+            totalSizesEl.textContent = this.sizes.length;
+        }
     }
-
-    openShoeModal(shoe = null) {
-        const title = document.getElementById('shoeModalTitle');
-        const idEl = document.getElementById('shoe_id');
-        const catEl = document.getElementById('shoe_category');
-        const nameEl = document.getElementById('shoe_name');
-        const descEl = document.getElementById('shoe_description');
-        const priceEl = document.getElementById('shoe_base_price');
-        const imgEl = document.getElementById('shoe_image_url');
-        const actEl = document.getElementById('shoe_active');
-
-        if (shoe) {
-            title.textContent = 'Edit Shoe';
-            idEl.value = shoe.shoe_id;
-            catEl.value = String(shoe.category_id);
-            nameEl.value = shoe.shoe_name || '';
-            descEl.value = shoe.description || '';
-            priceEl.value = shoe.base_price ?? '';
-            imgEl.value = shoe.image_url || '';
-            actEl.checked = !!shoe.is_active;
+    /**
+     * Load all categories
+     */
+    async loadCategories() {
+        try {
+        console.log('🔄 Loading categories...');
+        
+        // ⭐ FIX: Don't filter by active_only, let backend handle
+        const response = await this.api.getCategories({ 
+            // active_only: true // ❌ Remove this
+        });
+        
+        if (response.success) {
+            this.categories = response.data || [];
+            console.log(`✅ Loaded ${this.categories.length} categories`);
+            
+            // DEBUG: Log all categories with counts
+            this.categories.forEach(cat => {
+                console.log(`📊 ${cat.category_name}: ${cat.product_count || 0} products`);
+            });
         } else {
-            title.textContent = 'New Shoe';
-            idEl.value = '';
-            catEl.value = catEl.options[0]?.value || '';
-            nameEl.value = '';
-            descEl.value = '';
-            priceEl.value = '';
-            imgEl.value = '';
-            actEl.checked = true;
+            console.error('❌ Categories load failed:', response);
+            this.categories = [];
         }
-        this.modals.shoe?.show();
+        
+        this.renderCategoriesTable();
+    } catch (error) {
+        console.error('❌ Error loading categories:', error);
+        this.categories = [];
+        this.renderCategoriesTable();
+    }
     }
 
-    async submitShoe(e) {
-        e.preventDefault();
-        const id = Number(document.getElementById('shoe_id').value || 0);
-        const category_id = Number(document.getElementById('shoe_category').value);
-        const shoe_name = (document.getElementById('shoe_name').value || '').trim();
-        const description = (document.getElementById('shoe_description').value || '').trim();
-        const base_price = Number(document.getElementById('shoe_base_price').value || 0);
-        const image_url = (document.getElementById('shoe_image_url').value || '').trim();
-        const is_active = document.getElementById('shoe_active').checked;
+    /**
+     * Load colors (for variant display)
+     */
+    async loadColors() {
+        try {
+            const response = await this.api.getColors();
+            if (response?.success) {
+                this.colors = response.data || [];
+            }
+        } catch (error) {
+            console.error('❌ Load colors error:', error);
+        }
+    }
 
-        if (!category_id || !shoe_name || base_price < 0) {
-            return this.toast('Please fill required fields with valid values', 'error');
+    /**
+     * Load sizes (for variant display)
+     */
+    async loadSizes() {
+        try {
+            const response = await this.api.getSizes();
+            if (response?.success) {
+                this.sizes = response.data || [];
+            }
+        } catch (error) {
+            console.error('❌ Load sizes error:', error);
+        }
+    }
+
+    // ========================================
+    // RENDERING METHODS - SHOES TABLE
+    // ========================================
+
+    /**
+     * Render Shoes Table with Total Stock
+     */
+    renderShoesTable() {
+        const container = document.getElementById('shoesTableContainer');
+        if (!container) return;
+
+        if (!this.shoes || this.shoes.length === 0) {
+            container.innerHTML = this.renderEmptyState('No shoes found', 'shoe-prints');
+            return;
         }
 
-        const client = this.sb.schema(this.schema).from('shoes');
-        let result;
-        if (id > 0) {
-            result = await client.update({ category_id, shoe_name, description, base_price, image_url, is_active }).eq('shoe_id', id).select('*').single();
+        container.innerHTML = `
+            <div class="data-table">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Product Name</th>
+                            <th>Category</th>
+                            <th>Price</th>
+                            <th>Total Stock</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${this.shoes.map(shoe => this.renderShoeRow(shoe)).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    /**
+     * Render single shoe row - CLICKABLE
+     */
+    renderShoeRow(shoe) {
+        const category = this.categories.find(c => c.category_id === shoe.category_id);
+        
+        // ⭐ Handle shoes without variants
+        const totalStock = shoe.stock_info?.total_stock || 0;
+        const variantCount = shoe.stock_info?.variant_count || 0;
+        
+        let stockBadge = '';
+        if (totalStock > 20) {
+            stockBadge = `<span class="badge bg-success">${totalStock} units</span>`;
+        } else if (totalStock > 0) {
+            stockBadge = `<span class="badge bg-warning text-dark">${totalStock} units</span>`;
         } else {
-            result = await client.insert({ category_id, shoe_name, description, base_price, image_url, is_active }).select('*').single();
+            // ⭐ Shoes WITHOUT variants
+            stockBadge = `<span class="badge bg-secondary">No variants yet</span>`;
         }
 
-        if (result.error) {
-            console.error('Save shoe error:', result.error);
-            this.toast(result.error.message || 'Failed to save shoe', 'error');
-            return;
+        let variantBadge = '';
+        if (variantCount > 0) {
+            variantBadge = `<span class="badge bg-info">${variantCount} variants</span>`;
+        } else {
+            // ⭐ Warning for shoes without variants
+            variantBadge = `<span class="badge bg-warning text-dark">⚠️ 0 variants</span>`;
         }
-        this.modals.shoe?.hide();
-        await this.loadShoes();
-        this.toast('Shoe saved', 'success');
-    }
 
-    async deleteShoe(id) {
-        if (!confirm('Delete this shoe?')) return;
-        const { error } = await this.sb.schema(this.schema).from('shoes').delete().eq('shoe_id', id);
-        if (error) {
-            console.error('Delete shoe error:', error);
-            this.toast(error.message || 'Failed to delete shoe', 'error');
-            return;
-        }
-        await this.loadShoes();
-        this.toast('Shoe deleted', 'success');
-    }
-
-    renderCategories() {
-        const tbody = document.getElementById('categoriesTableBody');
-        if (!tbody) return;
-        tbody.innerHTML = this.state.categories.map(c => `
-            <tr>
-                <td>${c.category_id}</td>
-                <td>${this.escapeHtml(c.category_name)}</td>
-                <td>${this.escapeHtml(c.description || '')}</td>
+        return `
+            <tr onclick="adminManager.viewShoeDetail(${shoe.shoe_id})" style="cursor: pointer;">
                 <td>
-                    <span class="badge ${c.is_active ? 'bg-success' : 'bg-secondary'}">${c.is_active ? 'Yes' : 'No'}</span>
+                    <img src="${shoe.image_url}" 
+                        alt="${shoe.shoe_name}" 
+                        class="product-img"
+                        >
                 </td>
-                <td class="d-flex gap-2">
-                    <button class="btn btn-sm btn-outline-primary" data-action="edit" data-id="${c.category_id}"><i class="fas fa-edit"></i></button>
-                    <button class="btn btn-sm btn-outline-danger" data-action="delete" data-id="${c.category_id}"><i class="fas fa-trash"></i></button>
+                <td><strong>${shoe.shoe_name || 'N/A'}</strong></td>
+                <td>${category?.category_name || 'N/A'}</td>
+                <td><strong>${this.formatPrice(shoe.base_price)}</strong></td>
+                <td>${stockBadge}</td>
+                
+                <td>${shoe.is_active ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-secondary">Inactive</span>'}</td>
+                <td onclick="event.stopPropagation()">
+                    <button class="btn-action" onclick="adminManager.editShoe(${shoe.shoe_id})" title="Edit">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn-action text-success" onclick="adminManager.addVariant(${shoe.shoe_id})" title="Add Variant">
+                        <i class="fas fa-plus-circle"></i>
+                    </button>
                 </td>
             </tr>
-        `).join('');
-
-        tbody.querySelectorAll('button[data-action="edit"]').forEach(btn => btn.addEventListener('click', (e) => {
-            const id = Number(e.currentTarget.getAttribute('data-id'));
-            const cat = this.state.categories.find(x => x.category_id === id);
-            if (cat) this.openCategoryModal(cat);
-        }));
-
-        tbody.querySelectorAll('button[data-action="delete"]').forEach(btn => btn.addEventListener('click', (e) => {
-            const id = Number(e.currentTarget.getAttribute('data-id'));
-            this.deleteCategory(id);
-        }));
+        `;
     }
 
-    openCategoryModal(category = null) {
-        const title = document.getElementById('categoryModalTitle');
-        const idEl = document.getElementById('category_id');
-        const nameEl = document.getElementById('category_name');
-        const descEl = document.getElementById('category_description');
-        const actEl = document.getElementById('category_active');
+    /**
+     * Calculate total stock for a shoe
+     */
+    calculateTotalStock(shoeId) {
+        return this.variants
+            .filter(v => v.shoe_id === shoeId)
+            .reduce((sum, v) => sum + (v.stock_quantity || 0), 0);
+    }
 
-        if (category) {
-            title.textContent = 'Edit Category';
-            idEl.value = category.category_id;
-            nameEl.value = category.category_name || '';
-            descEl.value = category.description || '';
-            actEl.checked = !!category.is_active;
+    // ========================================
+    // MODAL - VARIANT DETAILS VIEW
+    // ========================================
+
+    /**
+     * View shoe detail in modal
+     */
+    async viewShoeDetail(shoeId) {
+        try {
+            console.log(`🔍 Viewing shoe: ${shoeId}`);
+            
+            this.currentShoe = this.shoes.find(s => s.shoe_id === shoeId);
+            if (!this.currentShoe) return;
+            
+            // Show modal with loading
+            this.showDetailModal();
+            
+            // Load variants for this shoe
+            const response = await this.api.getProductVariants(shoeId);
+            
+            if (response?.success) {
+                this.currentVariants = response.data || [];
+                console.log(`✅ Loaded ${this.currentVariants.length} variants`);
+            } else {
+                this.currentVariants = [];
+            }
+            
+            this.renderVariantDetails();
+        } catch (error) {
+            console.error('❌ View detail error:', error);
+            this.showError('Failed to load variants');
+        }
+    }
+
+    /**
+     * Show modal
+     */
+    showDetailModal() {
+        // Create modal if not exists
+        if (!document.getElementById('shoeDetailModal')) {
+            const modalHTML = `
+                <div class="modal fade" id="shoeDetailModal" tabindex="-1">
+                    <div class="modal-dialog modal-xl">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="modalTitle">
+                                    <i class="fas fa-shoe-prints"></i> Loading...
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body" id="variantDetailContent">
+                                <div class="loading-container">
+                                    <div class="spinner-border text-dark"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // Update title
+        document.getElementById('modalTitle').innerHTML = `
+            <i class="fas fa-shoe-prints"></i> ${this.currentShoe.shoe_name} - Variant Details
+        `;
+        
+        // Show loading
+        document.getElementById('variantDetailContent').innerHTML = `
+            <div class="loading-container">
+                <div class="spinner-border text-dark"></div>
+            </div>
+        `;
+        
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('shoeDetailModal'));
+        modal.show();
+    }
+
+    /**
+     * Render variant details in modal
+     */
+    renderVariantDetails() {
+        const container = document.getElementById('variantDetailContent');
+        if (!container) return;
+        
+        const category = this.categories.find(c => c.category_id === this.currentShoe.category_id);
+        const totalStock = this.currentVariants.reduce((sum, v) => sum + (v.stock_quantity || 0), 0);
+        
+        if (!this.currentVariants || this.currentVariants.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-box-open"></i>
+                    <h3>No Variants Found</h3>
+                    <p>This shoe has no variants yet.</p>
+                    <button class="btn btn-primary-custom" onclick="adminManager.addVariant()">
+                        <i class="fas fa-plus"></i> Add First Variant
+                    </button>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = `
+            <!-- Shoe Info -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <img src="${this.currentShoe.image_url }" 
+                         class="img-fluid rounded" 
+                         alt="${this.currentShoe.shoe_name}"
+                         >
+                </div>
+                <div class="col-md-8">
+                    <h3>${this.currentShoe.shoe_name}</h3>
+                    <p class="text-muted">${this.currentShoe.description || 'No description'}</p>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <p><strong>Base Price:</strong> ${this.formatPrice(this.currentShoe.base_price)}</p>
+                            <p><strong>Category:</strong> ${category?.category_name || 'N/A'}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p>
+                                <strong>Total Stock:</strong> 
+                                <span class="badge ${totalStock > 20 ? 'bg-success' : totalStock > 0 ? 'bg-warning' : 'bg-danger'} fs-5">
+                                    ${totalStock} units
+                                </span>
+                            </p>
+                            <p><strong>Variants:</strong> ${this.currentVariants.length}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <hr>
+            
+            <!-- Variants Table -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4><i class="fas fa-palette"></i> Available Variants</h4>
+                <button class="btn btn-primary-custom" onclick="adminManager.addVariant()">
+                    <i class="fas fa-plus"></i> Add Variant
+                </button>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>SKU</th>
+                            <th>Color</th>
+                            <th>Size</th>
+                            <th>Stock</th>
+                            <th>Price</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${this.currentVariants.map(v => this.renderVariantDetailRow(v)).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    /**
+     * Render single variant row in modal
+     */
+    renderVariantDetailRow(variant) {
+        const color = variant.colors || {};
+        const size = variant.sizes || {};
+        
+        let stockBadge = '';
+        if (variant.stock_quantity > 10) {
+            stockBadge = `<span class="badge bg-success fs-6">${variant.stock_quantity}</span>`;
+        } else if (variant.stock_quantity > 0) {
+            stockBadge = `<span class="badge bg-warning text-dark fs-6">${variant.stock_quantity}</span>`;
         } else {
-            title.textContent = 'New Category';
-            idEl.value = '';
-            nameEl.value = '';
-            descEl.value = '';
-            actEl.checked = true;
+            stockBadge = `<span class="badge bg-danger fs-6">0</span>`;
         }
-        this.modals.category?.show();
-    }
-
-    async submitCategory(e) {
-        e.preventDefault();
-        const id = Number(document.getElementById('category_id').value || 0);
-        const name = (document.getElementById('category_name').value || '').trim();
-        const description = (document.getElementById('category_description').value || '').trim();
-        const is_active = document.getElementById('category_active').checked;
-        if (!name) return this.toast('Name is required', 'error');
-
-        let result;
-        if (id > 0) {
-            result = await this.sb.schema(this.schema).from('categories').update({ category_name: name, description, is_active }).eq('category_id', id).select('*').single();
-        } else {
-            result = await this.sb.schema(this.schema).from('categories').insert({ category_name: name, description, is_active }).select('*').single();
-        }
-
-        if (result.error) {
-            console.error('Save category error:', result.error);
-            this.toast(result.error.message || 'Failed to save category', 'error');
-            return;
-        }
-        this.modals.category?.hide();
-        await this.loadCategories();
-        this.toast('Category saved', 'success');
-    }
-
-    async deleteCategory(id) {
-        if (!confirm('Delete this category?')) return;
-        const { error } = await this.sb.schema(this.schema).from('categories').delete().eq('category_id', id);
-        if (error) {
-            console.error('Delete category error:', error);
-            this.toast(error.message || 'Failed to delete category', 'error');
-            return;
-        }
-        await this.loadCategories();
-        this.toast('Category deleted', 'success');
-    }
-
-    // Variants
-    async loadVariants() {
-        const client = this.sb.schema(this.schema);
-        const { data, error } = await client.from('shoe_variants').select('*').order('created_at', { ascending: false });
-        if (error) {
-            console.error('Load variants error:', error);
-            this.toast(error.message || 'Failed to load variants', 'error');
-            return;
-        }
-        this.state.variants = data || [];
-        // join
-        const shoeMap = new Map(this.state.shoes.map(s => [s.shoe_id, s]));
-        const colorMap = new Map(this.state.colors.map(c => [c.color_id, c]));
-        const sizeMap = new Map(this.state.sizes.map(s => [s.size_id, s]));
-        this.state.variantsJoined = this.state.variants.map(v => ({
-            ...v,
-            shoe: shoeMap.get(v.shoe_id) || null,
-            color: colorMap.get(v.color_id) || null,
-            size: sizeMap.get(v.size_id) || null
-        }));
-        this.renderVariants();
-    }
-
-    renderVariants() {
-        const tbody = document.getElementById('variantsTableBody');
-        if (!tbody) return;
-        const q = (document.getElementById('variantSearch')?.value || '').toLowerCase();
-        const filtered = this.state.variantsJoined.filter(v =>
-            (v.shoe?.shoe_name || '').toLowerCase().includes(q) ||
-            (v.sku || '').toLowerCase().includes(q)
-        );
-        tbody.innerHTML = filtered.map(v => `
+        
+        return `
             <tr>
-                <td>${v.variant_id}</td>
-                <td>${this.escapeHtml(v.shoe?.shoe_name || '')}</td>
-                <td>${this.escapeHtml(v.color?.color_name || '')}</td>
-                <td>${this.escapeHtml(v.size?.size_value || '')}</td>
-                <td>${this.escapeHtml(v.sku || '')}</td>
-                <td>${Number(v.variant_price || 0).toFixed(2)}</td>
-                <td>${Number(v.stock_quantity || 0)}</td>
-                <td><span class="badge ${v.is_active ? 'bg-success' : 'bg-secondary'}">${v.is_active ? 'Yes' : 'No'}</span></td>
-                <td class="d-flex gap-2">
-                    <button class="btn btn-sm btn-outline-primary" data-action="edit-variant" data-id="${v.variant_id}"><i class="fas fa-edit"></i></button>
-                    <button class="btn btn-sm btn-outline-secondary" data-action="stock-variant" data-id="${v.variant_id}"><i class="fas fa-plus"></i></button>
-                    <button class="btn btn-sm btn-outline-danger" data-action="delete-variant" data-id="${v.variant_id}"><i class="fas fa-trash"></i></button>
+                <td><code>${variant.sku || 'N/A'}</code></td>
+                <td>
+                    ${color.hex_code ? `
+                        <span class="d-inline-block" style="
+                            width: 24px; 
+                            height: 24px; 
+                            background: ${color.hex_code}; 
+                            border-radius: 50%; 
+                            border: 2px solid #ddd; 
+                            vertical-align: middle; 
+                            margin-right: 8px;
+                        "></span>
+                    ` : ''}
+                    ${color.color_name || 'N/A'}
+                </td>
+                <td><strong>${size.size_value || 'N/A'}</strong></td>
+                <td>${stockBadge}</td>
+                <td><strong>${this.formatPrice(variant.variant_price || 0)}</strong></td>
+                <td>${variant.is_active ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-secondary">Inactive</span>'}</td>
+                <td>
+                    <button class="btn-action" onclick="adminManager.editVariant(${variant.variant_id})" title="Edit">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn-action text-danger" onclick="adminManager.deleteVariant(${variant.variant_id})" title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
                 </td>
             </tr>
-        `).join('');
-
-        tbody.querySelectorAll('button[data-action="edit-variant"]').forEach(btn => btn.addEventListener('click', (e) => {
-            const id = Number(e.currentTarget.getAttribute('data-id'));
-            const v = this.state.variants.find(x => x.variant_id === id);
-            if (v) this.openVariantModal(v);
-        }));
-
-        tbody.querySelectorAll('button[data-action="stock-variant"]').forEach(btn => btn.addEventListener('click', (e) => {
-            const id = Number(e.currentTarget.getAttribute('data-id'));
-            this.openStockModal(id);
-        }));
-
-        tbody.querySelectorAll('button[data-action="delete-variant"]').forEach(btn => btn.addEventListener('click', (e) => {
-            const id = Number(e.currentTarget.getAttribute('data-id'));
-            this.deleteVariant(id);
-        }));
+        `;
     }
 
-    openVariantModal(variant = null) {
-        const title = document.getElementById('variantModalTitle');
-        const idEl = document.getElementById('variant_id');
-        const shoeEl = document.getElementById('variant_shoe');
-        const colorEl = document.getElementById('variant_color');
-        const sizeEl = document.getElementById('variant_size');
-        const skuEl = document.getElementById('variant_sku');
-        const priceEl = document.getElementById('variant_price');
-        const initStockEl = document.getElementById('variant_initial_stock');
-        const importPriceEl = document.getElementById('variant_import_price');
-        const actEl = document.getElementById('variant_active');
+    // ========================================
+    // RENDERING METHODS - CATEGORIES TABLE
+    // ========================================
 
-        if (variant) {
-            title.textContent = 'Edit Variant';
-            idEl.value = variant.variant_id;
-            shoeEl.value = String(variant.shoe_id);
-            colorEl.value = String(variant.color_id);
-            sizeEl.value = String(variant.size_id);
-            skuEl.value = variant.sku || '';
-            priceEl.value = variant.variant_price ?? '';
-            initStockEl.value = '';
-            importPriceEl.value = '';
-            actEl.checked = !!variant.is_active;
-        } else {
-            title.textContent = 'New Variant';
-            idEl.value = '';
-            shoeEl.value = shoeEl.options[0]?.value || '';
-            colorEl.value = colorEl.options[0]?.value || '';
-            sizeEl.value = sizeEl.options[0]?.value || '';
-            skuEl.value = '';
-            priceEl.value = '';
-            initStockEl.value = '';
-            importPriceEl.value = '';
-            actEl.checked = true;
-        }
-        this.modals.variant?.show();
-    }
+    /**
+     * Render Categories Table
+     */
+    renderCategoriesTable() {
+        const container = document.getElementById('categoriesTableContainer');
+        if (!container) return;
 
-    async submitVariant(e) {
-        e.preventDefault();
-        const id = Number(document.getElementById('variant_id').value || 0);
-        const shoe_id = Number(document.getElementById('variant_shoe').value);
-        const color_id = Number(document.getElementById('variant_color').value);
-        const size_id = Number(document.getElementById('variant_size').value);
-        const sku = (document.getElementById('variant_sku').value || '').trim();
-        const variant_price = Number(document.getElementById('variant_price').value || 0);
-        const initial_stock = Number(document.getElementById('variant_initial_stock').value || 0);
-        const import_price = Number(document.getElementById('variant_import_price').value || 0);
-        const is_active = document.getElementById('variant_active').checked;
-
-        if (!shoe_id || !color_id || !size_id || !sku || variant_price < 0) {
-            return this.toast('Please fill all required fields and valid price', 'error');
-        }
-
-        const client = this.sb.schema(this.schema).from('shoe_variants');
-        let result;
-        if (id > 0) {
-            result = await client.update({ shoe_id, color_id, size_id, sku, variant_price, is_active }).eq('variant_id', id).select('*').single();
-        } else {
-            result = await client.insert({ shoe_id, color_id, size_id, sku, variant_price, is_active, stock_quantity: 0 }).select('*').single();
-        }
-
-        if (result.error) {
-            console.error('Save variant error:', result.error);
-            this.toast(result.error.message || 'Failed to save variant', 'error');
+        if (!this.categories || this.categories.length === 0) {
+            container.innerHTML = this.renderEmptyState('No categories found', 'tags');
             return;
         }
 
-        const variant = result.data;
-        // Handle initial stock via imports
-        if (!id && initial_stock > 0) {
-            await this.createImport(variant.variant_id, initial_stock, import_price);
+        container.innerHTML = `
+            <div class="data-table">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Category Name</th>
+                            <th>Description</th>
+                            <th>Products</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${this.categories.map(category => this.renderCategoryRow(category)).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+   renderCategoryRow(category) {
+        // ⭐ FIX: Try multiple possible fields
+        const productCount = category.product_count 
+            || category.shoes_count 
+            || category.shoe_count 
+            || (category.shoes?.length) 
+            || 0;
+        
+        console.log('Category:', category.category_name, 'Count:', productCount); // DEBUG
+        
+        return `
+            <tr>
+                <td>
+                    <img src="${category.image_url }" 
+                        alt="${category.category_name}" 
+                        class="product-img"
+                       >
+                </td>
+                <td><strong>${category.category_name || 'N/A'}</strong></td>
+                <td>${category.description ? category.description.substring(0, 60) + '...' : 'No description'}</td>
+                <td><span class="badge bg-primary fs-6">${productCount} products</span></td>
+                <td>${category.is_active ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-secondary">Inactive</span>'}</td>
+                <td>
+                    <button class="btn-action" onclick="adminManager.editCategory(${category.category_id})">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    }
+    // ========================================
+    // UTILITY METHODS
+    // ========================================
+
+    renderEmptyState(message, icon) {
+        return `
+            <div class="empty-state">
+                <i class="fas fa-${icon}"></i>
+                <h3>${message}</h3>
+                <p>Click "Add" button to create new item</p>
+            </div>
+        `;
+    }
+
+    formatPrice(price) {
+        return new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND'
+        }).format(price || 0);
+    }
+
+    showError(message) {
+        alert(`Error: ${message}`);
+    }
+
+    // ========================================
+    // CRUD OPERATIONS (Placeholders)
+    // ========================================
+
+    addShoe() {
+        alert('Add Shoe - Coming soon!');
+    }
+
+    editShoe(shoeId) {
+        alert(`Edit Shoe ${shoeId} - Coming soon!`);
+    }
+
+    deleteShoe(shoeId) {
+        if (confirm('Delete this shoe?')) {
+            alert(`Delete Shoe ${shoeId} - Coming soon!`);
         }
-
-        this.modals.variant?.hide();
-        await this.loadVariants();
-        this.toast('Variant saved', 'success');
     }
 
-    async openStockModal(variant_id) {
-        document.getElementById('stock_variant_id').value = String(variant_id);
-        document.getElementById('stock_quantity').value = '';
-        document.getElementById('stock_import_price').value = '';
-        this.modals.stock?.show();
+    addVariant() {
+        alert('Add Variant - Coming soon!');
     }
 
-    async submitStock(e) {
-        e.preventDefault();
-        const variant_id = Number(document.getElementById('stock_variant_id').value);
-        const quantity = Number(document.getElementById('stock_quantity').value || 0);
-        const import_price = Number(document.getElementById('stock_import_price').value || 0);
-        if (quantity <= 0) return this.toast('Quantity must be > 0', 'error');
-        await this.createImport(variant_id, quantity, import_price);
-        this.modals.stock?.hide();
-        await this.loadVariants();
-        this.toast('Stock added', 'success');
+    editVariant(variantId) {
+        alert(`Edit Variant ${variantId} - Coming soon!`);
     }
 
-    async createImport(variant_id, quantity, import_price) {
-        const user = window.authManager.getCurrentUser();
-        const payload = {
-            user_id: user?.id,
-            variant_id,
-            quantity_imported: quantity,
-            import_price: import_price,
-            import_date: new Date().toISOString()
-        };
-        const { error } = await this.sb.schema(this.schema).from('imports').insert(payload);
-        if (error) {
-            console.error('Create import error:', error);
-            this.toast(error.message || 'Failed to add stock', 'error');
+    deleteVariant(variantId) {
+        if (confirm('Delete this variant?')) {
+            alert(`Delete Variant ${variantId} - Coming soon!`);
         }
     }
 
-    async deleteVariant(id) {
-        if (!confirm('Delete this variant?')) return;
-        const { error } = await this.sb.schema(this.schema).from('shoe_variants').delete().eq('variant_id', id);
-        if (error) {
-            console.error('Delete variant error:', error);
-            this.toast(error.message || 'Failed to delete variant', 'error');
-            return;
+    addCategory() {
+        alert('Add Category - Coming soon!');
+    }
+
+    editCategory(categoryId) {
+        alert(`Edit Category ${categoryId} - Coming soon!`);
+    }
+
+    deleteCategory(categoryId) {
+        if (confirm('Delete this category?')) {
+            alert(`Delete Category ${categoryId} - Coming soon!`);
         }
-        await this.loadVariants();
-        this.toast('Variant deleted', 'success');
-    }
-
-    // Utils
-    toast(message, type = 'info') {
-        if (window.showToast) return window.showToast(message, type);
-        // fallback
-        if (type === 'error') alert(message); else console.log(message);
-    }
-
-    escapeHtml(str) {
-        return String(str).replace(/[&<>"]+/g, (s) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[s]));
     }
 }
 
-// Create global instance so it initializes and handlers are active
-const adminManager = new AdminManager();
-window.AdminManager = AdminManager;
-window.adminManager = adminManager;
+// Initialize global instance
+window.adminManager = new AdminManager();
+console.log('✅ AdminManager loaded');

@@ -127,7 +127,7 @@ class CartPage {
         if (window.showLoginModal) {
             window.showLoginModal();
         } else {
-            window.location.href = `/login.html?return=${returnUrl}`;
+            console.error('Login modal not available');
         }
     }
 

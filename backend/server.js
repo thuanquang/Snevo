@@ -14,7 +14,6 @@ dotenv.config({
 });
 
 // Import controllers and middleware
-import AuthController from './controllers/authController.js';
 import ProductController from './controllers/productController.js';
 import CategoryController from './controllers/CategoryController.js';
 import OrderController from './controllers/orderController.js';
@@ -48,8 +47,6 @@ class Server {
         this.initializeDatabase();
 
         // Initialize controllers
-        this.authController = new AuthController(this.models);
-
         this.productController = new ProductController();
         this.productController.setModels(this.models);
 
@@ -200,6 +197,7 @@ class Server {
         }
 
         // ⭐ BUILT-IN ROUTES (Keep existing handlers)
+        // Auth routes for profile management
         if (pathname.startsWith('/api/auth/')) {
             await this.handleAuthRoutes(req, res, pathname, req.method, body);
         } else if (pathname.startsWith('/api/orders/')) {
@@ -228,62 +226,6 @@ class Server {
         }
     }
 
-    // Auth routes handler
-    async handleAuthRoutes(req, res, pathname, method, body) {
-                const authPath = pathname.replace('/api/auth/', '');
-
-                // Check authentication for protected routes
-                const protectedRoutes = ['profile', 'logout'];
-                const isProtectedRoute = protectedRoutes.some(route => authPath.startsWith(route));
-
-                if (isProtectedRoute) {
-                    const authResult = await authMiddleware.authenticate(req, res);
-                    if (!authResult || !authResult.success) {
-                        return; // authMiddleware already sent response or failed
-                    }
-                    req.user = authResult.user;
-                }
-
-                switch (authPath) {
-                    case 'login':
-                        if (method === 'POST') {
-                            await this.authController.login(req, res);
-                        } else {
-                            this.sendError(res, 'Method not allowed', 405);
-                        }
-                        break;
-
-                    case 'register':
-                        if (method === 'POST') {
-                            await this.authController.register(req, res);
-                        } else {
-                            this.sendError(res, 'Method not allowed', 405);
-                        }
-                        break;
-
-                    case 'logout':
-                        if (method === 'POST') {
-                            await this.authController.logout(req, res);
-                        } else {
-                            this.sendError(res, 'Method not allowed', 405);
-                        }
-                        break;
-
-                    case 'profile':
-                        if (method === 'GET') {
-                            await this.authController.getProfile(req, res);
-                        } else if (method === 'PUT') {
-                            req.body = body;
-                            await this.authController.updateProfile(req, res);
-                        } else {
-                            this.sendError(res, 'Method not allowed', 405);
-                        }
-                        break;
-
-                    default:
-                        this.sendError(res, 'API endpoint not found', 404);
-                }
-    }
     // Order routes handler
     async handleOrderRoutes(req, res, pathname, method, body) {
         const orderPath = pathname.replace('/api/orders', '');
@@ -329,6 +271,53 @@ class Server {
                 await this.orderController.cancelOrder(req, res);
             } else {
                 this.sendError(res, 'API endpoint not found', 404);
+            }
+        } else {
+            this.sendError(res, 'API endpoint not found', 404);
+        }
+    }
+
+    // Auth routes handler
+    async handleAuthRoutes(req, res, pathname, method, body) {
+        const authPath = pathname.replace('/api/auth', '');
+
+        // Check authentication for protected routes
+        const authResult = await authMiddleware.authenticate(req, res);
+        if (!authResult || !authResult.success) {
+            return;
+        }
+        req.user = authResult.user;
+
+        if (authPath === '/profile') {
+            if (method === 'GET') {
+                await this.profileController.getProfile(req, res);
+            } else if (method === 'PUT') {
+                req.body = body;
+                await this.profileController.updateProfile(req, res);
+            } else if (method === 'DELETE') {
+                await this.profileController.deleteProfile(req, res);
+            } else {
+                this.sendError(res, 'Method not allowed', 405);
+            }
+        } else if (authPath === '/addresses' || authPath === '/addresses/') {
+            if (method === 'GET') {
+                await this.addressController.getAddresses(req, res);
+            } else if (method === 'POST') {
+                req.body = body;
+                await this.addressController.createAddress(req, res);
+            } else {
+                this.sendError(res, 'Method not allowed', 405);
+            }
+        } else if (authPath.match(/^\/addresses\/\d+$/)) {
+            const id = authPath.replace('/addresses/', '');
+            req.params = { id };
+            if (method === 'PUT') {
+                req.body = body;
+                await this.addressController.updateAddress(req, res);
+            } else if (method === 'DELETE') {
+                await this.addressController.deleteAddress(req, res);
+            } else {
+                this.sendError(res, 'Method not allowed', 405);
             }
         } else {
             this.sendError(res, 'API endpoint not found', 404);

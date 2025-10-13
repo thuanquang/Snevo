@@ -25,57 +25,48 @@ class ProductController extends BaseController {
    */
   async getProducts(req, res) {
     return this.handleRequest(req, res, async () => {
-      try {
-        const pagination = this.getPaginationParams(req);
+        try {
+            const pagination = this.getPaginationParams(req);
+            
+            const parsedColorIds = req.query.color_ids
+                ? req.query.color_ids.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id))
+                : undefined;
+            
+            const parsedSizeIds = req.query.size_ids
+                ? req.query.size_ids.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id))
+                : undefined;
 
-        // ⭐ Parse color_ids and size_ids from query params
-        const parsedColorIds = req.query.color_ids 
-          ? req.query.color_ids.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id))
-          : undefined;
+            const filters = {
+                category_id: req.query.category_id,
+                min_price: req.query.min_price ? parseFloat(req.query.min_price) : undefined,
+                max_price: req.query.max_price ? parseFloat(req.query.max_price) : undefined,
+                search: req.query.search,
+                color_ids: parsedColorIds,
+                size_ids: parsedSizeIds,
+                is_active: req.query.is_active !== undefined ? req.query.is_active === 'true' : true,
+                include_no_variants: req.query.include_no_variants === 'true'  // ⭐ NEW
+            };
 
-        const parsedSizeIds = req.query.size_ids
-          ? req.query.size_ids.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id))
-          : undefined;
+            const result = await this.Shoe.findAllWithFilters(
+                filters,
+                pagination,
+                req.query.sort_by || 'created_at',
+                req.query.sort_order || 'desc'
+            );
 
-        console.log('📥 ProductController - Received filters:', {
-          category_id: req.query.category_id,
-          min_price: req.query.min_price,
-          max_price: req.query.max_price,
-          search: req.query.search,
-          color_ids: parsedColorIds,
-          size_ids: parsedSizeIds
-        });
-
-        const filters = {
-          category_id: req.query.category_id,
-          min_price: req.query.min_price ? parseFloat(req.query.min_price) : undefined,
-          max_price: req.query.max_price ? parseFloat(req.query.max_price) : undefined,
-          search: req.query.search,
-          color_ids: parsedColorIds,    // ← NEW
-          size_ids: parsedSizeIds,      // ← NEW
-          is_active: req.query.is_active !== undefined ? req.query.is_active === 'true' : true
-        };
-
-        const result = await this.Shoe.findAllWithFilters(
-          filters,
-          pagination,
-          req.query.sort_by || 'created_at',
-          req.query.sort_order || 'desc'
-        );
-
-        console.log(`✅ ProductController - Returning ${result.data.length} products`);
-
-        this.sendPaginatedResponse(
-          res,
-          result,
-          pagination,
-          'Products fetched successfully'
-        );
-      } catch (error) {
-        throw error;
-      }
+            console.log(`✅ ProductController - Returning ${result.data.length} products`);
+            
+            this.sendPaginatedResponse(
+                res,
+                result,
+                pagination,
+                'Products fetched successfully'
+            );
+        } catch (error) {
+            throw error;
+        }
     });
-  }
+}
 
   /**
    * GET /api/products/:id

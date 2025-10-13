@@ -3,6 +3,7 @@
  * Orchestrates all components and manages the overall application state
  */
 
+import authService from './services/AuthService.js';
 import { authManager } from './AuthManager.js';
 import { productManager } from './ProductManager.js';
 import { navbarManager } from './NavbarManager.js';
@@ -17,6 +18,7 @@ class Application {
         };
         
         this.isInitialized = false;
+        this.authReady = false;
         this.components = new Map();
         this.listeners = new Map();
         
@@ -118,8 +120,22 @@ class Application {
      * Initialize core managers
      */
     async initializeCore() {
-        // Auth manager should already be initialized
-        if (!authManager.isInitialized) {
+        // Initialize AuthService first
+        console.log('🔐 Initializing AuthService...');
+        await authService.initialize();
+        
+        // Emit authReady event for pages that need to wait for auth
+        this.authReady = true;
+        this.emit('authReady', { 
+            user: authService.currentUser, 
+            isAuthenticated: authService.isAuthenticated(),
+            role: authService.getUserRole()
+        });
+        console.log('✅ Auth ready event emitted');
+        
+        // Auth manager should already be initialized (auto-init on)
+        console.log('🔐 Ensuring AuthManager is initialized...');
+        if (authManager && !authManager.authService.initialized) {
             await authManager.initialize();
         }
         
@@ -147,6 +163,11 @@ class Application {
             if (navbarManager.isInitialized) {
                 navbarManager.updateAuthState(data.user, true);
             }
+            // Force auth UI update after a small delay to ensure navbar is loaded
+            setTimeout(() => {
+                console.log('🔄 Forcing auth UI update after signedIn event');
+                authManager.updateAuthUI();
+            }, 200);
         });
         
         authManager.on('signedOut', () => {
@@ -163,6 +184,16 @@ class Application {
         
         authManager.on('registerError', (data) => {
             this.showToast(data.error, 'error');
+        });
+        
+        // Listen to role updates to refresh UI when role is fetched
+        authManager.on('roleUpdated', (data) => {
+            console.log('🔄 Role updated event received, updating UI:', data.role);
+            authManager.updateAuthUI();
+            // Also update navbar if needed
+            if (navbarManager.isInitialized) {
+                navbarManager.updateAuthState(data.user, true);
+            }
         });
 
         // Product events
@@ -844,15 +875,6 @@ class Application {
         
         if (isAuthenticated) {
             console.log('✅ User is authenticated:', authManager.getCurrentUser());
-            
-            // If on login page, redirect to home
-            if (currentPath.includes('login.html')) {
-                console.log('🔄 Redirecting authenticated user from login page');
-                const urlParams = new URLSearchParams(window.location.search);
-                const returnUrl = urlParams.get('return');
-                const redirectUrl = returnUrl ? decodeURIComponent(returnUrl) : '/';
-                window.location.href = redirectUrl;
-            }
         } else {
             console.log('❌ User is not authenticated');
             

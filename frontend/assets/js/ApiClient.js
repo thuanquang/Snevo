@@ -324,13 +324,11 @@ class ApiClient {
         this.setAuthToken(null);
         this.setRefreshToken(null);
         
-        // Redirect to login page
-        const returnUrl = encodeURIComponent(window.location.href);
-        // Open modal instead of navigating to login.html
+        // Show login modal
         if (window.showLoginModal) {
             window.showLoginModal();
         } else {
-            window.location.href = `login.html?return=${returnUrl}`;
+            console.error('Login modal not available');
         }
     }
 
@@ -493,9 +491,18 @@ class ProductsAPI {
    * Get all products with filters
    */
   async getProducts(params = {}) {
-    const response = await this.client.get('/api/products', params);
-    return response.data;
-  }
+        try {
+            console.log('📞 API: Getting products', params);
+            
+            const response = await this.client.get('/api/products', params);
+            
+            console.log('✅ Products response:', response);
+            return response.data;
+        } catch (error) {
+            console.error('❌ Get products error:', error);
+            return { success: false, data: [], message: error.message };
+        }
+    }
     /**
      * Get all colors
      */
@@ -543,9 +550,22 @@ class ProductsAPI {
    * Get all categories
    */
   async getCategories(params = {}) {
-    const response = await this.client.get('/api/categories', params);
-    return response.data;
-  }
+        try {
+            console.log('📞 API: Getting categories');
+            
+            // ⭐ Force include_count for admin
+            const response = await this.client.get('/api/categories', {
+                ...params,
+                include_count: 'true'
+            });
+            
+            console.log('✅ Categories with count:', response);
+            return response.data;
+        } catch (error) {
+            console.error('❌ Get categories error:', error);
+            return { success: false, data: [], message: error.message };
+        }
+    }
 
   /**
    * Get category by ID
@@ -559,8 +579,14 @@ class ProductsAPI {
    * Get product variants by shoe ID
    */
   async getProductVariants(shoeId) {
-    const response = await this.client.get('/api/variants', { shoe_id: shoeId });
-    return response.data;
+    try {
+            const params = shoeId ? { shoe_id: shoeId } : {};
+            const response = await this.client.get('/api/variants', params);
+            return response.data;
+        } catch (error) {
+            console.error('❌ Get variants error:', error);
+            return { success: false, data: [], message: error.message };
+        }
   }
 
   /**
@@ -570,7 +596,7 @@ class ProductsAPI {
     const response = await this.client.get(`/api/variants/${variantId}`);
     return response.data;
   }
-
+  
   /**
    * Get all colors
    */
@@ -658,6 +684,5 @@ window.productsAPI = productsAPI;
 window.ordersAPI = ordersAPI;
 window.usersAPI = usersAPI;
 
-export default ApiClient;
-export { apiClient, authAPI, productsAPI, ordersAPI, usersAPI };
+
 

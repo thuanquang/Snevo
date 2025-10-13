@@ -23,24 +23,28 @@ Override Examples:
 - Admin: `{ showAdminMenu: true, customActions: ['admin-dashboard', 'logout'] }`
 - Cart: `{ hideCart: true, customActions: ['continue-shopping'] }`
 
-Auth/Login Behavior (Google-only)
----------------------------------
-- Global modal is injected by `frontend/assets/js/Application.js#initializeLoginModal`.
-- Exposes `window.showLoginModal()` to open modal.
-- All anchors pointing to `login.html` are intercepted to open modal instead of navigating.
-- `AuthManager.loginWithGoogle()` now redirects back to `window.location.href` after OAuth.
-- `AuthManager.updateAuthUI()` renders a `Login` link that calls the modal via `#globalLoginLink`.
-- Role-aware navbar: when authenticated AND role is known, customers see `profile.html`; sellers see `admin.html`. If role unknown, show Login.
-- Protected page access triggers modal instead of redirect.
-- Fallbacks: if modal isn't ready, code falls back to `login.html` navigation in ApiClient/cart.
+Auth/Login Behavior (Simplified Direct Supabase)
+------------------------------------------------
+- Direct Supabase Auth client integration (no backend auth proxy)
+- `AuthService` (`frontend/assets/js/services/AuthService.js`) handles all auth operations
+- Global modal (`LoginModal.js`) calls `authService.loginWithGoogle()` directly
+- User roles fetched from `db_nike.profiles` table after Supabase authentication
+- Role-aware navbar: 'customer' → profile.html, 'seller' → admin.html
+- Session management handled by Supabase `onAuthStateChange` listener
+- No backend AuthController, auth routes, or JWT utilities needed
 
-Files touched:
-- `frontend/assets/js/AuthManager.js`: modal login UI hookup, Google redirect change; attach role after session validate/refresh; gate UI on real role; temp session without role.
-- `frontend/assets/js/Application.js`: inject modal; intercept `login.html` links; protected page handling.
-- `frontend/assets/js/ApiClient.js`: use modal on 401 redirect if available.
-- `frontend/assets/js/cart.js`: open modal on auth-required paths.
-- `frontend/assets/js/AdminManager.js`: revalidate session and attach role before enforcing seller access.
-- `frontend/pages/profile.html`: revalidate session on load; strict redirect to login if invalid.
+Key Files:
+- `frontend/assets/js/services/AuthService.js`: Direct Supabase client operations
+- `frontend/assets/js/AuthManager.js`: Simplified UI wrapper around AuthService
+- `frontend/assets/js/LoginModal.js`: Google OAuth modal using AuthService
+- `frontend/assets/js/Application.js`: Initializes AuthService first
+- `backend/middleware/auth.js`: Token verification only (kept for protected routes)
+- `backend/models/Profile.js`: Role management from db_nike.profiles
+
+Deleted Files (Redundant):
+- `backend/controllers/authController.js` - Supabase handles auth
+- `backend/routes/auth.js` - No backend auth routes needed
+- `backend/utils/jwt.js` - Supabase handles JWT
 
 Config prerequisites:
 - `frontend/assets/js/config.js` sets `APP_CONFIG.features.googleAuth` true with valid Supabase config.
@@ -64,6 +68,192 @@ All methods include:
 
 Files modified:
 - `backend/controllers/VariantController.js`: Added 6 new controller methods
+
+Auth UI Update Timing Fix (Oct 2025)
+-------------------------------------
+✅ FIXED: Auth buttons not updating immediately after first-time Google login
+Issue: Race condition between navbar loading and auth UI updates
+
+Root Causes:
+1. NavbarManager loading navbar.html asynchronously into DOM
+2. AuthManager.updateAuthUI() being called before #authButtons element exists
+3. Profile data (role, username) fetching from database taking time
+4. Multiple components trying to update UI at different times
+
+Fixes Applied:
+1. Modified AuthManager.updateAuthUI() to retry if #authButtons not found
+   - Automatically retries after 100ms if element doesn't exist yet
+   - Prevents silent failure when navbar hasn't loaded
+
+2. Added roleUpdated event listener in Application.js
+   - Listens for when user profile/role is fetched from database
+   - Triggers UI update when role becomes available
+   - Ensures correct admin.html vs profile.html link
+
+3. Improved handleSignedIn timing with multiple scheduled updates
+   - Updates at 300ms, 800ms, and 1500ms after sign-in
+   - Catches profile data whenever it arrives
+   - Handles slow database responses
+
+4. Enhanced event bridging in Application.js
+   - signedIn event triggers delayed auth UI update (200ms)
+   - Ensures navbar is fully loaded before updating
+   - Coordinates between AuthManager and NavbarManager
+
+5. Created database migration script (scripts/fix-profile-trigger.sql)
+   - Fixes potential trigger errors with username field
+   - Ensures proper Google OAuth metadata handling
+   - Adds proper TG_OP checks to avoid accessing OLD on INSERT
+
+Files modified:
+- `frontend/assets/js/AuthManager.js`: Retry logic and improved timing
+- `frontend/assets/js/Application.js`: roleUpdated listener and delayed updates
+- `scripts/fix-profile-trigger.sql`: Database trigger fixes
+
+Testing Notes:
+- Test first-time Google login (new user creation)
+- Test returning user Google login (existing profile)
+- Verify correct link shows (admin.html for sellers, profile.html for customers)
+- Check that hovering shows correct URL immediately after login
+- Ensure no console errors about missing elements
+- Verify profile/admin pages wait for AuthService before checking authentication
+- Confirm login.html is deleted and all references updated to use modal
+
+Login Modal Migration (Oct 2025)
+---------------------------------
+✅ COMPLETED: Removed login.html and migrated to modal-based authentication
+
+Changes:
+1. Deleted `frontend/pages/login.html` - no longer needed
+2. All authentication now handled through global login modal
+3. Updated all redirect logic to show modal instead
+
+Files Modified:
+- Deleted: `frontend/pages/login.html`
+- `frontend/assets/js/AuthManager.js`: Removed login.html redirects
+- `frontend/assets/js/Application.js`: Removed login page redirect logic
+- `frontend/assets/js/NavbarManager.js`: Removed login.html from path mappings
+- `frontend/assets/js/ApiClient.js`: Updated unauthorized handler to use modal only
+- `frontend/assets/js/AdminManager.js`: Updated auth check to use modal
+- `frontend/assets/js/cart.js`: Updated login redirect to use modal
+- `frontend/pages/profile.html`: Added AuthService initialization wait, uses modal for auth
+
+Benefits:
+- Cleaner UX - no page reload required for login
+- Consistent authentication flow across all pages
+- Faster login experience
+- Reduced maintenance - one auth UI to manage
+
+Auth State Persistence Fix (Oct 2025)
+--------------------------------------
+✅ FIXED: Authentication state now properly persists across pages
+
+Root Cause:
+- Pages were checking authentication before Supabase session was fully restored
+- Race condition between page initialization and AuthService.initialize()
+- No reliable way for pages to wait for auth to be ready
+
+Solutions Implemented:
+
+1. **AuthService Ready Promise** (`frontend/assets/js/services/AuthService.js`):
+   - Added `readyPromise` property to track initialization state
+   - Wrapped initialize() to return a reusable promise
+   - Added `hasStoredSession()` helper to check for stored Supabase tokens
+   - Now logs "Session restored from localStorage" when session is found
+   - Multiple calls to initialize() return the same promise (idempotent)
+
+2. **Application.js Auth Ready Event** (`frontend/assets/js/Application.js`):
+   - Added `authReady` boolean property to track auth state
+   - Emits 'authReady' event after AuthService.initialize() completes
+   - Event includes user, isAuthenticated, and role data
+   - Pages can now listen for this event or await authService.readyPromise
+
+3. **Profile Page Auth Wait** (`frontend/pages/profile.html`):
+   - Updated `waitForAuthService()` to properly await authService.initialize()
+   - Now uses the readyPromise instead of polling initialized flag
+   - Updated `loadUserProfile()` to get token from Supabase session directly
+   - Uses `session.access_token` instead of localStorage 'auth_token'
+   - Properly handles case where session doesn't exist
+
+How It Works:
+1. Supabase client stores session in localStorage automatically (persistSession: true)
+2. On page load, AuthService.initialize() calls `supabase.auth.getSession()`
+3. Supabase restores the session from localStorage tokens
+4. Pages await authService.initialize() before checking authentication
+5. Session tokens are automatically refreshed by Supabase (autoRefreshToken: true)
+
+Files Modified:
+- `frontend/assets/js/services/AuthService.js`: Added readyPromise and hasStoredSession()
+- `frontend/assets/js/Application.js`: Added authReady property and event emission
+- `frontend/pages/profile.html`: Updated to properly await auth initialization
+
+Storage Keys Used by Supabase:
+- `sb-<project-ref>-auth-token` - Main session token with access/refresh tokens
+- Session includes: access_token, refresh_token, expires_at, user data
+
+Benefits:
+- Auth state now persists reliably across page navigation
+- No more race conditions or stale auth checks
+- Pages can await auth initialization before proceeding
+- Cleaner, more predictable authentication flow
+- Works seamlessly with Supabase's built-in session management
+
+Navbar Consistency Across All Pages (Oct 2025)
+-----------------------------------------------
+✅ FIXED: All pages now have consistent script loading and navbar behavior
+
+Issues Fixed:
+1. **products.html** had typo in config.js path (`assetasfas` instead of `assets`)
+2. **product-detail.html** was missing Supabase SDK, config.js, and Application.js
+3. **categories.html**, **orders.html**, **addresses.html** were bare-bones stubs
+4. **verify-email.html** was missing NavbarManager and Application.js
+
+Standardized Script Loading Order (All Pages):
+```html
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- Configuration -->
+<script src="../assets/js/config.js"></script>
+
+<!-- Custom Scripts -->
+<script type="module" src="../assets/js/ApiClient.js"></script>
+<script type="module" src="../assets/js/AuthManager.js"></script>
+<script type="module" src="../assets/js/NavbarManager.js"></script>
+<script type="module" src="../assets/js/Application.js"></script>
+<script src="../assets/js/animations.js"></script>
+```
+
+Pages Updated:
+- ✅ `frontend/pages/products.html` - Fixed config.js typo
+- ✅ `frontend/pages/product-detail.html` - Added missing scripts
+- ✅ `frontend/pages/categories.html` - Rebuilt with proper structure
+- ✅ `frontend/pages/orders.html` - Rebuilt with proper structure and auth wait
+- ✅ `frontend/pages/addresses.html` - Rebuilt with proper structure and auth wait
+- ✅ `frontend/pages/verify-email.html` - Added missing NavbarManager and Application.js
+- ✅ `frontend/pages/index.html` - Already correct
+- ✅ `frontend/pages/profile.html` - Already correct
+- ✅ `frontend/pages/admin.html` - Already correct
+- ✅ `frontend/pages/cart.html` - Already correct
+- ✅ `frontend/pages/checkout.html` - Already correct
+
+Navbar Behavior:
+- All pages use `<div id="navbarRoot" data-navbar-page="pageType"></div>`
+- NavbarManager automatically loads on all pages
+- Auth buttons update consistently across all pages
+- Login modal works globally
+- User state persists and displays correctly everywhere
+
+Benefits:
+- Consistent user experience across all pages
+- Auth state visible immediately on page load
+- No more broken navigation or missing navbars
+- All pages follow the same initialization pattern
+- Easy to debug and maintain
+
+
 
 # EXTENSION FUNCTIONALITY - SNEVO E-COMMERCE PLATFORM
 
@@ -385,6 +575,184 @@ DELETE /api/reviews/:id
 - ✓ Automatic detection of placeholder values
 - ✓ Comprehensive environment variable validation on startup
 - ✓ Helpful error messages for configuration issues
+
+## PROFILE MANAGEMENT AUTO-LOAD/SAVE (Oct 2025)
+✅ COMPLETED: Profile information auto-loads and saves from/to db_nike.profiles
+
+**Implementation Details**:
+1. **Backend ProfileController** (`backend/controllers/ProfileController.js`):
+   - Fully implemented `getProfile()` method to fetch user profile from db_nike.profiles
+   - Fully implemented `updateProfile()` method to save changes to db_nike.profiles
+   - Validates all profile fields (full_name, username, phone, date_of_birth, gender, avatar_url)
+   - Includes proper error handling and authentication checks
+   - Filters updates to only allowed fields for security
+
+2. **Backend Auth Routes** (`backend/server.js`):
+   - Added `handleAuthRoutes()` method to handle /api/auth/* endpoints
+   - Routes GET /api/auth/profile to ProfileController.getProfile
+   - Routes PUT /api/auth/profile to ProfileController.updateProfile
+   - Includes authentication middleware for all auth routes
+   - Also handles /api/auth/addresses endpoints for address management
+
+3. **Frontend Integration** (`frontend/pages/profile.html`):
+   - Already had complete implementation with inline scripts
+   - Auto-loads profile data on page load via GET /api/auth/profile
+   - Populates all form fields with user data from database
+   - "Save Changes" button triggers PUT /api/auth/profile
+   - Displays success/error messages with Bootstrap toasts
+   - Includes "Refresh Data" button to reload profile info
+
+**Features**:
+- ✅ Auto-loads profile info from db_nike.profiles table
+- ✅ Populates Personal Info tab fields (full_name, username, email, phone, date_of_birth, gender, avatar_url)
+- ✅ Email field is read-only (cannot be changed)
+- ✅ Validates all input fields (client-side and server-side)
+- ✅ Updates profile data in database when "Save Changes" is clicked
+- ✅ Shows loading indicators during save operation
+- ✅ Displays success/error messages to user
+- ✅ Authentication required for all profile operations
+- ✅ Handles 404 gracefully for new users without profiles
+
+**Files Modified**:
+- `backend/controllers/ProfileController.js`: Implemented controller methods
+- `backend/server.js`: Added handleAuthRoutes and wired up auth endpoints
+- No frontend changes needed (already implemented)
+
+**Database Schema**:
+- Table: `db_nike.profiles`
+- Key fields: user_id (PK, UUID), username, full_name, phone, date_of_birth, gender, avatar_url, role, created_at, updated_at
+
+## ADDRESS BOOK MANAGEMENT (Oct 2025)
+✅ COMPLETED: Address book tab now fully functional with auto-load and CRUD operations
+
+**Issues Fixed**:
+1. Backend AddressController was returning 501 "not implemented" errors
+2. Frontend was using wrong authentication token (localStorage 'auth_token' instead of Supabase session)
+3. Address model methods were not implemented
+
+**Implementation Details**:
+
+1. **Backend Address Model** (`backend/models/Address.js`):
+   - Implemented `findByUserId(userId)` - Get all addresses for a user (ordered by default, then created_at)
+   - Implemented `findDefaultByUserId(userId)` - Get user's default address
+   - Implemented `setDefault(userId, addressId)` - Set an address as default (unsets others)
+   - Implemented `createForUser(userId, addressData)` - Create address with user validation
+   - Implemented `updateForUser(userId, addressId, addressData)` - Update address with user validation
+   - Implemented `deleteForUser(userId, addressId)` - Delete address with user validation
+   - All methods include proper error handling and Supabase integration
+
+2. **Backend AddressController** (`backend/controllers/AddressController.js`):
+   - Implemented `getAddresses(req, res)` - GET /api/auth/addresses - Returns all user addresses
+   - Implemented `getAddress(req, res)` - GET /api/auth/addresses/:id - Get specific address
+   - Implemented `createAddress(req, res)` - POST /api/auth/addresses - Create new address
+   - Implemented `updateAddress(req, res)` - PUT /api/auth/addresses/:id - Update address
+   - Implemented `deleteAddress(req, res)` - DELETE /api/auth/addresses/:id - Delete address
+   - All methods validate authentication, required fields, and user ownership
+   - Proper HTTP status codes (200, 201, 400, 401, 403, 404, 500)
+
+3. **Frontend Authentication Fix** (`frontend/pages/profile.html`):
+   - Fixed `loadAddresses()` to use Supabase session token instead of localStorage
+   - Fixed `saveNewAddress()` to use Supabase session token
+   - Fixed `updateAddress()` to use Supabase session token
+   - Fixed `deleteAddress()` to use Supabase session token
+   - Also fixed profile update and password change functions for consistency
+   - All functions now get token via: `await window.authService.supabase.auth.getSession()`
+
+**Features**:
+- ✅ Auto-loads user addresses on profile page load
+- ✅ "Add New Address" modal works correctly
+- ✅ Edit address functionality with pre-populated form
+- ✅ Delete address with confirmation dialog
+- ✅ Set default address (automatically unsets previous default)
+- ✅ Displays "No addresses found" message when empty
+- ✅ Shows loading spinner while fetching addresses
+- ✅ Success/error toast notifications for all operations
+- ✅ Proper authentication checks on all endpoints
+- ✅ User can only access their own addresses (security)
+
+**Files Modified**:
+- `backend/models/Address.js`: Implemented all model methods
+- `backend/controllers/AddressController.js`: Implemented all controller methods
+- `frontend/pages/profile.html`: Fixed authentication token usage in all address functions
+
+**Database Schema**:
+- Table: `db_nike.addresses`
+- Key fields: address_id (PK), user_id (FK to profiles), street, city, state, zip_code, country, is_default, created_at, updated_at
+
+## ACCOUNT DELETION FUNCTIONALITY (Oct 2025)
+✅ COMPLETED: Account deletion now works with email confirmation modal
+
+**Implementation Details**:
+
+1. **Delete Account Modal** (`frontend/pages/profile.html`):
+   - Created professional confirmation modal with red danger theme
+   - Lists all data that will be deleted (profile, addresses, orders, reviews)
+   - Requires user to type their email address to confirm deletion
+   - Email validation ensures exact match (case-insensitive)
+   - Shows current email for reference
+   - Error handling for mismatched emails
+   - Final confirmation dialog before deletion
+   - Loading state during deletion process
+
+2. **Backend DELETE Endpoint** (`backend/server.js`):
+   - Added DELETE method handler for `/api/auth/profile` route
+   - Routes to `ProfileController.deleteProfile(req, res)`
+   - Protected by authentication middleware
+   - Already implemented in ProfileController
+
+3. **Profile Controller** (`backend/controllers/ProfileController.js`):
+   - `deleteProfile(req, res)` already implemented
+   - Deletes profile from db_nike.profiles table
+   - Requires authentication
+   - Returns success/error responses
+
+4. **Frontend Deletion Flow** (`frontend/pages/profile.html`):
+   - `confirmAccountDeletion()` - Opens modal and displays current email
+   - `executeAccountDeletion()` - Validates email and executes deletion
+   - Email validation with clear error messages
+   - Final confirmation prompt
+   - Calls DELETE /api/auth/profile with auth token
+   - Attempts to delete Supabase auth user (admin.deleteUser)
+   - Shows success message and logs out after 2 seconds
+   - Proper error handling with user feedback
+
+**Features**:
+- ✅ Professional modal with danger styling
+- ✅ Email confirmation required to proceed
+- ✅ Lists all data that will be deleted
+- ✅ Case-insensitive email matching
+- ✅ Clear error messages for validation failures
+- ✅ Final confirmation dialog
+- ✅ Loading state with spinner during deletion
+- ✅ Success message before logout
+- ✅ Deletes profile from database
+- ✅ Attempts to delete Supabase auth user
+- ✅ Automatic logout after deletion
+- ✅ Proper error handling throughout
+
+**Security**:
+- ✅ Requires active authentication session
+- ✅ Email confirmation prevents accidental deletion
+- ✅ Final confirmation dialog adds extra safety
+- ✅ Backend validates user ownership
+- ✅ Cannot delete another user's account
+
+**Files Modified**:
+- `frontend/pages/profile.html`: Added modal and JavaScript functions
+- `backend/server.js`: Added DELETE route handler for /api/auth/profile
+
+**User Flow**:
+1. User clicks "Delete Account" button in Account Settings
+2. Modal opens showing warning and data to be deleted
+3. User must type their email address exactly
+4. System validates email matches current user email
+5. Final confirmation dialog appears
+6. System deletes profile from database
+7. System attempts to delete Supabase auth user
+8. Success message shown
+9. User automatically logged out after 2 seconds
+10. Redirected to homepage
+
 
 ## DEPLOYMENT REQUIREMENTS
 - **Frontend**: Static hosting (Netlify/Vercel) with build process
