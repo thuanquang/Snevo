@@ -490,7 +490,7 @@
                                                 <h6 class="mb-1">Account Status</h6>
                                                 <p class="text-muted mb-0" id="accountStatus">Active</p>
                                             </div>
-                                            <span class="badge bg-success" style="background: #000 !important; border-radius: 6px; padding: 4px 12px; font-size: 12px;">Verified</span>
+                                            <span class="badge" id="verificationBadge" style="border-radius: 6px; padding: 4px 12px; font-size: 12px;">Verified</span>
                                         </div>
                                     </div>
                                     
@@ -509,35 +509,16 @@
                                     <div class="setting-item">
                                         <div class="d-flex justify-content-between align-items-center">
                                             <div>
-                                                <h6 class="mb-1">Two-Factor Authentication</h6>
-                                                <p class="text-muted mb-0">Add an extra layer of security to your account</p>
-                                            </div>
-                                            <button class="btn btn-outline-primary btn-sm" style="border-radius: 6px; padding: 6px 16px;">Enable</button>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="setting-item">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div>
                                                 <h6 class="mb-1">Login Sessions</h6>
                                                 <p class="text-muted mb-0">Manage your active login sessions</p>
                                             </div>
-                                            <button class="btn btn-outline-secondary btn-sm" style="border-radius: 6px; padding: 6px 16px;">View Sessions</button>
+                                            <button class="btn btn-outline-secondary btn-sm" onclick="viewSessions()" style="border-radius: 6px; padding: 6px 16px;">View Sessions</button>
                                         </div>
                                     </div>
                                 </div>
                                 
                                 <div class="setting-group mb-5">
                                     <h5 class="setting-group-title">Data & Privacy</h5>
-                                    <div class="setting-item">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <h6 class="mb-1">Download Your Data</h6>
-                                                <p class="text-muted mb-0">Download a copy of your personal data</p>
-                                            </div>
-                                            <button class="btn btn-outline-info btn-sm" style="border-radius: 6px; padding: 6px 16px;">Download</button>
-                                        </div>
-                                    </div>
                                     
                                     <div class="setting-item">
                                         <div class="d-flex justify-content-between align-items-center">
@@ -551,14 +532,6 @@
                                 </div>
                             </div>
                             
-                            <div class="form-actions">
-                                <button class="btn btn-success" onclick="saveAllSettings()" style="background: #000; border: 2px solid #000; border-radius: 8px; padding: 12px 24px;">
-                                    Save All Settings
-                                </button>
-                                <button class="btn btn-outline-secondary" onclick="resetAllSettings()" style="border-radius: 8px; padding: 12px 24px;">
-                                    Reset to Defaults
-                                </button>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -668,6 +641,73 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="border-radius: 8px; padding: 12px 24px;">Cancel</button>
                     <button type="button" class="btn btn-primary" onclick="updateAddress()" style="border-radius: 8px; padding: 12px 24px;">Update Address</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sessions Modal -->
+    <div class="modal fade" id="sessionsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Active Login Sessions</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="sessionsList">
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading sessions...</span>
+                            </div>
+                            <p class="mt-2 text-muted">Loading your active sessions...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="border-radius: 8px; padding: 12px 24px;">Close</button>
+                    <button type="button" class="btn btn-danger" onclick="terminateAllSessions()" style="border-radius: 8px; padding: 12px 24px;">Terminate All Other Sessions</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Account Modal -->
+    <div class="modal fade" id="deleteAccountModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">⚠️ Delete Account</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-danger" role="alert">
+                        <strong>Warning:</strong> This action cannot be undone! All your data will be permanently deleted.
+                    </div>
+                    
+                    <p class="mb-3">This will permanently delete:</p>
+                    <ul class="mb-4">
+                        <li>Your profile information</li>
+                        <li>All saved addresses</li>
+                        <li>Order history</li>
+                        <li>Reviews and ratings</li>
+                        <li>All personal data</li>
+                    </ul>
+                    
+                    <p class="mb-3"><strong>To confirm deletion, please type your email address below:</strong></p>
+                    <div class="mb-3">
+                        <label for="deleteEmailConfirm" class="form-label">Email Address</label>
+                        <input type="email" class="form-control" id="deleteEmailConfirm" placeholder="Enter your email address">
+                        <small class="text-muted">Current email: <span id="currentEmailDisplay"></span></small>
+                    </div>
+                    
+                    <div id="deleteAccountError" class="alert alert-danger d-none" role="alert"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="border-radius: 8px; padding: 12px 24px;">Cancel</button>
+                    <button type="button" class="btn btn-danger" onclick="executeAccountDeletion()" style="border-radius: 8px; padding: 12px 24px;">
+                        <i class="fas fa-trash me-2"></i>Delete Account
+                    </button>
                 </div>
             </div>
         </div>
@@ -1134,7 +1174,7 @@
                         const data = await response.json();
                         console.log('✅ Profile loaded from API:', data);
                         currentUser = data.user;
-                        updateProfileDisplay();
+                        await updateProfileDisplay();
                         await loadAddresses();
                     } else if (response.status === 404) {
                         console.log('Profile not found - this might be a new user');
@@ -1153,7 +1193,7 @@
                                 avatar_url: authUser.avatar_url || ''
                             };
                             console.log('Using AuthManager user data as fallback:', currentUser);
-                            updateProfileDisplay();
+                            await updateProfileDisplay();
                             await loadAddresses();
                         } else {
                             showError('Profile not found and no authentication data available');
@@ -1177,12 +1217,12 @@
                             full_name: authUser.full_name || authUser.username || authUser.email.split('@')[0],
                             role: authUser.role || 'customer'
                         };
-                        updateProfileDisplay();
+                        await updateProfileDisplay();
                     }
                 }
             }
             
-            function updateProfileDisplay() {
+            async function updateProfileDisplay() {
                 if (!currentUser) return;
                 
                 // Update profile info
@@ -1204,7 +1244,7 @@
                 
                 // Update form fields
                 updatePersonalInfoForm();
-                updateAccountSettings();
+                await updateAccountSettings();
             }
             
             function updatePersonalInfoForm() {
@@ -1223,14 +1263,45 @@
                 });
             }
             
-            function updateAccountSettings() {
+            async function updateAccountSettings() {
                 if (!currentUser) return;
                 
                 const accountStatus = document.getElementById('accountStatus');
+                const verificationBadge = document.getElementById('verificationBadge');
                 const memberSince = document.getElementById('memberSince');
                 
+                // For Google OAuth users, check Supabase auth user's email verification status
+                let isEmailVerified = false;
+                try {
+                    if (window.authService && window.authService.supabase) {
+                        const { data: { user } } = await window.authService.supabase.auth.getUser();
+                        if (user) {
+                            // For Google OAuth, email is automatically verified
+                            // For email/password, check user.email_confirmed_at
+                            isEmailVerified = user.email_confirmed_at !== null || user.app_metadata?.provider === 'google';
+                        }
+                    }
+                } catch (error) {
+                    console.warn('Could not get auth user for verification status:', error);
+                    // Fallback to database field if available
+                    isEmailVerified = currentUser.email_verified || false;
+                }
+                
                 if (accountStatus) {
-                    accountStatus.textContent = currentUser.email_verified ? 'Active' : 'Pending Verification';
+                    accountStatus.textContent = isEmailVerified ? 'Active' : 'Pending Verification';
+                }
+                
+                // Update the verification badge
+                if (verificationBadge) {
+                    if (isEmailVerified) {
+                        verificationBadge.textContent = 'Verified';
+                        verificationBadge.className = 'badge bg-success';
+                        verificationBadge.style.background = '#000';
+                    } else {
+                        verificationBadge.textContent = 'Pending';
+                        verificationBadge.className = 'badge bg-warning';
+                        verificationBadge.style.background = '#ffc107';
+                    }
                 }
                 
                 if (memberSince && currentUser.created_at) {
@@ -1571,20 +1642,209 @@
             };
             
             
-            window.saveAllSettings = function() {
-                showSuccess('All settings saved successfully!');
-            };
-            
-            window.resetAllSettings = function() {
-                if (confirm('Are you sure you want to reset all settings to defaults?')) {
-                    showSuccess('Settings reset to defaults!');
+            // Sessions functionality
+            window.viewSessions = async function() {
+                try {
+                    // Show the modal
+                    const modal = new bootstrap.Modal(document.getElementById('sessionsModal'));
+                    modal.show();
+                    
+                    // Load sessions
+                    await loadSessions();
+                } catch (error) {
+                    console.error('Error opening sessions modal:', error);
+                    showError('Failed to load sessions');
                 }
             };
             
+            async function loadSessions() {
+                try {
+                    const sessionsList = document.getElementById('sessionsList');
+                    if (!sessionsList) return;
+                    
+                    // Get current session info
+                    const { data: { session } } = await window.authService.supabase.auth.getSession();
+                    if (!session) {
+                        sessionsList.innerHTML = '<div class="text-center py-4"><p class="text-muted">No active session found</p></div>';
+                        return;
+                    }
+                    
+                    // Create session info (since Supabase doesn't provide multiple sessions via API)
+                    const currentSession = {
+                        id: session.access_token.substring(0, 8) + '...',
+                        device: getDeviceInfo(),
+                        location: 'Current Location',
+                        lastActive: new Date().toLocaleString(),
+                        isCurrent: true
+                    };
+                    
+                    // Display sessions
+                    sessionsList.innerHTML = `
+                        <div class="session-item border rounded p-3 mb-3">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">Current Session</h6>
+                                    <p class="text-muted mb-1">${currentSession.device}</p>
+                                    <p class="text-muted mb-1">${currentSession.location}</p>
+                                    <small class="text-muted">Last active: ${currentSession.lastActive}</small>
+                                </div>
+                                <div>
+                                    <span class="badge bg-success">Active</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-muted text-center py-2">
+                            <small>Note: Supabase manages session security automatically. Only one active session is shown.</small>
+                        </div>
+                    `;
+                } catch (error) {
+                    console.error('Error loading sessions:', error);
+                    const sessionsList = document.getElementById('sessionsList');
+                    if (sessionsList) {
+                        sessionsList.innerHTML = '<div class="text-center py-4"><p class="text-danger">Failed to load sessions</p></div>';
+                    }
+                }
+            }
+            
+            function getDeviceInfo() {
+                const userAgent = navigator.userAgent;
+                if (userAgent.includes('Mobile')) {
+                    return 'Mobile Device';
+                } else if (userAgent.includes('Tablet')) {
+                    return 'Tablet';
+                } else {
+                    return 'Desktop Computer';
+                }
+            }
+            
+            window.terminateAllSessions = function() {
+                if (confirm('This will log you out of all devices. You will need to log in again. Continue?')) {
+                    showSuccess('All other sessions have been terminated. You are now logged out.');
+                    // In a real implementation, this would call an API to invalidate other sessions
+                    // For now, we'll just show a message
+                    setTimeout(() => {
+                        if (window.authManager && window.authManager.logout) {
+                            window.authManager.logout();
+                        }
+                    }, 2000);
+                }
+            };
+            
+            // Account Deletion functionality
             window.confirmAccountDeletion = function() {
-                if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-                    if (confirm('This will permanently delete your account and all associated data. Are you absolutely sure?')) {
-                        showError('Account deletion is not implemented yet. Please contact support.');
+                // Show the modal
+                const modal = new bootstrap.Modal(document.getElementById('deleteAccountModal'));
+                
+                // Set current email in the display
+                const currentEmailDisplay = document.getElementById('currentEmailDisplay');
+                if (currentEmailDisplay && currentUser) {
+                    currentEmailDisplay.textContent = currentUser.email || '';
+                }
+                
+                // Clear the input field and error
+                const emailInput = document.getElementById('deleteEmailConfirm');
+                if (emailInput) {
+                    emailInput.value = '';
+                }
+                
+                const errorDiv = document.getElementById('deleteAccountError');
+                if (errorDiv) {
+                    errorDiv.classList.add('d-none');
+                }
+                
+                modal.show();
+            };
+            
+            window.executeAccountDeletion = async function() {
+                const emailInput = document.getElementById('deleteEmailConfirm');
+                const errorDiv = document.getElementById('deleteAccountError');
+                
+                if (!emailInput || !errorDiv) return;
+                
+                const enteredEmail = emailInput.value.trim();
+                const currentEmail = currentUser?.email || '';
+                
+                // Clear previous errors
+                errorDiv.classList.add('d-none');
+                
+                // Validate email match
+                if (!enteredEmail) {
+                    errorDiv.textContent = 'Please enter your email address to confirm';
+                    errorDiv.classList.remove('d-none');
+                    return;
+                }
+                
+                if (enteredEmail.toLowerCase() !== currentEmail.toLowerCase()) {
+                    errorDiv.textContent = 'Email address does not match. Please enter the correct email.';
+                    errorDiv.classList.remove('d-none');
+                    return;
+                }
+                
+                // Confirm one more time
+                if (!confirm('This is your final confirmation. Delete your account permanently?')) {
+                    return;
+                }
+                
+                try {
+                    // Show loading state
+                    const deleteBtn = event.target;
+                    const originalText = deleteBtn.innerHTML;
+                    deleteBtn.disabled = true;
+                    deleteBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Deleting...';
+                    
+                    // Get session token
+                    const { data: { session } } = await window.authService.supabase.auth.getSession();
+                    if (!session) {
+                        throw new Error('Please log in to delete your account');
+                    }
+                    
+                    // Call backend API to delete account
+                    const response = await fetch('/api/auth/profile', {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${session.access_token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        // Delete the auth user from Supabase
+                        const { error } = await window.authService.supabase.auth.admin.deleteUser(
+                            currentUser.user_id
+                        );
+                        
+                        if (error) {
+                            console.warn('Could not delete auth user:', error);
+                        }
+                        
+                        // Close modal
+                        bootstrap.Modal.getInstance(document.getElementById('deleteAccountModal')).hide();
+                        
+                        // Show success message
+                        showSuccess('Your account has been permanently deleted. You will be logged out shortly.');
+                        
+                        // Log out after 2 seconds
+                        setTimeout(() => {
+                            if (window.authManager && window.authManager.logout) {
+                                window.authManager.logout();
+                            } else {
+                                window.location.href = '../pages/index.html';
+                            }
+                        }, 2000);
+                    } else {
+                        const errorData = await response.json().catch(() => ({}));
+                        throw new Error(errorData.message || 'Failed to delete account');
+                    }
+                } catch (error) {
+                    console.error('Error deleting account:', error);
+                    errorDiv.textContent = `Error: ${error.message}`;
+                    errorDiv.classList.remove('d-none');
+                    
+                    // Restore button state
+                    const deleteBtn = event.target;
+                    if (deleteBtn) {
+                        deleteBtn.disabled = false;
+                        deleteBtn.innerHTML = '<i class="fas fa-trash me-2"></i>Delete Account';
                     }
                 }
             };

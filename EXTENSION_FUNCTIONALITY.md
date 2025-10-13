@@ -679,6 +679,81 @@ DELETE /api/reviews/:id
 - Table: `db_nike.addresses`
 - Key fields: address_id (PK), user_id (FK to profiles), street, city, state, zip_code, country, is_default, created_at, updated_at
 
+## ACCOUNT DELETION FUNCTIONALITY (Oct 2025)
+✅ COMPLETED: Account deletion now works with email confirmation modal
+
+**Implementation Details**:
+
+1. **Delete Account Modal** (`frontend/pages/profile.html`):
+   - Created professional confirmation modal with red danger theme
+   - Lists all data that will be deleted (profile, addresses, orders, reviews)
+   - Requires user to type their email address to confirm deletion
+   - Email validation ensures exact match (case-insensitive)
+   - Shows current email for reference
+   - Error handling for mismatched emails
+   - Final confirmation dialog before deletion
+   - Loading state during deletion process
+
+2. **Backend DELETE Endpoint** (`backend/server.js`):
+   - Added DELETE method handler for `/api/auth/profile` route
+   - Routes to `ProfileController.deleteProfile(req, res)`
+   - Protected by authentication middleware
+   - Already implemented in ProfileController
+
+3. **Profile Controller** (`backend/controllers/ProfileController.js`):
+   - `deleteProfile(req, res)` already implemented
+   - Deletes profile from db_nike.profiles table
+   - Requires authentication
+   - Returns success/error responses
+
+4. **Frontend Deletion Flow** (`frontend/pages/profile.html`):
+   - `confirmAccountDeletion()` - Opens modal and displays current email
+   - `executeAccountDeletion()` - Validates email and executes deletion
+   - Email validation with clear error messages
+   - Final confirmation prompt
+   - Calls DELETE /api/auth/profile with auth token
+   - Attempts to delete Supabase auth user (admin.deleteUser)
+   - Shows success message and logs out after 2 seconds
+   - Proper error handling with user feedback
+
+**Features**:
+- ✅ Professional modal with danger styling
+- ✅ Email confirmation required to proceed
+- ✅ Lists all data that will be deleted
+- ✅ Case-insensitive email matching
+- ✅ Clear error messages for validation failures
+- ✅ Final confirmation dialog
+- ✅ Loading state with spinner during deletion
+- ✅ Success message before logout
+- ✅ Deletes profile from database
+- ✅ Attempts to delete Supabase auth user
+- ✅ Automatic logout after deletion
+- ✅ Proper error handling throughout
+
+**Security**:
+- ✅ Requires active authentication session
+- ✅ Email confirmation prevents accidental deletion
+- ✅ Final confirmation dialog adds extra safety
+- ✅ Backend validates user ownership
+- ✅ Cannot delete another user's account
+
+**Files Modified**:
+- `frontend/pages/profile.html`: Added modal and JavaScript functions
+- `backend/server.js`: Added DELETE route handler for /api/auth/profile
+
+**User Flow**:
+1. User clicks "Delete Account" button in Account Settings
+2. Modal opens showing warning and data to be deleted
+3. User must type their email address exactly
+4. System validates email matches current user email
+5. Final confirmation dialog appears
+6. System deletes profile from database
+7. System attempts to delete Supabase auth user
+8. Success message shown
+9. User automatically logged out after 2 seconds
+10. Redirected to homepage
+
+
 ## DEPLOYMENT REQUIREMENTS
 - **Frontend**: Static hosting (Netlify/Vercel) with build process
 - **Backend**: Node.js hosting (Railway/Heroku) with environment variables
