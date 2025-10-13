@@ -4,7 +4,6 @@
  */
 
 import createSupabaseConfig from '../../config/supabase.js';
-import constants from '../../config/constants.js';
 import { ValidationError, DatabaseError } from './ErrorClasses.js';
 
 export default class BaseModel {

@@ -3,511 +3,468 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - Snevo</title>
+    <title>Admin Dashboard - Nike Store</title>
     
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../assets/css/main.css">
-    <link rel="stylesheet" href="../assets/css/components.css">
-    <link rel="stylesheet" href="../assets/css/responsive.css">
-    <link rel="stylesheet" href="../assets/css/animations.css">
     
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="../assets/images/favicon.ico">
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --nike-black: #111111;
+            --nike-gray: #757575;
+            --nike-light-gray: #F5F5F5;
+            --nike-border: #E5E5E5;
+            --sidebar-width: 280px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            color: var(--nike-black);
+            background-color: #fff;
+        }
+
+        /* ========== Layout ========== */
+        .admin-container {
+            display: flex;
+            min-height: 100vh;
+            padding-top: 70px;
+        }
+
+        /* ========== Sidebar ========== */
+        .admin-sidebar {
+            width: var(--sidebar-width);
+            background: var(--nike-light-gray);
+            border-right: 1px solid var(--nike-border);
+            padding: 30px 0;
+            position: fixed;
+            left: 0;
+            top: 70px;
+            bottom: 0;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .sidebar-brand {
+            padding: 0 25px 20px;
+            border-bottom: 1px solid var(--nike-border);
+            margin-bottom: 20px;
+        }
+
+        .sidebar-brand h4 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--nike-black);
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+        }
+
+        .sidebar-menu-item {
+            margin-bottom: 5px;
+        }
+
+        .sidebar-menu-link {
+            display: flex;
+            align-items: center;
+            padding: 15px 25px;
+            color: var(--nike-gray);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-menu-link:hover {
+            background: rgba(0, 0, 0, 0.05);
+            color: var(--nike-black);
+        }
+
+        .sidebar-menu-link.active {
+            background: #fff;
+            color: var(--nike-black);
+            font-weight: 600;
+            border-left: 3px solid var(--nike-black);
+        }
+
+        .sidebar-menu-link i {
+            width: 24px;
+            margin-right: 15px;
+            font-size: 1.1rem;
+        }
+
+        /* ========== Main Content ========== */
+        .admin-main {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 40px;
+            background: #fff;
+        }
+
+        .admin-header {
+            margin-bottom: 40px;
+        }
+
+        .admin-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .admin-header p {
+            color: var(--nike-gray);
+            font-size: 1rem;
+        }
+
+        /* ========== Section Cards ========== */
+        .section-card {
+            background: #fff;
+            border: 1px solid var(--nike-border);
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 30px;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .section-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--nike-border);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--nike-black);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* ========== Data Table ========== */
+        .data-table {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table thead th {
+            background: var(--nike-light-gray);
+            color: var(--nike-black);
+            font-weight: 600;
+            border-bottom: 2px solid var(--nike-border);
+            padding: 15px 12px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .table tbody td {
+            padding: 15px 12px;
+            vertical-align: middle;
+            color: var(--nike-gray);
+        }
+
+        .table tbody tr:hover {
+            background: var(--nike-light-gray);
+        }
+
+        .product-img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+
+        /* ========== Stock Badges ========== */
+        .badge-stock {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .badge-in-stock {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-low-stock {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-out-stock {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        /* ========== Action Buttons ========== */
+        .btn-action {
+            padding: 8px 12px;
+            border: none;
+            background: transparent;
+            color: var(--nike-gray);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 6px;
+        }
+
+        .btn-action:hover {
+            background: var(--nike-light-gray);
+            color: var(--nike-black);
+        }
+
+        .btn-primary-custom {
+            background: var(--nike-black);
+            color: #fff;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary-custom:hover {
+            background: #333;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        /* ========== Empty State ========== */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--nike-gray);
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        /* ========== Loading State ========== */
+        .loading-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 60px 20px;
+        }
+
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+
+        /* ========== Modal Enhancements ========== */
+        .modal-xl {
+            max-width: 1200px;
+        }
+
+        /* ========== Responsive ========== */
+        @media (max-width: 992px) {
+            .admin-sidebar {
+                transform: translateX(-100%);
+            }
+
+            .admin-sidebar.show {
+                transform: translateX(0);
+            }
+
+            .admin-main {
+                margin-left: 0;
+            }
+        }
+    </style>
 </head>
 <body>
-    <!-- Unified Navbar Root with Admin Overrides -->
-    <div id="navbarRoot" data-navbar-page="admin" data-navbar-show-admin-menu="true"></div>
-    
-    <!-- Admin Overrides Script -->
-    <script>
-        window.NAVBAR_OVERRIDES = {
-            showAdminMenu: true,
-            hideUserProfile: false,
-            customActions: ['admin-dashboard', 'logout'],
-            class: 'admin-navbar'
-        };
-    </script>
+    <!-- Navbar -->
+    <div id="navbarRoot"></div>
 
-    <!-- Main Content -->
-    <main style="margin-top: 76px;">
-        <div class="container py-5">
-            <div class="row">
-                <div class="col-12">
-                    <h1 class="mb-4">Admin Dashboard</h1>
-                    <p class="text-muted">Manage categories, variants, and stock</p>
+    <!-- Admin Container -->
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar" id="adminSidebar">
+            <div class="sidebar-brand">
+                <h4><i class="fas fa-user-shield"></i> Admin Panel</h4>
+            </div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-menu-item">
+                    <a href="#" class="sidebar-menu-link" data-section="dashboard">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="sidebar-menu-item">
+                    <a href="#" class="sidebar-menu-link active" data-section="inventory">
+                        <i class="fas fa-boxes"></i>
+                        <span>Inventory Management</span>
+                    </a>
+                </li>
+            </ul>
+        </aside>
 
-                    <ul class="nav nav-tabs" id="adminTabs" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="categories-tab" data-bs-toggle="tab" data-bs-target="#categories" type="button" role="tab">Categories</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="shoes-tab" data-bs-toggle="tab" data-bs-target="#shoes" type="button" role="tab">Shoes</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="variants-tab" data-bs-toggle="tab" data-bs-target="#variants" type="button" role="tab">Variants</button>
-                        </li>
-                    </ul>
+        <!-- Main Content -->
+        <main class="admin-main">
+            <!-- Dashboard Section -->
+            <div id="dashboardSection" class="content-section" style="display: none;">
+                <div class="admin-header">
+                    <h1>Dashboard</h1>
+                    <p>Overview of store statistics and metrics</p>
+                </div>
+                <div class="empty-state">
+                    <i class="fas fa-chart-pie"></i>
+                    <h3>Dashboard Coming Soon</h3>
+                    <p>Analytics and metrics will be displayed here</p>
+                </div>
+            </div>
 
-                    <div class="tab-content pt-4" id="adminTabsContent">
-                        <!-- Categories Tab -->
-                        <div class="tab-pane fade show active" id="categories" role="tabpanel">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h5 class="mb-0">Categories</h5>
-                                <div class="d-flex gap-2">
-                                    <button class="btn btn-primary" id="btnNewCategory"><i class="fas fa-plus"></i> New Category</button>
-                                    <button class="btn btn-outline-danger" id="adminLogoutBtn">
-                                        <i class="fas fa-sign-out-alt"></i> Logout
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="table-responsive">
-                                <table class="table table-striped align-middle">
-                                    <thead>
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>Name</th>
-                                            <th>Description</th>
-                                            <th>Active</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="categoriesTableBody">
-                                        <!-- Categories will render here -->
-                                    </tbody>
-                                </table>
+            <!-- Inventory Management Section -->
+            <div id="inventorySection" class="content-section">
+                <div class="admin-header">
+                    <h1>Inventory Management</h1>
+                    <p>Manage shoes, variants, and categories</p>
+                </div>
+
+                
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-shoe-prints"></i>
+                            Shoes Products
+                        </h2>
+                        <div class="section-actions">
+                            <button class="btn btn-primary-custom" onclick="adminManager.addShoe()">
+                                <i class="fas fa-plus"></i> Add Product
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Search Filter -->
+                    <div class="row mb-3">
+                        <div class="col-md-4 ms-auto">
+                            <div class="input-group">
+                                <span class="input-group-text bg-white">
+                                    <i class="fas fa-sort"></i>
+                                </span>
+                                <select class="form-select" id="sortSelect" onchange="adminManager.handleSort()">
+                                    <option value="stock_desc"selected>Stock: High to Low</option>
+                                    <option value="stock_asc">Stock: Low to High</option>
+                                    <option value="name_asc">Name: A → Z</option>
+                                    <option value="name_desc">Name: Z → A</option>
+                                    <option value="price_asc">Price: Low to High</option>
+                                    <option value="price_desc">Price: High to Low</option>
+                                </select>
                             </div>
                         </div>
-
-                        <!-- Shoes Tab -->
-                        <div class="tab-pane fade" id="shoes" role="tabpanel">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h5 class="mb-0">Shoes</h5>
-                                <button class="btn btn-primary" id="btnNewShoe"><i class="fas fa-plus"></i> New Shoe</button>
-                            </div>
-                            <div class="table-responsive">
-                                <table class="table table-striped align-middle">
-                                    <thead>
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>Category</th>
-                                            <th>Name</th>
-                                            <th>Base Price</th>
-                                            <th>Active</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="shoesTableBody">
-                                        <!-- Shoes will render here -->
-                                    </tbody>
-                                </table>
+                    </div>
+                    <div id="shoesTableContainer">
+                        <div class="loading-container">
+                            <div class="spinner-border text-dark" role="status">
+                                <span class="visually-hidden">Loading...</span>
                             </div>
                         </div>
+                    </div>
+                </div>
 
-                        <!-- Variants Tab -->
-                        <div class="tab-pane fade" id="variants" role="tabpanel">
-                            <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
-                                <h5 class="mb-0">Variants (Products)</h5>
-                                <div class="d-flex gap-2">
-                                    <input class="form-control" placeholder="Search by shoe name or SKU" id="variantSearch" style="min-width:260px;">
-                                    <button class="btn btn-primary" id="btnNewVariant"><i class="fas fa-plus"></i> New Variant</button>
-                                </div>
-                            </div>
-                            <div class="table-responsive">
-                                <table class="table table-striped align-middle">
-                                    <thead>
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>Shoe</th>
-                                            <th>Color</th>
-                                            <th>Size</th>
-                                            <th>SKU</th>
-                                            <th>Price</th>
-                                            <th>Stock</th>
-                                            <th>Active</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="variantsTableBody">
-                                        <!-- Variants will render here -->
-                                    </tbody>
-                                </table>
+                <!-- Categories Management -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-tags"></i>
+                            Categories
+                        </h2>
+                        <div class="section-actions">
+                            <button class="btn btn-primary-custom" onclick="adminManager.addCategory()">
+                                <i class="fas fa-plus"></i> Add Category
+                            </button>
+                        </div>
+                    </div>
+                    <div id="categoriesTableContainer">
+                        <div class="loading-container">
+                            <div class="spinner-border text-dark" role="status">
+                                <span class="visually-hidden">Loading...</span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </main>
-
-    <!-- Category Modal -->
-    <div class="modal fade" id="categoryModal" tabindex="-1">
-      <div class="modal-dialog">
-        <form class="modal-content" id="categoryForm">
-          <div class="modal-header">
-            <h5 class="modal-title" id="categoryModalTitle">New Category</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            <input type="hidden" id="category_id">
-            <div class="mb-3">
-                <label class="form-label">Name</label>
-                <input class="form-control" id="category_name" required>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Description</label>
-                <textarea class="form-control" id="category_description"></textarea>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="category_active" checked>
-                <label class="form-check-label" for="category_active">Active</label>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            <button type="submit" class="btn btn-primary">Save</button>
-          </div>
-        </form>
-      </div>
+        </main>
     </div>
 
-    <!-- Variant Modal -->
-    <div class="modal fade" id="variantModal" tabindex="-1">
-      <div class="modal-dialog">
-        <form class="modal-content" id="variantForm">
-          <div class="modal-header">
-            <h5 class="modal-title" id="variantModalTitle">New Variant</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            <input type="hidden" id="variant_id">
-            <div class="mb-3">
-                <label class="form-label">Shoe</label>
-                <select class="form-select" id="variant_shoe" required></select>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Color</label>
-                <select class="form-select" id="variant_color" required></select>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Size</label>
-                <select class="form-select" id="variant_size" required></select>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">SKU</label>
-                <input class="form-control" id="variant_sku" required>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Price</label>
-                <input type="number" step="0.01" min="0" class="form-control" id="variant_price" required>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Initial Stock (optional)</label>
-                <input type="number" min="0" class="form-control" id="variant_initial_stock" placeholder="0">
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Import Price (for initial stock)</label>
-                <input type="number" step="0.01" min="0" class="form-control" id="variant_import_price" placeholder="0.00">
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="variant_active" checked>
-                <label class="form-check-label" for="variant_active">Active</label>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            <button type="submit" class="btn btn-primary">Save</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- Shoe Modal -->
-    <div class="modal fade" id="shoeModal" tabindex="-1">
-      <div class="modal-dialog">
-        <form class="modal-content" id="shoeForm">
-          <div class="modal-header">
-            <h5 class="modal-title" id="shoeModalTitle">New Shoe</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            <input type="hidden" id="shoe_id">
-            <div class="mb-3">
-                <label class="form-label">Category</label>
-                <select class="form-select" id="shoe_category" required></select>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Name</label>
-                <input class="form-control" id="shoe_name" required>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Description</label>
-                <textarea class="form-control" id="shoe_description"></textarea>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Base Price</label>
-                <input type="number" step="0.01" min="0" class="form-control" id="shoe_base_price" required>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Image URL</label>
-                <input class="form-control" id="shoe_image_url">
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="shoe_active" checked>
-                <label class="form-check-label" for="shoe_active">Active</label>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            <button type="submit" class="btn btn-primary">Save</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- Add Stock Modal -->
-    <div class="modal fade" id="stockModal" tabindex="-1">
-      <div class="modal-dialog">
-        <form class="modal-content" id="stockForm">
-          <div class="modal-header">
-            <h5 class="modal-title">Add Stock</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            <input type="hidden" id="stock_variant_id">
-            <div class="mb-3">
-                <label class="form-label">Quantity</label>
-                <input type="number" min="1" class="form-control" id="stock_quantity" required>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Import Price</label>
-                <input type="number" step="0.01" min="0" class="form-control" id="stock_import_price" required>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            <button type="submit" class="btn btn-primary">Add</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
-    <!-- Configuration -->
-    <script src="../assets/js/config.js"></script>
+    <!-- API Client -->
+    <script src="../assets/js/ApiClient.js"></script>
     
-    <!-- Custom Scripts -->
-    <script type="module" src="../assets/js/ApiClient.js"></script>
-    <script type="module" src="../assets/js/AuthManager.js"></script>
-    <script type="module" src="../assets/js/NavbarManager.js"></script>
-    <script type="module" src="../assets/js/Application.js"></script>
-    <script type="module" src="../assets/js/AdminManager.js"></script>
-    <script src="../assets/js/animations.js"></script>
+    <!-- Admin Manager -->
+    <script src="../assets/js/AdminManager.js"></script>
     
+    <!-- Navbar Manager -->
+    <script src="../assets/js/NavbarManager.js"></script>
+
+    <!-- Page Initialization -->
     <script>
-        // Admin page logout functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const adminLogoutBtn = document.getElementById('adminLogoutBtn');
-            if (adminLogoutBtn) {
-                adminLogoutBtn.addEventListener('click', async function() {
-                    console.log('Admin logout button clicked');
-                    
-                    // Disable button and show loading state
-                    adminLogoutBtn.disabled = true;
-                    adminLogoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Logging out...';
-                    
-                    try {
-                        if (window.authManager) {
-                            console.log('Using AuthManager logout');
-                            await window.authManager.logout();
-                            console.log('Logout successful via AuthManager');
-                        } else {
-                            console.log('AuthManager not available, using fallback');
-                            // Fallback logout process
-                            await performAdminLogout();
-                        }
-                    } catch (error) {
-                        console.error('Logout error:', error);
-                        
-                        // If AuthManager logout failed, try fallback
-                        if (window.authManager) {
-                            console.log('AuthManager logout failed, trying fallback');
-                            try {
-                                await performAdminLogout();
-                            } catch (fallbackError) {
-                                console.error('Fallback logout also failed:', fallbackError);
-                                showAdminError('Logout failed. Please clear your browser data and refresh the page.');
-                                // Reset button state
-                                adminLogoutBtn.disabled = false;
-                                adminLogoutBtn.innerHTML = '<i class="fas fa-sign-out-alt me-2"></i>Logout';
-                            }
-                        } else {
-                            showAdminError('Logout failed. Please try again or refresh the page.');
-                            // Reset button state
-                            adminLogoutBtn.disabled = false;
-                            adminLogoutBtn.innerHTML = '<i class="fas fa-sign-out-alt me-2"></i>Logout';
-                        }
-                    }
+        // Sidebar navigation
+        document.querySelectorAll('.sidebar-menu-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                // Update active state
+                document.querySelectorAll('.sidebar-menu-link').forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+                
+                // Show/hide sections
+                document.querySelectorAll('.content-section').forEach(section => {
+                    section.style.display = 'none';
                 });
-            }
+                
+                const sectionName = link.dataset.section;
+                const section = document.getElementById(`${sectionName}Section`);
+                if (section) section.style.display = 'block';
+            });
         });
-        
-        async function performAdminLogout() {
-            console.log('Performing manual admin logout');
+
+        // Initialize AdminManager
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🔄 DOM Ready - Initializing Admin');
             
-            // Show logout success message before clearing data
-            showAdminLogoutSuccessToast();
-            
-            try {
-                // Small delay to let user see the message
-                await new Promise(resolve => setTimeout(resolve, 500));
-                
-                // Clear all authentication data
-                clearAdminAuthenticationData();
-                
-                // Clear any additional session data
-                clearAdminSessionData();
-                
-                // Update UI if AuthManager is available
-                if (window.authManager) {
-                    window.authManager.clearAuthData();
-                    window.authManager.updateAuthUI();
-                    window.authManager.emit('logout');
+            const checkScriptsLoaded = setInterval(() => {
+                if (typeof window.adminManager !== 'undefined' && 
+                    typeof window.productsAPI !== 'undefined') {
+                    
+                    clearInterval(checkScriptsLoaded);
+                    console.log('✅ Scripts loaded');
+                    
+                    if (window.adminManager && typeof window.adminManager.init === 'function') {
+                        window.adminManager.init();
+                    }
                 }
-                
-                // Redirect to home page
-                console.log('Redirecting to index.html after admin logout');
-                window.location.href = 'index.html';
-                
-            } catch (error) {
-                console.error('❌ Error during admin logout process:', error);
-                showAdminError('Logout process failed. Please clear your browser data and refresh the page.');
-                
-                // Force redirect after a timeout as fallback
-                setTimeout(() => {
-                    console.log('🔄 Force redirecting after admin logout error');
-                    window.location.href = 'index.html';
-                }, 3000);
-            }
-        }
-        
-        function clearAdminAuthenticationData() {
-            // Clear all auth tokens
-            localStorage.removeItem('auth_token');
-            localStorage.removeItem('refresh_token');
+            }, 100);
             
-            // Clear Supabase auth data if present
-            localStorage.removeItem('supabase.auth.token');
-            localStorage.removeItem('supabase.auth.refreshToken');
-            localStorage.removeItem('supabase.auth.user');
-            
-            // Clear any cookies related to auth
-            document.cookie.split(";").forEach(cookie => {
-                const eqPos = cookie.indexOf("=");
-                const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
-                if (name.includes('auth') || name.includes('session') || name.includes('token') ||
-                    name.includes('supabase') || name.includes('user')) {
-                    document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
-                    document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=" + window.location.hostname;
-                }
-            });
-            
-            console.log('Admin authentication data cleared');
-        }
-        
-        function clearAdminSessionData() {
-            // Clear any application-specific session data
-            const sessionKeys = [
-                'user_preferences',
-                'cart_data',
-                'last_activity',
-                'session_id'
-            ];
-            
-            sessionKeys.forEach(key => {
-                if (localStorage.getItem(key)) {
-                    localStorage.removeItem(key);
-                    console.log('Cleared admin session data:', key);
-                }
-            });
-            
-            // Clear sessionStorage as well
-            if (typeof sessionStorage !== 'undefined') {
-                sessionStorage.clear();
-                console.log('Admin sessionStorage cleared');
-            }
-        }
-        
-        function showAdminLogoutSuccessToast() {
-            // Create and show logout success toast
-            const toast = document.createElement('div');
-            toast.className = 'toast align-items-center text-white bg-info border-0';
-            toast.setAttribute('role', 'alert');
-            toast.innerHTML = `
-                <div class="d-flex">
-                    <div class="toast-body">
-                        <i class="fas fa-sign-out-alt me-2"></i>Logging out...
-                    </div>
-                </div>
-            `;
-            
-            // Position the toast in the center of the screen
-            toast.style.position = 'fixed';
-            toast.style.top = '50%';
-            toast.style.left = '50%';
-            toast.style.transform = 'translate(-50%, -50%)';
-            toast.style.zIndex = '9999';
-            toast.style.minWidth = '200px';
-            
-            document.body.appendChild(toast);
-            const bsToast = new bootstrap.Toast(toast, {
-                delay: 1000,
-                autohide: true
-            });
-            bsToast.show();
-            
-            // Remove toast after it's hidden
-            const removeToast = () => {
-                if (document.body.contains(toast)) {
-                    document.body.removeChild(toast);
-                }
-            };
-            
-            toast.addEventListener('hidden.bs.toast', removeToast);
-            setTimeout(removeToast, 2000);
-        }
-        
-        function showAdminError(message) {
-            // Create and show error toast
-            const toast = document.createElement('div');
-            toast.className = 'toast align-items-center text-white bg-danger border-0';
-            toast.setAttribute('role', 'alert');
-            toast.innerHTML = `
-                <div class="d-flex">
-                    <div class="toast-body">
-                        <i class="fas fa-exclamation-triangle me-2"></i>${message}
-                    </div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-                </div>
-            `;
-            
-            document.body.appendChild(toast);
-            const bsToast = new bootstrap.Toast(toast, {
-                delay: 5000,
-                autohide: true
-            });
-            bsToast.show();
-            
-            // Remove toast after it's hidden
-            toast.addEventListener('hidden.bs.toast', () => {
-                document.body.removeChild(toast);
-            });
-        }
+            setTimeout(() => clearInterval(checkScriptsLoaded), 5000);
+        });
     </script>
 </body>
 </html>
