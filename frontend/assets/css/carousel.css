@@ -1,0 +1,145 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  user-select: none;
+}
+
+[type=radio] {
+  display: none;
+}
+
+.sport-carousel-heading {
+   margin: 150px 0px 90px 0px;
+   font-family: 'Poppins', sans-serif;
+   text-align: center;
+   font-size: 48px;
+}
+
+#slider {
+  height: 40vw;
+  position: relative;
+  perspective: 1000px;
+  transform-style: preserve-3d;
+
+}
+
+#slider label {
+  margin: auto;
+  width: 68%;
+  height: 100%;
+  border-radius: 12px;
+  position: absolute;
+  left: 0; right: 0;
+  cursor: pointer;
+  transition: transform 0.75s ease;
+}
+
+#slider label.slide-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  text-align: center;
+  box-sizing: border-box;
+}
+#slider label .sport-name {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 1000;
+  font-size: 48px;
+  margin-bottom: 8px;
+}
+
+#slider label .sport-desc {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  margin-bottom: 12px;
+}
+
+#slider label .sport-cta {
+  background-color: white;
+  color: black;
+  padding: 10px 24px;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  text-align: center;
+  border-radius: 16px;
+  user-select: none;
+  transition: background-color 0.3s ease;
+}
+
+#slider label .sport-cta:hover {
+  background-color: white;
+  color: black;
+}
+
+#slider.collapsed label {
+  transform: translate3d(0, 0, 0) !important;
+  box-shadow: none !important;
+  transition: transform 1s ease-out;
+}
+
+
+#s1:checked ~ #slide4, #s2:checked ~ #slide5,
+#s3:checked ~ #slide1, #s4:checked ~ #slide2,
+#s5:checked ~ #slide3 {
+  box-shadow: 0 1px 4px 0 rgba(0,0,0,.37);
+  transform: translate3d(-30%,0,-200px);
+}
+
+#s1:checked ~ #slide5, #s2:checked ~ #slide1,
+#s3:checked ~ #slide2, #s4:checked ~ #slide3,
+#s5:checked ~ #slide4 {
+  box-shadow: 0 6px 10px 0 rgba(0,0,0,.3), 0 2px 2px 0 rgba(0,0,0,.2);
+  transform: translate3d(-15%,0,-100px);
+}
+
+#s1:checked ~ #slide1, #s2:checked ~ #slide2,
+#s3:checked ~ #slide3, #s4:checked ~ #slide4,
+#s5:checked ~ #slide5 {
+  box-shadow: 0 13px 25px 0 rgba(0,0,0,.3), 0 11px 7px 0 rgba(0,0,0,.19);
+  transform: translate3d(0,0,0);
+}
+
+#s1:checked ~ #slide2, #s2:checked ~ #slide3,
+#s3:checked ~ #slide4, #s4:checked ~ #slide5,
+#s5:checked ~ #slide1 {
+  box-shadow: 0 6px 10px 0 rgba(0,0,0,.3), 0 2px 2px 0 rgba(0,0,0,.2);
+  transform: translate3d(15%,0,-100px);
+}
+
+#s1:checked ~ #slide3, #s2:checked ~ #slide4,
+#s3:checked ~ #slide5, #s4:checked ~ #slide1,
+#s5:checked ~ #slide2 {
+  box-shadow: 0 1px 4px 0 rgba(0,0,0,.37);
+  transform: translate3d(30%,0,-200px);
+}
+
+#slide1 
+{
+    background-image: url('../images/ui/running.jpg');
+    background-size: cover;
+ }
+
+#slide2 
+{ 
+    background-image: url('../images/ui/football.jpg'); 
+    background-size: cover; 
+}
+#slide3 {
+    background-image: url('../images/ui/basketball.jpg');
+    background-size: cover;
+}
+#slide4 {
+    background-image: url('../images/ui/training.jpg');
+    background-size: cover;
+}
+#slide5 {
+    background-image: url('../images/ui/styles.jpg');
+    background-size: cover;
+}

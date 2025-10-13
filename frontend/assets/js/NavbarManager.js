@@ -357,7 +357,7 @@ initScrollBehavior() {
     document.addEventListener('touchmove', (e) => {
         touchEndY = e.touches[0].clientY;
     }, { passive: true });
-};
+}
 
     /**
      * Create navbar directly in DOM
@@ -396,7 +396,7 @@ initScrollBehavior() {
                         <ul class="navbar-nav" style="gap: 30px;">
                             <li class="nav-item">
                                 <a class="nav-link" href="#" id="searchToggle">
-                                    <img src="../assets/images/ui/search.svg" alt="Search" height="23" width="23">
+                                    <img src="../assets/images/ui/search.svg" alt="Search" height="20" width="20">
                                 </a>
                             </li>
                             <li class="nav-item" id="cartNavItem">

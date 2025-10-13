@@ -1,24 +1,15 @@
-// FooterManager.js
-class FooterManager {
-    constructor() {
-        this.footerRoot = document.getElementById('footerRoot');
-        this.init();
-    }
+document.addEventListener('DOMContentLoaded', async function() {
+  try {
+    const response = await fetch('../components/footer.html'); // Đường dẫn tương đối đúng với project
+    if (!response.ok) throw new Error('Failed to load footer.html');
 
-    async init() {
-        try {
-            const response = await fetch('../components/footer.html');
-            const html = await response.text();
-            this.footerRoot.innerHTML = html;
-        } catch (error) {
-            console.error('Error loading footer:', error);
-        }
-    }
-}
+    const footerHTML = await response.text();
 
-// Initialize footer
-document.addEventListener('DOMContentLoaded', () => {
-    new FooterManager();
+    const footerRoot = document.getElementById('footerRoot');
+    if (footerRoot) {
+      footerRoot.innerHTML = footerHTML;
+    }
+  } catch (error) {
+    console.error('Error loading footer:', error);
+  }
 });
-
-export default FooterManager;
