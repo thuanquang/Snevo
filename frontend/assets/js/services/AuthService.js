@@ -10,75 +10,103 @@ class AuthService {
         this.userRole = null;
         this.initialized = false;
         this.listeners = new Map();
+        this.readyPromise = null;
+    }
+
+    /**
+     * Check if there's a stored session in localStorage
+     */
+    hasStoredSession() {
+        try {
+            const keys = Object.keys(localStorage);
+            return keys.some(key => 
+                key.includes('supabase.auth.token') || 
+                (key.includes('sb-') && key.includes('-auth-token'))
+            );
+        } catch (error) {
+            console.error('Error checking stored session:', error);
+            return false;
+        }
     }
 
     /**
      * Initialize Supabase client
      */
     async initialize() {
-        if (this.initialized) return;
+        // Return existing promise if already initializing
+        if (this.readyPromise) return this.readyPromise;
         
-        console.log('🔧 Initializing AuthService...');
+        if (this.initialized) return true;
         
-        // Get config from window (set by config.js)
-        if (!window.APP_CONFIG?.features?.supabaseAuth) {
-            console.warn('⚠️ Supabase authentication not configured');
-            return false;
-        }
-
-        // Wait for Supabase SDK to be available
-        let retries = 0;
-        while (!window.supabase && retries < 50) {
-            await new Promise(resolve => setTimeout(resolve, 100));
-            retries++;
-        }
-
-        if (!window.supabase) {
-            console.error('❌ Supabase SDK not loaded');
-            return false;
-        }
-
-        // Initialize Supabase client
-        try {
-            const createClient = window.supabase.createClient || window.supabase;
-            this.supabase = createClient(
-                window.SUPABASE_URL,
-                window.SUPABASE_ANON_KEY,
-                {
-                    auth: {
-                        autoRefreshToken: true,
-                        persistSession: true,
-                        detectSessionInUrl: true
-                    },
-                    db: {
-                        schema: 'db_nike'
-                    }
-                }
-            );
-
-            // Get current session
-            const { data: { session } } = await this.supabase.auth.getSession();
-            if (session?.user) {
-                this.currentUser = session.user;
-                await this.fetchUserRole(session.user.id);
+        // Create and store the initialization promise
+        this.readyPromise = (async () => {
+            console.log('🔧 Initializing AuthService...');
+            
+            // Get config from window (set by config.js)
+            if (!window.APP_CONFIG?.features?.supabaseAuth) {
+                console.warn('⚠️ Supabase authentication not configured');
+                return false;
             }
 
-            // Listen for auth state changes
-            this.supabase.auth.onAuthStateChange(async (event, session) => {
-                await this.handleAuthStateChange(event, session);
-            });
+            // Wait for Supabase SDK to be available
+            let retries = 0;
+            while (!window.supabase && retries < 50) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+                retries++;
+            }
 
-            this.initialized = true;
-            console.log('✅ AuthService initialized successfully');
-            
-            // Emit initial state
-            this.emit('initialized', { user: this.currentUser, role: this.userRole });
-            
-            return true;
-        } catch (error) {
-            console.error('❌ Failed to initialize AuthService:', error);
-            return false;
-        }
+            if (!window.supabase) {
+                console.error('❌ Supabase SDK not loaded');
+                return false;
+            }
+
+            // Initialize Supabase client
+            try {
+                const createClient = window.supabase.createClient || window.supabase;
+                this.supabase = createClient(
+                    window.SUPABASE_URL,
+                    window.SUPABASE_ANON_KEY,
+                    {
+                        auth: {
+                            autoRefreshToken: true,
+                            persistSession: true,
+                            detectSessionInUrl: true
+                        },
+                        db: {
+                            schema: 'db_nike'
+                        }
+                    }
+                );
+
+                // Get current session
+                const { data: { session } } = await this.supabase.auth.getSession();
+                if (session?.user) {
+                    this.currentUser = session.user;
+                    await this.fetchUserRole(session.user.id);
+                    console.log('✅ Session restored from localStorage:', this.currentUser.email);
+                } else {
+                    console.log('ℹ️ No existing session found');
+                }
+
+                // Listen for auth state changes
+                this.supabase.auth.onAuthStateChange(async (event, session) => {
+                    await this.handleAuthStateChange(event, session);
+                });
+
+                this.initialized = true;
+                console.log('✅ AuthService initialized successfully');
+                
+                // Emit initial state
+                this.emit('initialized', { user: this.currentUser, role: this.userRole });
+                
+                return true;
+            } catch (error) {
+                console.error('❌ Failed to initialize AuthService:', error);
+                return false;
+            }
+        })();
+        
+        return this.readyPromise;
     }
 
     /**
