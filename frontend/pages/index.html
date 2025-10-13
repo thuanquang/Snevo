@@ -24,21 +24,22 @@
     <div id="navbarRoot" data-navbar-page="home"></div>
 
     <!-- Hero Section -->
-    <section class="hero-section" style="margin-top: -10px; background-color: white; padding: 0px 0;">
+    <section class="hero-section">
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-lg-6">
                     <div class="hero-content">
-                        <h1 style="font-family: 'Poppins', sans-serif; font-weight: bold; font-size: 94px; color: #000; line-height: 1.2;">Find Your Soul Mate With Us</h1>
-                        <p style="font-family: 'Poppins', sans-serif; font-size: 30px; margin-top: 24px; color: #000;">Everything you want, we all have at Snevo</p>
-                        <div class="hero-actions" style="margin-top: 32px;">
-                            <a href="products.html" class="btn btn-dark" style="border-radius: 32px; padding: 12px 36px; font-size: 18px;">Shop Now</a>
+                        <h1>Find Your Soul Mate With Us</h1>
+                        <p>Everything you want, we all have at Snevo</p>
+                        <div class="hero-actions">
+                            <a href="products.html" class="btn btn-dark">Shop Now</a>
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-6">
-                    <div class="hero-image" style="text-align: right;">
-                        <img src="../assets/images/ui/hero_image.svg" alt="Hero Image" style="width: 100%; height: auto;">
+                <div class="col-lg-6 hero-image-wrapper">
+                    <div class="hero-image text-end ">
+                        <div class="hero-vertical-text">ULTIMATE</div>
+                        <img src="../assets/images/ui/hero_image.svg" alt="Hero Image" class="w-100 h-auto">
                     </div>
                 </div>
             </div>
@@ -46,26 +47,26 @@
     </section>
 
     <!-- Brand Carousel -->
-    <section class="brand-carousel" style="background-color: #000; padding: 20px 0; margin: 80px 0 100px 0;">
+    <section class="brand-carousel">
         <div class="container">
-            <div class="brands-slider" style="display: flex; align-items: center; justify-content: space-between;">
+            <div class="brands-slider">
                 <div class="brand-item">
-                    <img src="../assets/images/ui/amazon.svg" alt="Amazon" style="height: 200px; width: auto; filter: brightness(0) invert(1);">
+                    <img src="../assets/images/ui/amazon.svg" alt="Amazon" class="height-200">
                 </div>
                 <div class="brand-item">
-                    <img src="../assets/images/ui/ajio.svg" alt="Ajio" style="height: 40px; width: auto; filter: brightness(0) invert(1);">
+                    <img src="../assets/images/ui/ajio.svg" alt="Ajio" class="height-40">
                 </div>
                 <div class="brand-item">
-                    <img src="../assets/images/ui/ebay.svg" alt="Ebay" style="height: 150px; width: auto; filter: brightness(0) invert(1);">
+                    <img src="../assets/images/ui/ebay.svg" alt="Ebay" class="height-150">
                 </div>
                 <div class="brand-item">
-                    <img src="../assets/images/ui/amazon_new.svg" alt="Puma" style="height: 200px; width: auto; filter: brightness(0) invert(1);">
+                    <img src="../assets/images/ui/amazon_new.svg" alt="Puma" class="height-200">
                 </div>
                 <div class="brand-item">
-                    <img src="../assets/images/ui/ajio_new.svg" alt="Reebok" style="height: 40px; width: auto; filter: brightness(0) invert(1);">
+                    <img src="../assets/images/ui/ajio_new.svg" alt="Reebok" class="height-40">
                 </div>
                 <div class="brand-item">
-                    <img src="../assets/images/ui/ebay.svg" alt="New Balance" style="height: 150px; width: auto; filter: brightness(0) invert(1);">
+                    <img src="../assets/images/ui/ebay.svg" alt="New Balance" class="height-150">
                 </div>
             </div>
         </div>
@@ -74,84 +75,88 @@
     <!-- Products Section -->
     <main>
         <div class="container">
-            <h2 style="font-family: 'Poppins', sans-serif; font-size: 48px; font-weight: bold; margin: 250px 0px 50px 0px; text-align: center;">- Our Best Selling -</h2>
-            <div class="product-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px;">
+            <h2 class="products-heading">- Our Best Selling -</h2>
+            <div class="product-grid">
                 <!-- Product Card Template -->
-                <div class="product-card" style="border: 2px solid #DEDEDE; border-radius: 12px; overflow: hidden; position: relative;">
-                    <img src="../assets/images/ui/shoes_1.svg" alt="Product 1" style="width: 100%; height: 400px; object-fit: cover; margin-top:120px">
-                    <div style="padding: 12px 24px 0px 24px; display: flex; justify-content: space-between; align-items: flex-end; margin-top:-60px; margin-bottom:40px;">
+                <div class="product-card">
+                    <img src="../assets/images/products/shoes_1.svg" alt="Product 1">
+                    <div class="product-card-content">
                         <div>
-                            <h3 style="font-family: 'Poppins', sans-serif; font-size: 24px; margin: 0;">Air Max 270</h3>
-                            <p style="font-family: 'Poppins', sans-serif; font-size: 20px; color: #000; margin: 8px 0 0;">$199.99</p>
+                            <h3 class="product-card-title">Air Max 270</h3>
+                            <p class="product-card-price">$199.99</p>
                         </div>
-                        <a href="#" class="view-more" style="width: 48px; height: 48px; background: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                            <img src="../assets/images/ui/arrow.svg" alt="View" style="width: 17px; height: 17px; filter: brightness(0) invert(1);">
+                        <a href="#" class="view-more">
+                            <img src="../assets/images/ui/arrow.svg" alt="View">
                         </a>
                     </div>
                 </div>
 
-                <!-- Repeated for all 6 cards with different content -->
-                <div class="product-card" style="border: 2px solid #DEDEDE; border-radius: 12px; overflow: hidden; position: relative;">
-                    <img src="../assets/images/ui/shoes_2.svg" alt="Product 2" style="width: 100%; height: 400px; object-fit: cover; margin-top:120px">
-                    <div style="padding: 12px 24px 0px 24px; display: flex; justify-content: space-between; align-items: flex-end; margin-top:-60px; margin-bottom:40px;">
+                <!-- Product 2 -->
+                <div class="product-card">
+                    <img src="../assets/images/products/shoes_2.svg" alt="Product 2">
+                    <div class="product-card-content">
                         <div>
-                            <h3 style="font-family: 'Poppins', sans-serif; font-size: 24px; margin: 0;">ZoomX Vaporfly</h3>
-                            <p style="font-family: 'Poppins', sans-serif; font-size: 20px; color: #000; margin: 8px 0 0;">$249.99</p>
+                            <h3 class="product-card-title">ZoomX Vaporfly</h3>
+                            <p class="product-card-price">$249.99</p>
                         </div>
-                        <a href="#" class="view-more" style="width: 48px; height: 48px; background: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                            <img src="../assets/images/ui/arrow.svg" alt="View" style="width: 17px; height: 17px; filter: brightness(0) invert(1);">
+                        <a href="#" class="view-more">
+                            <img src="../assets/images/ui/arrow.svg" alt="View">
                         </a>
                     </div>
                 </div>
 
-                <div class="product-card" style="border: 2px solid #DEDEDE; border-radius: 12px; overflow: hidden; position: relative;">
-                    <img src="../assets/images/ui/shoes_3.svg" alt="Product 3" style="width: 100%; height: 400px; object-fit: cover; margin-top:120px ">
-                    <div style="padding: 12px 24px 0px 24px; display: flex; justify-content: space-between; align-items: flex-end; margin-top:-60px; margin-bottom:40px;">
+                <!-- Product 3 -->
+                <div class="product-card">
+                    <img src="../assets/images/products/shoes_3.svg" alt="Product 3">
+                    <div class="product-card-content">
                         <div>
-                            <h3 style="font-family: 'Poppins', sans-serif; font-size: 24px; margin: 0;">Air Jordan 1</h3>
-                            <p style="font-family: 'Poppins', sans-serif; font-size: 20px; color: #000; margin: 8px 0 0;">$179.99</p>
+                            <h3 class="product-card-title">Air Jordan 1</h3>
+                            <p class="product-card-price">$179.99</p>
                         </div>
-                        <a href="#" class="view-more" style="width: 48px; height: 48px; background: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                            <img src="../assets/images/ui/arrow.svg" alt="View" style="width: 17px; height: 17px; filter: brightness(0) invert(1);">
+                        <a href="#" class="view-more">
+                            <img src="../assets/images/ui/arrow.svg" alt="View">
                         </a>
                     </div>
                 </div>
 
-                <div class="product-card" style="border: 2px solid #DEDEDE; border-radius: 12px; overflow: hidden; position: relative;">
-                    <img src="../assets/images/ui/shoes_4.svg" alt="Product 4" style="width: 100%; height: 400px; object-fit: cover; margin-top:120px">
-                    <div style="padding: 12px 24px 0px 24px; display: flex; justify-content: space-between; align-items: flex-end; margin-top:-60px; margin-bottom:40px;">
+                <!-- Product 4 -->
+                <div class="product-card">
+                    <img src="../assets/images/products/shoes_4.svg" alt="Product 4">
+                    <div class="product-card-content">
                         <div>
-                            <h3 style="font-family: 'Poppins', sans-serif; font-size: 24px; margin: 0;">React Infinity</h3>
-                            <p style="font-family: 'Poppins', sans-serif; font-size: 20px; color: #000; margin: 8px 0 0;">$159.99</p>
+                            <h3 class="product-card-title">React Infinity</h3>
+                            <p class="product-card-price">$159.99</p>
                         </div>
-                        <a href="#" class="view-more" style="width: 48px; height: 48px; background: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                            <img src="../assets/images/ui/arrow.svg" alt="View" style="width: 17px; height: 17px; filter: brightness(0) invert(1);">
+                        <a href="#" class="view-more">
+                            <img src="../assets/images/ui/arrow.svg" alt="View">
                         </a>
                     </div>
                 </div>
 
-                <div class="product-card" style="border: 2px solid #DEDEDE; border-radius: 12px; overflow: hidden; position: relative;">
-                    <img src="../assets/images/ui/shoes_5.svg" alt="Product 5" style="width: 100%; height: 400px; object-fit: cover; margin-top:120px">
-                    <div style="padding: 12px 24px 0px 24px; display: flex; justify-content: space-between; align-items: flex-end; margin-top:-60px; margin-bottom:40px;">
+                <!-- Product 5 -->
+                <div class="product-card">
+                    <img src="../assets/images/products/shoes_5.svg" alt="Product 5">
+                    <div class="product-card-content">
                         <div>
-                            <h3 style="font-family: 'Poppins', sans-serif; font-size: 24px; margin: 0;">Metcon 7</h3>
-                            <p style="font-family: 'Poppins', sans-serif; font-size: 20px; color: #000; margin: 8px 0 0;">$139.99</p>
+                            <h3 class="product-card-title">Metcon 7</h3>
+                            <p class="product-card-price">$139.99</p>
                         </div>
-                        <a href="#" class="view-more" style="width: 48px; height: 48px; background: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                            <img src="../assets/images/ui/arrow.svg" alt="View" style="width: 17px; height: 17px; filter: brightness(0) invert(1);">
+                        <a href="#" class="view-more">
+                            <img src="../assets/images/ui/arrow.svg" alt="View">
                         </a>
                     </div>
                 </div>
 
-                <div class="product-card" style="border: 2px solid #DEDEDE; border-radius: 12px; overflow: hidden ; position: relative;">
-                    <img src="../assets/images/ui/shoes_1.svg" alt="Product 6" style="width: 100%; height: 400px; object-fit: cover; margin-top:120px">
-                    <div style="padding: 12px 24px 0px 24px; display: flex; justify-content: space-between; align-items: flex-end; margin-top:-60px; margin-bottom:40px;">
+                <!-- Product 6 -->
+                <div class="product-card">
+                    <img src="../assets/images/products/shoes_1.svg" alt="Product 6">
+                    <div class="product-card-content">
                         <div>
-                            <h3 style="font-family: 'Poppins', sans-serif; font-size: 24px; margin: 0;">Free Run 5.0</h3>
-                            <p style="font-family: 'Poppins', sans-serif; font-size: 20px; color: #000; margin: 8px 0 0;">$129.99</p>
+                            <h3 class="product-card-title">Free Run 5.0</h3>
+                            <p class="product-card-price">$129.99</p>
                         </div>
-                        <a href="#" class="view-more" style="width: 48px; height: 48px; background: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                            <img src="../assets/images/ui/arrow.svg" alt="View" style="width: 17px; height: 17px; filter: brightness(0) invert(1);">
+                        <a href="#" class="view-more">
+                            <img src="../assets/images/ui/arrow.svg" alt="View">
                         </a>
                     </div>
                 </div>
@@ -160,42 +165,42 @@
     </main>
 
     <!-- Testimonials Section -->
-    <section style="padding: 150px 0; background-color: white;">
+    <section class="testimonials-section">
         <div class="container">
-            <h2 style="font-family: 'Poppins', sans-serif; font-size: 48px; font-weight: bold; margin-bottom: 64px; text-align: center;">- What Our Customers Say -</h2>
+            <h2 class="testimonials-heading">- What Our Customers Say -</h2>
             
             <!-- Testimonial Slider -->
             <div id="testimonialCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="5000">
                 <div class="carousel-inner">
                     <!-- Slide 1 -->
                     <div class="carousel-item active">
-                        <div class="row justify-content-center" style="gap: 40px;">
+                        <div class="row justify-content-center g-4">
                             <!-- Testimonial 1 -->
                             <div class="col-lg-5">
-                                <div style="background: white; border-radius: 12px; padding: 40px; border: 2px solid #DEDEDE;">
-                                    <div style="display: flex; gap: 24px;">
-                                        <div style="width: 120px; height: 160px; flex-shrink: 0;">
-                                            <img src="../assets/images/ui/nhan.jpg" alt="Nhan" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px;">
+                                <div class="testimonial-card">
+                                    <div class="testimonial-content">
+                                        <div class="testimonial-image">
+                                            <img src="../assets/images/ui/nhan.jpg" alt="Nhan">
                                         </div>
-                                        <div style="flex: 1;">
-                                            <h4 style="font-family: 'Poppins', sans-serif; font-size: 24px; margin: 0; font-weight: 600;">Nhan Pham</h4>
-                                            <div style="color: #FFD700; font-size: 30px; margin-top: 0px;">★★★★★</div>
-                                            <p style="font-family: 'Poppins', sans-serif; font-size: 16px; line-height: 1.6; color: #333; margin-top: 16px;">"The attention to detail in these shoes is remarkable. They're not just comfortable, they're also incredibly stylish!"</p>
+                                        <div class="testimonial-text">
+                                            <h4 class="testimonial-name">Nhan Pham</h4>
+                                            <div class="testimonial-rating">★★★★★</div>
+                                            <p class="testimonial-quote">"The attention to detail in these shoes is remarkable. They're not just comfortable, they're also incredibly stylish!"</p>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <!-- Testimonial 2 -->
                             <div class="col-lg-5">
-                                <div style="background: white; border-radius: 12px; padding: 40px; border: 2px solid #DEDEDE;">
-                                    <div style="display: flex; gap: 24px;">
-                                        <div style="width: 120px; height: 160px; flex-shrink: 0;">
-                                            <img src="../assets/images/ui/thian.jpg" alt="Thian" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px;">
+                                <div class="testimonial-card">
+                                    <div class="testimonial-content">
+                                        <div class="testimonial-image">
+                                            <img src="../assets/images/ui/thian.jpg" alt="Thian">
                                         </div>
-                                        <div style="flex: 1;">
-                                            <h4 style="font-family: 'Poppins', sans-serif; font-size: 24px; margin: 0; font-weight: 600;">Thian Le</h4>
-                                            <div style="color: #FFD700; font-size: 30px; margin-top: 0px;">★★★★★</div>
-                                            <p style="font-family: 'Poppins', sans-serif; font-size: 16px; line-height: 1.6; color: #333; margin-top: 16px;">"Best purchase I've made this year! The quality is outstanding, and the customer support team was incredibly helpful!"</p>
+                                        <div class="testimonial-text">
+                                            <h4 class="testimonial-name">Thian Le</h4>
+                                            <div class="testimonial-rating">★★★★★</div>
+                                            <p class="testimonial-quote">"Best purchase I've made this year! The quality is outstanding, and the customer support team was incredibly helpful!"</p>
                                         </div>
                                     </div>
                                 </div>
@@ -207,25 +212,25 @@
                         <div class="row justify-content-center" style="gap: 40px;">
                             <!-- Testimonial 3 -->
                             <div class="col-lg-5">
-                                <div style="background: white; border-radius: 12px; padding: 40px; border: 2px solid #DEDEDE;">
-                                    <div style="display: flex; gap: 24px;">
-                                        <div style="width: 120px; height: 160px; flex-shrink: 0;">
-                                            <img src="../assets/images/ui/duong.jpg" alt="Duong" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px;">
+                                <div class="testimonial-card">
+                                    <div class="testimonial-content">
+                                        <div class="testimonial-image">
+                                            <img src="../assets/images/ui/duong.jpg" alt="Duong">
                                         </div>
-                                        <div style="flex: 1;">
-                                            <h4 style="font-family: 'Poppins', sans-serif; font-size: 24px; margin: 0; font-weight: 600;">Duong Tran</h4>
-                                            <div style="color: #FFD700; font-size: 30px; margin-top: 0px;">★★★★★</div>
-                                            <p style="font-family: 'Poppins', sans-serif; font-size: 16px; line-height: 1.6; color: #333; margin-top: 16px;">"The most comfortable sneakers I've ever worn. The customer service was exceptional, and delivery was super fast!"</p>
+                                        <div class="testimonial-text">
+                                            <h4 class="testimonial-name">Duong Tran</h4>
+                                            <div class="testimonial-rating">★★★★★</div>
+                                            <p class="testimonial-quote">"The most comfortable sneakers I've ever worn. The customer service was exceptional, and delivery was super fast!"</p>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <!-- Testimonial 4 -->
                             <div class="col-lg-5">
-                                <div style="background: white; border-radius: 24px; padding: 40px; border: 1px solid #DEDEDE;">
-                                    <div style="display: flex; gap: 24px;">
-                                        <div style="width: 120px; height: 160px; flex-shrink: 0;">
-                                            <img src="../assets/images/ui/nhan.jpg" alt="Nhan" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px;">
+                                <div class="testimonial-card">
+                                    <div class="testimonial-content">
+                                        <div class="testimonial-image">
+                                            <img src="../assets/images/ui/nhan.jpg" alt="Nhan">
                                         </div>
                                         <div style="flex: 1;">
                                             <h4 style="font-family: 'Poppins', sans-serif; font-size: 24px; margin: 0; font-weight: 600;">Nhan Nguyen</h4>
@@ -239,63 +244,16 @@
                     </div>
                 </div>
                 <!-- Carousel Indicators -->
-                <div class="carousel-indicators" style="position: relative; margin-top: 48px;">
-                    <button type="button" data-bs-target="#testimonialCarousel" data-bs-slide-to="0" class="active" style="width: 12px; height: 12px; border-radius: 50%; background-color: #000; border: none; margin: 0 6px;"></button>
-                    <button type="button" data-bs-target="#testimonialCarousel" data-bs-slide-to="1" style="width: 12px; height: 12px; border-radius: 50%; background-color: #000; border: none; margin: 0 6px;"></button>
+                <div class="carousel-indicators">
+                    <button type="button" data-bs-target="#testimonialCarousel" data-bs-slide-to="0" class="active"></button>
+                    <button type="button" data-bs-target="#testimonialCarousel" data-bs-slide-to="1"></button>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Footer -->
-    <footer class="footer bg-black text-white py-5">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <h5 class="fw-bold mb-3">SNEVO</h5>
-                    <p>Premium athletic footwear for champions. Just Do It.</p>
-                </div>
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <h6 class="fw-bold mb-3">Quick Links</h6>
-                    <ul class="list-unstyled">
-                        <li><a href="index.html" class="text-white-50">Home</a></li>
-                        <li><a href="products.html" class="text-white-50">Products</a></li>
-                        <li><a href="#about" class="text-white-50">About</a></li>
-                        <li><a href="#contact" class="text-white-50">Contact</a></li>
-                    </ul>
-                </div>
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <h6 class="fw-bold mb-3">Customer Service</h6>
-                    <ul class="list-unstyled">
-                        <li><a href="#help" class="text-white-50">Help Center</a></li>
-                        <li><a href="#returns" class="text-white-50">Returns</a></li>
-                        <li><a href="#shipping" class="text-white-50">Shipping</a></li>
-                        <li><a href="#size-guide" class="text-white-50">Size Guide</a></li>
-                    </ul>
-                </div>
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <h6 class="fw-bold mb-3">Follow Us</h6>
-                    <div class="social-links">
-                        <a href="#" class="text-white me-3"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#" class="text-white me-3"><i class="fab fa-twitter"></i></a>
-                        <a href="#" class="text-white me-3"><i class="fab fa-instagram"></i></a>
-                        <a href="#" class="text-white me-3"><i class="fab fa-youtube"></i></a>
-                    </div>
-                </div>
-            </div>
-            <hr class="my-4">
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <p class="mb-0">&copy; 2024 Snevo. All rights reserved.</p>
-                </div>
-                <div class="col-md-6 text-md-end">
-                    <a href="#privacy" class="text-white-50 me-3">Privacy Policy</a>
-                    <a href="#terms" class="text-white-50">Terms of Service</a>
-                </div>
-            </div>
-        </div>
-    </footer>
-
+    <!-- Footer Component -->
+   
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
@@ -308,9 +266,11 @@
     <script type="module" src="../assets/js/ApiClient.js"></script>
     <script type="module" src="../assets/js/AuthManager.js"></script>
     <script type="module" src="../assets/js/NavbarManager.js"></script>
+    <script type="module" src="../assets/js/FooterManager.js"></script>
     <script type="module" src="../assets/js/EmailVerificationNotice.js"></script>
     <script type="module" src="../assets/js/Application.js"></script>
     <script type="module" src="../assets/js/auth-persistence.js"></script>
+    <script type="module" src="../assets/js/FooterManager.js"></script>
     <script src="../assets/js/animations.js"></script>
 </body>
 </html>
