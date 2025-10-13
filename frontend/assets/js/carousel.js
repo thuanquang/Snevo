@@ -16,7 +16,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // Tự động đổi slide
   let currentSlide = 3;
   const delay = 3500;
   setInterval(() => {
@@ -25,7 +24,6 @@ document.addEventListener('DOMContentLoaded', function() {
     inputs[currentSlide - 1].checked = true;
   }, delay);
 
-  // Kiểm tra visibility với Intersection Observer
   const observer = new IntersectionObserver(entries => {
     entries.forEach(entry => {
       if(entry.isIntersecting) {
@@ -35,13 +33,12 @@ document.addEventListener('DOMContentLoaded', function() {
           isCollapsed = false;
         }
       } else {
-        // Slider out of viewport
+    
         if (!isCollapsed) {
           updateCollapsedState(true);
           isCollapsed = true;
-          // Optionally reset all transforms to center
           inputs.forEach(i => i.checked = false);
-          inputs[2].checked = true; // Ví dụ chọn slide 3 làm center mặc định
+          inputs[2].checked = true;
         }
       }
     });
