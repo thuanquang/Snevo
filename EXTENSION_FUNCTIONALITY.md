@@ -622,6 +622,63 @@ DELETE /api/reviews/:id
 - Table: `db_nike.profiles`
 - Key fields: user_id (PK, UUID), username, full_name, phone, date_of_birth, gender, avatar_url, role, created_at, updated_at
 
+## ADDRESS BOOK MANAGEMENT (Oct 2025)
+✅ COMPLETED: Address book tab now fully functional with auto-load and CRUD operations
+
+**Issues Fixed**:
+1. Backend AddressController was returning 501 "not implemented" errors
+2. Frontend was using wrong authentication token (localStorage 'auth_token' instead of Supabase session)
+3. Address model methods were not implemented
+
+**Implementation Details**:
+
+1. **Backend Address Model** (`backend/models/Address.js`):
+   - Implemented `findByUserId(userId)` - Get all addresses for a user (ordered by default, then created_at)
+   - Implemented `findDefaultByUserId(userId)` - Get user's default address
+   - Implemented `setDefault(userId, addressId)` - Set an address as default (unsets others)
+   - Implemented `createForUser(userId, addressData)` - Create address with user validation
+   - Implemented `updateForUser(userId, addressId, addressData)` - Update address with user validation
+   - Implemented `deleteForUser(userId, addressId)` - Delete address with user validation
+   - All methods include proper error handling and Supabase integration
+
+2. **Backend AddressController** (`backend/controllers/AddressController.js`):
+   - Implemented `getAddresses(req, res)` - GET /api/auth/addresses - Returns all user addresses
+   - Implemented `getAddress(req, res)` - GET /api/auth/addresses/:id - Get specific address
+   - Implemented `createAddress(req, res)` - POST /api/auth/addresses - Create new address
+   - Implemented `updateAddress(req, res)` - PUT /api/auth/addresses/:id - Update address
+   - Implemented `deleteAddress(req, res)` - DELETE /api/auth/addresses/:id - Delete address
+   - All methods validate authentication, required fields, and user ownership
+   - Proper HTTP status codes (200, 201, 400, 401, 403, 404, 500)
+
+3. **Frontend Authentication Fix** (`frontend/pages/profile.html`):
+   - Fixed `loadAddresses()` to use Supabase session token instead of localStorage
+   - Fixed `saveNewAddress()` to use Supabase session token
+   - Fixed `updateAddress()` to use Supabase session token
+   - Fixed `deleteAddress()` to use Supabase session token
+   - Also fixed profile update and password change functions for consistency
+   - All functions now get token via: `await window.authService.supabase.auth.getSession()`
+
+**Features**:
+- ✅ Auto-loads user addresses on profile page load
+- ✅ "Add New Address" modal works correctly
+- ✅ Edit address functionality with pre-populated form
+- ✅ Delete address with confirmation dialog
+- ✅ Set default address (automatically unsets previous default)
+- ✅ Displays "No addresses found" message when empty
+- ✅ Shows loading spinner while fetching addresses
+- ✅ Success/error toast notifications for all operations
+- ✅ Proper authentication checks on all endpoints
+- ✅ User can only access their own addresses (security)
+
+**Files Modified**:
+- `backend/models/Address.js`: Implemented all model methods
+- `backend/controllers/AddressController.js`: Implemented all controller methods
+- `frontend/pages/profile.html`: Fixed authentication token usage in all address functions
+
+**Database Schema**:
+- Table: `db_nike.addresses`
+- Key fields: address_id (PK), user_id (FK to profiles), street, city, state, zip_code, country, is_default, created_at, updated_at
+
 ## DEPLOYMENT REQUIREMENTS
 - **Frontend**: Static hosting (Netlify/Vercel) with build process
 - **Backend**: Node.js hosting (Railway/Heroku) with environment variables

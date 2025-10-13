@@ -1280,9 +1280,20 @@
             
             async function loadAddresses() {
                 try {
+                    // Get the current session token
+                    const { data: { session } } = await window.authService.supabase.auth.getSession();
+                    if (!session) {
+                        console.log('No active session for loading addresses');
+                        const addressesList = document.getElementById('addressesList');
+                        if (addressesList) {
+                            addressesList.innerHTML = '<div class="alert alert-info">Please log in to view your addresses.</div>';
+                        }
+                        return;
+                    }
+
                     const response = await fetch('/api/auth/addresses', {
                         headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                            'Authorization': `Bearer ${session.access_token}`
                         }
                     });
                     
@@ -1407,11 +1418,17 @@
 
                     console.log('📝 Submitting profile update:', data);
 
+                    // Get the current session token
+                    const { data: { session } } = await window.authService.supabase.auth.getSession();
+                    if (!session) {
+                        throw new Error('Please log in to update your profile');
+                    }
+
                     const response = await fetch('/api/auth/profile', {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                            'Authorization': `Bearer ${session.access_token}`
                         },
                         body: JSON.stringify(data)
                     });
@@ -1473,11 +1490,18 @@
                 }
                 
                 try {
+                    // Get the current session token
+                    const { data: { session } } = await window.authService.supabase.auth.getSession();
+                    if (!session) {
+                        showError('Please log in to change your password');
+                        return;
+                    }
+
                     const response = await fetch('/api/auth/change-password', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                            'Authorization': `Bearer ${session.access_token}`
                         },
                         body: JSON.stringify(data)
                     });
@@ -1506,11 +1530,18 @@
                 data.is_default = data.is_default === 'on';
                 
                 try {
+                    // Get the current session token
+                    const { data: { session } } = await window.authService.supabase.auth.getSession();
+                    if (!session) {
+                        showError('Please log in to add an address');
+                        return;
+                    }
+
                     const response = await fetch('/api/auth/addresses', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                            'Authorization': `Bearer ${session.access_token}`
                         },
                         body: JSON.stringify(data)
                     });
@@ -1559,11 +1590,18 @@
                 data.is_default = data.is_default === 'on';
                 
                 try {
+                    // Get the current session token
+                    const { data: { session } } = await window.authService.supabase.auth.getSession();
+                    if (!session) {
+                        showError('Please log in to update an address');
+                        return;
+                    }
+
                     const response = await fetch(`/api/auth/addresses/${addressId}`, {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                            'Authorization': `Bearer ${session.access_token}`
                         },
                         body: JSON.stringify(data)
                     });
@@ -1588,10 +1626,17 @@
                 }
                 
                 try {
+                    // Get the current session token
+                    const { data: { session } } = await window.authService.supabase.auth.getSession();
+                    if (!session) {
+                        showError('Please log in to delete an address');
+                        return;
+                    }
+
                     const response = await fetch(`/api/auth/addresses/${addressId}`, {
                         method: 'DELETE',
                         headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                            'Authorization': `Bearer ${session.access_token}`
                         }
                     });
                     
