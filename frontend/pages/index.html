@@ -10,7 +10,7 @@
     <!-- Custom CSS -->
     <link href="../assets/css/main.css" rel="stylesheet">
     <link href="../assets/css/animations.css" rel="stylesheet">
-    <link href="../assets/css/components.css" rel="stylesheet">
+    <link href="../assets/css/carousel.css" rel="stylesheet">
     <link href="../assets/css/responsive.css" rel="stylesheet">
     
     <!-- Fonts -->
@@ -32,7 +32,7 @@
                         <h1>Find Your Soul Mate With Us</h1>
                         <p>Everything you want, we all have at Snevo</p>
                         <div class="hero-actions">
-                            <a href="products.html" class="btn btn-dark">Shop Now</a>
+                            <a href="products.html" class="btn">Shop Now</a>
                         </div>
                     </div>
                 </div>
@@ -70,6 +70,45 @@
                 </div>
             </div>
         </div>
+    </section>
+
+        </main>
+
+    <!-- Shop by Sport Section -->
+    <!-- Carousel Slider Example (radio + label logic only) -->
+    <section id="slider" class="sport-carousel">
+        <h2 class="sport-carousel-heading">- Shop By Sports -</h2>
+        <input type="radio" name="slider" id="s1">
+        <input type="radio" name="slider" id="s2">
+        <input type="radio" name="slider" id="s3" checked>
+        <input type="radio" name="slider" id="s4">
+        <input type="radio" name="slider" id="s5">
+
+        <label for="s1" id="slide1" class="slide-content">
+            <div class="sport-name">Running</div>
+            <div class="sport-desc">Ace your performance with our collection</div>
+            <div class="sport-cta">Shop Now</div>
+        </label>
+        <label for="s2" id="slide2" class="slide-content">
+            <div class="sport-name">Football</div>
+            <div class="sport-desc">Elevate your game with the right gear</div>
+            <div class="sport-cta">Shop Now</div>
+        </label>
+        <label for="s3" id="slide3" class="slide-content">
+            <div class="sport-name">Basketball</div>
+            <div class="sport-desc">Improve your game with our top picks</div>
+            <div class="sport-cta">Shop Now</div>
+        </label>
+        <label for="s4" id="slide4" class="slide-content">
+            <div class="sport-name">Training</div>
+            <div class="sport-desc">Gear up for peak performance</div>
+            <div class="sport-cta">Shop Now</div>
+        </label>
+        <label for="s5" id="slide5" class="slide-content">
+            <div class="sport-name">Lifestyle</div>
+            <div class="sport-desc">Get the perfect blend of style and comfort</div>
+            <div class="sport-cta">Shop Now</div>
+        </label>
     </section>
 
     <!-- Products Section -->
@@ -209,7 +248,7 @@
                     </div>
                     <!-- Slide 2 -->
                     <div class="carousel-item">
-                        <div class="row justify-content-center" style="gap: 40px;">
+                        <div class="row justify-content-center g-4">
                             <!-- Testimonial 3 -->
                             <div class="col-lg-5">
                                 <div class="testimonial-card">
@@ -232,10 +271,10 @@
                                         <div class="testimonial-image">
                                             <img src="../assets/images/ui/nhan.jpg" alt="Nhan">
                                         </div>
-                                        <div style="flex: 1;">
-                                            <h4 style="font-family: 'Poppins', sans-serif; font-size: 24px; margin: 0; font-weight: 600;">Nhan Nguyen</h4>
-                                            <div style="color: #FFD700; font-size: 20px; margin-top: 8px;">★★★★★</div>
-                                            <p style="font-family: 'Poppins', sans-serif; font-size: 16px; line-height: 1.6; color: #333; margin-top: 16px;">"Amazing quality and style. These shoes have become my go-to for both casual wear and workouts!"</p>
+                                        <div class="testimonial-text">
+                                            <h4 class="testimonial-name">Nhan Nguyen</h4>
+                                            <div class="testimonial-rating">★★★★★</div>
+                                            <p class="testimonial-quote">"Amazing quality and style. These shoes have become my go-to for both casual wear and workouts!"</p>
                                         </div>
                                     </div>
                                 </div>
@@ -251,8 +290,6 @@
             </div>
         </div>
     </section>
-
-    <!-- Footer Component -->
    
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -270,7 +307,7 @@
     <script type="module" src="../assets/js/EmailVerificationNotice.js"></script>
     <script type="module" src="../assets/js/Application.js"></script>
     <script type="module" src="../assets/js/auth-persistence.js"></script>
-    <script type="module" src="../assets/js/FooterManager.js"></script>
+    <script src="../assets/js/carousel.js"></script>
     <script src="../assets/js/animations.js"></script>
 </body>
 </html>
