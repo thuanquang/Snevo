@@ -17,18 +17,53 @@ SET search_path TO db_nike;
 
 
 -- Profiles table for app-specific user data (linked to auth.users)
-CREATE TABLE profiles (
-    user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-    username VARCHAR(50) UNIQUE NOT NULL,
-    full_name VARCHAR(100) NOT NULL,
-    role VARCHAR(10) CHECK (role IN ('customer', 'seller')) DEFAULT 'customer',
-    avatar_url TEXT,
-    phone VARCHAR(20),
-    date_of_birth DATE,
-    gender VARCHAR(10) CHECK (gender IN ('male', 'female', 'other')),
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
-);
+create table db_nike.profiles (
+  user_id uuid not null,
+  username character varying(50) not null,
+  full_name character varying(100) not null,
+  email character varying(255) not null,
+  role character varying(10) null default 'customer'::character varying,
+  avatar_url text null,
+  phone character varying(20) null,
+  date_of_birth date null,
+  gender character varying(10) null,
+  created_at timestamp with time zone null default now(),
+  updated_at timestamp with time zone null default now(),
+  constraint profiles_pkey primary key (user_id),
+  constraint profiles_username_key unique (username),
+  constraint profiles_user_id_fkey foreign KEY (user_id) references auth.users (id) on delete CASCADE,
+  constraint profiles_gender_check check (
+    (
+      (gender)::text = any (
+        (
+          array[
+            'male'::character varying,
+            'female'::character varying,
+            'other'::character varying
+          ]
+        )::text[]
+      )
+    )
+  ),
+  constraint profiles_role_check check (
+    (
+      (role)::text = any (
+        (
+          array[
+            'customer'::character varying,
+            'seller'::character varying
+          ]
+        )::text[]
+      )
+    )
+  )
+) TABLESPACE pg_default;
+
+create index IF not exists idx_profiles_username on db_nike.profiles using btree (username) TABLESPACE pg_default;
+
+create index IF not exists idx_profiles_role on db_nike.profiles using btree (role) TABLESPACE pg_default;
+
+create index IF not exists idx_profiles_created_at on db_nike.profiles using btree (created_at) TABLESPACE pg_default;
 
 
 -- Addresses table (now references auth.users directly)

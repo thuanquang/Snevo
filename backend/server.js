@@ -294,6 +294,8 @@ class Server {
             } else if (method === 'PUT') {
                 req.body = body;
                 await this.profileController.updateProfile(req, res);
+            } else if (method === 'DELETE') {
+                await this.profileController.deleteProfile(req, res);
             } else {
                 this.sendError(res, 'Method not allowed', 405);
             }
