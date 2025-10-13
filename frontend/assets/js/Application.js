@@ -18,6 +18,7 @@ class Application {
         };
         
         this.isInitialized = false;
+        this.authReady = false;
         this.components = new Map();
         this.listeners = new Map();
         
@@ -122,6 +123,15 @@ class Application {
         // Initialize AuthService first
         console.log('🔐 Initializing AuthService...');
         await authService.initialize();
+        
+        // Emit authReady event for pages that need to wait for auth
+        this.authReady = true;
+        this.emit('authReady', { 
+            user: authService.currentUser, 
+            isAuthenticated: authService.isAuthenticated(),
+            role: authService.getUserRole()
+        });
+        console.log('✅ Auth ready event emitted');
         
         // Auth manager should already be initialized (auto-init on)
         console.log('🔐 Ensuring AuthManager is initialized...');

@@ -291,15 +291,6 @@
             margin-bottom: 0;
         }
 
-        /* Clean Notifications */
-        .form-check-input:checked {
-            background-color: #000;
-            border-color: #000;
-        }
-
-        .form-check-input:focus {
-            box-shadow: 0 0 0 0.2rem rgba(0, 0, 0, 0.1);
-        }
 
         @media (max-width: 991.98px) {
             .profile-sidebar {
@@ -351,16 +342,6 @@
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" href="#password-change" data-section="password-change">
-                                        Password Change
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="#notifications" data-section="notifications">
-                                        Notifications
-                                    </a>
-                                </li>
-                                <li class="nav-item">
                                     <a class="nav-link" href="#account-settings" data-section="account-settings">
                                         Account Settings
                                     </a>
@@ -387,14 +368,14 @@
                                 <p class="section-subtitle">Update your personal details and profile information</p>
                             </div>
                             
-                            <form id="personalInfoForm" class="profile-form">
+                            <form id="personalInfoForm" class="profile-form needs-validation" novalidate>
                                 <div class="row">
                                     <div class="col-md-6 mb-4">
                                         <label for="fullName" class="form-label">Full Name *</label>
                                         <input type="text" class="form-control" id="fullName" name="full_name"
                                                required minlength="2" maxlength="100"
-                                               pattern="^[a-zA-Z\s]+$"
-                                               title="Full name should only contain letters and spaces">
+                                               pattern="^[\p{L}\s]+$"
+                                               title="Full name should contain letters and spaces">
                                         <div class="form-text" style="font-size: 12px; color: #999; margin-top: 4px;">Enter your full legal name</div>
                                     </div>
                                     <div class="col-md-6 mb-4">
@@ -444,8 +425,8 @@
                                     <label for="avatarUrl" class="form-label">Avatar URL</label>
                                     <input type="url" class="form-control" id="avatarUrl" name="avatar_url"
                                            placeholder="https://example.com/avatar.jpg"
-                                           pattern="^https?://.*\.(jpg|jpeg|png|gif|webp)$"
-                                           title="Please enter a valid image URL (jpg, png, gif, webp)">
+                                           pattern="^https?://.*\.(jpg|jpeg|png|gif|webp|webp\?.*|googleusercontent\.com.*|gravatar\.com.*|github\.com.*|facebook\.com.*)$"
+                                           title="Please enter a valid image URL (supports jpg, png, gif, webp, Google, Gravatar, GitHub, Facebook)">
                                     <div class="form-text" style="font-size: 12px; color: #999; margin-top: 4px;">Enter a URL to your profile picture</div>
                                 </div>
 
@@ -491,106 +472,7 @@
                             </div>
                         </div>
                         
-                        <!-- Password Change Section -->
-                        <div class="profile-section-content" id="password-change-section">
-                            <div class="section-header">
-                                <h3 class="section-title">Change Password</h3>
-                                <p class="section-subtitle">Update your account password for better security</p>
-                            </div>
-                            
-                            <form id="passwordChangeForm" class="profile-form">
-                                <div class="mb-4">
-                                    <label for="currentPassword" class="form-label">Current Password *</label>
-                                    <input type="password" class="form-control" id="currentPassword" name="current_password" required>
-                                </div>
-                                
-                                <div class="mb-4">
-                                    <label for="newPassword" class="form-label">New Password *</label>
-                                    <input type="password" class="form-control" id="newPassword" name="new_password" required>
-                                    <div class="form-text" style="font-size: 12px; color: #999; margin-top: 4px;">Password must be at least 8 characters long</div>
-                                </div>
-                                
-                                <div class="mb-4">
-                                    <label for="confirmPassword" class="form-label">Confirm New Password *</label>
-                                    <input type="password" class="form-control" id="confirmPassword" name="confirm_password" required>
-                                </div>
-                                
-                                <div class="form-actions">
-                                    <button type="submit" class="btn btn-primary">
-                                        Change Password
-                                    </button>
-                                    <button type="button" class="btn btn-outline-secondary" onclick="resetPasswordForm()">
-                                        Reset
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
                         
-                        <!-- Notifications Section -->
-                        <div class="profile-section-content" id="notifications-section">
-                            <div class="section-header">
-                                <h3 class="section-title">Notification Preferences</h3>
-                                <p class="section-subtitle">Choose how you want to be notified about updates</p>
-                            </div>
-                            
-                            <form id="notificationsForm" class="profile-form">
-                                <div class="notification-settings">
-                                    <div class="setting-item">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <h6 class="mb-1">Email Notifications</h6>
-                                                <p class="text-muted mb-0">Receive updates about your orders and account</p>
-                                            </div>
-                                            <div class="form-check form-switch">
-                                                <input class="form-check-input" type="checkbox" id="emailNotifications" name="email_notifications" checked>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="setting-item">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <h6 class="mb-1">Order Updates</h6>
-                                                <p class="text-muted mb-0">Get notified when your order status changes</p>
-                                            </div>
-                                            <div class="form-check form-switch">
-                                                <input class="form-check-input" type="checkbox" id="orderUpdates" name="order_updates" checked>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="setting-item">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <h6 class="mb-1">Product Recommendations</h6>
-                                                <p class="text-muted mb-0">Receive personalized product suggestions</p>
-                                            </div>
-                                            <div class="form-check form-switch">
-                                                <input class="form-check-input" type="checkbox" id="productRecommendations" name="product_recommendations" checked>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="setting-item">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <h6 class="mb-1">Marketing Emails</h6>
-                                                <p class="text-muted mb-0">Receive promotional offers and news</p>
-                                            </div>
-                                            <div class="form-check form-switch">
-                                                <input class="form-check-input" type="checkbox" id="marketingEmails" name="marketing_emails">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="form-actions">
-                                    <button type="submit" class="btn btn-primary">
-                                        Save Preferences
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
                         
                         <!-- Account Settings Section -->
                         <div class="profile-section-content" id="account-settings-section">
@@ -608,7 +490,7 @@
                                                 <h6 class="mb-1">Account Status</h6>
                                                 <p class="text-muted mb-0" id="accountStatus">Active</p>
                                             </div>
-                                            <span class="badge bg-success" style="background: #000 !important; border-radius: 6px; padding: 4px 12px; font-size: 12px;">Verified</span>
+                                            <span class="badge" id="verificationBadge" style="border-radius: 6px; padding: 4px 12px; font-size: 12px;">Verified</span>
                                         </div>
                                     </div>
                                     
@@ -627,35 +509,16 @@
                                     <div class="setting-item">
                                         <div class="d-flex justify-content-between align-items-center">
                                             <div>
-                                                <h6 class="mb-1">Two-Factor Authentication</h6>
-                                                <p class="text-muted mb-0">Add an extra layer of security to your account</p>
-                                            </div>
-                                            <button class="btn btn-outline-primary btn-sm" style="border-radius: 6px; padding: 6px 16px;">Enable</button>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="setting-item">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div>
                                                 <h6 class="mb-1">Login Sessions</h6>
                                                 <p class="text-muted mb-0">Manage your active login sessions</p>
                                             </div>
-                                            <button class="btn btn-outline-secondary btn-sm" style="border-radius: 6px; padding: 6px 16px;">View Sessions</button>
+                                            <button class="btn btn-outline-secondary btn-sm" onclick="viewSessions()" style="border-radius: 6px; padding: 6px 16px;">View Sessions</button>
                                         </div>
                                     </div>
                                 </div>
                                 
                                 <div class="setting-group mb-5">
                                     <h5 class="setting-group-title">Data & Privacy</h5>
-                                    <div class="setting-item">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <h6 class="mb-1">Download Your Data</h6>
-                                                <p class="text-muted mb-0">Download a copy of your personal data</p>
-                                            </div>
-                                            <button class="btn btn-outline-info btn-sm" style="border-radius: 6px; padding: 6px 16px;">Download</button>
-                                        </div>
-                                    </div>
                                     
                                     <div class="setting-item">
                                         <div class="d-flex justify-content-between align-items-center">
@@ -669,14 +532,6 @@
                                 </div>
                             </div>
                             
-                            <div class="form-actions">
-                                <button class="btn btn-success" onclick="saveAllSettings()" style="background: #000; border: 2px solid #000; border-radius: 8px; padding: 12px 24px;">
-                                    Save All Settings
-                                </button>
-                                <button class="btn btn-outline-secondary" onclick="resetAllSettings()" style="border-radius: 8px; padding: 12px 24px;">
-                                    Reset to Defaults
-                                </button>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -791,6 +646,73 @@
         </div>
     </div>
 
+    <!-- Sessions Modal -->
+    <div class="modal fade" id="sessionsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Active Login Sessions</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="sessionsList">
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading sessions...</span>
+                            </div>
+                            <p class="mt-2 text-muted">Loading your active sessions...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="border-radius: 8px; padding: 12px 24px;">Close</button>
+                    <button type="button" class="btn btn-danger" onclick="terminateAllSessions()" style="border-radius: 8px; padding: 12px 24px;">Terminate All Other Sessions</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Account Modal -->
+    <div class="modal fade" id="deleteAccountModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">⚠️ Delete Account</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-danger" role="alert">
+                        <strong>Warning:</strong> This action cannot be undone! All your data will be permanently deleted.
+                    </div>
+                    
+                    <p class="mb-3">This will permanently delete:</p>
+                    <ul class="mb-4">
+                        <li>Your profile information</li>
+                        <li>All saved addresses</li>
+                        <li>Order history</li>
+                        <li>Reviews and ratings</li>
+                        <li>All personal data</li>
+                    </ul>
+                    
+                    <p class="mb-3"><strong>To confirm deletion, please type your email address below:</strong></p>
+                    <div class="mb-3">
+                        <label for="deleteEmailConfirm" class="form-label">Email Address</label>
+                        <input type="email" class="form-control" id="deleteEmailConfirm" placeholder="Enter your email address">
+                        <small class="text-muted">Current email: <span id="currentEmailDisplay"></span></small>
+                    </div>
+                    
+                    <div id="deleteAccountError" class="alert alert-danger d-none" role="alert"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="border-radius: 8px; padding: 12px 24px;">Cancel</button>
+                    <button type="button" class="btn btn-danger" onclick="executeAccountDeletion()" style="border-radius: 8px; padding: 12px 24px;">
+                        <i class="fas fa-trash me-2"></i>Delete Account
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer class="footer bg-black text-white py-5">
         <div class="container">
@@ -857,996 +779,30 @@
     <script type="module" src="../assets/js/Application.js"></script>
     <script src="../assets/js/animations.js"></script>
     
-    <script>
-        // Profile page specific functionality
-        (function() {
-            'use strict';
-            
-            let currentUser = null;
-            let userAddresses = [];
-            
-            document.addEventListener('DOMContentLoaded', function() {
-                initializeProfilePage();
-            });
-            
-            function initializeProfilePage() {
-                console.log('🔍 initializeProfilePage called');
-                console.log('Current URL:', window.location.href);
-                console.log('AuthManager available:', !!window.authManager);
-                
-                // Wait for AuthManager to be available and initialized
-                waitForAuthManager().then(async () => {
-                    console.log('AuthManager ready');
-                    
-                    // Wait for AuthService to be fully initialized
-                    await waitForAuthService();
-                    
-                    console.log('Is authenticated:', window.authManager.isAuthenticated());
-                    console.log('Current user:', window.authManager.getCurrentUser());
-                    
-                    // Revalidate session first to avoid stale state
-                    try {
-                        if (window.authManager && typeof window.authManager.validateAndRefreshSession === 'function') {
-                            await window.authManager.validateAndRefreshSession();
-                        }
-                    } catch (e) {
-                        console.warn('Profile page revalidation failed:', e);
-                    }
-
-                    // Enforce authentication strictly for profile
-                    if (!window.authManager.isAuthenticated()) {
-                        console.log('❌ Not authenticated after revalidation, showing login modal');
-                        // Show login modal instead of redirecting
-                        if (window.showLoginModal) {
-                            window.showLoginModal();
-                        }
-                        return;
-                    }
-                    
-                    console.log('✅ User is authenticated, proceeding with profile page');
-                    
-                    // Continue with profile setup
-                    console.log('🚀 Setting up profile page');
-                    setupProfileNavigation();
-                    loadUserProfile();
-                    setupProfileForms();
-                    setupLogoutButton();
-                });
-            }
-            
-            async function waitForAuthManager() {
-                let attempts = 0;
-                const maxAttempts = 50; // 5 seconds max wait
-                
-                while (attempts < maxAttempts) {
-                    if (window.authManager && typeof window.authManager.isAuthenticated === 'function') {
-                        console.log('AuthManager found after', attempts * 100, 'ms');
-                        return;
-                    }
-                    await new Promise(resolve => setTimeout(resolve, 100));
-                    attempts++;
-                }
-                
-                console.warn('AuthManager not found after 5 seconds, proceeding anyway');
-            }
-            
-            async function waitForAuthService() {
-                console.log('🔍 Waiting for AuthService initialization...');
-                let attempts = 0;
-                const maxAttempts = 50; // 5 seconds max wait
-                
-                while (attempts < maxAttempts) {
-                    if (window.authService && window.authService.initialized) {
-                        console.log('✅ AuthService is initialized after', attempts * 100, 'ms');
-                        // Add additional delay to ensure session is fully validated
-                        await new Promise(resolve => setTimeout(resolve, 300));
-                        return;
-                    }
-                    
-                    await new Promise(resolve => setTimeout(resolve, 100));
-                    attempts++;
-                }
-                
-                console.warn('AuthService not fully initialized after 5 seconds, proceeding anyway');
-            }
-            
-            function setupLogoutButton() {
-                const logoutBtn = document.getElementById('logoutBtn');
-                if (logoutBtn) {
-                    logoutBtn.addEventListener('click', async function() {
-                        console.log('Profile logout button clicked');
-
-                        // Disable button and show loading state
-                        logoutBtn.disabled = true;
-                        logoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Logging out...';
-
-                        try {
-                            if (window.authManager) {
-                                console.log('Using AuthManager logout for profile');
-                                const result = await window.authManager.logout();
-                                console.log('Profile logout result:', result);
-                                
-                                // Check if logout was successful
-                                if (result && result.error) {
-                                    throw new Error(result.error.message || 'Logout failed');
-                                }
-                                
-                                console.log('Profile logout successful via AuthManager');
-                                // AuthManager handles redirect and auth state clearing
-                            } else {
-                                console.log('AuthManager not available, using fallback for profile');
-                                // Fallback logout process
-                                await performLogout();
-                            }
-                        } catch (error) {
-                            console.error('Profile logout error:', error);
-
-                            // If AuthManager logout failed, try fallback
-                            if (window.authManager) {
-                                console.log('AuthManager logout failed, trying fallback for profile');
-                                try {
-                                    await performLogout();
-                                } catch (fallbackError) {
-                                    console.error('Fallback logout also failed:', fallbackError);
-                                    showError('Logout failed. Please clear your browser data and refresh the page.');
-                                    // Reset button state
-                                    logoutBtn.disabled = false;
-                                    logoutBtn.innerHTML = '<i class="fas fa-sign-out-alt me-2"></i>Logout';
-                                }
-                            } else {
-                                showError('Logout failed. Please try again or refresh the page.');
-                                // Reset button state
-                                logoutBtn.disabled = false;
-                                logoutBtn.innerHTML = '<i class="fas fa-sign-out-alt me-2"></i>Logout';
-                            }
-                        }
-                    });
-                }
-            }
-
-            async function performLogout() {
-                console.log('Performing manual logout');
-
-                // Show logout success message before clearing data
-                showLogoutSuccessToast();
-
-                try {
-                    // Small delay to let user see the message
-                    await new Promise(resolve => setTimeout(resolve, 500));
-
-                    // Clear all authentication data
-                    const tokensCleared = clearAuthenticationData();
-
-                    // Clear any additional session data
-                    clearSessionData();
-
-                    // Update UI if AuthManager is available
-                    if (window.authManager) {
-                        window.authManager.clearAuthData();
-                        window.authManager.updateAuthUI();
-                        window.authManager.emit('logout');
-                    }
-
-                    // Verify logout was successful
-                    const verification = verifyAuthDataCleared();
-                    const logoutSuccessful = Object.values(verification).every(value => value === true);
-
-                    if (logoutSuccessful) {
-                        console.log('✅ Logout completed successfully');
-                    } else {
-                        console.warn('⚠️ Some auth data may still exist after logout:', verification);
-                    }
-
-                    // Redirect to home page
-                    console.log('Redirecting to index.html after logout');
-                    window.location.href = 'index.html';
-
-                } catch (error) {
-                    console.error('❌ Error during logout process:', error);
-                    showError('Logout process failed. Please clear your browser data and refresh the page.');
-
-                    // Force redirect after a timeout as fallback
-                    setTimeout(() => {
-                        console.log('🔄 Force redirecting after error');
-                        window.location.href = 'index.html';
-                    }, 3000);
-                }
-            }
-
-            function clearAuthenticationData() {
-                const clearedTokens = {
-                    authToken: !!localStorage.getItem('auth_token'),
-                    refreshToken: !!localStorage.getItem('refresh_token'),
-                    supabaseSession: !!localStorage.getItem('supabase.auth.token'),
-                    supabaseUser: !!localStorage.getItem('supabase.auth.user')
-                };
-
-                // Clear all auth tokens
-                localStorage.removeItem('auth_token');
-                localStorage.removeItem('refresh_token');
-
-                // Clear Supabase auth data if present
-                localStorage.removeItem('supabase.auth.token');
-                localStorage.removeItem('supabase.auth.refreshToken');
-                localStorage.removeItem('supabase.auth.user');
-
-                // Clear any cookies related to auth
-                document.cookie.split(";").forEach(cookie => {
-                    const eqPos = cookie.indexOf("=");
-                    const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
-                    if (name.includes('auth') || name.includes('session') || name.includes('token') ||
-                        name.includes('supabase') || name.includes('user')) {
-                        document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
-                        document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=" + window.location.hostname;
-                    }
-                });
-
-                // Verify that data was cleared
-                const verification = verifyAuthDataCleared();
-
-                console.log('Authentication data cleared:', clearedTokens);
-                console.log('Verification result:', verification);
-
-                return { clearedTokens, verification };
-            }
-
-            function verifyAuthDataCleared() {
-                const verification = {
-                    authTokenCleared: !localStorage.getItem('auth_token'),
-                    refreshTokenCleared: !localStorage.getItem('refresh_token'),
-                    supabaseSessionCleared: !localStorage.getItem('supabase.auth.token'),
-                    supabaseUserCleared: !localStorage.getItem('supabase.auth.user'),
-                    authManagerStateCleared: true, // Will be checked if AuthManager exists
-                    authManagerUserCleared: true   // Will be checked if AuthManager exists
-                };
-
-                // Check if AuthManager state is cleared
-                if (window.authManager) {
-                    verification.authManagerStateCleared = !window.authManager.isAuthenticated();
-                    verification.authManagerUserCleared = !window.authManager.getCurrentUser();
-                }
-
-                const allCleared = Object.values(verification).every(value => value === true);
-
-                if (!allCleared) {
-                    console.warn('Some authentication data may not have been cleared properly:', verification);
-                }
-
-                return verification;
-            }
-
-            function clearSessionData() {
-                // Clear any application-specific session data
-                const sessionKeys = [
-                    'user_preferences',
-                    'cart_data',
-                    'last_activity',
-                    'session_id'
-                ];
-
-                sessionKeys.forEach(key => {
-                    if (localStorage.getItem(key)) {
-                        localStorage.removeItem(key);
-                        console.log('Cleared session data:', key);
-                    }
-                });
-
-                // Clear sessionStorage as well
-                if (typeof sessionStorage !== 'undefined') {
-                    sessionStorage.clear();
-                    console.log('SessionStorage cleared');
-                }
-            }
-            
-            function setupProfileNavigation() {
-                const navLinks = document.querySelectorAll('.profile-nav .nav-link');
-                const sections = document.querySelectorAll('.profile-section-content');
-
-                // Initially hide all sections except the active one
-                sections.forEach(section => {
-                    section.style.display = 'none';
-                });
-
-                // Show the default active section (Personal Info)
-                const personalInfoSection = document.getElementById('personal-info-section');
-                if (personalInfoSection) {
-                    personalInfoSection.style.display = 'block';
-                }
-
-                navLinks.forEach(link => {
-                    link.addEventListener('click', function(e) {
-                        e.preventDefault();
-
-                        const targetSection = this.getAttribute('data-section');
-
-                        // Update active nav link
-                        navLinks.forEach(nav => nav.classList.remove('active'));
-                        this.classList.add('active');
-
-                        // Hide all sections with fade effect
-                        sections.forEach(section => {
-                            if (section.classList.contains('active')) {
-                                section.classList.remove('active');
-                                section.style.opacity = '0';
-                                setTimeout(() => {
-                                    section.style.display = 'none';
-                                }, 300);
-                            }
-                        });
-
-                        // Show target section with fade effect
-                        const targetElement = document.getElementById(targetSection + '-section');
-                        if (targetElement) {
-                            setTimeout(() => {
-                                targetElement.style.display = 'block';
-                                targetElement.style.opacity = '0';
-                                targetElement.classList.add('active');
-
-                                // Trigger reflow for animation
-                                targetElement.offsetHeight;
-
-                                targetElement.style.opacity = '1';
-                                targetElement.style.transform = 'translateY(0)';
-                            }, 100);
-                        }
-
-                        // Scroll to top of content area
-                        const profileContent = document.querySelector('.profile-content');
-                        if (profileContent) {
-                            profileContent.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }
-                    });
-                });
-            }
-            
-            async function loadUserProfile() {
-                try {
-                    console.log('🔄 Loading user profile...');
-
-                    // Try to get profile from API first (more reliable than AuthManager user data)
-                    const token = localStorage.getItem('auth_token');
-                    if (!token) {
-                        console.log('No auth token found');
-                        showError('Authentication required. Please log in again.');
-                        return;
-                    }
-
-                    const response = await fetch('/api/auth/profile', {
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json'
-                        }
-                    });
-
-                    if (response.ok) {
-                        const data = await response.json();
-                        console.log('✅ Profile loaded from API:', data);
-                        currentUser = data.user;
-                        updateProfileDisplay();
-                        await loadAddresses();
-                    } else if (response.status === 404) {
-                        console.log('Profile not found - this might be a new user');
-                        // For new users, try to get basic info from AuthManager
-                        if (window.authManager && window.authManager.getCurrentUser()) {
-                            const authUser = window.authManager.getCurrentUser();
-                            currentUser = {
-                                user_id: authUser.id,
-                                email: authUser.email,
-                                username: authUser.username || authUser.email.split('@')[0],
-                                full_name: authUser.full_name || authUser.username || authUser.email.split('@')[0],
-                                role: authUser.role || 'customer',
-                                phone: '',
-                                date_of_birth: null,
-                                gender: '',
-                                avatar_url: authUser.avatar_url || ''
-                            };
-                            console.log('Using AuthManager user data as fallback:', currentUser);
-                            updateProfileDisplay();
-                            await loadAddresses();
-                        } else {
-                            showError('Profile not found and no authentication data available');
-                        }
-                    } else {
-                        const errorData = await response.json().catch(() => ({}));
-                        throw new Error(errorData.message || `Failed to load profile (${response.status})`);
-                    }
-                } catch (error) {
-                    console.error('❌ Error loading profile:', error);
-                    showError(`Failed to load profile data: ${error.message}`);
-
-                    // Fallback to AuthManager data if API fails
-                    if (window.authManager && window.authManager.getCurrentUser()) {
-                        console.log('🔄 Falling back to AuthManager user data');
-                        const authUser = window.authManager.getCurrentUser();
-                        currentUser = {
-                            user_id: authUser.id,
-                            email: authUser.email,
-                            username: authUser.username || authUser.email.split('@')[0],
-                            full_name: authUser.full_name || authUser.username || authUser.email.split('@')[0],
-                            role: authUser.role || 'customer'
-                        };
-                        updateProfileDisplay();
-                    }
-                }
-            }
-            
-            function updateProfileDisplay() {
-                if (!currentUser) return;
-                
-                // Update profile info
-                const profileName = document.getElementById('profileName');
-                const profileEmail = document.getElementById('profileEmail');
-                const profileAvatar = document.getElementById('profileAvatar');
-                
-                if (profileName) {
-                    profileName.textContent = currentUser.full_name || currentUser.username || 'User';
-                }
-                
-                if (profileEmail) {
-                    profileEmail.textContent = currentUser.email || '';
-                }
-                
-                if (profileAvatar && currentUser.avatar_url) {
-                    profileAvatar.innerHTML = `<img src="${currentUser.avatar_url}" alt="Avatar" class="rounded-circle" style="width: 100%; height: 100%; object-fit: cover;">`;
-                }
-                
-                // Update form fields
-                updatePersonalInfoForm();
-                updateAccountSettings();
-            }
-            
-            function updatePersonalInfoForm() {
-                if (!currentUser) return;
-                
-                const form = document.getElementById('personalInfoForm');
-                if (!form) return;
-                
-                // Populate form fields
-                const fields = ['full_name', 'username', 'email', 'phone', 'date_of_birth', 'gender', 'avatar_url'];
-                fields.forEach(field => {
-                    const input = form.querySelector(`[name="${field}"]`);
-                    if (input && currentUser[field] !== undefined) {
-                        input.value = currentUser[field] || '';
-                    }
-                });
-            }
-            
-            function updateAccountSettings() {
-                if (!currentUser) return;
-                
-                const accountStatus = document.getElementById('accountStatus');
-                const memberSince = document.getElementById('memberSince');
-                
-                if (accountStatus) {
-                    accountStatus.textContent = currentUser.email_verified ? 'Active' : 'Pending Verification';
-                }
-                
-                if (memberSince && currentUser.created_at) {
-                    const date = new Date(currentUser.created_at);
-                    memberSince.textContent = date.toLocaleDateString();
-                }
-            }
-            
-            async function loadAddresses() {
-                try {
-                    const response = await fetch('/api/auth/addresses', {
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                        }
-                    });
-                    
-                    if (response.ok) {
-                        const data = await response.json();
-                        userAddresses = data.addresses || [];
-                        renderAddresses();
-                    } else {
-                        throw new Error('Failed to load addresses');
-                    }
-                } catch (error) {
-                    console.error('Error loading addresses:', error);
-                    const addressesList = document.getElementById('addressesList');
-                    if (addressesList) {
-                        addressesList.innerHTML = '<div class="alert alert-warning">Failed to load addresses. Please try again.</div>';
-                    }
-                }
-            }
-            
-            function renderAddresses() {
-                const addressesList = document.getElementById('addressesList');
-                if (!addressesList) return;
-                
-                if (userAddresses.length === 0) {
-                    addressesList.innerHTML = `
-                        <div class="text-center py-4">
-                            <i class="fas fa-map-marker-alt fa-3x text-muted mb-3"></i>
-                            <h5>No addresses found</h5>
-                            <p class="text-muted">Add your first address to get started</p>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                const addressesHTML = userAddresses.map(address => `
-                    <div class="address-card mb-3">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div class="address-info">
-                                        <h6 class="card-title">
-                                            ${address.street}
-                                            ${address.is_default ? '<span class="badge bg-primary ms-2">Default</span>' : ''}
-                                        </h6>
-                                        <p class="card-text text-muted">
-                                            ${address.city}, ${address.state}<br>
-                                            ${address.country} ${address.zip_code}
-                                        </p>
-                                    </div>
-                                    <div class="address-actions">
-                                        <button class="btn btn-sm btn-outline-primary me-2" onclick="editAddress(${address.address_id})">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-danger" onclick="deleteAddress(${address.address_id})">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `).join('');
-                
-                addressesList.innerHTML = addressesHTML;
-            }
-            
-            function setupProfileForms() {
-                // Personal info form
-                const personalInfoForm = document.getElementById('personalInfoForm');
-                if (personalInfoForm) {
-                    personalInfoForm.addEventListener('submit', handlePersonalInfoSubmit);
-                }
-                
-                // Password change form
-                const passwordChangeForm = document.getElementById('passwordChangeForm');
-                if (passwordChangeForm) {
-                    passwordChangeForm.addEventListener('submit', handlePasswordChange);
-                }
-                
-                // Notifications form
-                const notificationsForm = document.getElementById('notificationsForm');
-                if (notificationsForm) {
-                    notificationsForm.addEventListener('submit', handleNotificationsSubmit);
-                }
-            }
-            
-            async function handlePersonalInfoSubmit(e) {
-                e.preventDefault();
-
-                const submitBtn = document.getElementById('savePersonalInfoBtn');
-                const loadingIndicator = document.getElementById('personalInfoLoading');
-                const messageDiv = document.getElementById('personalInfoMessage');
-                const form = e.target;
-
-                // Show loading state
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
-                loadingIndicator.classList.remove('d-none');
-
-                // Clear previous messages
-                messageDiv.classList.add('d-none');
-                messageDiv.className = 'd-none';
-
-                try {
-                    const formData = new FormData(form);
-                    const data = Object.fromEntries(formData);
-
-                    // Remove empty fields and convert date to ISO string if present
-                    Object.keys(data).forEach(key => {
-                        if (data[key] === '' || data[key] === null || data[key] === undefined) {
-                            delete data[key];
-                        } else if (key === 'date_of_birth' && data[key]) {
-                            data[key] = new Date(data[key]).toISOString().split('T')[0];
-                        }
-                    });
-
-                    // Validate required fields
-                    if (!data.full_name || data.full_name.trim().length < 2) {
-                        throw new Error('Full name must be at least 2 characters long');
-                    }
-
-                    if (!data.username || data.username.trim().length < 3) {
-                        throw new Error('Username must be at least 3 characters long');
-                    }
-
-                    // Validate phone number format if provided
-                    if (data.phone && !/^[0-9+\-\s()]{10,20}$/.test(data.phone)) {
-                        throw new Error('Please enter a valid phone number');
-                    }
-
-                    // Validate avatar URL format if provided
-                    if (data.avatar_url && !/^https?:\/\/.*\.(jpg|jpeg|png|gif|webp)$/i.test(data.avatar_url)) {
-                        throw new Error('Avatar URL must be a valid image URL (jpg, png, gif, webp)');
-                    }
-
-                    console.log('📝 Submitting profile update:', data);
-
-                    const response = await fetch('/api/auth/profile', {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                        },
-                        body: JSON.stringify(data)
-                    });
-
-                    if (response.ok) {
-                        const result = await response.json();
-                        console.log('✅ Profile updated successfully:', result);
-
-                        // Show success message
-                        messageDiv.className = 'alert alert-success';
-                        messageDiv.innerHTML = '<i class="fas fa-check-circle me-2"></i>Profile updated successfully!';
-                        messageDiv.classList.remove('d-none');
-
-                        // Reload profile data to get updated values
-                        await loadUserProfile();
-
-                        // Auto-hide success message after 3 seconds
-                        setTimeout(() => {
-                            messageDiv.classList.add('d-none');
-                        }, 3000);
-
-                    } else {
-                        const error = await response.json();
-                        console.error('❌ Profile update failed:', error);
-                        throw new Error(error.message || `Failed to update profile (${response.status})`);
-                    }
-
-                } catch (error) {
-                    console.error('❌ Error updating profile:', error);
-
-                    // Show error message
-                    messageDiv.className = 'alert alert-danger';
-                    messageDiv.innerHTML = `<i class="fas fa-exclamation-triangle me-2"></i>${error.message || 'Failed to update profile. Please try again.'}`;
-                    messageDiv.classList.remove('d-none');
-
-                } finally {
-                    // Hide loading state
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<i class="fas fa-save me-2"></i>Save Changes';
-                    loadingIndicator.classList.add('d-none');
-                }
-            }
-            
-            async function handlePasswordChange(e) {
-                e.preventDefault();
-                
-                const formData = new FormData(e.target);
-                const data = Object.fromEntries(formData);
-                
-                // Validate passwords match
-                if (data.new_password !== data.confirm_password) {
-                    showError('New passwords do not match');
-                    return;
-                }
-                
-                if (data.new_password.length < 8) {
-                    showError('Password must be at least 8 characters long');
-                    return;
-                }
-                
-                try {
-                    const response = await fetch('/api/auth/change-password', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                        },
-                        body: JSON.stringify(data)
-                    });
-                    
-                    if (response.ok) {
-                        showSuccess('Password changed successfully!');
-                        e.target.reset();
-                    } else {
-                        const error = await response.json();
-                        throw new Error(error.message || 'Failed to change password');
-                    }
-                } catch (error) {
-                    console.error('Error changing password:', error);
-                    showError(error.message || 'Failed to change password');
-                }
-            }
-            
-            async function handleNotificationsSubmit(e) {
-                e.preventDefault();
-                
-                const formData = new FormData(e.target);
-                const data = Object.fromEntries(formData);
-                
-                // Convert checkboxes to boolean values
-                const notificationSettings = {
-                    email_notifications: data.email_notifications === 'on',
-                    order_updates: data.order_updates === 'on',
-                    product_recommendations: data.product_recommendations === 'on',
-                    marketing_emails: data.marketing_emails === 'on'
-                };
-                
-                try {
-                    const response = await fetch('/api/auth/notifications', {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                        },
-                        body: JSON.stringify(notificationSettings)
-                    });
-                    
-                    if (response.ok) {
-                        showSuccess('Notification preferences saved!');
-                    } else {
-                        const error = await response.json();
-                        throw new Error(error.message || 'Failed to save preferences');
-                    }
-                } catch (error) {
-                    console.error('Error saving notifications:', error);
-                    showError(error.message || 'Failed to save notification preferences');
-                }
-            }
-            
-            // Global functions for address management
-            window.saveNewAddress = async function() {
-                const form = document.getElementById('addAddressForm');
-                const formData = new FormData(form);
-                const data = Object.fromEntries(formData);
-                
-                // Convert checkbox to boolean
-                data.is_default = data.is_default === 'on';
-                
-                try {
-                    const response = await fetch('/api/auth/addresses', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                        },
-                        body: JSON.stringify(data)
-                    });
-                    
-                    if (response.ok) {
-                        showSuccess('Address added successfully!');
-                        form.reset();
-                        bootstrap.Modal.getInstance(document.getElementById('addAddressModal')).hide();
-                        await loadAddresses();
-                    } else {
-                        const error = await response.json();
-                        throw new Error(error.message || 'Failed to add address');
-                    }
-                } catch (error) {
-                    console.error('Error adding address:', error);
-                    showError(error.message || 'Failed to add address');
-                }
-            };
-            
-            window.editAddress = function(addressId) {
-                const address = userAddresses.find(addr => addr.address_id === addressId);
-                if (!address) return;
-                
-                // Populate edit form
-                document.getElementById('editAddressId').value = address.address_id;
-                document.getElementById('editAddressStreet').value = address.street;
-                document.getElementById('editAddressCity').value = address.city;
-                document.getElementById('editAddressState').value = address.state;
-                document.getElementById('editAddressCountry').value = address.country;
-                document.getElementById('editAddressZip').value = address.zip_code;
-                document.getElementById('editAddressDefault').checked = address.is_default;
-                
-                // Show modal
-                new bootstrap.Modal(document.getElementById('editAddressModal')).show();
-            };
-            
-            window.updateAddress = async function() {
-                const form = document.getElementById('editAddressForm');
-                const formData = new FormData(form);
-                const data = Object.fromEntries(formData);
-                
-                const addressId = data.address_id;
-                delete data.address_id;
-                
-                // Convert checkbox to boolean
-                data.is_default = data.is_default === 'on';
-                
-                try {
-                    const response = await fetch(`/api/auth/addresses/${addressId}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                        },
-                        body: JSON.stringify(data)
-                    });
-                    
-                    if (response.ok) {
-                        showSuccess('Address updated successfully!');
-                        bootstrap.Modal.getInstance(document.getElementById('editAddressModal')).hide();
-                        await loadAddresses();
-                    } else {
-                        const error = await response.json();
-                        throw new Error(error.message || 'Failed to update address');
-                    }
-                } catch (error) {
-                    console.error('Error updating address:', error);
-                    showError(error.message || 'Failed to update address');
-                }
-            };
-            
-            window.deleteAddress = async function(addressId) {
-                if (!confirm('Are you sure you want to delete this address?')) {
-                    return;
-                }
-                
-                try {
-                    const response = await fetch(`/api/auth/addresses/${addressId}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                        }
-                    });
-                    
-                    if (response.ok) {
-                        showSuccess('Address deleted successfully!');
-                        await loadAddresses();
-                    } else {
-                        const error = await response.json();
-                        throw new Error(error.message || 'Failed to delete address');
-                    }
-                } catch (error) {
-                    console.error('Error deleting address:', error);
-                    showError(error.message || 'Failed to delete address');
-                }
-            };
-            
-            // Utility functions
-            window.refreshPersonalInfo = function() {
-                console.log('🔄 Refreshing personal info data...');
-                loadUserProfile();
-                showSuccess('Profile data refreshed successfully!');
-            };
-            
-            window.resetPasswordForm = function() {
-                document.getElementById('passwordChangeForm').reset();
-            };
-            
-            window.saveAllSettings = function() {
-                showSuccess('All settings saved successfully!');
-            };
-            
-            window.resetAllSettings = function() {
-                if (confirm('Are you sure you want to reset all settings to defaults?')) {
-                    showSuccess('Settings reset to defaults!');
-                }
-            };
-            
-            window.confirmAccountDeletion = function() {
-                if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-                    if (confirm('This will permanently delete your account and all associated data. Are you absolutely sure?')) {
-                        showError('Account deletion is not implemented yet. Please contact support.');
-                    }
-                }
-            };
-            
-            function showSuccess(message) {
-                // Create and show success toast
-                const toast = document.createElement('div');
-                toast.className = 'toast align-items-center text-white bg-success border-0';
-                toast.setAttribute('role', 'alert');
-                toast.innerHTML = `
-                    <div class="d-flex">
-                        <div class="toast-body">
-                            <i class="fas fa-check-circle me-2"></i>${message}
-                        </div>
-                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-                    </div>
-                `;
-
-                document.body.appendChild(toast);
-                const bsToast = new bootstrap.Toast(toast, {
-                    delay: 3000,
-                    autohide: true
-                });
-                bsToast.show();
-
-                // Remove toast after it's hidden
-                toast.addEventListener('hidden.bs.toast', () => {
-                    document.body.removeChild(toast);
-                });
-            }
-
-            function showError(message) {
-                // Create and show error toast
-                const toast = document.createElement('div');
-                toast.className = 'toast align-items-center text-white bg-danger border-0';
-                toast.setAttribute('role', 'alert');
-                toast.innerHTML = `
-                    <div class="d-flex">
-                        <div class="toast-body">
-                            <i class="fas fa-exclamation-triangle me-2"></i>${message}
-                        </div>
-                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-                    </div>
-                `;
-
-                document.body.appendChild(toast);
-                const bsToast = new bootstrap.Toast(toast, {
-                    delay: 5000,
-                    autohide: true
-                });
-                bsToast.show();
-
-                // Remove toast after it's hidden
-                toast.addEventListener('hidden.bs.toast', () => {
-                    document.body.removeChild(toast);
-                });
-            }
-
-            function showLogoutSuccessToast() {
-                // Create and show logout success toast (positioned to be visible during redirect)
-                const toast = document.createElement('div');
-                toast.className = 'toast align-items-center text-white bg-info border-0';
-                toast.setAttribute('role', 'alert');
-                toast.innerHTML = `
-                    <div class="d-flex">
-                        <div class="toast-body">
-                            <i class="fas fa-sign-out-alt me-2"></i>Logging out...
-                        </div>
-                    </div>
-                `;
-
-                // Position the toast in the center of the screen
-                toast.style.position = 'fixed';
-                toast.style.top = '50%';
-                toast.style.left = '50%';
-                toast.style.transform = 'translate(-50%, -50%)';
-                toast.style.zIndex = '9999';
-                toast.style.minWidth = '200px';
-
-                document.body.appendChild(toast);
-                const bsToast = new bootstrap.Toast(toast, {
-                    delay: 1000,
-                    autohide: true
-                });
-                bsToast.show();
-
-                // Remove toast after it's hidden (or after a timeout)
-                const removeToast = () => {
-                    if (document.body.contains(toast)) {
-                        document.body.removeChild(toast);
-                    }
-                };
-
-                toast.addEventListener('hidden.bs.toast', removeToast);
-                // Fallback removal after 2 seconds
-                setTimeout(removeToast, 2000);
-            }
-            
-            // Add debugging function
-            window.debugProfileAuth = () => {
-                console.log('🔍 Profile Authentication Debug:');
-                console.log('Current URL:', window.location.href);
-                console.log('AuthManager available:', !!window.authManager);
-                if (window.authManager) {
-                    console.log('Is authenticated:', window.authManager.isAuthenticated());
-                    console.log('Current user:', window.authManager.getCurrentUser());
-                    console.log('Auth token:', window.authManager.getAuthToken() ? 'Present' : 'Missing');
-                }
-                return {
-                    url: window.location.href,
-                    authManagerAvailable: !!window.authManager,
-                    authenticated: window.authManager ? window.authManager.isAuthenticated() : false,
-                    user: window.authManager ? window.authManager.getCurrentUser() : null
-                };
-            };
-            
-        })();
+    <script type="module">
+        import { profileManager } from '../assets/js/ProfileManager.js';
+        
+        // Initialize profile page when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            profileManager.initializeProfilePage();
+        });
+        
+        // Expose necessary functions to global scope for onclick handlers
+        window.saveNewAddress = () => profileManager.handleAddressAdd(
+            new FormData(document.getElementById('addAddressForm'))
+        );
+        window.editAddress = (id) => profileManager.editAddress(id);
+        window.updateAddress = () => profileManager.handleAddressEdit(
+            document.getElementById('editAddressId').value,
+            new FormData(document.getElementById('editAddressForm'))
+        );
+        window.deleteAddress = (id) => profileManager.handleAddressDelete(id);
+        window.refreshPersonalInfo = () => profileManager.refreshPersonalInfo();
+        window.viewSessions = () => profileManager.viewSessions();
+        window.terminateAllSessions = () => profileManager.terminateAllSessions();
+        window.confirmAccountDeletion = () => profileManager.confirmAccountDeletion();
+        window.executeAccountDeletion = () => profileManager.executeAccountDeletion();
+        window.debugProfileAuth = () => profileManager.debugProfileAuth();
     </script>
 </body>
 </html>

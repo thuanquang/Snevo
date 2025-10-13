@@ -161,6 +161,9 @@ The unified navbar system provides consistent navigation across all pages with p
 - Role-based navigation: 'customer' → profile.html, 'seller' → admin.html
 - No backend auth controller, routes, or JWT utilities needed
 - Session management handled entirely by Supabase client
+- Auth state persists across pages via Supabase's localStorage tokens
+- Pages await `authService.initialize()` to ensure session is restored before auth checks
+- `readyPromise` pattern ensures no race conditions on page load
 
 ### Override Examples
 ```javascript
