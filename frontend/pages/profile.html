@@ -342,11 +342,6 @@
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" href="#password-change" data-section="password-change">
-                                        Password Change
-                                    </a>
-                                </li>
-                                <li class="nav-item">
                                     <a class="nav-link" href="#account-settings" data-section="account-settings">
                                         Account Settings
                                     </a>
@@ -477,40 +472,6 @@
                             </div>
                         </div>
                         
-                        <!-- Password Change Section -->
-                        <div class="profile-section-content" id="password-change-section">
-                            <div class="section-header">
-                                <h3 class="section-title">Change Password</h3>
-                                <p class="section-subtitle">Update your account password for better security</p>
-                            </div>
-                            
-                            <form id="passwordChangeForm" class="profile-form">
-                                <div class="mb-4">
-                                    <label for="currentPassword" class="form-label">Current Password *</label>
-                                    <input type="password" class="form-control" id="currentPassword" name="current_password" required>
-                                </div>
-                                
-                                <div class="mb-4">
-                                    <label for="newPassword" class="form-label">New Password *</label>
-                                    <input type="password" class="form-control" id="newPassword" name="new_password" required>
-                                    <div class="form-text" style="font-size: 12px; color: #999; margin-top: 4px;">Password must be at least 8 characters long</div>
-                                </div>
-                                
-                                <div class="mb-4">
-                                    <label for="confirmPassword" class="form-label">Confirm New Password *</label>
-                                    <input type="password" class="form-control" id="confirmPassword" name="confirm_password" required>
-                                </div>
-                                
-                                <div class="form-actions">
-                                    <button type="submit" class="btn btn-primary">
-                                        Change Password
-                                    </button>
-                                    <button type="button" class="btn btn-outline-secondary" onclick="resetPasswordForm()">
-                                        Reset
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
                         
                         
                         <!-- Account Settings Section -->
@@ -1367,11 +1328,6 @@
                     personalInfoForm.addEventListener('submit', handlePersonalInfoSubmit);
                 }
                 
-                // Password change form
-                const passwordChangeForm = document.getElementById('passwordChangeForm');
-                if (passwordChangeForm) {
-                    passwordChangeForm.addEventListener('submit', handlePasswordChange);
-                }
                 
             }
             
@@ -1472,52 +1428,6 @@
                 }
             }
             
-            async function handlePasswordChange(e) {
-                e.preventDefault();
-                
-                const formData = new FormData(e.target);
-                const data = Object.fromEntries(formData);
-                
-                // Validate passwords match
-                if (data.new_password !== data.confirm_password) {
-                    showError('New passwords do not match');
-                    return;
-                }
-                
-                if (data.new_password.length < 8) {
-                    showError('Password must be at least 8 characters long');
-                    return;
-                }
-                
-                try {
-                    // Get the current session token
-                    const { data: { session } } = await window.authService.supabase.auth.getSession();
-                    if (!session) {
-                        showError('Please log in to change your password');
-                        return;
-                    }
-
-                    const response = await fetch('/api/auth/change-password', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${session.access_token}`
-                        },
-                        body: JSON.stringify(data)
-                    });
-                    
-                    if (response.ok) {
-                        showSuccess('Password changed successfully!');
-                        e.target.reset();
-                    } else {
-                        const error = await response.json();
-                        throw new Error(error.message || 'Failed to change password');
-                    }
-                } catch (error) {
-                    console.error('Error changing password:', error);
-                    showError(error.message || 'Failed to change password');
-                }
-            }
             
             
             // Global functions for address management
@@ -1660,9 +1570,6 @@
                 showSuccess('Profile data refreshed successfully!');
             };
             
-            window.resetPasswordForm = function() {
-                document.getElementById('passwordChangeForm').reset();
-            };
             
             window.saveAllSettings = function() {
                 showSuccess('All settings saved successfully!');
