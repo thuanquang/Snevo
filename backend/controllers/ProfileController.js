@@ -142,10 +142,10 @@ class ProfileController {
             }
 
             // Validate avatar URL format if provided
-            if (filteredUpdates.avatar_url && filteredUpdates.avatar_url !== '' && !/^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)$/i.test(filteredUpdates.avatar_url)) {
+            if (filteredUpdates.avatar_url && filteredUpdates.avatar_url !== '' && !/^https?:\/\/.*\.(jpg|jpeg|png|gif|webp|webp\?.*|googleusercontent\.com.*|gravatar\.com.*|github\.com.*|facebook\.com.*)$/i.test(filteredUpdates.avatar_url)) {
                 return this.sendJson(res, {
                     success: false,
-                    message: 'Invalid avatar URL format (must be jpg, png, gif, or webp)'
+                    message: 'Invalid avatar URL format (supports jpg, png, gif, webp, Google, Gravatar, GitHub, Facebook)'
                 }, 400);
             }
 

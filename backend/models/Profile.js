@@ -22,23 +22,13 @@ class Profile extends BaseModel {
 
     // Update profile by user ID
     async updateByUserId(userId, data) {
-        try {
-            // Add updated_at timestamp
-            const updateData = {
-                ...data,
-                updated_at: new Date().toISOString()
-            };
+        // Add updated_at timestamp
+        const updateData = {
+            ...data,
+            updated_at: new Date().toISOString()
+        };
 
-            return await this.updateById(userId, updateData);
-        } catch (error) {
-            console.error('Error updating profile by user ID:', error);
-            // Return mock updated profile instead of throwing for graceful fallback
-            return {
-                user_id: userId,
-                ...data,
-                updated_at: new Date().toISOString()
-            };
-        }
+        return await this.updateById(userId, updateData);
     }
 
     // Create profile for new user
