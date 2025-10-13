@@ -379,7 +379,7 @@
                                         <label for="fullName" class="form-label">Full Name *</label>
                                         <input type="text" class="form-control" id="fullName" name="full_name"
                                                required minlength="2" maxlength="100"
-                                               pattern="^[a-zA-Z\s]+$"
+                                               pattern="^[\p{L}\s]+$"
                                                title="Full name should only contain letters and spaces">
                                         <div class="form-text" style="font-size: 12px; color: #999; margin-top: 4px;">Enter your full legal name</div>
                                     </div>
@@ -430,7 +430,7 @@
                                     <label for="avatarUrl" class="form-label">Avatar URL</label>
                                     <input type="url" class="form-control" id="avatarUrl" name="avatar_url"
                                            placeholder="https://example.com/avatar.jpg"
-                                           pattern="^https?://.*\.(jpg|jpeg|png|gif|webp)$"
+                                           pattern="^https?://.*\.(jpg|jpeg|png|gif|webp|webp\?.*|googleusercontent\.com.*|gravatar\.com.*|github\.com.*|facebook\.com.*)$"
                                            title="Please enter a valid image URL (jpg, png, gif, webp)">
                                     <div class="form-text" style="font-size: 12px; color: #999; margin-top: 4px;">Enter a URL to your profile picture</div>
                                 </div>
@@ -1409,7 +1409,7 @@
                     }
 
                     // Validate avatar URL format if provided
-                    if (data.avatar_url && !/^https?:\/\/.*\.(jpg|jpeg|png|gif|webp)$/i.test(data.avatar_url)) {
+                    if (data.avatar_url && !/^https?://.*\.(jpg|jpeg|png|gif|webp|webp\?.*|googleusercontent\.com.*|gravatar\.com.*|github\.com.*|facebook\.com.*)$/i.test(data.avatar_url)) {
                         throw new Error('Avatar URL must be a valid image URL (jpg, png, gif, webp)');
                     }
 
