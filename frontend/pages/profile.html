@@ -932,22 +932,40 @@
             
             async function waitForAuthService() {
                 console.log('🔍 Waiting for AuthService initialization...');
+                
+                // Wait for authService to be available
                 let attempts = 0;
                 const maxAttempts = 50; // 5 seconds max wait
                 
                 while (attempts < maxAttempts) {
-                    if (window.authService && window.authService.initialized) {
-                        console.log('✅ AuthService is initialized after', attempts * 100, 'ms');
-                        // Add additional delay to ensure session is fully validated
-                        await new Promise(resolve => setTimeout(resolve, 300));
-                        return;
+                    if (window.authService) {
+                        console.log('✅ AuthService object found');
+                        break;
                     }
-                    
                     await new Promise(resolve => setTimeout(resolve, 100));
                     attempts++;
                 }
                 
-                console.warn('AuthService not fully initialized after 5 seconds, proceeding anyway');
+                if (!window.authService) {
+                    console.error('❌ AuthService not available after 5 seconds');
+                    return;
+                }
+                
+                // Wait for the initialization promise to resolve
+                try {
+                    console.log('⏳ Awaiting AuthService initialization...');
+                    await window.authService.initialize();
+                    console.log('✅ AuthService fully initialized with session restored');
+                    
+                    // Check if we have a session
+                    const hasSession = window.authService.hasStoredSession();
+                    const isAuthenticated = window.authService.isAuthenticated();
+                    console.log('📊 Session status:', { hasSession, isAuthenticated });
+                    
+                    return;
+                } catch (error) {
+                    console.error('❌ Error waiting for AuthService:', error);
+                }
             }
             
             function setupLogoutButton() {
@@ -1203,13 +1221,25 @@
                 try {
                     console.log('🔄 Loading user profile...');
 
-                    // Try to get profile from API first (more reliable than AuthManager user data)
-                    const token = localStorage.getItem('auth_token');
-                    if (!token) {
-                        console.log('No auth token found');
-                        showError('Authentication required. Please log in again.');
+                    // Get session from Supabase
+                    if (!window.authService || !window.authService.supabase) {
+                        console.error('AuthService not available');
+                        showError('Authentication service not available');
                         return;
                     }
+
+                    const { data: { session } } = await window.authService.supabase.auth.getSession();
+                    if (!session) {
+                        console.log('No active session found');
+                        showError('Authentication required. Please log in again.');
+                        if (window.showLoginModal) {
+                            window.showLoginModal();
+                        }
+                        return;
+                    }
+
+                    const token = session.access_token;
+                    console.log('✅ Got access token from session');
 
                     const response = await fetch('/api/auth/profile', {
                         headers: {

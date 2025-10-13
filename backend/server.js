@@ -197,8 +197,10 @@ class Server {
         }
 
         // ⭐ BUILT-IN ROUTES (Keep existing handlers)
-        // Auth routes removed - using Supabase Auth directly on frontend
-        if (pathname.startsWith('/api/orders/')) {
+        // Auth routes for profile management
+        if (pathname.startsWith('/api/auth/')) {
+            await this.handleAuthRoutes(req, res, pathname, req.method, body);
+        } else if (pathname.startsWith('/api/orders/')) {
             await this.handleOrderRoutes(req, res, pathname, req.method, body);
         } else if (pathname.startsWith('/api/users/')) {
             await this.handleUserRoutes(req, res, pathname, req.method, body);
@@ -269,6 +271,51 @@ class Server {
                 await this.orderController.cancelOrder(req, res);
             } else {
                 this.sendError(res, 'API endpoint not found', 404);
+            }
+        } else {
+            this.sendError(res, 'API endpoint not found', 404);
+        }
+    }
+
+    // Auth routes handler
+    async handleAuthRoutes(req, res, pathname, method, body) {
+        const authPath = pathname.replace('/api/auth', '');
+
+        // Check authentication for protected routes
+        const authResult = await authMiddleware.authenticate(req, res);
+        if (!authResult || !authResult.success) {
+            return;
+        }
+        req.user = authResult.user;
+
+        if (authPath === '/profile') {
+            if (method === 'GET') {
+                await this.profileController.getProfile(req, res);
+            } else if (method === 'PUT') {
+                req.body = body;
+                await this.profileController.updateProfile(req, res);
+            } else {
+                this.sendError(res, 'Method not allowed', 405);
+            }
+        } else if (authPath === '/addresses' || authPath === '/addresses/') {
+            if (method === 'GET') {
+                await this.addressController.getAddresses(req, res);
+            } else if (method === 'POST') {
+                req.body = body;
+                await this.addressController.createAddress(req, res);
+            } else {
+                this.sendError(res, 'Method not allowed', 405);
+            }
+        } else if (authPath.match(/^\/addresses\/\d+$/)) {
+            const id = authPath.replace('/addresses/', '');
+            req.params = { id };
+            if (method === 'PUT') {
+                req.body = body;
+                await this.addressController.updateAddress(req, res);
+            } else if (method === 'DELETE') {
+                await this.addressController.deleteAddress(req, res);
+            } else {
+                this.sendError(res, 'Method not allowed', 405);
             }
         } else {
             this.sendError(res, 'API endpoint not found', 404);

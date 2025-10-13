@@ -144,6 +144,60 @@ Benefits:
 - Faster login experience
 - Reduced maintenance - one auth UI to manage
 
+Auth State Persistence Fix (Oct 2025)
+--------------------------------------
+✅ FIXED: Authentication state now properly persists across pages
+
+Root Cause:
+- Pages were checking authentication before Supabase session was fully restored
+- Race condition between page initialization and AuthService.initialize()
+- No reliable way for pages to wait for auth to be ready
+
+Solutions Implemented:
+
+1. **AuthService Ready Promise** (`frontend/assets/js/services/AuthService.js`):
+   - Added `readyPromise` property to track initialization state
+   - Wrapped initialize() to return a reusable promise
+   - Added `hasStoredSession()` helper to check for stored Supabase tokens
+   - Now logs "Session restored from localStorage" when session is found
+   - Multiple calls to initialize() return the same promise (idempotent)
+
+2. **Application.js Auth Ready Event** (`frontend/assets/js/Application.js`):
+   - Added `authReady` boolean property to track auth state
+   - Emits 'authReady' event after AuthService.initialize() completes
+   - Event includes user, isAuthenticated, and role data
+   - Pages can now listen for this event or await authService.readyPromise
+
+3. **Profile Page Auth Wait** (`frontend/pages/profile.html`):
+   - Updated `waitForAuthService()` to properly await authService.initialize()
+   - Now uses the readyPromise instead of polling initialized flag
+   - Updated `loadUserProfile()` to get token from Supabase session directly
+   - Uses `session.access_token` instead of localStorage 'auth_token'
+   - Properly handles case where session doesn't exist
+
+How It Works:
+1. Supabase client stores session in localStorage automatically (persistSession: true)
+2. On page load, AuthService.initialize() calls `supabase.auth.getSession()`
+3. Supabase restores the session from localStorage tokens
+4. Pages await authService.initialize() before checking authentication
+5. Session tokens are automatically refreshed by Supabase (autoRefreshToken: true)
+
+Files Modified:
+- `frontend/assets/js/services/AuthService.js`: Added readyPromise and hasStoredSession()
+- `frontend/assets/js/Application.js`: Added authReady property and event emission
+- `frontend/pages/profile.html`: Updated to properly await auth initialization
+
+Storage Keys Used by Supabase:
+- `sb-<project-ref>-auth-token` - Main session token with access/refresh tokens
+- Session includes: access_token, refresh_token, expires_at, user data
+
+Benefits:
+- Auth state now persists reliably across page navigation
+- No more race conditions or stale auth checks
+- Pages can await auth initialization before proceeding
+- Cleaner, more predictable authentication flow
+- Works seamlessly with Supabase's built-in session management
+
 
 
 # EXTENSION FUNCTIONALITY - SNEVO E-COMMERCE PLATFORM
@@ -466,6 +520,52 @@ DELETE /api/reviews/:id
 - ✓ Automatic detection of placeholder values
 - ✓ Comprehensive environment variable validation on startup
 - ✓ Helpful error messages for configuration issues
+
+## PROFILE MANAGEMENT AUTO-LOAD/SAVE (Oct 2025)
+✅ COMPLETED: Profile information auto-loads and saves from/to db_nike.profiles
+
+**Implementation Details**:
+1. **Backend ProfileController** (`backend/controllers/ProfileController.js`):
+   - Fully implemented `getProfile()` method to fetch user profile from db_nike.profiles
+   - Fully implemented `updateProfile()` method to save changes to db_nike.profiles
+   - Validates all profile fields (full_name, username, phone, date_of_birth, gender, avatar_url)
+   - Includes proper error handling and authentication checks
+   - Filters updates to only allowed fields for security
+
+2. **Backend Auth Routes** (`backend/server.js`):
+   - Added `handleAuthRoutes()` method to handle /api/auth/* endpoints
+   - Routes GET /api/auth/profile to ProfileController.getProfile
+   - Routes PUT /api/auth/profile to ProfileController.updateProfile
+   - Includes authentication middleware for all auth routes
+   - Also handles /api/auth/addresses endpoints for address management
+
+3. **Frontend Integration** (`frontend/pages/profile.html`):
+   - Already had complete implementation with inline scripts
+   - Auto-loads profile data on page load via GET /api/auth/profile
+   - Populates all form fields with user data from database
+   - "Save Changes" button triggers PUT /api/auth/profile
+   - Displays success/error messages with Bootstrap toasts
+   - Includes "Refresh Data" button to reload profile info
+
+**Features**:
+- ✅ Auto-loads profile info from db_nike.profiles table
+- ✅ Populates Personal Info tab fields (full_name, username, email, phone, date_of_birth, gender, avatar_url)
+- ✅ Email field is read-only (cannot be changed)
+- ✅ Validates all input fields (client-side and server-side)
+- ✅ Updates profile data in database when "Save Changes" is clicked
+- ✅ Shows loading indicators during save operation
+- ✅ Displays success/error messages to user
+- ✅ Authentication required for all profile operations
+- ✅ Handles 404 gracefully for new users without profiles
+
+**Files Modified**:
+- `backend/controllers/ProfileController.js`: Implemented controller methods
+- `backend/server.js`: Added handleAuthRoutes and wired up auth endpoints
+- No frontend changes needed (already implemented)
+
+**Database Schema**:
+- Table: `db_nike.profiles`
+- Key fields: user_id (PK, UUID), username, full_name, phone, date_of_birth, gender, avatar_url, role, created_at, updated_at
 
 ## DEPLOYMENT REQUIREMENTS
 - **Frontend**: Static hosting (Netlify/Vercel) with build process
