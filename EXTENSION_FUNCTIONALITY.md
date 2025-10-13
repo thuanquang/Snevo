@@ -198,6 +198,61 @@ Benefits:
 - Cleaner, more predictable authentication flow
 - Works seamlessly with Supabase's built-in session management
 
+Navbar Consistency Across All Pages (Oct 2025)
+-----------------------------------------------
+✅ FIXED: All pages now have consistent script loading and navbar behavior
+
+Issues Fixed:
+1. **products.html** had typo in config.js path (`assetasfas` instead of `assets`)
+2. **product-detail.html** was missing Supabase SDK, config.js, and Application.js
+3. **categories.html**, **orders.html**, **addresses.html** were bare-bones stubs
+4. **verify-email.html** was missing NavbarManager and Application.js
+
+Standardized Script Loading Order (All Pages):
+```html
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- Configuration -->
+<script src="../assets/js/config.js"></script>
+
+<!-- Custom Scripts -->
+<script type="module" src="../assets/js/ApiClient.js"></script>
+<script type="module" src="../assets/js/AuthManager.js"></script>
+<script type="module" src="../assets/js/NavbarManager.js"></script>
+<script type="module" src="../assets/js/Application.js"></script>
+<script src="../assets/js/animations.js"></script>
+```
+
+Pages Updated:
+- ✅ `frontend/pages/products.html` - Fixed config.js typo
+- ✅ `frontend/pages/product-detail.html` - Added missing scripts
+- ✅ `frontend/pages/categories.html` - Rebuilt with proper structure
+- ✅ `frontend/pages/orders.html` - Rebuilt with proper structure and auth wait
+- ✅ `frontend/pages/addresses.html` - Rebuilt with proper structure and auth wait
+- ✅ `frontend/pages/verify-email.html` - Added missing NavbarManager and Application.js
+- ✅ `frontend/pages/index.html` - Already correct
+- ✅ `frontend/pages/profile.html` - Already correct
+- ✅ `frontend/pages/admin.html` - Already correct
+- ✅ `frontend/pages/cart.html` - Already correct
+- ✅ `frontend/pages/checkout.html` - Already correct
+
+Navbar Behavior:
+- All pages use `<div id="navbarRoot" data-navbar-page="pageType"></div>`
+- NavbarManager automatically loads on all pages
+- Auth buttons update consistently across all pages
+- Login modal works globally
+- User state persists and displays correctly everywhere
+
+Benefits:
+- Consistent user experience across all pages
+- Auth state visible immediately on page load
+- No more broken navigation or missing navbars
+- All pages follow the same initialization pattern
+- Easy to debug and maintain
+
 
 
 # EXTENSION FUNCTIONALITY - SNEVO E-COMMERCE PLATFORM
