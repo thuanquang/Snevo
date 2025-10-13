@@ -291,15 +291,6 @@
             margin-bottom: 0;
         }
 
-        /* Clean Notifications */
-        .form-check-input:checked {
-            background-color: #000;
-            border-color: #000;
-        }
-
-        .form-check-input:focus {
-            box-shadow: 0 0 0 0.2rem rgba(0, 0, 0, 0.1);
-        }
 
         @media (max-width: 991.98px) {
             .profile-sidebar {
@@ -353,11 +344,6 @@
                                 <li class="nav-item">
                                     <a class="nav-link" href="#password-change" data-section="password-change">
                                         Password Change
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="#notifications" data-section="notifications">
-                                        Notifications
                                     </a>
                                 </li>
                                 <li class="nav-item">
@@ -526,71 +512,6 @@
                             </form>
                         </div>
                         
-                        <!-- Notifications Section -->
-                        <div class="profile-section-content" id="notifications-section">
-                            <div class="section-header">
-                                <h3 class="section-title">Notification Preferences</h3>
-                                <p class="section-subtitle">Choose how you want to be notified about updates</p>
-                            </div>
-                            
-                            <form id="notificationsForm" class="profile-form">
-                                <div class="notification-settings">
-                                    <div class="setting-item">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <h6 class="mb-1">Email Notifications</h6>
-                                                <p class="text-muted mb-0">Receive updates about your orders and account</p>
-                                            </div>
-                                            <div class="form-check form-switch">
-                                                <input class="form-check-input" type="checkbox" id="emailNotifications" name="email_notifications" checked>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="setting-item">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <h6 class="mb-1">Order Updates</h6>
-                                                <p class="text-muted mb-0">Get notified when your order status changes</p>
-                                            </div>
-                                            <div class="form-check form-switch">
-                                                <input class="form-check-input" type="checkbox" id="orderUpdates" name="order_updates" checked>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="setting-item">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <h6 class="mb-1">Product Recommendations</h6>
-                                                <p class="text-muted mb-0">Receive personalized product suggestions</p>
-                                            </div>
-                                            <div class="form-check form-switch">
-                                                <input class="form-check-input" type="checkbox" id="productRecommendations" name="product_recommendations" checked>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="setting-item">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <h6 class="mb-1">Marketing Emails</h6>
-                                                <p class="text-muted mb-0">Receive promotional offers and news</p>
-                                            </div>
-                                            <div class="form-check form-switch">
-                                                <input class="form-check-input" type="checkbox" id="marketingEmails" name="marketing_emails">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="form-actions">
-                                    <button type="submit" class="btn btn-primary">
-                                        Save Preferences
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
                         
                         <!-- Account Settings Section -->
                         <div class="profile-section-content" id="account-settings-section">
@@ -1441,11 +1362,6 @@
                     passwordChangeForm.addEventListener('submit', handlePasswordChange);
                 }
                 
-                // Notifications form
-                const notificationsForm = document.getElementById('notificationsForm');
-                if (notificationsForm) {
-                    notificationsForm.addEventListener('submit', handleNotificationsSubmit);
-                }
             }
             
             async function handlePersonalInfoSubmit(e) {
@@ -1587,41 +1503,6 @@
                 }
             }
             
-            async function handleNotificationsSubmit(e) {
-                e.preventDefault();
-                
-                const formData = new FormData(e.target);
-                const data = Object.fromEntries(formData);
-                
-                // Convert checkboxes to boolean values
-                const notificationSettings = {
-                    email_notifications: data.email_notifications === 'on',
-                    order_updates: data.order_updates === 'on',
-                    product_recommendations: data.product_recommendations === 'on',
-                    marketing_emails: data.marketing_emails === 'on'
-                };
-                
-                try {
-                    const response = await fetch('/api/auth/notifications', {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                        },
-                        body: JSON.stringify(notificationSettings)
-                    });
-                    
-                    if (response.ok) {
-                        showSuccess('Notification preferences saved!');
-                    } else {
-                        const error = await response.json();
-                        throw new Error(error.message || 'Failed to save preferences');
-                    }
-                } catch (error) {
-                    console.error('Error saving notifications:', error);
-                    showError(error.message || 'Failed to save notification preferences');
-                }
-            }
             
             // Global functions for address management
             window.saveNewAddress = async function() {

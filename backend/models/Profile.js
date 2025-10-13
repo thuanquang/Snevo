@@ -11,7 +11,9 @@ class Profile extends BaseModel {
     // Get profile by user ID
     async findByUserId(userId) {
         try {
-            return await this.find({ user_id: userId });
+            const result = await this.find({ user_id: userId });
+            // Extract the first record from the paginated result
+            return result.data && result.data.length > 0 ? result.data[0] : null;
         } catch (error) {
             console.error('Error finding profile by user ID:', error);
             return null; // Return null instead of throwing for graceful fallback
