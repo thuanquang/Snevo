@@ -34,6 +34,40 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: 600 !important;
 }
 /* Navbar Fixed Position & Scroll Behavior */
+
+#navbarRoot nav,
+#navbarRoot .navbar {
+    position: relative !important;
+    margin-bottom: 0 !important;
+}
+
+.navbar .container {
+    position: relative;
+}
+
+/* Navbar collapse phải static */
+.navbar .navbar-collapse {
+    position: static;
+}
+
+/* Nav items (Home, Shop, Categories) căn giữa container */
+.navbar-nav.mx-auto {
+    position: absolute !important;
+    left: 50% !important;
+    transform: translateX(-42.5%) !important;
+    margin: 0 !important;
+    gap: 80px !important;
+    display: flex !important;
+    flex-direction: row !important;
+}
+
+/* Đảm bảo right nav items (search, cart, login) không bị ảnh hưởng */
+.navbar-nav:not(.mx-auto) {
+    margin-left: auto !important;
+    position: relative !important;
+    z-index: 10;
+}
+
 #navbarRoot {
     position: fixed !important;
     top: 0;
@@ -117,8 +151,15 @@ h1, h2, h3, h4, h5, h6 {
 
 .hero-actions .btn {
     border-radius: 32px;
-    padding: 12px 36px;
-    font-size: 16px;
+    padding: 18px 36px;
+    font-size: 17px;
+    background-color: #000;
+    color: #fff;    
+    
+}
+
+.hero-actions .btn:hover {
+    background-color: #333;
 }
 
 .hero-image img {
@@ -134,7 +175,7 @@ h1, h2, h3, h4, h5, h6 {
 .hero-vertical-text {
     position: absolute;
     top: 50%;
-    transform: translateX(-42.75%) translateY(-19.2%) rotate(-90deg);
+    transform: translateX(-42.75%) translateY(-19%) rotate(-90deg);
     transform-origin: center center;
     font-family: 'Poppins', sans-serif;
     font-size: clamp(60px, 8.4vw, 130px); /* Auto responsive */
@@ -187,7 +228,7 @@ h1, h2, h3, h4, h5, h6 {
     font-family: 'Poppins', sans-serif;
     font-size: 48px;
     font-weight: bold;
-    margin: 250px 0px 50px 0px;
+    margin: 300px 0px 50px 0px;
     text-align: center;
 }
 

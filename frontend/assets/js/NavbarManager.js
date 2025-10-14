@@ -96,7 +96,7 @@ class NavbarManager {
      */
     createFallbackTemplate() {
         return `
-            <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top shadow-sm" id="unifiedNavbar" style="margin: 0; padding-left: 30px; padding-right: 30px;">
+            <nav class="navbar navbar-expand-lg navbar-light bg-black fixed-top shadow-sm" id="unifiedNavbar" style="margin: 0; padding-left: 30px; padding-right: 30px;">
                 <div class="container">
                     <a class="navbar-brand" href="#" data-navbar-brand>
                         <img src="../assets/images/ui/logo.svg" alt="SNEVO" height="50">
@@ -355,7 +355,7 @@ initScrollBehavior() {
     document.addEventListener('touchmove', (e) => {
         touchEndY = e.touches[0].clientY;
     }, { passive: true });
-};
+}
 
     /**
      * Create navbar directly in DOM
@@ -394,7 +394,7 @@ initScrollBehavior() {
                         <ul class="navbar-nav" style="gap: 30px;">
                             <li class="nav-item">
                                 <a class="nav-link" href="#" id="searchToggle">
-                                    <img src="../assets/images/ui/search.svg" alt="Search" height="23" width="23">
+                                    <img src="../assets/images/ui/search.svg" alt="Search" height="20" width="20">
                                 </a>
                             </li>
                             <li class="nav-item" id="cartNavItem">
@@ -408,7 +408,7 @@ initScrollBehavior() {
                             <li class="nav-item" style=" border-radius: 32px;">
                                 <ul class="navbar-nav" id="authButtons">
                                     <li class="nav-item">
-                                        <a class="nav-link px-4 fw-medium" style="color: white !important;" href="#" id="globalLoginLink">Login</a>
+                                        <a class="nav-link px-4 fw-medium" style="color: black !important;" href="#" id="globalLoginLink">Login</a>
                                     </li>
                                 </ul>
                             </li>
@@ -882,7 +882,7 @@ initScrollBehavior() {
     showNavbarLogoutSuccessToast() {
         // Create and show logout success toast
         const toast = document.createElement('div');
-        toast.className = 'toast align-items-center text-white bg-info border-0';
+        toast.className = 'toast align-items-center text-black bg-info border-0';
         toast.setAttribute('role', 'alert');
         toast.innerHTML = `
             <div class="d-flex">
@@ -1060,5 +1060,4 @@ window.initNavbar = () => {
     navbarManager.initialize();
 };
 
-export default NavbarManager;
-export { navbarManager };
+
