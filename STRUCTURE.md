@@ -12,7 +12,7 @@
 snevo/
 ├── backend/                           # ⚙️ Backend Node.js OOP MVC
 │   ├── controllers/                   # 🎯 Controllers - Xử lý API requests
-│   │   ├── AuthController.js          # 🔐 Xác thực - Login/register/logout cho users
+│   │   ├── AuthController.js          # (removed) Supabase handles auth
 │   │   ├── ProfileController.js       # 👨‍💼 Hồ sơ - Quản lý profiles của users
 │   │   ├── AddressController.js       # 🏠 Địa chỉ - CRUD addresses của users
 │   │   ├── CategoryController.js      # 📂 Danh mục - CRUD categories giày
@@ -39,22 +39,22 @@ snevo/
 │   │   ├── OrderItem.js               # 📋 Model order_items table
 │   │   ├── Payment.js                 # 💳 Model payments table
 │   │   └── Review.js                  # ⭐ Model reviews table
-│   ├── routes/                        # 🛣️ API routes - Kết nối endpoints với controllers
+│   ├── routes/                        # 🛣️ API routes - Kết nối endpoints với controllers (no Express)
 │   │   ├── index.js                   # 🏠 Main router - Tập hợp tất cả routes
 │   │   ├── auth.js                    # 🔐 Auth routes - /api/auth/*
-│   │   ├── users.js                   # 👤 User routes - /api/users/*
-│   │   ├── profiles.js                # 👨‍💼 Profile routes - /api/profiles/*
-│   │   ├── addresses.js               # 🏠 Address routes - /api/addresses/*
+│   │   ├── users.js                   # (removed)
+│   │   ├── profiles.js                # (removed)
+│   │   ├── addresses.js               # (removed)
 │   │   ├── categories.js              # 📂 Category routes - /api/categories/*
 │   │   ├── products.js                # 👟 Product routes - /api/products/*
 │   │   ├── colors.js                  # 🎨 Color routes - /api/colors/*
 │   │   ├── sizes.js                   # 📏 Size routes - /api/sizes/*
 │   │   ├── variants.js                # ⭐ Variant routes - /api/variants/*
-│   │   ├── imports.js                 # 📥 Import routes - /api/imports/*
-│   │   ├── orders.js                  # 🛒 Order routes - /api/orders/*
-│   │   ├── payments.js                # 💳 Payment routes - /api/payments/*
-│   │   ├── reviews.js                 # ⭐ Review routes - /api/reviews/*
-│   │   └── admin.js                   # 👑 Admin routes - /api/admin/*
+│   │   ├── imports.js                 # (removed)
+│   │   ├── orders.js                  # (removed)
+│   │   ├── payments.js                # (removed)
+│   │   ├── reviews.js                 # (removed)
+│   │   └── admin.js                   # (removed)
 │   ├── middleware/                    # 🛡️ Middleware - Auth, validation, errors
 │   │   ├── auth.js                    # 🔐 JWT authentication middleware
 │   │   ├── admin.js                   # 👑 Admin authorization middleware
@@ -63,7 +63,7 @@ snevo/
 │   │   ├── upload.js                  # 📤 File upload middleware
 │   │   └── errors.js                  # 🚨 Global error handling middleware
 │   ├── utils/                         # 🔧 Utilities - Helpers, base classes, tools
-│   │   ├── jwt.js                     # 🎫 JWT token utilities
+│   │   ├── jwt.js                     # (removed) Supabase manages JWT
 │   │   ├── validation.js              # ✅ Validation schemas (Joi)
 │   │   ├── stock.js                   # 📊 Stock calculation utilities
 │   │   ├── constants.js               # 📋 Application constants
@@ -104,8 +104,8 @@ snevo/
 │   │   ├── orders.html                # 📦 Order history page
 │   │   ├── profile.html               # 👤 User profile page
 │   │   ├── addresses.html             # 🏠 Address management page
-│   │   ├── login.html                 # 🔐 Login page
-│   │   ├── register.html              # 📝 Registration page
+│   │   ├── login.html                 # (removed) Use global login modal
+│   │   ├── register.html              # (removed)
 │   │   └── admin.html                 # 👑 Admin dashboard page
 │   └── components/                    # 🧩 Reusable UI components
 │       ├── navbar.html                # 🧭 Unified navbar template with overrides
