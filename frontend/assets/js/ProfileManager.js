@@ -1588,7 +1588,7 @@ class ProfileManager {
     showLogoutSuccessToast() {
         // Create and show logout success toast (positioned to be visible during redirect)
         const toast = document.createElement('div');
-        toast.className = 'toast align-items-center text-white bg-info border-0';
+        toast.className = 'toast align-items-center text-black bg-info border-0';
         toast.setAttribute('role', 'alert');
         toast.innerHTML = `
             <div class="d-flex">

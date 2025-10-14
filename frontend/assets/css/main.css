@@ -7,7 +7,7 @@ html {
     overflow-x: hidden !important;
     width: 100%;
     position: relative;
-    scroll-behavior: smooth;
+    scroll-behavior: smooth !important;
 }
 
 * {

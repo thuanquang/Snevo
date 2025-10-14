@@ -143,7 +143,7 @@ class AuthManager {
 
             authButtons.innerHTML = `
                 <li class="nav-item">
-                    <a class="nav-link text-white px-4" href="${getRelativePath(targetPage)}" id="${linkId}">
+                    <a class="nav-link text-black px-4" href="${getRelativePath(targetPage)}" id="${linkId}">
                         ${userName}
                     </a>
                 </li>
@@ -152,7 +152,7 @@ class AuthManager {
             // User is not logged in - show login button
             authButtons.innerHTML = `
                 <li class="nav-item">
-                    <a class="nav-link text-white px-4" href="#" id="globalLoginLink">Login</a>
+                    <a class="nav-link text-black px-4" href="#" id="globalLoginLink">Login</a>
                 </li>
             `;
 
