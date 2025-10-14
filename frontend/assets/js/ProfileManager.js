@@ -3,7 +3,7 @@
  * Handles user profile operations, address management, and settings
  */
 
-import { apiClient } from './ApiClient.js';
+
 
 class ProfileManager {
     constructor() {
