@@ -140,7 +140,7 @@ class NavbarManager {
                             </li>
                             <ul class="navbar-nav" id="authButtons">
                                 <li class="nav-item">
-                                    <a class="nav-link" href="#" id="globalLoginLink">Login</a>
+                                    <a class="nav-link " href="#" id="globalLoginLink">Login</a>
                                 </li>
                             </ul>
                         </ul>
