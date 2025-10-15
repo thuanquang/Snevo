@@ -427,6 +427,11 @@ h1, h2, h3, h4, h5, h6 {
     margin: 0 6px;
 }
 
+@keyframes slideLogos {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
+}
+
 .email-verification-notice {
     background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
     border-bottom: 1px solid #dee2e6;
