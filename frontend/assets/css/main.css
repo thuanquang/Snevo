@@ -1,4 +1,3 @@
-
 html {
     overflow-x: hidden !important;
     width: 100%;
@@ -65,13 +64,44 @@ h1, h2, h3, h4, h5, h6 {
     left: 0;
     right: 0;
     z-index: 1000;
-    transition: transform 0.3s ease-in-out;
-    will-change: transform;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease-in-out;
+    will-change: transform, background-color;
 }
 
+/* Transparent navbar when at top */
+#navbarRoot.navbar-transparent {
+    background-color: transparent !important;
+    box-shadow: none;
+}
 
+#navbarRoot.navbar-transparent .navbar {
+    background-color: transparent !important;
+}
 
-/* Nike-style product grid */
+#navbarRoot.navbar-transparent .navbar-brand,
+#navbarRoot.navbar-transparent .nav-link {
+    color: #000 !important;
+}
+
+/* White navbar when scrolled */
+#navbarRoot.navbar-scrolled {
+    background-color: #ffffff !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+#navbarRoot.navbar-scrolled .navbar {
+    background-color: #ffffff !important;
+}
+
+#navbarRoot.navbar-scrolled .navbar-brand,
+#navbarRoot.navbar-scrolled .nav-link {
+    color: #111827 !important;
+}
+
+#navbarRoot.navbar-scrolled .navbar-brand img {
+    filter: none; /* Original black logo */
+}
+
 .product-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -79,8 +109,6 @@ h1, h2, h3, h4, h5, h6 {
     padding: 40px 0;
 }
 
-
-/* Nike-style loading states */
 .loading-nike {
     display: inline-block;
     width: 20px;
@@ -423,6 +451,75 @@ h1, h2, h3, h4, h5, h6 {
     border: none;
     margin: 0 6px;
 }
+
+/* Footer Styles - Minimal & Professional */
+.footer {
+    background: #ffffff;
+    border-top: 1px solid #e5e7eb;
+    padding: 3rem 0 2rem;
+    margin-top: auto;
+}
+
+.footer-logo {
+    height: 40px;
+    width: auto;
+    filter: brightness(0); /* Makes logo black */
+}
+
+.footer h6 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #1f2937;
+    letter-spacing: 0.02em;
+}
+
+.footer-links {
+    margin: 0;
+    padding: 0;
+}
+
+.footer-links li {
+    margin-bottom: 0.5rem;
+}
+
+.footer-links a {
+    font-size: 0.9rem;
+    color: #6b7280;
+    transition: color 0.2s ease;
+}
+
+.footer-links a:hover {
+    color: #111827;
+}
+
+.footer .social-links a {
+    color: #1f2937;
+    transition: all 0.2s ease;
+}
+
+.footer .social-links a:hover {
+    color: #4b5563;
+    transform: translateY(-2px);
+}
+
+.footer hr {
+    border-color: #e5e7eb;
+    opacity: 1;
+}
+
+.footer .text-muted {
+    color: #6b7280 !important;
+}
+
+.footer .small {
+    font-size: 0.875rem;
+}
+
+/* Remove bottom spacing */
+.footer {
+    margin-bottom: 0 !important;
+}
+
 
 /*@keyframes slideLogos {
     0% { transform: translateX(0); }
