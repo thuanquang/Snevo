@@ -284,6 +284,55 @@ initScrollBehavior() {
     }, { passive: true });
 }
 
+/**
+ * Setup scroll behavior for navbar
+ */
+setupScrollBehavior() {
+    const navbarRoot = document.getElementById('navbarRoot');
+    if (!navbarRoot) {
+        console.warn('⚠️ navbarRoot not found for scroll behavior');
+        return;
+    }
+
+    // Set initial state (transparent)
+    navbarRoot.classList.add('navbar-transparent');
+
+    // Scroll handler
+    let lastScrollTop = 0;
+    const scrollThreshold = 50; 
+
+    const handleScroll = () => {
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+        if (scrollTop > scrollThreshold) {
+            // Scrolled down - show white navbar
+            navbarRoot.classList.remove('navbar-transparent');
+            navbarRoot.classList.add('navbar-scrolled');
+        } else {
+            // At top - show transparent navbar
+            navbarRoot.classList.remove('navbar-scrolled');
+            navbarRoot.classList.add('navbar-transparent');
+        }
+
+        lastScrollTop = scrollTop;
+    };
+
+    // Throttle scroll event for performance
+    let ticking = false;
+    window.addEventListener('scroll', () => {
+        if (!ticking) {
+            window.requestAnimationFrame(() => {
+                handleScroll();
+                ticking = false;
+            });
+            ticking = true;
+        }
+    });
+
+    // Initial check
+    handleScroll();
+}
+
     /**
      * Create navbar directly in DOM
      */
@@ -348,6 +397,8 @@ initScrollBehavior() {
 
         // Initialize scroll behavior
         this.initScrollBehavior();
+
+        this.setupScrollBehavior();
 
         // Update paths
         this.updatePaths();
