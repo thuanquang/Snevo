@@ -38,12 +38,10 @@ h1, h2, h3, h4, h5, h6 {
     position: relative;
 }
 
-/* Navbar collapse phải static */
 .navbar .navbar-collapse {
     position: static;
 }
 
-/* Nav items (Home, Shop, Categories) căn giữa container */
 .navbar-nav.mx-auto {
     position: absolute !important;
     left: 50% !important;
@@ -283,7 +281,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .banner-section{
-    margin : 150px 0 20px 0;
+    margin : 150px auto 20px auto;
 }
 
 .banner-section .banner-bg {
@@ -339,7 +337,6 @@ h1, h2, h3, h4, h5, h6 {
   font-family: 'Inter', sans-serif;
   font-size: 22px;
   font-weight: 700;
-  box-shadow: 0 2px 16px rgba(30, 29, 54, 0.08);
   transition: background 0.2s, color 0.2s;
 }
 
