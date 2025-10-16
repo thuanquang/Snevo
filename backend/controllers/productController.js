@@ -46,7 +46,6 @@ class ProductController extends BaseController {
                 is_active: req.query.is_active !== undefined ? req.query.is_active === 'true' : true,
                 include_no_variants: req.query.include_no_variants === 'true'  // ⭐ NEW
             };
-
             const result = await this.Shoe.findAllWithFilters(
                 filters,
                 pagination,

@@ -20,6 +20,7 @@ class NavbarManager {
         this.overrides = {};
         this.listeners = new Map();
         this.isSearchExpanded = false;
+        this.searchTimeout = null; 
         
         // Bind methods
         this.initialize = this.initialize.bind(this);
@@ -301,21 +302,7 @@ initScrollBehavior() {
                 <div class="container">
                     <a class="navbar-brand" href="#" data-navbar-brand>
                         <img src="../assets/images/ui/logo.svg" alt="SNEVO" height="50">
-                    </a>
-                        <!-- ⭐ Expandable Search Container -->
-                    <div id="navbarSearchContainer" class="navbar-search-container">
-                        <div class="search-input-wrapper">
-                            <i class="fas fa-search search-input-icon"></i>
-                            <input 
-                                type="text" 
-                                id="navbarSearchInput" 
-                                class="form-control search-input" 
-                                placeholder="Search shoes, brands, styles..."
-                                autocomplete="off"
-                            >
-                        </div>
-                        <div id="searchSuggestions" class="search-suggestions"></div>
-                    </div>
+                    </a>                    
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                         <span class="navbar-toggler-icon"></span>
                     </button>
@@ -328,7 +315,7 @@ initScrollBehavior() {
                                 <a class="nav-link" href="#" data-navbar-link="products">Shop</a>
                             </li>
                             <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" data-navbar-link="categories" role="button" data-bs-toggle="dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                                     Categories
                                 </a>
                                 <ul class="dropdown-menu" id="categoriesDropdown">
@@ -338,10 +325,29 @@ initScrollBehavior() {
                         </ul>
                         
                         <ul class="navbar-nav" style="gap: 30px;">
-                            <li class="nav-item">
-                                <a class="nav-link" href="#" id="searchToggle" data-navbar-link="search">
-                                    <img src="../assets/images/ui/search.svg" alt="Search" height="20" width="20">
+                            <li class="nav-item dropdown me-3">
+                                <a class="nav-link dropdown-toggle" href="#" id="searchDropdown" 
+                                role="button" data-bs-toggle="dropdown" aria-expanded="false"
+                                data-bs-auto-close="outside">
+                                    <i class="bi bi-search"></i> Search
                                 </a>
+                                <div class="dropdown-menu dropdown-menu-end p-3" style="min-width: 350px;">
+                                    <div class="input-group mb-2">
+                                        <input 
+                                            type="text" 
+                                            class="form-control" 
+                                            id="searchDropdownInput" 
+                                            placeholder="Search products..." 
+                                            autocomplete="off">
+                                        <button 
+                                            class="btn btn-primary" 
+                                            type="button" 
+                                            id="searchDropdownButton">
+                                            <i class="bi bi-search"></i> Search
+                                        </button>
+                                    </div>
+                                    <div id="searchDropdownSuggestions"></div>
+                                </div>
                             </li>
                             <li class="nav-item" id="cartNavItem">
                                 <a class="nav-link position-relative" href="#" data-navbar-link="cart">
@@ -361,124 +367,7 @@ initScrollBehavior() {
                         </ul>
                     </div>
                 </div>
-            </nav>
-        <style>
-    /* ⭐ THÊM: Expandable Search Styles */
-    .navbar {
-        transition: all 0.3s ease;
-        z-index: 1050;
-    }
-
-    /* Search container - HIDDEN by default */
-    .navbar-search-container {
-        position: absolute;
-        left: 0;
-        right: 0;
-        top: 0;
-        bottom: 0;
-        display: flex;
-        align-items: center;
-        padding: 0 1rem;
-        background: white;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.3s ease;
-        z-index: 10;
-    }
-
-    .navbar-search-container.expanded {
-        opacity: 1;
-        pointer-events: auto;
-    }
-
-    .search-input-wrapper {
-        position: relative;
-        width: 100%;
-        max-width: 600px;
-        margin: 0 auto;
-    }
-
-    .search-input-icon {
-        position: absolute;
-        left: 15px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #999;
-        font-size: 18px;
-        pointer-events: none;
-    }
-
-    .search-input {
-        width: 100%;
-        height: 48px;
-        padding: 0 20px 0 50px;
-        border: none;
-        background: #f5f5f5;
-        border-radius: 24px;
-        font-size: 16px;
-    }
-
-    .search-input:focus {
-        outline: none;
-        background: #e8e8e8;
-    }
-
-    /* Cancel button - HIDDEN by default */
-    .cancel-search-btn {
-        position: absolute;
-        right: 1rem;
-        top: 50%;
-        transform: translateY(-50%);
-        opacity: 0;
-        pointer-events: none;
-        color: #111;
-        font-weight: 500;
-        transition: opacity 0.3s ease;
-        z-index: 11;
-    }
-
-    .navbar.search-expanded .cancel-search-btn {
-        opacity: 1;
-        pointer-events: auto;
-    }
-
-    .navbar.search-expanded .navbar-collapse {
-        opacity: 0;
-        pointer-events: none;
-    }
-
-    .search-suggestions {
-        position: absolute;
-        top: 100%;
-        left: 0;
-        right: 0;
-        margin-top: 8px;
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        max-height: 400px;
-        overflow-y: auto;
-        display: none;
-    }
-
-    .search-suggestion-item {
-        padding: 12px 20px;
-        cursor: pointer;
-    }
-
-    .search-suggestion-item:hover {
-        background: #f5f5f5;
-    }
-
-    .nav-item {
-        transition: opacity 0.2s ease;
-    }
-
-    .navbar-brand {
-        position: relative;
-        z-index: 12;
-    }
-    </style>    
+            </nav> 
         `;
         
         navbarRoot.innerHTML = navbarHTML;
@@ -493,213 +382,255 @@ initScrollBehavior() {
         // Update paths
         this.updatePaths();
     }
-    /**
- * Bind search events
+/**
+ * ⭐ COMPLETE SEARCH LOGIC with EXTENSIVE DEBUGGING
  */
 bindSearchEvents() {
-    const searchToggle = document.getElementById('searchToggle');
-    const cancelSearchBtn = document.getElementById('cancelSearchBtn');
-    const searchInput = document.getElementById('navbarSearchInput');
-
-    if (!searchToggle || !cancelSearchBtn || !searchInput) {
-        console.warn('⚠️ Search elements not found in navbar');
+    console.log('🔧 [bindSearchEvents] Starting to bind search events...');
+    
+    const searchInput = document.getElementById('searchDropdownInput');
+    const searchButton = document.getElementById('searchDropdownButton');
+    
+    console.log('🔍 [bindSearchEvents] Elements found:', {
+        searchInput: !!searchInput,
+        searchButton: !!searchButton,
+        searchInputId: searchInput?.id,
+        searchButtonId: searchButton?.id
+    });
+    
+    if (!searchInput) {
+        console.error('❌ [bindSearchEvents] Search input NOT FOUND');
+        // Try to find it with querySelector
+        const allInputs = document.querySelectorAll('input[type="text"]');
+        console.log('🔍 [bindSearchEvents] All text inputs found:', allInputs.length);
+        allInputs.forEach((input, idx) => {
+            console.log(`   Input ${idx}:`, input.id, input.placeholder);
+        });
+        return;
+    }
+    
+    if (!searchButton) {
+        console.error('❌ [bindSearchEvents] Search button NOT FOUND');
+        // Try to find it with querySelector
+        const allButtons = document.querySelectorAll('button');
+        console.log('🔍 [bindSearchEvents] All buttons found:', allButtons.length);
+        allButtons.forEach((btn, idx) => {
+            console.log(`   Button ${idx}:`, btn.id, btn.textContent?.trim());
+        });
         return;
     }
 
-    // Click search icon to expand
-    searchToggle.addEventListener('click', (e) => {
+    // ⭐ CORE SEARCH FUNCTION - Navigate to products.html with search query
+    const performSearch = () => {
+        console.log('🎯 [performSearch] Function called');
+        
+        const query = searchInput.value.trim();
+        console.log('🔍 [performSearch] Query:', {
+            raw: searchInput.value,
+            trimmed: query,
+            length: query.length
+        });
+        
+        if (!query) {
+            console.warn('⚠️ [performSearch] Empty search query, aborting');
+            alert('Please enter a search term');
+            return;
+        }
+        
+        console.log('✅ [performSearch] Valid query, preparing navigation...');
+        
+        // Navigate to products page with search parameter
+        const currentPath = window.location.pathname;
+        console.log('📍 [performSearch] Current path:', currentPath);
+        
+        const productsUrl = this.getRelativePath('products.html');
+        console.log('🔗 [performSearch] Products relative path:', productsUrl);
+        
+        const searchUrl = `${productsUrl}?search=${encodeURIComponent(query)}`;
+        console.log('🔗 [performSearch] Final search URL:', searchUrl);
+        
+        console.log('🚀 [performSearch] Navigating now...');
+        window.location.href = searchUrl;
+    };
+
+    // ⭐ EVENT 1: Enter key press
+    console.log('🔧 [bindSearchEvents] Binding Enter key event...');
+    searchInput.addEventListener('keydown', (e) => {
+        console.log('⌨️ [keydown] Key pressed:', {
+            key: e.key,
+            keyCode: e.keyCode,
+            code: e.code
+        });
+        
+        if (e.key === 'Enter') {
+            console.log('✅ [keydown] Enter key detected!');
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            
+            clearTimeout(this.searchTimeout);
+            
+            console.log('🎯 [keydown] Calling performSearch()...');
+            performSearch();
+            
+            return false;
+        }
+    });
+    console.log('✅ [bindSearchEvents] Enter key event bound');
+
+    // ⭐ EVENT 2: Search button click
+    console.log('🔧 [bindSearchEvents] Binding button click event...');
+    searchButton.addEventListener('click', (e) => {
+        console.log('🖱️ [click] Button clicked!');
+        console.log('   Event:', {
+            type: e.type,
+            target: e.target,
+            currentTarget: e.currentTarget
+        });
+        
         e.preventDefault();
         e.stopPropagation();
-        this.expandSearch();
+        
+        clearTimeout(this.searchTimeout);
+        
+        console.log('🎯 [click] Calling performSearch()...');
+        performSearch();
     });
+    console.log('✅ [bindSearchEvents] Button click event bound');
 
-    // Click cancel to collapse
-    cancelSearchBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        this.collapseSearch();
-    });
-
-    // Handle search input
+    // ⭐ EVENT 3: Debounced search suggestions
+    console.log('🔧 [bindSearchEvents] Binding input event for suggestions...');
     searchInput.addEventListener('input', (e) => {
-        this.handleSearchInput(e.target.value);
-    });
-
-    // Handle Enter key
-    searchInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            this.performExpandableSearch(searchInput.value);
-        } else if (e.key === 'Escape') {
-            this.collapseSearch();
+        const query = e.target.value.trim();
+        console.log('⌨️ [input] Input changed:', query);
+        
+        clearTimeout(this.searchTimeout);
+        
+        if (query.length >= 2) {
+            console.log('⏰ [input] Setting timeout for suggestions...');
+            this.searchTimeout = setTimeout(() => {
+                console.log('🔍 [input] Showing suggestions for:', query);
+                this.showSearchSuggestions(query);
+            }, 300);
+        } else {
+            const container = document.getElementById('searchDropdownSuggestions');
+            if (container) {
+                container.innerHTML = '';
+            }
         }
     });
+    console.log('✅ [bindSearchEvents] Input event bound');
 
-    console.log('✅ Expandable search events bound');
-}
-/**
- * Expand search bar (Nike-style)
- */
-expandSearch() {
-    console.log('🔍 Expanding search...');
-    
-    const navbar = document.querySelector('#unifiedNavbar');
-    const navbarCollapse = document.querySelector('#navbarNav');
-    const searchContainer = document.getElementById('navbarSearchContainer');
-    const searchInput = document.getElementById('navbarSearchInput');
-    const menuItems = document.querySelectorAll('.nav-item:not(.search-icon-item)');
-
-    if (!navbar || !searchContainer) {
-        console.error('❌ Navbar elements not found for expansion');
-        return;
-    }
-
-    // Add expanded state
-    navbar.classList.add('search-expanded');
-    searchContainer.classList.add('expanded');
-
-    // Hide menu items with fade out animation
-    menuItems.forEach(item => {
-        item.style.opacity = '0';
-        item.style.pointerEvents = 'none';
-        setTimeout(() => {
-            item.style.display = 'none';
-        }, 200);
-    });
-
-    // Collapse mobile menu if open
-    if (navbarCollapse && navbarCollapse.classList.contains('show')) {
-        const bsCollapse = bootstrap.Collapse.getInstance(navbarCollapse);
-        if (bsCollapse) {
-            bsCollapse.hide();
-        }
-    }
-
-    // Focus search input
-    setTimeout(() => {
-        searchInput.focus();
-    }, 300);
-
-    this.isSearchExpanded = true;
-    console.log('✅ Search expanded');
+    console.log('✅✅✅ [bindSearchEvents] ALL SEARCH EVENTS BOUND SUCCESSFULLY');
 }
 
 /**
- * Collapse search bar
- */
-collapseSearch() {
-    console.log('🔍 Collapsing search...');
-    
-    const navbar = document.querySelector('#unifiedNavbar');
-    const searchContainer = document.getElementById('navbarSearchContainer');
-    const searchInput = document.getElementById('navbarSearchInput');
-    const menuItems = document.querySelectorAll('.nav-item:not(.search-icon-item)');
-
-    if (!navbar || !searchContainer) return;
-
-    // Remove expanded state
-    navbar.classList.remove('search-expanded');
-    searchContainer.classList.remove('expanded');
-
-    // Show menu items with fade in animation
-    menuItems.forEach(item => {
-        item.style.display = '';
-        setTimeout(() => {
-            item.style.opacity = '1';
-            item.style.pointerEvents = 'auto';
-        }, 50);
-    });
-
-    // Clear search input
-    searchInput.value = '';
-    
-    // Hide suggestions
-    this.hideSearchSuggestions();
-
-    this.isSearchExpanded = false;
-    console.log('✅ Search collapsed');
-}
-
-/**
- * Handle search input (for suggestions)
- */
-handleSearchInput(query) {
-    console.log('🔍 Search query:', query);
-    
-    if (query.length >= 2) {
-        this.showSearchSuggestions(query);
-    } else {
-        this.hideSearchSuggestions();
-    }
-}
-
-/**
- * Show search suggestions
+ * ⭐ Show search suggestions from API with DEBUG
  */
 async showSearchSuggestions(query) {
-    // TODO: Implement real search suggestions from API
-    console.log('💡 Show suggestions for:', query);
+    console.log('🔍 [showSearchSuggestions] Called with query:', query);
     
-    const suggestionsContainer = document.getElementById('searchSuggestions');
-    if (!suggestionsContainer) return;
-
-    // Mock suggestions (replace with real API call)
-    const mockSuggestions = [
-        'Nike Air Max',
-        'Adidas Ultraboost',
-        'Converse All Star'
-    ].filter(item => item.toLowerCase().includes(query.toLowerCase()));
-
-    if (mockSuggestions.length > 0) {
-        suggestionsContainer.innerHTML = mockSuggestions.map(suggestion => `
-            <div class="search-suggestion-item" data-suggestion="${suggestion}">
-                <i class="fas fa-search me-2"></i>${suggestion}
-            </div>
-        `).join('');
-        
-        suggestionsContainer.style.display = 'block';
-
-        // Bind click events
-        suggestionsContainer.querySelectorAll('.search-suggestion-item').forEach(item => {
-            item.addEventListener('click', () => {
-                const suggestion = item.getAttribute('data-suggestion');
-                this.performExpandableSearch(suggestion);
-            });
-        });
-    } else {
-        this.hideSearchSuggestions();
-    }
-}
-
-/**
- * Hide search suggestions
- */
-hideSearchSuggestions() {
-    const suggestionsContainer = document.getElementById('searchSuggestions');
-    if (suggestionsContainer) {
-        suggestionsContainer.innerHTML = '';
-        suggestionsContainer.style.display = 'none';
-    }
-}
-
-/**
- * Perform expandable search
- */
-performExpandableSearch(query) {
-    if (!query || query.trim().length === 0) {
+    const container = document.getElementById('searchDropdownSuggestions');
+    if (!container) {
+        console.error('❌ [showSearchSuggestions] Suggestions container NOT FOUND');
         return;
     }
 
-    console.log('🔍 Performing expandable search for:', query);
-    
-    // Collapse search
-    this.collapseSearch();
+    // Show loading state
+    container.innerHTML = `
+        <div class="text-center py-2">
+            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <small class="text-muted ms-2">Searching...</small>
+        </div>
+    `;
 
-    // ⭐ FIX: Use getRelativePath to get correct path
-    const searchUrl = this.getRelativePath(`products.html?search=${encodeURIComponent(query.trim())}`);
-    console.log('🔗 Redirecting to:', searchUrl);
-    
-    window.location.href = searchUrl;
+    try {
+        // ⭐ Call API - Use correct endpoint: /api/products?search=query
+        const apiUrl = `/api/products?search=${encodeURIComponent(query)}&limit=5`;
+        console.log('🔗 [showSearchSuggestions] Fetching from:', apiUrl);
+        
+        const response = await fetch(apiUrl);
+        console.log('📡 [showSearchSuggestions] Response status:', response.status);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        console.log('✅ [showSearchSuggestions] API response:', result);
+        
+        if (result.success && result.data && result.data.length > 0) {
+            console.log(`✅ [showSearchSuggestions] Found ${result.data.length} products`);
+            
+            const suggestionsHTML = result.data.map(product => `
+                <a href="${this.getRelativePath('product-detail.html')}?id=${product.shoe_id}" 
+                   class="dropdown-item d-flex align-items-center py-2 suggestion-item">
+                    <img src="${product.image_url || '/assets/images/placeholder.jpg'}" 
+                         alt="${product.shoe_name}" 
+                         class="me-2" 
+                         style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;"
+                         onerror="this.src='/assets/images/placeholder.jpg'">
+                    <div class="flex-grow-1">
+                        <div class="fw-medium text-dark">${this.escapeHtml(product.shoe_name)}</div>
+                        <small class="text-primary">${this.formatPrice(product.base_price)}</small>
+                    </div>
+                </a>
+            `).join('');
+            
+            container.innerHTML = `
+                <div class="suggestions-list">
+                    ${suggestionsHTML}
+                </div>
+                <div class="dropdown-divider"></div>
+                <a href="${this.getRelativePath('products.html')}?search=${encodeURIComponent(query)}" 
+                   class="dropdown-item text-center text-primary fw-medium">
+                    <i class="bi bi-search"></i> View all results for "${this.escapeHtml(query)}"
+                </a>
+            `;
+        } else {
+            console.warn('⚠️ [showSearchSuggestions] No products found');
+            container.innerHTML = `
+                <div class="dropdown-item text-muted text-center py-3">
+                    <i class="bi bi-inbox"></i><br>
+                    No results found for "${this.escapeHtml(query)}"
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('❌ [showSearchSuggestions] Error:', error);
+        container.innerHTML = `
+            <div class="dropdown-item text-danger text-center py-3">
+                <i class="bi bi-exclamation-triangle"></i><br>
+                <small>Failed to load suggestions: ${error.message}</small>
+            </div>
+        `;
+    }
 }
+
+/**
+ * ⭐ Helper: Format price (VND)
+ */
+formatPrice(price) {
+    if (!price && price !== 0) return 'N/A';
+    
+    return new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND'
+    }).format(price);
+}
+
+/**
+ * ⭐ Helper: Escape HTML to prevent XSS
+ */
+escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 
     /**
      * Update all navigation paths based on current page location
