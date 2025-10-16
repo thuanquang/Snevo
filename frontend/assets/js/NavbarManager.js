@@ -382,254 +382,136 @@ initScrollBehavior() {
         // Update paths
         this.updatePaths();
     }
-/**
- * ⭐ COMPLETE SEARCH LOGIC with EXTENSIVE DEBUGGING
- */
-bindSearchEvents() {
-    console.log('🔧 [bindSearchEvents] Starting to bind search events...');
-    
-    const searchInput = document.getElementById('searchDropdownInput');
-    const searchButton = document.getElementById('searchDropdownButton');
-    
-    console.log('🔍 [bindSearchEvents] Elements found:', {
-        searchInput: !!searchInput,
-        searchButton: !!searchButton,
-        searchInputId: searchInput?.id,
-        searchButtonId: searchButton?.id
-    });
-    
-    if (!searchInput) {
-        console.error('❌ [bindSearchEvents] Search input NOT FOUND');
-        // Try to find it with querySelector
-        const allInputs = document.querySelectorAll('input[type="text"]');
-        console.log('🔍 [bindSearchEvents] All text inputs found:', allInputs.length);
-        allInputs.forEach((input, idx) => {
-            console.log(`   Input ${idx}:`, input.id, input.placeholder);
-        });
-        return;
-    }
-    
-    if (!searchButton) {
-        console.error('❌ [bindSearchEvents] Search button NOT FOUND');
-        // Try to find it with querySelector
-        const allButtons = document.querySelectorAll('button');
-        console.log('🔍 [bindSearchEvents] All buttons found:', allButtons.length);
-        allButtons.forEach((btn, idx) => {
-            console.log(`   Button ${idx}:`, btn.id, btn.textContent?.trim());
-        });
-        return;
-    }
-
-    // ⭐ CORE SEARCH FUNCTION - Navigate to products.html with search query
-    const performSearch = () => {
-        console.log('🎯 [performSearch] Function called');
+    /**
+     * ⭐ Bind search events - CHỈ NAVIGATE TO PRODUCTS PAGE
+     */
+    bindSearchEvents() {
+        console.log('🔍 Binding search events...');
         
-        const query = searchInput.value.trim();
-        console.log('🔍 [performSearch] Query:', {
-            raw: searchInput.value,
-            trimmed: query,
-            length: query.length
-        });
+        const searchInput = document.getElementById('searchDropdownInput');
+        const searchButton = document.getElementById('searchDropdownButton');
         
-        if (!query) {
-            console.warn('⚠️ [performSearch] Empty search query, aborting');
-            alert('Please enter a search term');
+        if (!searchInput || !searchButton) {
+            console.warn('⚠️ Search elements not found');
             return;
         }
         
-        console.log('✅ [performSearch] Valid query, preparing navigation...');
-        
-        // Navigate to products page with search parameter
-        const currentPath = window.location.pathname;
-        console.log('📍 [performSearch] Current path:', currentPath);
-        
-        const productsUrl = this.getRelativePath('products.html');
-        console.log('🔗 [performSearch] Products relative path:', productsUrl);
-        
-        const searchUrl = `${productsUrl}?search=${encodeURIComponent(query)}`;
-        console.log('🔗 [performSearch] Final search URL:', searchUrl);
-        
-        console.log('🚀 [performSearch] Navigating now...');
-        window.location.href = searchUrl;
-    };
-
-    // ⭐ EVENT 1: Enter key press
-    console.log('🔧 [bindSearchEvents] Binding Enter key event...');
-    searchInput.addEventListener('keydown', (e) => {
-        console.log('⌨️ [keydown] Key pressed:', {
-            key: e.key,
-            keyCode: e.keyCode,
-            code: e.code
-        });
-        
-        if (e.key === 'Enter') {
-            console.log('✅ [keydown] Enter key detected!');
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-            
-            clearTimeout(this.searchTimeout);
-            
-            console.log('🎯 [keydown] Calling performSearch()...');
-            performSearch();
-            
-            return false;
-        }
-    });
-    console.log('✅ [bindSearchEvents] Enter key event bound');
-
-    // ⭐ EVENT 2: Search button click
-    console.log('🔧 [bindSearchEvents] Binding button click event...');
-    searchButton.addEventListener('click', (e) => {
-        console.log('🖱️ [click] Button clicked!');
-        console.log('   Event:', {
-            type: e.type,
-            target: e.target,
-            currentTarget: e.currentTarget
-        });
-        
-        e.preventDefault();
-        e.stopPropagation();
-        
-        clearTimeout(this.searchTimeout);
-        
-        console.log('🎯 [click] Calling performSearch()...');
-        performSearch();
-    });
-    console.log('✅ [bindSearchEvents] Button click event bound');
-
-    // ⭐ EVENT 3: Debounced search suggestions
-    console.log('🔧 [bindSearchEvents] Binding input event for suggestions...');
-    searchInput.addEventListener('input', (e) => {
-        const query = e.target.value.trim();
-        console.log('⌨️ [input] Input changed:', query);
-        
-        clearTimeout(this.searchTimeout);
-        
-        if (query.length >= 2) {
-            console.log('⏰ [input] Setting timeout for suggestions...');
-            this.searchTimeout = setTimeout(() => {
-                console.log('🔍 [input] Showing suggestions for:', query);
-                this.showSearchSuggestions(query);
-            }, 300);
-        } else {
-            const container = document.getElementById('searchDropdownSuggestions');
-            if (container) {
-                container.innerHTML = '';
+        // ⭐ HELPER: Navigate to products.html với search query
+        const navigateToSearch = () => {
+            const query = searchInput.value.trim();
+            if (!query) {
+                console.warn('Empty search query');
+                return;
             }
-        }
-    });
-    console.log('✅ [bindSearchEvents] Input event bound');
-
-    console.log('✅✅✅ [bindSearchEvents] ALL SEARCH EVENTS BOUND SUCCESSFULLY');
-}
-
-/**
- * ⭐ Show search suggestions from API with DEBUG
- */
-async showSearchSuggestions(query) {
-    console.log('🔍 [showSearchSuggestions] Called with query:', query);
-    
-    const container = document.getElementById('searchDropdownSuggestions');
-    if (!container) {
-        console.error('❌ [showSearchSuggestions] Suggestions container NOT FOUND');
-        return;
+            
+            const productsUrl = this.getRelativePath('products.html');
+            const searchUrl = `${productsUrl}?search=${encodeURIComponent(query)}`;
+            
+            console.log('🔍 Navigating to:', searchUrl);
+            window.location.href = searchUrl;
+        };
+        
+        // ⭐ EVENT 1: Enter key - Navigate instantly
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                navigateToSearch();
+            }
+        });
+        
+        // ⭐ EVENT 2: Button click - Navigate
+        searchButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            navigateToSearch();
+        });
+        
+        // ⭐ EVENT 3: Input suggestions (optional - for live preview)
+        let searchTimeout;
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.trim();
+            clearTimeout(searchTimeout);
+            
+            if (query.length >= 2) {
+                searchTimeout = setTimeout(() => {
+                    this.showSearchSuggestions(query);
+                }, 300);
+            } else {
+                this.hideSearchSuggestions();
+            }
+        });
+        
+        console.log('✅ Search events bound');
     }
 
-    // Show loading state
-    container.innerHTML = `
-        <div class="text-center py-2">
-            <div class="spinner-border spinner-border-sm text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-            <small class="text-muted ms-2">Searching...</small>
-        </div>
-    `;
-
-    try {
-        // ⭐ Call API - Use correct endpoint: /api/products?search=query
-        const apiUrl = `/api/products?search=${encodeURIComponent(query)}&limit=5`;
-        console.log('🔗 [showSearchSuggestions] Fetching from:', apiUrl);
+    /**
+     * Show live search suggestions (optional)
+     */
+    async showSearchSuggestions(query) {
+        const container = document.getElementById('searchDropdownSuggestions');
+        if (!container) return;
         
-        const response = await fetch(apiUrl);
-        console.log('📡 [showSearchSuggestions] Response status:', response.status);
+        container.innerHTML = '<div class="text-center py-2"><div class="spinner-border spinner-border-sm"></div></div>';
         
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        
-        const result = await response.json();
-        console.log('✅ [showSearchSuggestions] API response:', result);
-        
-        if (result.success && result.data && result.data.length > 0) {
-            console.log(`✅ [showSearchSuggestions] Found ${result.data.length} products`);
+        try {
+            const response = await fetch(`/api/products?search=${encodeURIComponent(query)}&limit=5`);
+            const data = await response.json();
             
-            const suggestionsHTML = result.data.map(product => `
-                <a href="${this.getRelativePath('product-detail.html')}?id=${product.shoe_id}" 
-                   class="dropdown-item d-flex align-items-center py-2 suggestion-item">
-                    <img src="${product.image_url || '/assets/images/placeholder.jpg'}" 
-                         alt="${product.shoe_name}" 
-                         class="me-2" 
-                         style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;"
-                         onerror="this.src='/assets/images/placeholder.jpg'">
-                    <div class="flex-grow-1">
-                        <div class="fw-medium text-dark">${this.escapeHtml(product.shoe_name)}</div>
-                        <small class="text-primary">${this.formatPrice(product.base_price)}</small>
-                    </div>
-                </a>
-            `).join('');
-            
-            container.innerHTML = `
-                <div class="suggestions-list">
-                    ${suggestionsHTML}
-                </div>
-                <div class="dropdown-divider"></div>
-                <a href="${this.getRelativePath('products.html')}?search=${encodeURIComponent(query)}" 
-                   class="dropdown-item text-center text-primary fw-medium">
-                    <i class="bi bi-search"></i> View all results for "${this.escapeHtml(query)}"
-                </a>
-            `;
-        } else {
-            console.warn('⚠️ [showSearchSuggestions] No products found');
-            container.innerHTML = `
-                <div class="dropdown-item text-muted text-center py-3">
-                    <i class="bi bi-inbox"></i><br>
-                    No results found for "${this.escapeHtml(query)}"
-                </div>
-            `;
+            if (data.success && data.data && data.data.length > 0) {
+                container.innerHTML = data.data.map(product => `
+                    <a href="${this.getRelativePath('product-detail.html')}?id=${product.shoe_id}" 
+                    class="dropdown-item d-flex align-items-center py-2">
+                        <img src="${product.image_url || '../assets/images/placeholder.jpg'}" 
+                            class="me-2"
+                            style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;"
+                            onerror="this.src='../assets/images/placeholder.jpg'">
+                        <div>
+                            <div class="fw-medium">${product.shoe_name}</div>
+                            <small class="text-primary">${this.formatPrice(product.base_price)}</small>
+                        </div>
+                    </a>
+                `).join('') + `
+                    <div class="dropdown-divider"></div>
+                    <a href="${this.getRelativePath('products.html')}?search=${encodeURIComponent(query)}" 
+                    class="dropdown-item text-center text-primary">
+                        View all results →
+                    </a>
+                `;
+            } else {
+                container.innerHTML = '<div class="dropdown-item text-muted text-center">No results</div>';
+            }
+        } catch (error) {
+            console.error('Search error:', error);
+            container.innerHTML = '<div class="dropdown-item text-danger text-center">Error loading suggestions</div>';
         }
-    } catch (error) {
-        console.error('❌ [showSearchSuggestions] Error:', error);
-        container.innerHTML = `
-            <div class="dropdown-item text-danger text-center py-3">
-                <i class="bi bi-exclamation-triangle"></i><br>
-                <small>Failed to load suggestions: ${error.message}</small>
-            </div>
-        `;
     }
-}
 
-/**
- * ⭐ Helper: Format price (VND)
- */
-formatPrice(price) {
-    if (!price && price !== 0) return 'N/A';
-    
-    return new Intl.NumberFormat('vi-VN', {
-        style: 'currency',
-        currency: 'VND'
-    }).format(price);
-}
+    /**
+     * Hide suggestions
+     */
+    hideSearchSuggestions() {
+        const container = document.getElementById('searchDropdownSuggestions');
+        if (container) container.innerHTML = '';
+    }
 
-/**
- * ⭐ Helper: Escape HTML to prevent XSS
- */
-escapeHtml(text) {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
+    /**
+     * Format price
+     */
+    formatPrice(price) {
+        return new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND'
+        }).format(price || 0);
+    }
+
+    /**
+     * Get relative path helper
+     */
+    getRelativePath(page) {
+        const currentPath = window.location.pathname;
+        return currentPath.includes('/html/') ? `./${page}` : `../html/${page}`;
+    }
+
+
 
 
     /**
