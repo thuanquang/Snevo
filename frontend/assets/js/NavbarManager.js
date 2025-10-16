@@ -19,6 +19,7 @@ class NavbarManager {
         this.currentPage = null;
         this.overrides = {};
         this.listeners = new Map();
+        this.isSearchExpanded = false;
         
         // Bind methods
         this.initialize = this.initialize.bind(this);
@@ -64,6 +65,12 @@ class NavbarManager {
             
             // Render navbar
             this.renderNavbar();
+            // Search events may need a slight delay to ensure elements are in DOM
+            setTimeout(() => {
+                this.bindSearchEvents();
+                console.log('✅ Search events bound after delay');
+            }, 100);
+
             
             // Bind events
             this.bindEvents();
@@ -89,81 +96,6 @@ class NavbarManager {
         console.log('🔄 Skipping template loading, will create navbar directly');
         // Skip template loading for now and create navbar directly
         this.template = null;
-    }
-
-    /**
-     * Create fallback navbar template
-     */
-    createFallbackTemplate() {
-        return `
-            <nav class="navbar navbar-expand-lg navbar-light bg-black fixed-top shadow-sm" id="unifiedNavbar" style="margin: 0; padding-left: 30px; padding-right: 30px;">
-                <div class="container">
-                    <a class="navbar-brand" href="#" data-navbar-brand>
-                        <img src="../assets/images/ui/logo.svg" alt="SNEVO" height="50">
-                    </a>
-                    
-                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                        <span class="navbar-toggler-icon"></span>
-                    </button>
-                    
-                    <div class="collapse navbar-collapse" id="navbarNav">
-                        <ul class="navbar-nav mx-auto" style="gap: 80px;">
-                            <li class="nav-item">
-                                <a class="nav-link" href="#" data-navbar-link="home">Home</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#" data-navbar-link="products">Products</a>
-                            </li>
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                                    Categories
-                                </a>
-                                <ul class="dropdown-menu" id="categoriesDropdown">
-                                    <!-- Categories will be loaded dynamically -->
-                                </ul>
-                            </li>
-                        </ul>
-                        
-                        <ul class="navbar-nav">
-                            <li class="nav-item">
-                                <a class="nav-link" href="#" id="searchToggle">
-                                    <i class="fas fa-search"></i>
-                                </a>
-                            </li>
-                            <li class="nav-item" id="cartNavItem">
-                                <a class="nav-link position-relative" href="#" data-navbar-link="cart">
-                                    <i class="fas fa-shopping-cart"></i>
-                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="cartCount">
-                                        0
-                                    </span>
-                                </a>
-                            </li>
-                            <ul class="navbar-nav" id="authButtons">
-                                <li class="nav-item">
-                                    <a class="nav-link " href="#" id="globalLoginLink">Login</a>
-                                </li>
-                            </ul>
-                        </ul>
-                    </div>
-                </div>
-            </nav>
-
-            <!-- Search Overlay -->
-            <div class="search-overlay d-none" id="searchOverlay">
-                <div class="container">
-                    <div class="row justify-content-center">
-                        <div class="col-md-8">
-                            <div class="search-box">
-                                <input type="text" class="form-control form-control-lg" placeholder="Search for shoes..." id="searchInput">
-                                <button class="btn btn-dark" id="searchButton">
-                                    <i class="fas fa-search"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
     }
 
     /**
@@ -370,6 +302,20 @@ initScrollBehavior() {
                     <a class="navbar-brand" href="#" data-navbar-brand>
                         <img src="../assets/images/ui/logo.svg" alt="SNEVO" height="50">
                     </a>
+                        <!-- ⭐ Expandable Search Container -->
+                    <div id="navbarSearchContainer" class="navbar-search-container">
+                        <div class="search-input-wrapper">
+                            <i class="fas fa-search search-input-icon"></i>
+                            <input 
+                                type="text" 
+                                id="navbarSearchInput" 
+                                class="form-control search-input" 
+                                placeholder="Search shoes, brands, styles..."
+                                autocomplete="off"
+                            >
+                        </div>
+                        <div id="searchSuggestions" class="search-suggestions"></div>
+                    </div>
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                         <span class="navbar-toggler-icon"></span>
                     </button>
@@ -382,7 +328,7 @@ initScrollBehavior() {
                                 <a class="nav-link" href="#" data-navbar-link="products">Shop</a>
                             </li>
                             <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" data-navbar-link="categories" role="button" data-bs-toggle="dropdown">
                                     Categories
                                 </a>
                                 <ul class="dropdown-menu" id="categoriesDropdown">
@@ -393,7 +339,7 @@ initScrollBehavior() {
                         
                         <ul class="navbar-nav" style="gap: 30px;">
                             <li class="nav-item">
-                                <a class="nav-link" href="#" id="searchToggle">
+                                <a class="nav-link" href="#" id="searchToggle" data-navbar-link="search">
                                     <img src="../assets/images/ui/search.svg" alt="Search" height="20" width="20">
                                 </a>
                             </li>
@@ -416,6 +362,123 @@ initScrollBehavior() {
                     </div>
                 </div>
             </nav>
+        <style>
+    /* ⭐ THÊM: Expandable Search Styles */
+    .navbar {
+        transition: all 0.3s ease;
+        z-index: 1050;
+    }
+
+    /* Search container - HIDDEN by default */
+    .navbar-search-container {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        display: flex;
+        align-items: center;
+        padding: 0 1rem;
+        background: white;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+        z-index: 10;
+    }
+
+    .navbar-search-container.expanded {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .search-input-wrapper {
+        position: relative;
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .search-input-icon {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #999;
+        font-size: 18px;
+        pointer-events: none;
+    }
+
+    .search-input {
+        width: 100%;
+        height: 48px;
+        padding: 0 20px 0 50px;
+        border: none;
+        background: #f5f5f5;
+        border-radius: 24px;
+        font-size: 16px;
+    }
+
+    .search-input:focus {
+        outline: none;
+        background: #e8e8e8;
+    }
+
+    /* Cancel button - HIDDEN by default */
+    .cancel-search-btn {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        opacity: 0;
+        pointer-events: none;
+        color: #111;
+        font-weight: 500;
+        transition: opacity 0.3s ease;
+        z-index: 11;
+    }
+
+    .navbar.search-expanded .cancel-search-btn {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .navbar.search-expanded .navbar-collapse {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .search-suggestions {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        margin-top: 8px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        max-height: 400px;
+        overflow-y: auto;
+        display: none;
+    }
+
+    .search-suggestion-item {
+        padding: 12px 20px;
+        cursor: pointer;
+    }
+
+    .search-suggestion-item:hover {
+        background: #f5f5f5;
+    }
+
+    .nav-item {
+        transition: opacity 0.2s ease;
+    }
+
+    .navbar-brand {
+        position: relative;
+        z-index: 12;
+    }
+    </style>    
         `;
         
         navbarRoot.innerHTML = navbarHTML;
@@ -430,6 +493,213 @@ initScrollBehavior() {
         // Update paths
         this.updatePaths();
     }
+    /**
+ * Bind search events
+ */
+bindSearchEvents() {
+    const searchToggle = document.getElementById('searchToggle');
+    const cancelSearchBtn = document.getElementById('cancelSearchBtn');
+    const searchInput = document.getElementById('navbarSearchInput');
+
+    if (!searchToggle || !cancelSearchBtn || !searchInput) {
+        console.warn('⚠️ Search elements not found in navbar');
+        return;
+    }
+
+    // Click search icon to expand
+    searchToggle.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.expandSearch();
+    });
+
+    // Click cancel to collapse
+    cancelSearchBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.collapseSearch();
+    });
+
+    // Handle search input
+    searchInput.addEventListener('input', (e) => {
+        this.handleSearchInput(e.target.value);
+    });
+
+    // Handle Enter key
+    searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            this.performExpandableSearch(searchInput.value);
+        } else if (e.key === 'Escape') {
+            this.collapseSearch();
+        }
+    });
+
+    console.log('✅ Expandable search events bound');
+}
+/**
+ * Expand search bar (Nike-style)
+ */
+expandSearch() {
+    console.log('🔍 Expanding search...');
+    
+    const navbar = document.querySelector('#unifiedNavbar');
+    const navbarCollapse = document.querySelector('#navbarNav');
+    const searchContainer = document.getElementById('navbarSearchContainer');
+    const searchInput = document.getElementById('navbarSearchInput');
+    const menuItems = document.querySelectorAll('.nav-item:not(.search-icon-item)');
+
+    if (!navbar || !searchContainer) {
+        console.error('❌ Navbar elements not found for expansion');
+        return;
+    }
+
+    // Add expanded state
+    navbar.classList.add('search-expanded');
+    searchContainer.classList.add('expanded');
+
+    // Hide menu items with fade out animation
+    menuItems.forEach(item => {
+        item.style.opacity = '0';
+        item.style.pointerEvents = 'none';
+        setTimeout(() => {
+            item.style.display = 'none';
+        }, 200);
+    });
+
+    // Collapse mobile menu if open
+    if (navbarCollapse && navbarCollapse.classList.contains('show')) {
+        const bsCollapse = bootstrap.Collapse.getInstance(navbarCollapse);
+        if (bsCollapse) {
+            bsCollapse.hide();
+        }
+    }
+
+    // Focus search input
+    setTimeout(() => {
+        searchInput.focus();
+    }, 300);
+
+    this.isSearchExpanded = true;
+    console.log('✅ Search expanded');
+}
+
+/**
+ * Collapse search bar
+ */
+collapseSearch() {
+    console.log('🔍 Collapsing search...');
+    
+    const navbar = document.querySelector('#unifiedNavbar');
+    const searchContainer = document.getElementById('navbarSearchContainer');
+    const searchInput = document.getElementById('navbarSearchInput');
+    const menuItems = document.querySelectorAll('.nav-item:not(.search-icon-item)');
+
+    if (!navbar || !searchContainer) return;
+
+    // Remove expanded state
+    navbar.classList.remove('search-expanded');
+    searchContainer.classList.remove('expanded');
+
+    // Show menu items with fade in animation
+    menuItems.forEach(item => {
+        item.style.display = '';
+        setTimeout(() => {
+            item.style.opacity = '1';
+            item.style.pointerEvents = 'auto';
+        }, 50);
+    });
+
+    // Clear search input
+    searchInput.value = '';
+    
+    // Hide suggestions
+    this.hideSearchSuggestions();
+
+    this.isSearchExpanded = false;
+    console.log('✅ Search collapsed');
+}
+
+/**
+ * Handle search input (for suggestions)
+ */
+handleSearchInput(query) {
+    console.log('🔍 Search query:', query);
+    
+    if (query.length >= 2) {
+        this.showSearchSuggestions(query);
+    } else {
+        this.hideSearchSuggestions();
+    }
+}
+
+/**
+ * Show search suggestions
+ */
+async showSearchSuggestions(query) {
+    // TODO: Implement real search suggestions from API
+    console.log('💡 Show suggestions for:', query);
+    
+    const suggestionsContainer = document.getElementById('searchSuggestions');
+    if (!suggestionsContainer) return;
+
+    // Mock suggestions (replace with real API call)
+    const mockSuggestions = [
+        'Nike Air Max',
+        'Adidas Ultraboost',
+        'Converse All Star'
+    ].filter(item => item.toLowerCase().includes(query.toLowerCase()));
+
+    if (mockSuggestions.length > 0) {
+        suggestionsContainer.innerHTML = mockSuggestions.map(suggestion => `
+            <div class="search-suggestion-item" data-suggestion="${suggestion}">
+                <i class="fas fa-search me-2"></i>${suggestion}
+            </div>
+        `).join('');
+        
+        suggestionsContainer.style.display = 'block';
+
+        // Bind click events
+        suggestionsContainer.querySelectorAll('.search-suggestion-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const suggestion = item.getAttribute('data-suggestion');
+                this.performExpandableSearch(suggestion);
+            });
+        });
+    } else {
+        this.hideSearchSuggestions();
+    }
+}
+
+/**
+ * Hide search suggestions
+ */
+hideSearchSuggestions() {
+    const suggestionsContainer = document.getElementById('searchSuggestions');
+    if (suggestionsContainer) {
+        suggestionsContainer.innerHTML = '';
+        suggestionsContainer.style.display = 'none';
+    }
+}
+
+/**
+ * Perform expandable search
+ */
+performExpandableSearch(query) {
+    if (!query || query.trim().length === 0) {
+        return;
+    }
+
+    console.log('🔍 Performing expandable search for:', query);
+    
+    // Collapse search
+    this.collapseSearch();
+
+    // ⭐ FIX: Use getRelativePath to get correct path
+    const searchUrl = this.getRelativePath(`products.html?search=${encodeURIComponent(query.trim())}`);
+    console.log('🔗 Redirecting to:', searchUrl);
+    
+    window.location.href = searchUrl;
+}
 
     /**
      * Update all navigation paths based on current page location
