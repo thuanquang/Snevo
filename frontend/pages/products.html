@@ -12,7 +12,6 @@
     <link href="../assets/css/animations.css" rel="stylesheet">
     <link href="../assets/css/components.css" rel="stylesheet">
     <link href="../assets/css/responsive.css" rel="stylesheet">
-    <link href="../assets/css/products.css" rel="stylesheet">
     
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -37,9 +36,9 @@
             </div>
         </div>
     </section>
-
     <!-- Products Section -->
     <section class="products-section py-5">
+    
         <div class="container">
             <div class="row">
                 <!-- Sidebar Filters -->
@@ -164,6 +163,27 @@
 
                 <!-- Products Grid -->
                 <div class="col-lg-9 col-md-8">
+                    <!-- ⭐ SEARCH BAR -->
+                    <div class="container">
+                        <div class="search-bar-container mb-4">
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-white">
+                                    <i class="fas fa-search text-muted"></i>
+                                </span>
+                                <input 
+                                    type="text" 
+                                    class="form-control border-start-0" 
+                                    id="searchInput" 
+                                    placeholder="Search products by name..."
+                                    autocomplete="off"
+                                >
+                                <button class="btn btn-primary" type="button" id="searchButton">
+                                    Search
+                                </button>
+                            </div>
+                            <small class="text-muted d-block mt-2" id="searchResultText"></small>
+                        </div>
+                    </div>
                     <!-- Toolbar -->
                     <div class="products-toolbar mb-4">
                         <div class="row align-items-center">
@@ -296,6 +316,7 @@
     <script type="module" src="../assets/js/ProductManager.js"></script>
     <script type="module" src="../assets/js/EmailVerificationNotice.js"></script>
     <script type="module" src="../assets/js/Application.js"></script>
+    <script type="module" src="../assets/js/auth-persistence.js"></script>
     <script src="../assets/js/animations.js"></script>
        
     <style>
@@ -458,6 +479,7 @@
             height: 150px;
             flex-shrink: 0;
         }
+        
         
         @media (max-width: 768px) {
             .filters-sidebar {
