@@ -66,12 +66,6 @@ class NavbarManager {
             
             // Render navbar
             this.renderNavbar();
-            // Search events may need a slight delay to ensure elements are in DOM
-            setTimeout(() => {
-                this.bindSearchEvents();
-                console.log('✅ Search events bound after delay');
-            }, 100);
-
             
             // Bind events
             this.bindEvents();
@@ -324,31 +318,7 @@ initScrollBehavior() {
                             </li>
                         </ul>
                         
-                        <ul class="navbar-nav" style="gap: 30px;">
-                            <li class="nav-item dropdown me-3">
-                                <a class="nav-link dropdown-toggle" href="#" id="searchDropdown" 
-                                role="button" data-bs-toggle="dropdown" aria-expanded="false"
-                                data-bs-auto-close="outside">
-                                    <i class="bi bi-search"></i> Search
-                                </a>
-                                <div class="dropdown-menu dropdown-menu-end p-3" style="min-width: 350px;">
-                                    <div class="input-group mb-2">
-                                        <input 
-                                            type="text" 
-                                            class="form-control" 
-                                            id="searchDropdownInput" 
-                                            placeholder="Search products..." 
-                                            autocomplete="off">
-                                        <button 
-                                            class="btn btn-primary" 
-                                            type="button" 
-                                            id="searchDropdownButton">
-                                            <i class="bi bi-search"></i> Search
-                                        </button>
-                                    </div>
-                                    <div id="searchDropdownSuggestions"></div>
-                                </div>
-                            </li>
+                        <ul class="navbar-nav" style="gap: 30px;">                           
                             <li class="nav-item" id="cartNavItem">
                                 <a class="nav-link position-relative" href="#" data-navbar-link="cart">
                                     <img src="../assets/images/ui/cart.svg" alt="Cart" height="23" width="23">
@@ -372,7 +342,7 @@ initScrollBehavior() {
         
         navbarRoot.innerHTML = navbarHTML;
         console.log('✅ Navbar created directly');
-        
+   
         // Update paths
         this.updatePaths();
 
@@ -382,138 +352,6 @@ initScrollBehavior() {
         // Update paths
         this.updatePaths();
     }
-    /**
-     * ⭐ Bind search events - CHỈ NAVIGATE TO PRODUCTS PAGE
-     */
-    bindSearchEvents() {
-        console.log('🔍 Binding search events...');
-        
-        const searchInput = document.getElementById('searchDropdownInput');
-        const searchButton = document.getElementById('searchDropdownButton');
-        
-        if (!searchInput || !searchButton) {
-            console.warn('⚠️ Search elements not found');
-            return;
-        }
-        
-        // ⭐ HELPER: Navigate to products.html với search query
-        const navigateToSearch = () => {
-            const query = searchInput.value.trim();
-            if (!query) {
-                console.warn('Empty search query');
-                return;
-            }
-            
-            const productsUrl = this.getRelativePath('products.html');
-            const searchUrl = `${productsUrl}?search=${encodeURIComponent(query)}`;
-            
-            console.log('🔍 Navigating to:', searchUrl);
-            window.location.href = searchUrl;
-        };
-        
-        // ⭐ EVENT 1: Enter key - Navigate instantly
-        searchInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                navigateToSearch();
-            }
-        });
-        
-        // ⭐ EVENT 2: Button click - Navigate
-        searchButton.addEventListener('click', (e) => {
-            e.preventDefault();
-            navigateToSearch();
-        });
-        
-        // ⭐ EVENT 3: Input suggestions (optional - for live preview)
-        let searchTimeout;
-        searchInput.addEventListener('input', (e) => {
-            const query = e.target.value.trim();
-            clearTimeout(searchTimeout);
-            
-            if (query.length >= 2) {
-                searchTimeout = setTimeout(() => {
-                    this.showSearchSuggestions(query);
-                }, 300);
-            } else {
-                this.hideSearchSuggestions();
-            }
-        });
-        
-        console.log('✅ Search events bound');
-    }
-
-    /**
-     * Show live search suggestions (optional)
-     */
-    async showSearchSuggestions(query) {
-        const container = document.getElementById('searchDropdownSuggestions');
-        if (!container) return;
-        
-        container.innerHTML = '<div class="text-center py-2"><div class="spinner-border spinner-border-sm"></div></div>';
-        
-        try {
-            const response = await fetch(`/api/products?search=${encodeURIComponent(query)}&limit=5`);
-            const data = await response.json();
-            
-            if (data.success && data.data && data.data.length > 0) {
-                container.innerHTML = data.data.map(product => `
-                    <a href="${this.getRelativePath('product-detail.html')}?id=${product.shoe_id}" 
-                    class="dropdown-item d-flex align-items-center py-2">
-                        <img src="${product.image_url || '../assets/images/placeholder.jpg'}" 
-                            class="me-2"
-                            style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;"
-                            onerror="this.src='../assets/images/placeholder.jpg'">
-                        <div>
-                            <div class="fw-medium">${product.shoe_name}</div>
-                            <small class="text-primary">${this.formatPrice(product.base_price)}</small>
-                        </div>
-                    </a>
-                `).join('') + `
-                    <div class="dropdown-divider"></div>
-                    <a href="${this.getRelativePath('products.html')}?search=${encodeURIComponent(query)}" 
-                    class="dropdown-item text-center text-primary">
-                        View all results →
-                    </a>
-                `;
-            } else {
-                container.innerHTML = '<div class="dropdown-item text-muted text-center">No results</div>';
-            }
-        } catch (error) {
-            console.error('Search error:', error);
-            container.innerHTML = '<div class="dropdown-item text-danger text-center">Error loading suggestions</div>';
-        }
-    }
-
-    /**
-     * Hide suggestions
-     */
-    hideSearchSuggestions() {
-        const container = document.getElementById('searchDropdownSuggestions');
-        if (container) container.innerHTML = '';
-    }
-
-    /**
-     * Format price
-     */
-    formatPrice(price) {
-        return new Intl.NumberFormat('vi-VN', {
-            style: 'currency',
-            currency: 'VND'
-        }).format(price || 0);
-    }
-
-    /**
-     * Get relative path helper
-     */
-    getRelativePath(page) {
-        const currentPath = window.location.pathname;
-        return currentPath.includes('/html/') ? `./${page}` : `../html/${page}`;
-    }
-
-
-
-
     /**
      * Update all navigation paths based on current page location
      */
