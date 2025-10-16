@@ -19,6 +19,8 @@ class NavbarManager {
         this.currentPage = null;
         this.overrides = {};
         this.listeners = new Map();
+        this.isSearchExpanded = false;
+        this.searchTimeout = null; 
         
         // Bind methods
         this.initialize = this.initialize.bind(this);
@@ -64,6 +66,12 @@ class NavbarManager {
             
             // Render navbar
             this.renderNavbar();
+            // Search events may need a slight delay to ensure elements are in DOM
+            setTimeout(() => {
+                this.bindSearchEvents();
+                console.log('✅ Search events bound after delay');
+            }, 100);
+
             
             // Bind events
             this.bindEvents();
@@ -89,81 +97,6 @@ class NavbarManager {
         console.log('🔄 Skipping template loading, will create navbar directly');
         // Skip template loading for now and create navbar directly
         this.template = null;
-    }
-
-    /**
-     * Create fallback navbar template
-     */
-    createFallbackTemplate() {
-        return `
-            <nav class="navbar navbar-expand-lg navbar-light bg-black fixed-top shadow-sm" id="unifiedNavbar" style="margin: 0; padding-left: 30px; padding-right: 30px;">
-                <div class="container">
-                    <a class="navbar-brand" href="#" data-navbar-brand>
-                        <img src="../assets/images/ui/logo.svg" alt="SNEVO" height="50">
-                    </a>
-                    
-                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                        <span class="navbar-toggler-icon"></span>
-                    </button>
-                    
-                    <div class="collapse navbar-collapse" id="navbarNav">
-                        <ul class="navbar-nav mx-auto" style="gap: 80px;">
-                            <li class="nav-item">
-                                <a class="nav-link" href="#" data-navbar-link="home">Home</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#" data-navbar-link="products">Products</a>
-                            </li>
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                                    Categories
-                                </a>
-                                <ul class="dropdown-menu" id="categoriesDropdown">
-                                    <!-- Categories will be loaded dynamically -->
-                                </ul>
-                            </li>
-                        </ul>
-                        
-                        <ul class="navbar-nav">
-                            <li class="nav-item">
-                                <a class="nav-link" href="#" id="searchToggle">
-                                    <i class="fas fa-search"></i>
-                                </a>
-                            </li>
-                            <li class="nav-item" id="cartNavItem">
-                                <a class="nav-link position-relative" href="#" data-navbar-link="cart">
-                                    <i class="fas fa-shopping-cart"></i>
-                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="cartCount">
-                                        0
-                                    </span>
-                                </a>
-                            </li>
-                            <ul class="navbar-nav" id="authButtons">
-                                <li class="nav-item">
-                                    <a class="nav-link " href="#" id="globalLoginLink">Login</a>
-                                </li>
-                            </ul>
-                        </ul>
-                    </div>
-                </div>
-            </nav>
-
-            <!-- Search Overlay -->
-            <div class="search-overlay d-none" id="searchOverlay">
-                <div class="container">
-                    <div class="row justify-content-center">
-                        <div class="col-md-8">
-                            <div class="search-box">
-                                <input type="text" class="form-control form-control-lg" placeholder="Search for shoes..." id="searchInput">
-                                <button class="btn btn-dark" id="searchButton">
-                                    <i class="fas fa-search"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
     }
 
     /**
@@ -369,7 +302,7 @@ initScrollBehavior() {
                 <div class="container">
                     <a class="navbar-brand" href="#" data-navbar-brand>
                         <img src="../assets/images/ui/logo.svg" alt="SNEVO" height="50">
-                    </a>
+                    </a>                    
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                         <span class="navbar-toggler-icon"></span>
                     </button>
@@ -392,10 +325,29 @@ initScrollBehavior() {
                         </ul>
                         
                         <ul class="navbar-nav" style="gap: 30px;">
-                            <li class="nav-item">
-                                <a class="nav-link" href="#" id="searchToggle">
-                                    <img src="../assets/images/ui/search.svg" alt="Search" height="20" width="20">
+                            <li class="nav-item dropdown me-3">
+                                <a class="nav-link dropdown-toggle" href="#" id="searchDropdown" 
+                                role="button" data-bs-toggle="dropdown" aria-expanded="false"
+                                data-bs-auto-close="outside">
+                                    <i class="bi bi-search"></i> Search
                                 </a>
+                                <div class="dropdown-menu dropdown-menu-end p-3" style="min-width: 350px;">
+                                    <div class="input-group mb-2">
+                                        <input 
+                                            type="text" 
+                                            class="form-control" 
+                                            id="searchDropdownInput" 
+                                            placeholder="Search products..." 
+                                            autocomplete="off">
+                                        <button 
+                                            class="btn btn-primary" 
+                                            type="button" 
+                                            id="searchDropdownButton">
+                                            <i class="bi bi-search"></i> Search
+                                        </button>
+                                    </div>
+                                    <div id="searchDropdownSuggestions"></div>
+                                </div>
                             </li>
                             <li class="nav-item" id="cartNavItem">
                                 <a class="nav-link position-relative" href="#" data-navbar-link="cart">
@@ -415,7 +367,7 @@ initScrollBehavior() {
                         </ul>
                     </div>
                 </div>
-            </nav>
+            </nav> 
         `;
         
         navbarRoot.innerHTML = navbarHTML;
@@ -430,6 +382,137 @@ initScrollBehavior() {
         // Update paths
         this.updatePaths();
     }
+    /**
+     * ⭐ Bind search events - CHỈ NAVIGATE TO PRODUCTS PAGE
+     */
+    bindSearchEvents() {
+        console.log('🔍 Binding search events...');
+        
+        const searchInput = document.getElementById('searchDropdownInput');
+        const searchButton = document.getElementById('searchDropdownButton');
+        
+        if (!searchInput || !searchButton) {
+            console.warn('⚠️ Search elements not found');
+            return;
+        }
+        
+        // ⭐ HELPER: Navigate to products.html với search query
+        const navigateToSearch = () => {
+            const query = searchInput.value.trim();
+            if (!query) {
+                console.warn('Empty search query');
+                return;
+            }
+            
+            const productsUrl = this.getRelativePath('products.html');
+            const searchUrl = `${productsUrl}?search=${encodeURIComponent(query)}`;
+            
+            console.log('🔍 Navigating to:', searchUrl);
+            window.location.href = searchUrl;
+        };
+        
+        // ⭐ EVENT 1: Enter key - Navigate instantly
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                navigateToSearch();
+            }
+        });
+        
+        // ⭐ EVENT 2: Button click - Navigate
+        searchButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            navigateToSearch();
+        });
+        
+        // ⭐ EVENT 3: Input suggestions (optional - for live preview)
+        let searchTimeout;
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.trim();
+            clearTimeout(searchTimeout);
+            
+            if (query.length >= 2) {
+                searchTimeout = setTimeout(() => {
+                    this.showSearchSuggestions(query);
+                }, 300);
+            } else {
+                this.hideSearchSuggestions();
+            }
+        });
+        
+        console.log('✅ Search events bound');
+    }
+
+    /**
+     * Show live search suggestions (optional)
+     */
+    async showSearchSuggestions(query) {
+        const container = document.getElementById('searchDropdownSuggestions');
+        if (!container) return;
+        
+        container.innerHTML = '<div class="text-center py-2"><div class="spinner-border spinner-border-sm"></div></div>';
+        
+        try {
+            const response = await fetch(`/api/products?search=${encodeURIComponent(query)}&limit=5`);
+            const data = await response.json();
+            
+            if (data.success && data.data && data.data.length > 0) {
+                container.innerHTML = data.data.map(product => `
+                    <a href="${this.getRelativePath('product-detail.html')}?id=${product.shoe_id}" 
+                    class="dropdown-item d-flex align-items-center py-2">
+                        <img src="${product.image_url || '../assets/images/placeholder.jpg'}" 
+                            class="me-2"
+                            style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;"
+                            onerror="this.src='../assets/images/placeholder.jpg'">
+                        <div>
+                            <div class="fw-medium">${product.shoe_name}</div>
+                            <small class="text-primary">${this.formatPrice(product.base_price)}</small>
+                        </div>
+                    </a>
+                `).join('') + `
+                    <div class="dropdown-divider"></div>
+                    <a href="${this.getRelativePath('products.html')}?search=${encodeURIComponent(query)}" 
+                    class="dropdown-item text-center text-primary">
+                        View all results →
+                    </a>
+                `;
+            } else {
+                container.innerHTML = '<div class="dropdown-item text-muted text-center">No results</div>';
+            }
+        } catch (error) {
+            console.error('Search error:', error);
+            container.innerHTML = '<div class="dropdown-item text-danger text-center">Error loading suggestions</div>';
+        }
+    }
+
+    /**
+     * Hide suggestions
+     */
+    hideSearchSuggestions() {
+        const container = document.getElementById('searchDropdownSuggestions');
+        if (container) container.innerHTML = '';
+    }
+
+    /**
+     * Format price
+     */
+    formatPrice(price) {
+        return new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND'
+        }).format(price || 0);
+    }
+
+    /**
+     * Get relative path helper
+     */
+    getRelativePath(page) {
+        const currentPath = window.location.pathname;
+        return currentPath.includes('/html/') ? `./${page}` : `../html/${page}`;
+    }
+
+
+
 
     /**
      * Update all navigation paths based on current page location
