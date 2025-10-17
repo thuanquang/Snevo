@@ -314,6 +314,9 @@ export default class BaseController {
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(response));
     }
+    sendSuccess(res, data = null, message = null) {
+        this.sendResponse(res, data, message, constants.HTTP_STATUS.OK);
+    }
 
     /**
      * Set CORS headers

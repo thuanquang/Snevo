@@ -282,9 +282,42 @@ class ApiClient {
     /**
      * Get authentication token
      */
+   /**
+     * Get authentication token from Supabase localStorage
+     */
     getAuthToken() {
-        return localStorage.getItem('auth_token');
+        try {
+            // ⭐ Try to find Supabase auth token key
+            const keys = Object.keys(localStorage);
+            const supabaseAuthKey = keys.find(key => 
+                key.includes('-auth-token') && key.startsWith('sb-')
+            );
+            
+            if (supabaseAuthKey) {
+                const tokenData = localStorage.getItem(supabaseAuthKey);
+                if (tokenData) {
+                    const parsed = JSON.parse(tokenData);
+                    const token = parsed.access_token || 
+                                parsed.currentSession?.access_token;
+                    
+                    if (token) {
+                        console.log('✅ Found Supabase auth token');
+                        return token;
+                    }
+                }
+            }
+            
+            // Fallback to old keys for compatibility
+            return localStorage.getItem('auth_token') || 
+                localStorage.getItem('authToken') ||
+                sessionStorage.getItem('auth_token');
+                
+        } catch (error) {
+            console.error('❌ Error getting auth token:', error);
+            return null;
+        }
     }
+
 
     /**
      * Set authentication token
@@ -614,6 +647,78 @@ class ProductsAPI {
     return response.data;
   }
 }
+class ImportsAPI {
+    constructor(client) {
+        this.client = client;
+    }
+
+    /**
+     * Get all imports with filters
+     */
+    async getImports(params = {}) {
+        try {
+            const response = await this.client.get('/api/imports', params);
+            return response.data;
+        } catch (error) {
+            console.error('❌ Get imports error:', error);
+            return { success: false, data: [], message: error.message };
+        }
+    }
+
+    /**
+     * Get imports by shoe ID
+     */
+    async getImportsByShoe(shoeId, params = {}) {
+        try {
+            const response = await this.client.get(`/api/imports/shoe/${shoeId}`, params);
+            return response.data;
+        } catch (error) {
+            console.error('❌ Get imports by shoe error:', error);
+            return { success: false, data: [], message: error.message };
+        }
+    }
+
+    /**
+     * Create single import
+     */
+    async createImport(importData) {
+        try {
+            const response = await this.client.post('/api/imports', importData);
+            return response.data;
+        } catch (error) {
+            console.error('❌ Create import error:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * ⭐ Create batch import (MAIN METHOD)
+     */
+    async createBatchImport(data) {
+        try {
+            console.log('📦 Submitting batch import:', data);
+            const response = await this.client.post('/api/imports/batch', data);
+            console.log('✅ Batch import success:', response);
+            return response.data;
+        } catch (error) {
+            console.error('❌ Batch import error:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get import statistics
+     */
+    async getStatistics(params = {}) {
+        try {
+            const response = await this.client.get('/api/imports/statistics', params);
+            return response.data;
+        } catch (error) {
+            console.error('❌ Get import stats error:', error);
+            return { success: false, data: null, message: error.message };
+        }
+    }
+}
 
 
 // Orders API
@@ -675,6 +780,7 @@ const authAPI = new AuthAPI(apiClient);
 const productsAPI = new ProductsAPI(apiClient);
 const ordersAPI = new OrdersAPI(apiClient);
 const usersAPI = new UsersAPI(apiClient);
+const importsAPI = new ImportsAPI(apiClient);
 
 // Export for global use
 window.ApiClient = ApiClient;
@@ -683,6 +789,8 @@ window.authAPI = authAPI;
 window.productsAPI = productsAPI;
 window.ordersAPI = ordersAPI;
 window.usersAPI = usersAPI;
+window.importsAPI = importsAPI;
+
 
 
 

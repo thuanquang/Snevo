@@ -421,20 +421,182 @@
             </div>
         </main>
     </div>
+     <!-- ==================== IMPORT MODAL ==================== -->
+<div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      
+      <!-- Modal Header -->
+      <div class="modal-header bg-success text-white">
+        <div>
+          <h5 class="modal-title" id="importModalLabel">
+            <i class="bi bi-box-arrow-in-down"></i> Import Stock
+          </h5>
+          <small id="importShoeInfo" class="text-light opacity-75"></small>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
 
+      <!-- Modal Body with Tabs -->
+      <div class="modal-body">
+        
+        <!-- Tabs Navigation -->
+        <ul class="nav nav-tabs mb-3" id="importTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="import-form-tab" data-bs-toggle="tab" 
+                    data-bs-target="#import-form" type="button" role="tab">
+              <i class="bi bi-pencil-square"></i> Import Form
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="import-history-tab" data-bs-toggle="tab" 
+                    data-bs-target="#import-history" type="button" role="tab">
+              <i class="bi bi-clock-history"></i> Import History
+              <span id="importHistoryCount" class="badge bg-secondary ms-1">0</span>
+            </button>
+          </li>
+        </ul>
+
+        <!-- Tabs Content -->
+        <div class="tab-content" id="importTabsContent">
+          
+          <!-- ===== Tab 1: Import Form ===== -->
+          <div class="tab-pane fade show active" id="import-form" role="tabpanel">
+            
+            <!-- Shoe Info Card -->
+            <div class="card mb-3 bg-light border-success">
+              <div class="card-body">
+                <div class="row align-items-center">
+                  <div class="col-auto">
+                    <img id="importShoeImage" src="" width="80" class="rounded border">
+                  </div>
+                  <div class="col">
+                    <h6 id="importShoeName" class="mb-1 fw-bold"></h6>
+                    <p class="text-muted mb-1">
+                      <small><strong>Category:</strong> <span id="importShoeCategory"></span></small>
+                    </p>
+                    <p class="mb-0">
+                      <span class="badge bg-info">
+                        Current Total Stock: <strong id="importCurrentStock">0</strong> units
+                      </span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Variants Selection Table -->
+            <div class="table-responsive">
+              <table class="table table-hover table-sm">
+                <thead class="table-light">
+                  <tr>
+                    <th width="50">
+                      <input type="checkbox" id="selectAllVariants" class="form-check-input" 
+                             onchange="adminManager.toggleAllVariants(this.checked)">
+                    </th>
+                    <th>Color</th>
+                    <th>Size</th>
+                    <th>SKU</th>
+                    <th>Current Stock</th>
+                    <th width="120">Import Qty</th>
+                    <th width="120">Import Price</th>
+                  </tr>
+                </thead>
+                <tbody id="importVariantsTable">
+                  <!-- Populated by JS: renderImportVariantsTable() -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Import Notes -->
+            <div class="mb-3">
+              <label for="importNotes" class="form-label">
+                <i class="bi bi-sticky"></i> Import Notes (Optional)
+              </label>
+              <textarea class="form-control" id="importNotes" rows="2" 
+                        placeholder="e.g., Weekly restock, Black Friday inventory..."></textarea>
+            </div>
+
+            <!-- Import Summary -->
+            <div class="alert alert-success border-success mb-0">
+              <h6 class="mb-2"><i class="bi bi-info-circle"></i> Import Summary</h6>
+              <div class="row">
+                <div class="col-md-4">
+                  <small><strong>Selected Variants:</strong></small><br>
+                  <span id="summaryVariants" class="fs-5 fw-bold">0</span>
+                </div>
+                <div class="col-md-4">
+                  <small><strong>Total Quantity:</strong></small><br>
+                  <span id="summaryQuantity" class="fs-5 fw-bold">0</span> units
+                </div>
+                <div class="col-md-4">
+                  <small><strong>Total Cost:</strong></small><br>
+                  <span class="fs-5 fw-bold text-success">$<span id="summaryCost">0.00</span></span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- ===== Tab 2: Import History ===== -->
+          <div class="tab-pane fade" id="import-history" role="tabpanel">
+            <div id="importHistoryContainer">
+              <p class="text-muted text-center py-5">
+                <i class="bi bi-clock-history display-4 d-block mb-3 text-secondary"></i>
+                <span class="fs-6">Switch to this tab to view import history</span>
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="bi bi-x-circle"></i> Cancel
+        </button>
+        <button type="button" class="btn btn-success" id="submitImportBtn" 
+                onclick="adminManager.submitBatchImport()">
+          <i class="bi bi-check-circle"></i> Submit Import
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+    <script>
+    // ⭐ Set auth token from Supabase session to localStorage
+    async function setupAuthForAdmin() {
+        if (window.authService && window.authService.supabase) {
+            const { data: { session } } = await window.authService.supabase.auth.getSession();
+            if (session?.access_token) {
+                localStorage.setItem('authToken', session.access_token);
+                console.log('✅ Auth token set for admin');
+            } else {
+                console.warn('⚠️ No Supabase session found - redirecting to login');
+                window.location.href = '/login.html';
+            }
+        }
+    }
+
+    // Run on page load
+    setupAuthForAdmin();
+    </script>
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <!-- API Client -->
-    <script src="../assets/js/ApiClient.js"></script>
+    <script type="module" src="../assets/js/ApiClient.js"></script>
     
     <!-- Admin Manager -->
-    <script src="../assets/js/AdminManager.js"></script>
+    <script type="module" src="../assets/js/AdminManager.js"></script>
     <!-- Navbar Manager -->
-    <script src="../assets/js/NavbarManager.js"></script>
-    <script src="../assets/js/animations.js"></script>
+    <script type="module" src="../assets/js/NavbarManager.js"></script>
+    <script type="module" src="../assets/js/animations.js"></script>
     <!-- Auth Manager -->
-    <script src="../assets/js/AuthManager.js"></script> 
+    <script type="module" src="../assets/js/AuthManager.js"></script> 
        
     <!-- Page Initialization -->
     <script>
