@@ -24,7 +24,15 @@ class AdminManager {
         // UI State
         this.currentShoe = null;
         this.currentVariants = [];
-        
+        /**
+         * State for import workflow
+         */
+        this.importState = {
+            shoeId: null,
+            variants: [],
+            selectedVariants: new Set(),
+            importData: []
+        };
        
         console.log('✅ AdminManager initialized');
     }
@@ -51,13 +59,40 @@ class AdminManager {
             this.applySortByStock();
             // Setup Logout button
             this.setupLogoutButton();
+            //Import History Tab Listener
+            this.setupImportHistoryTabListener();
+            //Setup Import Button Listeners
+            this.setupImportButtonListeners();
+
             console.log('✅ AdminManager initialized successfully');
         } catch (error) {
             console.error('❌ Init error:', error);
             this.showError('Failed to load admin data');
         }
     }
-
+    setupImportButtonListeners() {
+        // Event delegation - lắng nghe clicks trên container
+        const container = document.getElementById('shoesTableContainer');
+        if (container) {
+            container.addEventListener('click', (e) => {
+                // Check if clicked element is import button
+                const importBtn = e.target.closest('.import-btn');
+                if (importBtn) {
+                    const shoeId = parseInt(importBtn.dataset.shoeId);
+                    console.log('📦 Import button clicked for shoe:', shoeId);
+                    this.handleImport(shoeId);
+                }
+            });
+        }
+    }
+    setupImportHistoryTabListener() {
+        const historyTab = document.getElementById('import-history-tab');
+        if (historyTab) {
+            historyTab.addEventListener('shown.bs.tab', () => {
+                this.loadImportHistory();
+            });
+        }
+    }
     /**
      * Wait for productsAPI to be available
      */
@@ -309,23 +344,19 @@ class AdminManager {
         `;
     }
 
-    /**
-     * Render single shoe row - CLICKABLE
-     */
     renderShoeRow(shoe) {
         const category = this.categories.find(c => c.category_id === shoe.category_id);
-        
+
         // ⭐ Handle shoes without variants
         const totalStock = shoe.stock_info?.total_stock || 0;
         const variantCount = shoe.stock_info?.variant_count || 0;
-        
+
         let stockBadge = '';
         if (totalStock > 20) {
             stockBadge = `<span class="badge bg-success">${totalStock} units</span>`;
         } else if (totalStock > 0) {
             stockBadge = `<span class="badge bg-warning text-dark">${totalStock} units</span>`;
         } else {
-            // ⭐ Shoes WITHOUT variants
             stockBadge = `<span class="badge bg-secondary">No variants yet</span>`;
         }
 
@@ -333,36 +364,46 @@ class AdminManager {
         if (variantCount > 0) {
             variantBadge = `<span class="badge bg-info">${variantCount} variants</span>`;
         } else {
-            // ⭐ Warning for shoes without variants
             variantBadge = `<span class="badge bg-warning text-dark">⚠️ 0 variants</span>`;
         }
 
         return `
             <tr onclick="adminManager.viewShoeDetail(${shoe.shoe_id})" style="cursor: pointer;">
                 <td>
-                    <img src="${shoe.image_url}" 
-                        alt="${shoe.shoe_name}" 
-                        class="product-img"
-                        >
+                    <img src="${shoe.image_url}"
+                        alt="${shoe.shoe_name}"
+                        class="product-img">
                 </td>
                 <td><strong>${shoe.shoe_name || 'N/A'}</strong></td>
                 <td>${category?.category_name || 'N/A'}</td>
                 <td><strong>${this.formatPrice(shoe.base_price)}</strong></td>
                 <td>${stockBadge}</td>
-                
                 <td>${shoe.is_active ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-secondary">Inactive</span>'}</td>
+                
                 <td onclick="event.stopPropagation()">
-                    <button class="btn-action" onclick="adminManager.editShoe(${shoe.shoe_id})" title="Edit">
+                    <!-- Edit Button -->
+                    <button class="btn-action" 
+                            onclick="adminManager.editShoe(${shoe.shoe_id})" 
+                            title="Edit Shoe">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="btn-action text-success" onclick="adminManager.addVariant(${shoe.shoe_id})" title="Add Variant">
+                    
+                    <!-- ⭐ IMPORT BUTTON (Updated) -->
+                    <button class="btn-action text-success import-btn" 
+                            onclick="adminManager.handleImport(${shoe.shoe_id})" 
+                            title="Import Stock">
                         <i class="fas fa-plus-circle"></i>
-                    </button>
+                    </button>               
+                    <!-- Optional: Add Variant button (if you need separate "add new variant" feature) -->
+                    <!-- <button class="btn-action text-primary" 
+                            onclick="adminManager.addVariant(${shoe.shoe_id})" 
+                            title="Add New Variant">
+                        <i class="fas fa-plus-square"></i>
+                    </button> -->
                 </td>
             </tr>
         `;
     }
-
     /**
      * Calculate total stock for a shoe
      */
@@ -676,6 +717,86 @@ class AdminManager {
     showError(message) {
         alert(`Error: ${message}`);
     }
+    // UTILITY METHODS
+    showError(message) {
+        alert(`Error: ${message}`);
+    }
+
+    // ⭐ ADD THESE MISSING METHODS:
+
+    /**
+     * Show success notification
+     */
+    showSuccess(message) {
+        // Use Bootstrap Toast for better UX
+        this.showToast(message, 'success');
+    }
+
+    /**
+     * Show general notification
+     */
+    showNotification(message, type = 'info') {
+        this.showToast(message, type);
+    }
+
+    /**
+     * Show Bootstrap Toast notification
+     */
+    showToast(message, type = 'info') {
+        // Create toast container if not exists
+        let toastContainer = document.getElementById('toast-container');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.id = 'toast-container';
+            toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+            toastContainer.style.zIndex = '9999';
+            document.body.appendChild(toastContainer);
+        }
+
+        // Map type to Bootstrap class
+        const typeClasses = {
+            'success': 'bg-success text-white',
+            'error': 'bg-danger text-white',
+            'warning': 'bg-warning text-dark',
+            'info': 'bg-info text-white'
+        };
+
+        const bgClass = typeClasses[type] || typeClasses['info'];
+
+        // Create toast element
+        const toastId = `toast-${Date.now()}`;
+        const toastHTML = `
+            <div id="${toastId}" class="toast align-items-center ${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'} me-2"></i>
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        `;
+
+        toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+
+        // Show toast
+        const toastElement = document.getElementById(toastId);
+        const toast = new bootstrap.Toast(toastElement, {
+            animation: true,
+            autohide: true,
+            delay: 3000 // 3 seconds
+        });
+
+        toast.show();
+
+        // Remove toast element after hidden
+        toastElement.addEventListener('hidden.bs.toast', () => {
+            if (toastElement && toastElement.parentNode) {
+                toastElement.remove();
+            }
+        });
+    }
+
 
     // ========================================
     // CRUD OPERATIONS (Placeholders)
@@ -902,6 +1023,338 @@ class AdminManager {
             }
         });
     }
+    // Add to AdminManager class
+
+// ======================================
+// IMPORT MANAGEMENT METHODS
+// ======================================
+
+
+
+/**
+ * ⭐ Handle Import button click
+ */
+async handleImport(shoeId) {
+    try {
+        console.log('📦 Starting import for shoe:', shoeId);
+        
+        // Find shoe
+        this.currentShoe = this.shoes.find(s => s.shoe_id === shoeId);
+        if (!this.currentShoe) {
+            this.showError('Shoe not found');
+            return;
+        }
+
+        // Reset import state
+        this.importState = {
+            shoeId: shoeId,
+            variants: [],
+            selectedVariants: new Set(),
+            importData: []
+        };
+
+        // Load variants
+        const response = await this.api.getProductVariants(shoeId);
+        if (!response.success || !response.data || response.data.length === 0) {
+            this.showError('No variants found for this shoe');
+            return;
+        }
+
+        this.importState.variants = response.data;
+        
+        // Show modal
+        this.showImportModal();
+        
+    } catch (error) {
+        console.error('❌ Import init error:', error);
+        this.showError('Failed to initialize import');
+    }
+}
+
+/**
+ * Show import modal with data
+ */
+showImportModal() {
+    // Update shoe info
+    document.getElementById('importShoeName').textContent = this.currentShoe.shoe_name;
+    document.getElementById('importShoeImage').src = this.currentShoe.image_url || '/assets/images/placeholder.png';
+    document.getElementById('importCurrentStock').textContent = 
+        this.currentShoe.stock_info?.total_stock || 0;
+    document.getElementById('importShoeInfo').textContent = 
+        `Product ID: ${this.currentShoe.shoe_id} | Category: ${this.getCategoryName(this.currentShoe.category_id)}`;
+
+    // Render variants table
+    this.renderImportVariantsTable();
+
+    // Reset form
+    document.getElementById('importNotes').value = '';
+    document.getElementById('selectAllVariants').checked = false;
+    this.updateImportSummary();
+
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('importModal'));
+    modal.show();
+
+    // Clear history tab (will load on demand)
+    document.getElementById('importHistoryContainer').innerHTML = `
+        <p class="text-muted text-center py-4">
+            <i class="bi bi-clock-history fs-1 d-block mb-2"></i>
+            Switch to this tab to view import history
+        </p>
+    `;
+}
+
+/**
+ * Render variants table for import
+ */
+renderImportVariantsTable() {
+    const tbody = document.getElementById('importVariantsTable');
+    
+    if (!this.importState.variants || this.importState.variants.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center text-muted py-4">
+                    No variants available for import
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    const html = this.importState.variants.map(variant => {
+        const color = this.colors.find(c => c.color_id === variant.color_id);
+        const size = this.sizes.find(s => s.size_id === variant.size_id);
+        
+        return `
+            <tr>
+                <td>
+                    <input type="checkbox" class="form-check-input variant-checkbox" 
+                           data-variant-id="${variant.variant_id}"
+                           onchange="adminManager.handleVariantCheckbox(${variant.variant_id}, this.checked)">
+                </td>
+                <td>
+                    <span class="d-inline-block rounded-circle me-2" 
+                          style="width: 20px; height: 20px; background: ${color?.hex_code || '#ccc'}"></span>
+                    ${color?.color_name || 'N/A'}
+                </td>
+                <td>${size?.size_value || 'N/A'} ${size?.size_type || ''}</td>
+                <td><strong>${variant.stock_quantity || 0}</strong></td>
+                <td>
+                    <input type="number" class="form-control form-control-sm" 
+                           id="qty-${variant.variant_id}" 
+                           min="1" value="10" step="1"
+                           data-variant-id="${variant.variant_id}"
+                           onchange="adminManager.updateImportSummary()">
+                </td>
+                <td>
+                    <input type="number" class="form-control form-control-sm" 
+                           id="price-${variant.variant_id}" 
+                           min="0" value="${variant.variant_price || this.currentShoe.base_price || 0}" 
+                           step="0.01"
+                           data-variant-id="${variant.variant_id}"
+                           onchange="adminManager.updateImportSummary()">
+                </td>
+            </tr>
+        `;
+    }).join('');
+
+    tbody.innerHTML = html;
+}
+
+/**
+ * Handle variant checkbox change
+ */
+handleVariantCheckbox(variantId, checked) {
+    if (checked) {
+        this.importState.selectedVariants.add(variantId);
+    } else {
+        this.importState.selectedVariants.delete(variantId);
+    }
+    this.updateImportSummary();
+}
+
+/**
+ * Toggle all variants selection
+ */
+toggleAllVariants(checked) {
+    this.importState.selectedVariants.clear();
+    
+    document.querySelectorAll('.variant-checkbox').forEach(cb => {
+        cb.checked = checked;
+        if (checked) {
+            const variantId = parseInt(cb.dataset.variantId);
+            this.importState.selectedVariants.add(variantId);
+        }
+    });
+    
+    this.updateImportSummary();
+}
+
+/**
+ * Update import summary
+ */
+updateImportSummary() {
+    let totalQty = 0;
+    let totalCost = 0;
+    let selectedCount = 0;
+
+    this.importState.selectedVariants.forEach(variantId => {
+        const qtyInput = document.getElementById(`qty-${variantId}`);
+        const priceInput = document.getElementById(`price-${variantId}`);
+        
+        if (qtyInput && priceInput) {
+            const qty = parseInt(qtyInput.value) || 0;
+            const price = parseFloat(priceInput.value) || 0;
+            
+            totalQty += qty;
+            totalCost += qty * price;
+            selectedCount++;
+        }
+    });
+
+    document.getElementById('summaryVariants').textContent = selectedCount;
+    document.getElementById('summaryQuantity').textContent = totalQty;
+    document.getElementById('summaryCost').textContent = totalCost.toFixed(2);
+}
+
+/**
+ * ⭐ Submit batch import
+ */
+async submitBatchImport() {
+    try {
+        // Validation
+        if (this.importState.selectedVariants.size === 0) {
+            this.showError('Please select at least one variant to import');
+            return;
+        }
+
+        // Build import data
+        const imports = [];
+        this.importState.selectedVariants.forEach(variantId => {
+            const qtyInput = document.getElementById(`qty-${variantId}`);
+            const priceInput = document.getElementById(`price-${variantId}`);
+            
+            const quantity = parseInt(qtyInput.value);
+            const price = parseFloat(priceInput.value);
+
+            if (quantity > 0 && price >= 0) {
+                imports.push({
+                    variant_id: variantId,
+                    quantity_imported: quantity,
+                    import_price: price
+                });
+            }
+        });
+
+        if (imports.length === 0) {
+            this.showError('No valid imports to submit');
+            return;
+        }
+
+        const notes = document.getElementById('importNotes').value.trim();
+
+        // Confirm with user
+        if (!confirm(`Import ${imports.length} variants?`)) {
+            return;
+        }
+
+        // Show loading
+        console.log('📤 Submitting batch import:', imports);
+
+        // Call API
+        const response = await window.importsAPI.createBatchImport({
+            imports: imports,
+            notes: notes || null
+        });
+
+        if (response.success) {
+            this.showSuccess(`Successfully imported ${imports.length} variants!`);
+            
+            // Close modal
+            bootstrap.Modal.getInstance(document.getElementById('importModal')).hide();
+            
+            // Reload shoes to show updated stock
+            await this.loadShoes();
+            
+        } else {
+            this.showError(response.message || 'Import failed');
+        }
+
+    } catch (error) {
+        console.error('❌ Submit import error:', error);
+        this.showError('Failed to submit import: ' + error.message);
+    }
+}
+
+/**
+ * Load import history (when tab is clicked)
+ */
+async loadImportHistory() {
+    try {
+        if (!this.importState.shoeId) return;
+
+        const container = document.getElementById('importHistoryContainer');
+        container.innerHTML = '<p class="text-center"><i class="bi bi-hourglass-split"></i> Loading...</p>';
+
+        const response = await window.importsAPI.getImportsByShoe(this.importState.shoeId);
+        
+        if (!response.success || !response.data || response.data.length === 0) {
+            container.innerHTML = `
+                <p class="text-muted text-center py-4">
+                    <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                    No import history for this shoe yet
+                </p>
+            `;
+            document.getElementById('importHistoryCount').textContent = '0';
+            return;
+        }
+
+        document.getElementById('importHistoryCount').textContent = response.data.length;
+
+        // Render history table
+        container.innerHTML = `
+            <table class="table table-sm table-hover">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Color</th>
+                        <th>Size</th>
+                        <th>Qty</th>
+                        <th>Price</th>
+                        <th>Cost</th>
+                        <th>By</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${response.data.map(imp => `
+                        <tr>
+                            <td><small>${this.formatDate(imp.import_date)}</small></td>
+                            <td>
+                                <span style="display:inline-block; width:12px; height:12px; border-radius:50%; background:${imp.variant?.color?.hex_code || '#ccc'}"></span>
+                                ${imp.variant?.color?.color_name || 'N/A'}
+                            </td>
+                            <td>${imp.variant?.size?.size_value || 'N/A'}</td>
+                            <td><strong>+${imp.quantity_imported}</strong></td>
+                            <td>$${imp.import_price.toFixed(2)}</td>
+                            <td>$${(imp.quantity_imported * imp.import_price).toFixed(2)}</td>
+                            <td><small>${imp.user?.username || 'N/A'}</small></td>
+                            <td><small>${imp.notes || '-'}</small></td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+
+    } catch (error) {
+        console.error('❌ Load import history error:', error);
+        container.innerHTML = '<p class="text-danger">Failed to load history</p>';
+    }
+}
+getCategoryName(categoryId) {
+    const category = this.categories.find(c => c.category_id === categoryId);
+    return category?.category_name || 'N/A';
+}
 
 }
 

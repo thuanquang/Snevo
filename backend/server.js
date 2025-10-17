@@ -36,6 +36,7 @@ import variantRoutes from './routes/variants.js';
 import categoryRoutes from './routes/categories.js';
 import colorRoutes from './routes/colors.js';
 import sizeRoutes from './routes/sizes.js';
+import importRoutes from './routes/imports.js';
 
 class Server {
     constructor() {
@@ -62,10 +63,12 @@ class Server {
         this.variantController = new VariantController();
         this.variantController.setModels(this.models);  
 
+        this.importController = new ImportController();
+        this.importController.setModels(this.models);
+
         this.orderController = new OrderController(this.models);
         this.profileController = new ProfileController(this.models);
-        this.addressController = new AddressController(this.models);
-        this.importController = new ImportController(this.models);
+        this.addressController = new AddressController(this.models);     
         this.paymentController = new PaymentController(this.models);
         this.adminController = new AdminController(this.models);
 
@@ -195,7 +198,9 @@ class Server {
         if (pathname.startsWith('/api/sizes')) {
             return sizeRoutes(req, res, this.sizeController, pathname);
         }
-
+        if (pathname.startsWith('/api/imports')) {
+            return importRoutes(req, res, this.importController, pathname);
+        }
         // ⭐ BUILT-IN ROUTES (Keep existing handlers)
         // Auth routes for profile management
         if (pathname.startsWith('/api/auth/')) {
@@ -208,8 +213,6 @@ class Server {
             await this.handleProfileRoutes(req, res, pathname, req.method, body);
         } else if (pathname.startsWith('/api/addresses/')) {
             await this.handleAddressRoutes(req, res, pathname, req.method, body);
-        } else if (pathname.startsWith('/api/imports/')) {
-            await this.handleImportRoutes(req, res, pathname, req.method, body);
         } else if (pathname.startsWith('/api/payments/')) {
             await this.handlePaymentRoutes(req, res, pathname, req.method, body);
         } else if (pathname.startsWith('/api/reviews/')) {
@@ -384,45 +387,7 @@ class Server {
         } else {
             this.sendError(res, 'API endpoint not found', 404);
         }
-    }
-    // Import routes handler
-    async handleImportRoutes(req, res, pathname, method, body) {
-        const importPath = pathname.replace('/api/imports', '');
-
-        // Check authentication for protected routes
-        const authResult = await authMiddleware.authenticate(req, res);
-        if (!authResult || !authResult.success) {
-            return;
-        }
-        req.user = authResult.user;
-
-        if (importPath === '/' || importPath === '') {
-            if (method === 'GET') {
-                await this.importController.getImports(req, res);
-            } else if (method === 'POST') {
-                req.body = body;
-                await this.importController.createImport(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else if (importPath.match(/^\/\d+$/)) {
-            const id = importPath.substring(1);
-            req.params = { id };
-            if (method === 'GET') {
-                await this.importController.getImport(req, res);
-            } else if (method === 'PUT') {
-                req.body = body;
-                await this.importController.updateImport(req, res);
-            } else if (method === 'DELETE') {
-                await this.importController.deleteImport(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else {
-            this.sendError(res, 'API endpoint not found', 404);
-        }
-    }
-
+    }   
     // Payment routes handler
     async handlePaymentRoutes(req, res, pathname, method, body) {
         const paymentPath = pathname.replace('/api/payments', '');
