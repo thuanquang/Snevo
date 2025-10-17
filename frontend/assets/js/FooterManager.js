@@ -35,16 +35,16 @@ const footerHTML = `
                 <h6 class="fw-semibold text-dark mb-3">Follow Us</h6>
                 <div class="social-links d-flex gap-3">
                     <a href="#" class="text-dark" aria-label="Facebook">
-                        <i class="fab fa-facebook-f fs-5"></i>
+                        <i class="fab fa-facebook-f"></i>
                     </a>
                     <a href="#" class="text-dark" aria-label="Twitter">
-                        <i class="fab fa-twitter fs-5"></i>
+                        <i class="fab fa-twitter"></i>
                     </a>
                     <a href="#" class="text-dark" aria-label="Instagram">
-                        <i class="fab fa-instagram fs-5"></i>
+                        <i class="fab fa-instagram"></i>
                     </a>
                     <a href="#" class="text-dark" aria-label="YouTube">
-                        <i class="fab fa-youtube fs-5"></i>
+                        <i class="fab fa-youtube"></i>
                     </a>
                 </div>
             </div>
@@ -67,9 +67,9 @@ const footerHTML = `
 </footer>
 `;
 
-document.addEventListener('DOMContentLoaded', () => {
-    const footerRoot = document.getElementById('footerRoot');
-    if (footerRoot) {
-        footerRoot.innerHTML = footerHTML;
-    }
+document.addEventListener("DOMContentLoaded", () => {
+  const footerRoot = document.getElementById("footerRoot");
+  if (footerRoot) {
+    footerRoot.innerHTML = footerHTML;
+  }
 });
