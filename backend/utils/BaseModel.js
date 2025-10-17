@@ -39,41 +39,100 @@ export default class BaseModel {
 
         for (const [field, rule] of Object.entries(validationRules)) {
             const value = data[field];
-            
+
+            // Check required fields
             if (rule.required && (value === undefined || value === null || value === '')) {
                 errors.push(`${field} is required`);
                 continue;
             }
 
-            if (value !== undefined && value !== null) {
-                // Handle custom types like 'email'
-                if (rule.type) {
-                    if (rule.type === 'email') {
-                        if (typeof value !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-                            errors.push(`${field} must be a valid email address`);
-                        }
-                    } else if (typeof value !== rule.type) {
-                        errors.push(`${field} must be of type ${rule.type}`);
-                    }
+            // Skip validation if value is null/undefined and not required
+            if (value === undefined || value === null) {
+                continue;
+            }
+
+            // ⭐ IMPROVED TYPE CHECKING
+            if (rule.type) {
+                const actualType = typeof value;
+                let isValid = false;
+
+                // Handle special type aliases
+                switch (rule.type) {
+                    case 'integer':
+                    case 'number':
+                    case 'decimal':
+                    case 'float':
+                        isValid = (actualType === 'number' && !isNaN(value));
+                        break;
+
+                    case 'string':
+                    case 'text':
+                    case 'varchar':
+                        isValid = (actualType === 'string');
+                        break;
+
+                    case 'uuid':
+                        // UUID is a string with specific format
+                        isValid = (actualType === 'string' && 
+                                /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value));
+                        break;
+
+                    case 'email':
+                        isValid = (actualType === 'string' && 
+                                /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value));
+                        break;
+
+                    case 'date':
+                    case 'timestamp':
+                    case 'timestamptz':
+                        // Accept Date object or valid ISO date string
+                        isValid = (value instanceof Date && !isNaN(value)) || 
+                                (actualType === 'string' && !isNaN(Date.parse(value)));
+                        break;
+
+                    case 'boolean':
+                        isValid = (actualType === 'boolean');
+                        break;
+
+                    case 'object':
+                    case 'json':
+                    case 'jsonb':
+                        isValid = (actualType === 'object' && !Array.isArray(value));
+                        break;
+
+                    case 'array':
+                        isValid = Array.isArray(value);
+                        break;
+
+                    default:
+                        // Fallback to direct typeof comparison
+                        isValid = (actualType === rule.type);
                 }
 
-                if (rule.minLength && value.length < rule.minLength) {
-                    errors.push(`${field} must be at least ${rule.minLength} characters long`);
+                if (!isValid) {
+                    errors.push(`${field} must be of type ${rule.type}`);
                 }
+            }
 
-                if (rule.maxLength && value.length > rule.maxLength) {
-                    errors.push(`${field} must be no more than ${rule.maxLength} characters long`);
-                }
+            // Length validations
+            if (rule.minLength && value.length < rule.minLength) {
+                errors.push(`${field} must be at least ${rule.minLength} characters long`);
+            }
 
-                if (rule.pattern && !rule.pattern.test(value)) {
-                    errors.push(`${field} format is invalid`);
-                }
+            if (rule.maxLength && value.length > rule.maxLength) {
+                errors.push(`${field} must be no more than ${rule.maxLength} characters long`);
+            }
 
-                if (rule.custom && typeof rule.custom === 'function') {
-                    const customError = rule.custom(value, data);
-                    if (customError) {
-                        errors.push(customError);
-                    }
+            // Pattern validation
+            if (rule.pattern && !rule.pattern.test(value)) {
+                errors.push(`${field} format is invalid`);
+            }
+
+            // Custom validation
+            if (rule.custom && typeof rule.custom === 'function') {
+                const customError = rule.custom(value, data);
+                if (customError) {
+                    errors.push(customError);
                 }
             }
         }
@@ -132,7 +191,7 @@ export default class BaseModel {
             this.validate(data);
             const filteredData = this.filterFillable(data);
             
-            const { data: result, error } = await this.this.supabaseConfig.getAdminClient()
+            const { data: result, error } = await this.supabaseConfig.getAdminClient()
                 .from(this.getQualifiedTableName())
                 .insert([filteredData])
                 .select()
