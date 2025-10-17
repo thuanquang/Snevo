@@ -1,0 +1,69 @@
+#navbarRoot nav,
+#navbarRoot .navbar {
+  position: relative !important;
+  margin-bottom: 0 !important;
+}
+
+.navbar .container {
+  position: relative;
+}
+
+.navbar .navbar-collapse {
+  position: static;
+}
+
+.navbar-nav.mx-auto {
+  position: absolute !important;
+  left: 50% !important;
+  transform: translateX(-42.5%) !important;
+  margin: 0 !important;
+  gap: 80px !important;
+  display: flex !important;
+  flex-direction: row !important;
+}
+
+/* Đảm bảo right nav items (search, cart, login) không bị ảnh hưởng */
+.navbar-nav:not(.mx-auto) {
+  margin-left: auto !important;
+  position: relative !important;
+  z-index: 10;
+}
+
+#navbarRoot {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s linear;
+  will-change: transform, background-color;
+}
+
+#navbarRoot.navbar-transparent {
+  background-color: transparent !important;
+  box-shadow: none;
+}
+
+#navbarRoot.navbar-transparent .navbar {
+  background-color: transparent !important;
+}
+
+#navbarRoot.navbar-transparent .navbar-brand,
+#navbarRoot.navbar-transparent .nav-link {
+  color: #000 !important;
+}
+
+/* White navbar when scrolled */
+#navbarRoot.navbar-scrolled .navbar {
+  background-color: rgba(255, 255, 255, 0.2)!important;
+  backdrop-filter: blur(5px)!important;
+}
+
+#navbarRoot.navbar-scrolled .navbar-brand,
+#navbarRoot.navbar-scrolled .nav-link {
+  color: #111827 !important;
+}
+
+#navbarRoot.navbar-scrolled .navbar-brand img {
+  filter: none;
+}
