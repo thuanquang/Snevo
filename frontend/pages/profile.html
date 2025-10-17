@@ -1,765 +1,1133 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Profile Management - Snevo</title>
-    
+
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
     <!-- Custom CSS -->
-    <link href="../assets/css/main.css" rel="stylesheet">
-    <link href="../assets/css/animations.css" rel="stylesheet">
-    <link href="../assets/css/components.css" rel="stylesheet">
-    <link href="../assets/css/responsive.css" rel="stylesheet">
+    <link href="../assets/css/main.css" rel="stylesheet" />
+    <link href="../assets/css/animations.css" rel="stylesheet" />
+    <link href="../assets/css/components.css" rel="stylesheet" />
+    <link href="../assets/css/responsive.css" rel="stylesheet" />
 
     <!-- Profile Page Styles -->
     <style>
-        /* Minimalist Profile Styles - Following Landing Page Design */
-        .profile-section-content {
-            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
-            opacity: 1;
-            transform: translateY(0);
-        }
+      /* Minimalist Profile Styles - Following Landing Page Design */
+      .profile-section-content {
+        transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+        opacity: 1;
+        transform: translateY(0);
+      }
 
-        .profile-section-content:not(.active) {
-            opacity: 0;
-            transform: translateY(20px);
-            display: none !important;
-        }
+      .profile-section-content:not(.active) {
+        opacity: 0;
+        transform: translateY(20px);
+        display: none !important;
+      }
 
-        /* Clean Navigation */
-        .profile-nav .nav-link {
-            transition: all 0.2s ease;
-            border-radius: 0;
-            margin-bottom: 0;
-            padding: 16px 20px;
-            border: none;
-            background: transparent;
-            color: #666;
-            font-family: 'Poppins', sans-serif;
-            font-weight: 500;
-            border-left: 3px solid transparent;
-        }
+      /* Clean Navigation */
+      .profile-nav .nav-link {
+        transition: all 0.2s ease;
+        border-radius: 0;
+        margin-bottom: 0;
+        padding: 16px 20px;
+        border: none;
+        background: transparent;
+        color: #666;
+        font-family: "Poppins", sans-serif;
+        font-weight: 500;
+        border-left: 3px solid transparent;
+      }
 
-        .profile-nav .nav-link:hover {
-            background-color: #f8f9fa;
-            color: #000;
-            border-left-color: #000;
-            transform: none;
-        }
+      .profile-nav .nav-link:hover {
+        background-color: #f8f9fa;
+        color: #000;
+        border-left-color: #000;
+        transform: none;
+      }
 
-        .profile-nav .nav-link.active {
-            background-color: #f8f9fa;
-            color: #000;
-            border-left-color: #000;
-            box-shadow: none;
-        }
+      .profile-nav .nav-link.active {
+        background-color: #f8f9fa;
+        color: #000;
+        border-left-color: #000;
+        box-shadow: none;
+      }
 
-        /* Clean Form Styling */
-        .profile-form .form-actions {
-            margin-top: 3rem;
-            padding-top: 2rem;
-            border-top: 1px solid #e5e5e5;
-        }
+      /* Clean Form Styling */
+      .profile-form .form-actions {
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 1px solid #e5e5e5;
+      }
 
-        .section-header {
-            margin-bottom: 3rem;
+      .section-header {
+        margin-bottom: 3rem;
+      }
+
+      .section-title {
+        color: #000;
+        font-family: "Poppins", sans-serif;
+        font-weight: 700;
+        font-size: 32px;
+        margin-bottom: 8px;
+      }
+
+      .section-subtitle {
+        color: #666;
+        font-family: "Poppins", sans-serif;
+        font-size: 16px;
+        font-weight: 400;
+      }
+
+      .form-actions .btn {
+        margin-right: 12px;
+        margin-bottom: 12px;
+        border-radius: 8px;
+        font-family: "Poppins", sans-serif;
+        font-weight: 600;
+        padding: 12px 24px;
+      }
+
+      .profile-sidebar {
+        position: sticky;
+        top: 100px;
+        background: #fff;
+        border-radius: 12px;
+        padding: 0;
+      }
+
+      /* Clean Avatar */
+      .avatar-circle {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: #f8f9fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        color: #666;
+        border: 2px solid #e5e5e5;
+      }
+
+      .profile-name {
+        font-family: "Poppins", sans-serif;
+        font-weight: 700;
+        font-size: 20px;
+        color: #000;
+        margin-bottom: 4px;
+      }
+
+      .profile-email {
+        font-family: "Poppins", sans-serif;
+        font-weight: 400;
+        font-size: 14px;
+        color: #666;
+      }
+
+      /* Clean Form Controls */
+      .form-control,
+      .form-select {
+        border: 2px solid #e5e5e5;
+        border-radius: 8px;
+        padding: 12px 16px;
+        font-family: "Poppins", sans-serif;
+        font-size: 14px;
+        transition: all 0.2s ease;
+      }
+
+      .form-control:focus,
+      .form-select:focus {
+        border-color: #000;
+        box-shadow: 0 0 0 0.2rem rgba(0, 0, 0, 0.1);
+      }
+
+      .form-label {
+        font-family: "Poppins", sans-serif;
+        font-weight: 600;
+        font-size: 14px;
+        color: #000;
+        margin-bottom: 8px;
+      }
+
+      /* Clean Address Cards */
+      .address-card .card {
+        border: 2px solid #e5e5e5;
+        border-radius: 12px;
+        transition: all 0.2s ease;
+      }
+
+      .address-card .card:hover {
+        border-color: #000;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      .address-card .card-title {
+        font-family: "Poppins", sans-serif;
+        font-weight: 600;
+        font-size: 16px;
+        color: #000;
+      }
+
+      .address-card .card-text {
+        font-family: "Poppins", sans-serif;
+        font-size: 14px;
+        color: #666;
+      }
+
+      /* Clean Buttons */
+      .btn-primary {
+        background: #000;
+        border: 2px solid #000;
+        color: #fff;
+        font-family: "Poppins", sans-serif;
+        font-weight: 600;
+      }
+
+      .btn-primary:hover {
+        background: #333;
+        border-color: #333;
+      }
+
+      .btn-outline-primary {
+        border: 2px solid #000;
+        color: #000;
+        background: transparent;
+        font-family: "Poppins", sans-serif;
+        font-weight: 600;
+      }
+
+      .btn-outline-primary:hover {
+        background: #000;
+        color: #fff;
+      }
+
+      .btn-outline-secondary {
+        border: 2px solid #e5e5e5;
+        color: #666;
+        background: transparent;
+        font-family: "Poppins", sans-serif;
+        font-weight: 600;
+      }
+
+      .btn-outline-secondary:hover {
+        background: #f8f9fa;
+        border-color: #000;
+        color: #000;
+      }
+
+      .btn-outline-danger {
+        border: 2px solid #dc3545;
+        color: #dc3545;
+        background: transparent;
+        font-family: "Poppins", sans-serif;
+        font-weight: 600;
+      }
+
+      .btn-outline-danger:hover {
+        background: #dc3545;
+        color: #fff;
+      }
+
+      /* Clean Modals */
+      .modal-content {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      }
+
+      .modal-header {
+        border-bottom: 1px solid #e5e5e5;
+        padding: 24px 24px 16px;
+      }
+
+      .modal-title {
+        font-family: "Poppins", sans-serif;
+        font-weight: 700;
+        font-size: 20px;
+        color: #000;
+      }
+
+      .modal-body {
+        padding: 24px;
+      }
+
+      .modal-footer {
+        border-top: 1px solid #e5e5e5;
+        padding: 16px 24px 24px;
+      }
+
+      /* Clean Settings */
+      .setting-item {
+        padding: 20px 0;
+        border-bottom: 1px solid #f0f0f0;
+      }
+
+      .setting-item:last-child {
+        border-bottom: none;
+      }
+
+      .setting-group-title {
+        font-family: "Poppins", sans-serif;
+        font-weight: 700;
+        font-size: 18px;
+        color: #000;
+        margin-bottom: 16px;
+      }
+
+      .setting-item h6 {
+        font-family: "Poppins", sans-serif;
+        font-weight: 600;
+        font-size: 16px;
+        color: #000;
+        margin-bottom: 4px;
+      }
+
+      .setting-item p {
+        font-family: "Poppins", sans-serif;
+        font-size: 14px;
+        color: #666;
+        margin-bottom: 0;
+      }
+
+      @media (max-width: 991.98px) {
+        .profile-sidebar {
+          position: static;
+          margin-bottom: 2rem;
         }
 
         .section-title {
-            color: #000;
-            font-family: 'Poppins', sans-serif;
-            font-weight: 700;
-            font-size: 32px;
-            margin-bottom: 8px;
+          font-size: 28px;
         }
-
-        .section-subtitle {
-            color: #666;
-            font-family: 'Poppins', sans-serif;
-            font-size: 16px;
-            font-weight: 400;
-        }
-
-        .form-actions .btn {
-            margin-right: 12px;
-            margin-bottom: 12px;
-            border-radius: 8px;
-            font-family: 'Poppins', sans-serif;
-            font-weight: 600;
-            padding: 12px 24px;
-        }
-
-        .profile-sidebar {
-            position: sticky;
-            top: 100px;
-            background: #fff;
-            border-radius: 12px;
-            padding: 0;
-        }
-
-        /* Clean Avatar */
-        .avatar-circle {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background: #f8f9fa;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            color: #666;
-            border: 2px solid #e5e5e5;
-        }
-
-        .profile-name {
-            font-family: 'Poppins', sans-serif;
-            font-weight: 700;
-            font-size: 20px;
-            color: #000;
-            margin-bottom: 4px;
-        }
-
-        .profile-email {
-            font-family: 'Poppins', sans-serif;
-            font-weight: 400;
-            font-size: 14px;
-            color: #666;
-        }
-
-        /* Clean Form Controls */
-        .form-control, .form-select {
-            border: 2px solid #e5e5e5;
-            border-radius: 8px;
-            padding: 12px 16px;
-            font-family: 'Poppins', sans-serif;
-            font-size: 14px;
-            transition: all 0.2s ease;
-        }
-
-        .form-control:focus, .form-select:focus {
-            border-color: #000;
-            box-shadow: 0 0 0 0.2rem rgba(0, 0, 0, 0.1);
-        }
-
-        .form-label {
-            font-family: 'Poppins', sans-serif;
-            font-weight: 600;
-            font-size: 14px;
-            color: #000;
-            margin-bottom: 8px;
-        }
-
-        /* Clean Address Cards */
-        .address-card .card {
-            border: 2px solid #e5e5e5;
-            border-radius: 12px;
-            transition: all 0.2s ease;
-        }
-
-        .address-card .card:hover {
-            border-color: #000;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .address-card .card-title {
-            font-family: 'Poppins', sans-serif;
-            font-weight: 600;
-            font-size: 16px;
-            color: #000;
-        }
-
-        .address-card .card-text {
-            font-family: 'Poppins', sans-serif;
-            font-size: 14px;
-            color: #666;
-        }
-
-        /* Clean Buttons */
-        .btn-primary {
-            background: #000;
-            border: 2px solid #000;
-            color: #fff;
-            font-family: 'Poppins', sans-serif;
-            font-weight: 600;
-        }
-
-        .btn-primary:hover {
-            background: #333;
-            border-color: #333;
-        }
-
-        .btn-outline-primary {
-            border: 2px solid #000;
-            color: #000;
-            background: transparent;
-            font-family: 'Poppins', sans-serif;
-            font-weight: 600;
-        }
-
-        .btn-outline-primary:hover {
-            background: #000;
-            color: #fff;
-        }
-
-        .btn-outline-secondary {
-            border: 2px solid #e5e5e5;
-            color: #666;
-            background: transparent;
-            font-family: 'Poppins', sans-serif;
-            font-weight: 600;
-        }
-
-        .btn-outline-secondary:hover {
-            background: #f8f9fa;
-            border-color: #000;
-            color: #000;
-        }
-
-        .btn-outline-danger {
-            border: 2px solid #dc3545;
-            color: #dc3545;
-            background: transparent;
-            font-family: 'Poppins', sans-serif;
-            font-weight: 600;
-        }
-
-        .btn-outline-danger:hover {
-            background: #dc3545;
-            color: #fff;
-        }
-
-        /* Clean Modals */
-        .modal-content {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-        }
-
-        .modal-header {
-            border-bottom: 1px solid #e5e5e5;
-            padding: 24px 24px 16px;
-        }
-
-        .modal-title {
-            font-family: 'Poppins', sans-serif;
-            font-weight: 700;
-            font-size: 20px;
-            color: #000;
-        }
-
-        .modal-body {
-            padding: 24px;
-        }
-
-        .modal-footer {
-            border-top: 1px solid #e5e5e5;
-            padding: 16px 24px 24px;
-        }
-
-        /* Clean Settings */
-        .setting-item {
-            padding: 20px 0;
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        .setting-item:last-child {
-            border-bottom: none;
-        }
-
-        .setting-group-title {
-            font-family: 'Poppins', sans-serif;
-            font-weight: 700;
-            font-size: 18px;
-            color: #000;
-            margin-bottom: 16px;
-        }
-
-        .setting-item h6 {
-            font-family: 'Poppins', sans-serif;
-            font-weight: 600;
-            font-size: 16px;
-            color: #000;
-            margin-bottom: 4px;
-        }
-
-        .setting-item p {
-            font-family: 'Poppins', sans-serif;
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 0;
-        }
-
-
-        @media (max-width: 991.98px) {
-            .profile-sidebar {
-                position: static;
-                margin-bottom: 2rem;
-            }
-            
-            .section-title {
-                font-size: 28px;
-            }
-        }
+      }
     </style>
-    
+
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="../assets/images/favicon.ico">
-</head>
-<body>
+    <link rel="icon" type="image/x-icon" href="../assets/images/favicon.ico" />
+  </head>
+  <body>
     <!-- Unified Navbar Root -->
     <div id="navbarRoot" data-navbar-page="profile"></div>
 
     <!-- Profile Management Section -->
-    <section class="profile-section py-5" style="margin-top: 80px;">
-        <div class="container">
-            <div class="row">
-                <!-- Profile Navigation Sidebar -->
-                <div class="col-lg-3 col-md-4 mb-4">
-                    <div class="profile-sidebar">
-                        <div class="profile-avatar text-center mb-5">
-                            <div class="avatar-circle mx-auto mb-3" id="profileAvatar">
-                                <i class="fas fa-user"></i>
-                            </div>
-                            <h5 class="profile-name" id="profileName">Loading...</h5>
-                            <p class="profile-email" id="profileEmail">Loading...</p>
-                        </div>
-                        
-                        <nav class="profile-nav">
-                            <ul class="nav flex-column">
-                                <li class="nav-item">
-                                    <a class="nav-link active" href="#personal-info" data-section="personal-info">
-                                        Personal Info
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="#address-book" data-section="address-book">
-                                        Address Book
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="#account-settings" data-section="account-settings">
-                                        Account Settings
-                                    </a>
-                                </li>
-                            </ul>
-                        </nav>
-                        
-                        <!-- Logout Button -->
-                        <div class="mt-5 pt-4" style="border-top: 1px solid #e5e5e5;">
-                            <button class="btn btn-outline-danger w-100" id="logoutBtn" style="border-radius: 8px; padding: 12px 24px;">
-                                Logout
-                            </button>
-                        </div>
-                    </div>
+    <section class="profile-section py-5" style="margin-top: 80px">
+      <div class="container">
+        <div class="row">
+          <!-- Profile Navigation Sidebar -->
+          <div class="col-lg-3 col-md-4 mb-4">
+            <div class="profile-sidebar">
+              <div class="profile-avatar text-center mb-5">
+                <div class="avatar-circle mx-auto mb-3" id="profileAvatar">
+                  <i class="fas fa-user"></i>
                 </div>
-                
-                <!-- Profile Content -->
-                <div class="col-lg-9 col-md-8">
-                    <div class="profile-content">
-                        <!-- Personal Info Section -->
-                        <div class="profile-section-content active" id="personal-info-section">
-                            <div class="section-header">
-                                <h3 class="section-title">Personal Information</h3>
-                                <p class="section-subtitle">Update your personal details and profile information</p>
-                            </div>
-                            
-                            <form id="personalInfoForm" class="profile-form needs-validation" novalidate>
-                                <div class="row">
-                                    <div class="col-md-6 mb-4">
-                                        <label for="fullName" class="form-label">Full Name *</label>
-                                        <input type="text" class="form-control" id="fullName" name="full_name"
-                                               required minlength="2" maxlength="100"
-                                               pattern="^[\p{L}\s]+$"
-                                               title="Full name should contain letters and spaces">
-                                        <div class="form-text" style="font-size: 12px; color: #999; margin-top: 4px;">Enter your full legal name</div>
-                                    </div>
-                                    <div class="col-md-6 mb-4">
-                                        <label for="username" class="form-label">Username *</label>
-                                        <input type="text" class="form-control" id="username" name="username"
-                                               required minlength="3" maxlength="50"
-                                               pattern="^[a-zA-Z0-9_]+$"
-                                               title="Username can only contain letters, numbers, and underscores">
-                                        <div class="form-text" style="font-size: 12px; color: #999; margin-top: 4px;">Choose a unique username for your account</div>
-                                    </div>
-                                </div>
+                <h5 class="profile-name" id="profileName">Loading...</h5>
+                <p class="profile-email" id="profileEmail">Loading...</p>
+              </div>
 
-                                <div class="row">
-                                    <div class="col-md-6 mb-4">
-                                        <label for="email" class="form-label">Email Address</label>
-                                        <input type="email" class="form-control" id="email" name="email" readonly style="background-color: #f8f9fa;">
-                                        <div class="form-text" style="font-size: 12px; color: #999; margin-top: 4px;">Email cannot be changed. Contact support if needed.</div>
-                                    </div>
-                                    <div class="col-md-6 mb-4">
-                                        <label for="phone" class="form-label">Phone Number</label>
-                                        <input type="tel" class="form-control" id="phone" name="phone"
-                                               pattern="^[0-9+\-\s()]{10,20}$"
-                                               title="Please enter a valid phone number">
-                                        <div class="form-text" style="font-size: 12px; color: #999; margin-top: 4px;">Enter your contact phone number</div>
-                                    </div>
-                                </div>
+              <nav class="profile-nav">
+                <ul class="nav flex-column">
+                  <li class="nav-item">
+                    <a
+                      class="nav-link active"
+                      href="#personal-info"
+                      data-section="personal-info"
+                    >
+                      Personal Info
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a
+                      class="nav-link"
+                      href="#address-book"
+                      data-section="address-book"
+                    >
+                      Address Book
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a
+                      class="nav-link"
+                      href="#account-settings"
+                      data-section="account-settings"
+                    >
+                      Account Settings
+                    </a>
+                  </li>
+                </ul>
+              </nav>
 
-                                <div class="row">
-                                    <div class="col-md-6 mb-4">
-                                        <label for="dateOfBirth" class="form-label">Date of Birth</label>
-                                        <input type="date" class="form-control" id="dateOfBirth" name="date_of_birth">
-                                        <div class="form-text" style="font-size: 12px; color: #999; margin-top: 4px;">Your date of birth (optional)</div>
-                                    </div>
-                                    <div class="col-md-6 mb-4">
-                                        <label for="gender" class="form-label">Gender</label>
-                                        <select class="form-select" id="gender" name="gender">
-                                            <option value="">Prefer not to say</option>
-                                            <option value="male">Male</option>
-                                            <option value="female">Female</option>
-                                            <option value="other">Other</option>
-                                        </select>
-                                        <div class="form-text" style="font-size: 12px; color: #999; margin-top: 4px;">Select your gender (optional)</div>
-                                    </div>
-                                </div>
-
-                                <div class="mb-4">
-                                    <label for="avatarUrl" class="form-label">Avatar URL</label>
-                                    <input type="url" class="form-control" id="avatarUrl" name="avatar_url"
-                                           placeholder="https://example.com/avatar.jpg"
-                                           pattern="^https?://.*\.(jpg|jpeg|png|gif|webp|webp\?.*|googleusercontent\.com.*|gravatar\.com.*|github\.com.*|facebook\.com.*)$"
-                                           title="Please enter a valid image URL (supports jpg, png, gif, webp, Google, Gravatar, GitHub, Facebook)">
-                                    <div class="form-text" style="font-size: 12px; color: #999; margin-top: 4px;">Enter a URL to your profile picture</div>
-                                </div>
-
-                                <!-- Loading indicator -->
-                                <div id="personalInfoLoading" class="alert alert-info d-none" style="border: none; background: #f8f9fa; color: #666; border-radius: 8px;">
-                                    <i class="fas fa-spinner fa-spin me-2"></i>
-                                    Saving your profile information...
-                                </div>
-
-                                <!-- Success/Error messages -->
-                                <div id="personalInfoMessage" class="d-none"></div>
-
-                                <div class="form-actions">
-                                    <button type="submit" class="btn btn-primary" id="savePersonalInfoBtn">
-                                        Save Changes
-                                    </button>
-                                    <button type="button" class="btn btn-outline-secondary" onclick="refreshPersonalInfo()">
-                                        Refresh Data
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                        
-                        <!-- Address Book Section -->
-                        <div class="profile-section-content" id="address-book-section">
-                            <div class="section-header">
-                                <h3 class="section-title">Address Book</h3>
-                                <p class="section-subtitle">Manage your shipping addresses</p>
-                            </div>
-                            
-                            <div class="address-actions mb-5">
-                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAddressModal" style="border-radius: 8px; padding: 12px 24px;">
-                                    Add New Address
-                                </button>
-                            </div>
-                            
-                            <div class="addresses-list" id="addressesList">
-                                <div class="text-center">
-                                    <div class="spinner-border" role="status" style="color: #000;">
-                                        <span class="visually-hidden">Loading addresses...</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        
-                        
-                        <!-- Account Settings Section -->
-                        <div class="profile-section-content" id="account-settings-section">
-                            <div class="section-header">
-                                <h3 class="section-title">Account Settings</h3>
-                                <p class="section-subtitle">Manage your account preferences and security</p>
-                            </div>
-                            
-                            <div class="account-settings">
-                                <div class="setting-group mb-5">
-                                    <h5 class="setting-group-title">Account Information</h5>
-                                    <div class="setting-item">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <h6 class="mb-1">Account Status</h6>
-                                                <p class="text-muted mb-0" id="accountStatus">Active</p>
-                                            </div>
-                                            <span class="badge" id="verificationBadge" style="border-radius: 6px; padding: 4px 12px; font-size: 12px;">Verified</span>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="setting-item">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <h6 class="mb-1">Member Since</h6>
-                                                <p class="text-muted mb-0" id="memberSince">Loading...</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="setting-group mb-5">
-                                    <h5 class="setting-group-title">Security</h5>
-                                    <div class="setting-item">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <h6 class="mb-1">Login Sessions</h6>
-                                                <p class="text-muted mb-0">Manage your active login sessions</p>
-                                            </div>
-                                            <button class="btn btn-outline-secondary btn-sm" onclick="viewSessions()" style="border-radius: 6px; padding: 6px 16px;">View Sessions</button>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="setting-group mb-5">
-                                    <h5 class="setting-group-title">Data & Privacy</h5>
-                                    
-                                    <div class="setting-item">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <h6 class="mb-1">Delete Account</h6>
-                                                <p class="text-muted mb-0">Permanently delete your account and all data</p>
-                                            </div>
-                                            <button class="btn btn-outline-danger btn-sm" onclick="confirmAccountDeletion()" style="border-radius: 6px; padding: 6px 16px;">Delete Account</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                        </div>
-                    </div>
-                </div>
+              <!-- Logout Button -->
+              <div class="mt-5 pt-4" style="border-top: 1px solid #e5e5e5">
+                <button
+                  class="btn btn-outline-danger w-100"
+                  id="logoutBtn"
+                  style="border-radius: 8px; padding: 12px 24px"
+                >
+                  Logout
+                </button>
+              </div>
             </div>
+          </div>
+
+          <!-- Profile Content -->
+          <div class="col-lg-9 col-md-8">
+            <div class="profile-content">
+              <!-- Personal Info Section -->
+              <div
+                class="profile-section-content active"
+                id="personal-info-section"
+              >
+                <div class="section-header">
+                  <h3 class="section-title">Personal Information</h3>
+                  <p class="section-subtitle">
+                    Update your personal details and profile information
+                  </p>
+                </div>
+
+                <form
+                  id="personalInfoForm"
+                  class="profile-form needs-validation"
+                  novalidate
+                >
+                  <div class="row">
+                    <div class="col-md-6 mb-4">
+                      <label for="fullName" class="form-label"
+                        >Full Name *</label
+                      >
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="fullName"
+                        name="full_name"
+                        required
+                        minlength="2"
+                        maxlength="100"
+                        pattern="^[\p{L}\s]+$"
+                        title="Full name should contain letters and spaces"
+                      />
+                      <div
+                        class="form-text"
+                        style="font-size: 12px; color: #999; margin-top: 4px"
+                      >
+                        Enter your full legal name
+                      </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                      <label for="username" class="form-label"
+                        >Username *</label
+                      >
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="username"
+                        name="username"
+                        required
+                        minlength="3"
+                        maxlength="50"
+                        pattern="^[a-zA-Z0-9_]+$"
+                        title="Username can only contain letters, numbers, and underscores"
+                      />
+                      <div
+                        class="form-text"
+                        style="font-size: 12px; color: #999; margin-top: 4px"
+                      >
+                        Choose a unique username for your account
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-md-6 mb-4">
+                      <label for="email" class="form-label"
+                        >Email Address</label
+                      >
+                      <input
+                        type="email"
+                        class="form-control"
+                        id="email"
+                        name="email"
+                        readonly
+                        style="background-color: #f8f9fa"
+                      />
+                      <div
+                        class="form-text"
+                        style="font-size: 12px; color: #999; margin-top: 4px"
+                      >
+                        Email cannot be changed. Contact support if needed.
+                      </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                      <label for="phone" class="form-label">Phone Number</label>
+                      <input
+                        type="tel"
+                        class="form-control"
+                        id="phone"
+                        name="phone"
+                        pattern="^[0-9+\-\s()]{10,20}$"
+                        title="Please enter a valid phone number"
+                      />
+                      <div
+                        class="form-text"
+                        style="font-size: 12px; color: #999; margin-top: 4px"
+                      >
+                        Enter your contact phone number
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-md-6 mb-4">
+                      <label for="dateOfBirth" class="form-label"
+                        >Date of Birth</label
+                      >
+                      <input
+                        type="date"
+                        class="form-control"
+                        id="dateOfBirth"
+                        name="date_of_birth"
+                      />
+                      <div
+                        class="form-text"
+                        style="font-size: 12px; color: #999; margin-top: 4px"
+                      >
+                        Your date of birth (optional)
+                      </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                      <label for="gender" class="form-label">Gender</label>
+                      <select class="form-select" id="gender" name="gender">
+                        <option value="">Prefer not to say</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                      </select>
+                      <div
+                        class="form-text"
+                        style="font-size: 12px; color: #999; margin-top: 4px"
+                      >
+                        Select your gender (optional)
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="mb-4">
+                    <label for="avatarUrl" class="form-label">Avatar URL</label>
+                    <input
+                      type="url"
+                      class="form-control"
+                      id="avatarUrl"
+                      name="avatar_url"
+                      placeholder="https://example.com/avatar.jpg"
+                      pattern="^https?://.*\.(jpg|jpeg|png|gif|webp|webp\?.*|googleusercontent\.com.*|gravatar\.com.*|github\.com.*|facebook\.com.*)$"
+                      title="Please enter a valid image URL (supports jpg, png, gif, webp, Google, Gravatar, GitHub, Facebook)"
+                    />
+                    <div
+                      class="form-text"
+                      style="font-size: 12px; color: #999; margin-top: 4px"
+                    >
+                      Enter a URL to your profile picture
+                    </div>
+                  </div>
+
+                  <!-- Loading indicator -->
+                  <div
+                    id="personalInfoLoading"
+                    class="alert alert-info d-none"
+                    style="
+                      border: none;
+                      background: #f8f9fa;
+                      color: #666;
+                      border-radius: 8px;
+                    "
+                  >
+                    <i class="fas fa-spinner fa-spin me-2"></i>
+                    Saving your profile information...
+                  </div>
+
+                  <!-- Success/Error messages -->
+                  <div id="personalInfoMessage" class="d-none"></div>
+
+                  <div class="form-actions">
+                    <button
+                      type="submit"
+                      class="btn btn-primary"
+                      id="savePersonalInfoBtn"
+                    >
+                      Save Changes
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn-outline-secondary"
+                      onclick="refreshPersonalInfo()"
+                    >
+                      Refresh Data
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              <!-- Address Book Section -->
+              <div class="profile-section-content" id="address-book-section">
+                <div class="section-header">
+                  <h3 class="section-title">Address Book</h3>
+                  <p class="section-subtitle">Manage your shipping addresses</p>
+                </div>
+
+                <div class="address-actions mb-5">
+                  <button
+                    class="btn btn-primary"
+                    data-bs-toggle="modal"
+                    data-bs-target="#addAddressModal"
+                    style="border-radius: 8px; padding: 12px 24px"
+                  >
+                    Add New Address
+                  </button>
+                </div>
+
+                <div class="addresses-list" id="addressesList">
+                  <div class="text-center">
+                    <div
+                      class="spinner-border"
+                      role="status"
+                      style="color: #000"
+                    >
+                      <span class="visually-hidden">Loading addresses...</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Account Settings Section -->
+              <div
+                class="profile-section-content"
+                id="account-settings-section"
+              >
+                <div class="section-header">
+                  <h3 class="section-title">Account Settings</h3>
+                  <p class="section-subtitle">
+                    Manage your account preferences and security
+                  </p>
+                </div>
+
+                <div class="account-settings">
+                  <div class="setting-group mb-5">
+                    <h5 class="setting-group-title">Account Information</h5>
+                    <div class="setting-item">
+                      <div
+                        class="d-flex justify-content-between align-items-center"
+                      >
+                        <div>
+                          <h6 class="mb-1">Account Status</h6>
+                          <p class="text-muted mb-0" id="accountStatus">
+                            Active
+                          </p>
+                        </div>
+                        <span
+                          class="badge"
+                          id="verificationBadge"
+                          style="
+                            border-radius: 6px;
+                            padding: 4px 12px;
+                            font-size: 12px;
+                          "
+                          >Verified</span
+                        >
+                      </div>
+                    </div>
+
+                    <div class="setting-item">
+                      <div
+                        class="d-flex justify-content-between align-items-center"
+                      >
+                        <div>
+                          <h6 class="mb-1">Member Since</h6>
+                          <p class="text-muted mb-0" id="memberSince">
+                            Loading...
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="setting-group mb-5">
+                    <h5 class="setting-group-title">Security</h5>
+                    <div class="setting-item">
+                      <div
+                        class="d-flex justify-content-between align-items-center"
+                      >
+                        <div>
+                          <h6 class="mb-1">Login Sessions</h6>
+                          <p class="text-muted mb-0">
+                            Manage your active login sessions
+                          </p>
+                        </div>
+                        <button
+                          class="btn btn-outline-secondary btn-sm"
+                          onclick="viewSessions()"
+                          style="border-radius: 6px; padding: 6px 16px"
+                        >
+                          View Sessions
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="setting-group mb-5">
+                    <h5 class="setting-group-title">Data & Privacy</h5>
+
+                    <div class="setting-item">
+                      <div
+                        class="d-flex justify-content-between align-items-center"
+                      >
+                        <div>
+                          <h6 class="mb-1">Delete Account</h6>
+                          <p class="text-muted mb-0">
+                            Permanently delete your account and all data
+                          </p>
+                        </div>
+                        <button
+                          class="btn btn-outline-danger btn-sm"
+                          onclick="confirmAccountDeletion()"
+                          style="border-radius: 6px; padding: 6px 16px"
+                        >
+                          Delete Account
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+      </div>
     </section>
 
     <!-- Add Address Modal -->
     <div class="modal fade" id="addAddressModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Add New Address</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Add New Address</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form id="addAddressForm">
+              <div class="mb-4">
+                <label for="addressStreet" class="form-label"
+                  >Street Address *</label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="addressStreet"
+                  name="street"
+                  required
+                />
+              </div>
+
+              <div class="row">
+                <div class="col-md-6 mb-4">
+                  <label for="addressCity" class="form-label">City *</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="addressCity"
+                    name="city"
+                    required
+                  />
                 </div>
-                <div class="modal-body">
-                    <form id="addAddressForm">
-                        <div class="mb-4">
-                            <label for="addressStreet" class="form-label">Street Address *</label>
-                            <input type="text" class="form-control" id="addressStreet" name="street" required>
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-4">
-                                <label for="addressCity" class="form-label">City *</label>
-                                <input type="text" class="form-control" id="addressCity" name="city" required>
-                            </div>
-                            <div class="col-md-6 mb-4">
-                                <label for="addressState" class="form-label">State *</label>
-                                <input type="text" class="form-control" id="addressState" name="state" required>
-                            </div>
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-4">
-                                <label for="addressCountry" class="form-label">Country *</label>
-                                <input type="text" class="form-control" id="addressCountry" name="country" value="Vietnam" required>
-                            </div>
-                            <div class="col-md-6 mb-4">
-                                <label for="addressZip" class="form-label">ZIP Code *</label>
-                                <input type="text" class="form-control" id="addressZip" name="zip_code" required>
-                            </div>
-                        </div>
-                        
-                        <div class="form-check mb-4">
-                            <input class="form-check-input" type="checkbox" id="addressDefault" name="is_default">
-                            <label class="form-check-label" for="addressDefault" style="font-family: 'Poppins', sans-serif; font-weight: 500;">
-                                Set as default address
-                            </label>
-                        </div>
-                    </form>
+                <div class="col-md-6 mb-4">
+                  <label for="addressState" class="form-label">State *</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="addressState"
+                    name="state"
+                    required
+                  />
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="border-radius: 8px; padding: 12px 24px;">Cancel</button>
-                    <button type="button" class="btn btn-primary" onclick="saveNewAddress()" style="border-radius: 8px; padding: 12px 24px;">Save Address</button>
+              </div>
+
+              <div class="row">
+                <div class="col-md-6 mb-4">
+                  <label for="addressCountry" class="form-label"
+                    >Country *</label
+                  >
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="addressCountry"
+                    name="country"
+                    value="Vietnam"
+                    required
+                  />
                 </div>
-            </div>
+                <div class="col-md-6 mb-4">
+                  <label for="addressZip" class="form-label">ZIP Code *</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="addressZip"
+                    name="zip_code"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div class="form-check mb-4">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="addressDefault"
+                  name="is_default"
+                />
+                <label
+                  class="form-check-label"
+                  for="addressDefault"
+                  style="font-family: 'Poppins', sans-serif; font-weight: 500"
+                >
+                  Set as default address
+                </label>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-outline-secondary"
+              data-bs-dismiss="modal"
+              style="border-radius: 8px; padding: 12px 24px"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              onclick="saveNewAddress()"
+              style="border-radius: 8px; padding: 12px 24px"
+            >
+              Save Address
+            </button>
+          </div>
         </div>
+      </div>
     </div>
 
     <!-- Edit Address Modal -->
     <div class="modal fade" id="editAddressModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Edit Address</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Edit Address</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form id="editAddressForm">
+              <input type="hidden" id="editAddressId" name="address_id" />
+              <div class="mb-4">
+                <label for="editAddressStreet" class="form-label"
+                  >Street Address *</label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="editAddressStreet"
+                  name="street"
+                  required
+                />
+              </div>
+
+              <div class="row">
+                <div class="col-md-6 mb-4">
+                  <label for="editAddressCity" class="form-label">City *</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="editAddressCity"
+                    name="city"
+                    required
+                  />
                 </div>
-                <div class="modal-body">
-                    <form id="editAddressForm">
-                        <input type="hidden" id="editAddressId" name="address_id">
-                        <div class="mb-4">
-                            <label for="editAddressStreet" class="form-label">Street Address *</label>
-                            <input type="text" class="form-control" id="editAddressStreet" name="street" required>
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-4">
-                                <label for="editAddressCity" class="form-label">City *</label>
-                                <input type="text" class="form-control" id="editAddressCity" name="city" required>
-                            </div>
-                            <div class="col-md-6 mb-4">
-                                <label for="editAddressState" class="form-label">State *</label>
-                                <input type="text" class="form-control" id="editAddressState" name="state" required>
-                            </div>
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-4">
-                                <label for="editAddressCountry" class="form-label">Country *</label>
-                                <input type="text" class="form-control" id="editAddressCountry" name="country" required>
-                            </div>
-                            <div class="col-md-6 mb-4">
-                                <label for="editAddressZip" class="form-label">ZIP Code *</label>
-                                <input type="text" class="form-control" id="editAddressZip" name="zip_code" required>
-                            </div>
-                        </div>
-                        
-                        <div class="form-check mb-4">
-                            <input class="form-check-input" type="checkbox" id="editAddressDefault" name="is_default">
-                            <label class="form-check-label" for="editAddressDefault" style="font-family: 'Poppins', sans-serif; font-weight: 500;">
-                                Set as default address
-                            </label>
-                        </div>
-                    </form>
+                <div class="col-md-6 mb-4">
+                  <label for="editAddressState" class="form-label"
+                    >State *</label
+                  >
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="editAddressState"
+                    name="state"
+                    required
+                  />
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="border-radius: 8px; padding: 12px 24px;">Cancel</button>
-                    <button type="button" class="btn btn-primary" onclick="updateAddress()" style="border-radius: 8px; padding: 12px 24px;">Update Address</button>
+              </div>
+
+              <div class="row">
+                <div class="col-md-6 mb-4">
+                  <label for="editAddressCountry" class="form-label"
+                    >Country *</label
+                  >
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="editAddressCountry"
+                    name="country"
+                    required
+                  />
                 </div>
-            </div>
+                <div class="col-md-6 mb-4">
+                  <label for="editAddressZip" class="form-label"
+                    >ZIP Code *</label
+                  >
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="editAddressZip"
+                    name="zip_code"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div class="form-check mb-4">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="editAddressDefault"
+                  name="is_default"
+                />
+                <label
+                  class="form-check-label"
+                  for="editAddressDefault"
+                  style="font-family: 'Poppins', sans-serif; font-weight: 500"
+                >
+                  Set as default address
+                </label>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-outline-secondary"
+              data-bs-dismiss="modal"
+              style="border-radius: 8px; padding: 12px 24px"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              onclick="updateAddress()"
+              style="border-radius: 8px; padding: 12px 24px"
+            >
+              Update Address
+            </button>
+          </div>
         </div>
+      </div>
     </div>
 
     <!-- Sessions Modal -->
     <div class="modal fade" id="sessionsModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Active Login Sessions</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Active Login Sessions</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div id="sessionsList">
+              <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Loading sessions...</span>
                 </div>
-                <div class="modal-body">
-                    <div id="sessionsList">
-                        <div class="text-center py-4">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Loading sessions...</span>
-                            </div>
-                            <p class="mt-2 text-muted">Loading your active sessions...</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="border-radius: 8px; padding: 12px 24px;">Close</button>
-                    <button type="button" class="btn btn-danger" onclick="terminateAllSessions()" style="border-radius: 8px; padding: 12px 24px;">Terminate All Other Sessions</button>
-                </div>
+                <p class="mt-2 text-muted">Loading your active sessions...</p>
+              </div>
             </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-outline-secondary"
+              data-bs-dismiss="modal"
+              style="border-radius: 8px; padding: 12px 24px"
+            >
+              Close
+            </button>
+            <button
+              type="button"
+              class="btn btn-danger"
+              onclick="terminateAllSessions()"
+              style="border-radius: 8px; padding: 12px 24px"
+            >
+              Terminate All Other Sessions
+            </button>
+          </div>
         </div>
+      </div>
     </div>
 
     <!-- Delete Account Modal -->
     <div class="modal fade" id="deleteAccountModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title">⚠️ Delete Account</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="alert alert-danger" role="alert">
-                        <strong>Warning:</strong> This action cannot be undone! All your data will be permanently deleted.
-                    </div>
-                    
-                    <p class="mb-3">This will permanently delete:</p>
-                    <ul class="mb-4">
-                        <li>Your profile information</li>
-                        <li>All saved addresses</li>
-                        <li>Order history</li>
-                        <li>Reviews and ratings</li>
-                        <li>All personal data</li>
-                    </ul>
-                    
-                    <p class="mb-3"><strong>To confirm deletion, please type your email address below:</strong></p>
-                    <div class="mb-3">
-                        <label for="deleteEmailConfirm" class="form-label">Email Address</label>
-                        <input type="email" class="form-control" id="deleteEmailConfirm" placeholder="Enter your email address">
-                        <small class="text-muted">Current email: <span id="currentEmailDisplay"></span></small>
-                    </div>
-                    
-                    <div id="deleteAccountError" class="alert alert-danger d-none" role="alert"></div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="border-radius: 8px; padding: 12px 24px;">Cancel</button>
-                    <button type="button" class="btn btn-danger" onclick="executeAccountDeletion()" style="border-radius: 8px; padding: 12px 24px;">
-                        <i class="fas fa-trash me-2"></i>Delete Account
-                    </button>
-                </div>
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header bg-danger text-white">
+            <h5 class="modal-title">⚠️ Delete Account</h5>
+            <button
+              type="button"
+              class="btn-close btn-close-white"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div class="alert alert-danger" role="alert">
+              <strong>Warning:</strong> This action cannot be undone! All your
+              data will be permanently deleted.
             </div>
+
+            <p class="mb-3">This will permanently delete:</p>
+            <ul class="mb-4">
+              <li>Your profile information</li>
+              <li>All saved addresses</li>
+              <li>Order history</li>
+              <li>Reviews and ratings</li>
+              <li>All personal data</li>
+            </ul>
+
+            <p class="mb-3">
+              <strong
+                >To confirm deletion, please type your email address
+                below:</strong
+              >
+            </p>
+            <div class="mb-3">
+              <label for="deleteEmailConfirm" class="form-label"
+                >Email Address</label
+              >
+              <input
+                type="email"
+                class="form-control"
+                id="deleteEmailConfirm"
+                placeholder="Enter your email address"
+              />
+              <small class="text-muted"
+                >Current email: <span id="currentEmailDisplay"></span
+              ></small>
+            </div>
+
+            <div
+              id="deleteAccountError"
+              class="alert alert-danger d-none"
+              role="alert"
+            ></div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-outline-secondary"
+              data-bs-dismiss="modal"
+              style="border-radius: 8px; padding: 12px 24px"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="btn btn-danger"
+              onclick="executeAccountDeletion()"
+              style="border-radius: 8px; padding: 12px 24px"
+            >
+              <i class="fas fa-trash me-2"></i>Delete Account
+            </button>
+          </div>
         </div>
+      </div>
     </div>
 
     <!-- Footer -->
     <footer class="footer bg-black text-white py-5">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <h5 class="fw-bold mb-3">SNEVO</h5>
-                    <p>Premium athletic footwear for champions. Just Do It.</p>
-                </div>
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <h6 class="fw-bold mb-3">Quick Links</h6>
-                    <ul class="list-unstyled">
-                        <li><a href="index.html" class="text-white-50">Home</a></li>
-                        <li><a href="products.html" class="text-white-50">Products</a></li>
-                        <li><a href="#about" class="text-white-50">About</a></li>
-                        <li><a href="#contact" class="text-white-50">Contact</a></li>
-                    </ul>
-                </div>
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <h6 class="fw-bold mb-3">Customer Service</h6>
-                    <ul class="list-unstyled">
-                        <li><a href="#help" class="text-white-50">Help Center</a></li>
-                        <li><a href="#returns" class="text-white-50">Returns</a></li>
-                        <li><a href="#shipping" class="text-white-50">Shipping</a></li>
-                        <li><a href="#size-guide" class="text-white-50">Size Guide</a></li>
-                    </ul>
-                </div>
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <h6 class="fw-bold mb-3">Follow Us</h6>
-                    <div class="social-links">
-                        <a href="#" class="text-white me-3"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#" class="text-white me-3"><i class="fab fa-twitter"></i></a>
-                        <a href="#" class="text-white me-3"><i class="fab fa-instagram"></i></a>
-                        <a href="#" class="text-white me-3"><i class="fab fa-youtube"></i></a>
-                    </div>
-                </div>
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-3 col-md-6 mb-4">
+            <h5 class="fw-bold mb-3">SNEVO</h5>
+            <p>Premium athletic footwear for champions. Just Do It.</p>
+          </div>
+          <div class="col-lg-3 col-md-6 mb-4">
+            <h6 class="fw-bold mb-3">Quick Links</h6>
+            <ul class="list-unstyled">
+              <li><a href="index.html" class="text-white-50">Home</a></li>
+              <li>
+                <a href="products.html" class="text-white-50">Products</a>
+              </li>
+              <li><a href="#about" class="text-white-50">About</a></li>
+              <li><a href="#contact" class="text-white-50">Contact</a></li>
+            </ul>
+          </div>
+          <div class="col-lg-3 col-md-6 mb-4">
+            <h6 class="fw-bold mb-3">Customer Service</h6>
+            <ul class="list-unstyled">
+              <li><a href="#help" class="text-white-50">Help Center</a></li>
+              <li><a href="#returns" class="text-white-50">Returns</a></li>
+              <li><a href="#shipping" class="text-white-50">Shipping</a></li>
+              <li>
+                <a href="#size-guide" class="text-white-50">Size Guide</a>
+              </li>
+            </ul>
+          </div>
+          <div class="col-lg-3 col-md-6 mb-4">
+            <h6 class="fw-bold mb-3">Follow Us</h6>
+            <div class="social-links">
+              <a href="#" class="text-white me-3"
+                ><i class="fab fa-facebook-f"></i
+              ></a>
+              <a href="#" class="text-white me-3"
+                ><i class="fab fa-twitter"></i
+              ></a>
+              <a href="#" class="text-white me-3"
+                ><i class="fab fa-instagram"></i
+              ></a>
+              <a href="#" class="text-white me-3"
+                ><i class="fab fa-youtube"></i
+              ></a>
             </div>
-            <hr class="my-4">
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <p class="mb-0">&copy; 2024 Snevo. All rights reserved.</p>
-                </div>
-                <div class="col-md-6 text-md-end">
-                    <a href="#privacy" class="text-white-50 me-3">Privacy Policy</a>
-                    <a href="#terms" class="text-white-50">Terms of Service</a>
-                </div>
-            </div>
+          </div>
         </div>
+        <hr class="my-4" />
+        <div class="row align-items-center">
+          <div class="col-md-6">
+            <p class="mb-0">&copy; 2024 Snevo. All rights reserved.</p>
+          </div>
+          <div class="col-md-6 text-md-end">
+            <a href="#privacy" class="text-white-50 me-3">Privacy Policy</a>
+            <a href="#terms" class="text-white-50">Terms of Service</a>
+          </div>
+        </div>
+      </div>
     </footer>
 
     <!-- Scripts -->
@@ -778,31 +1146,35 @@
     <script type="module" src="../assets/js/ProfileManager.js"></script>
     <script type="module" src="../assets/js/Application.js"></script>
     <script src="../assets/js/animations.js"></script>
-    
+
     <script type="module">
-        import { profileManager } from '../assets/js/ProfileManager.js';
-        
-        // Initialize profile page when DOM is ready
-        document.addEventListener('DOMContentLoaded', () => {
-            profileManager.initializeProfilePage();
-        });
-        
-        // Expose necessary functions to global scope for onclick handlers
-        window.saveNewAddress = () => profileManager.handleAddressAdd(
-            new FormData(document.getElementById('addAddressForm'))
+      import { profileManager } from "../assets/js/ProfileManager.js";
+
+      // Initialize profile page when DOM is ready
+      document.addEventListener("DOMContentLoaded", () => {
+        profileManager.initializeProfilePage();
+      });
+
+      // Expose necessary functions to global scope for onclick handlers
+      window.saveNewAddress = () =>
+        profileManager.handleAddressAdd(
+          new FormData(document.getElementById("addAddressForm"))
         );
-        window.editAddress = (id) => profileManager.editAddress(id);
-        window.updateAddress = () => profileManager.handleAddressEdit(
-            document.getElementById('editAddressId').value,
-            new FormData(document.getElementById('editAddressForm'))
+      window.editAddress = (id) => profileManager.editAddress(id);
+      window.updateAddress = () =>
+        profileManager.handleAddressEdit(
+          document.getElementById("editAddressId").value,
+          new FormData(document.getElementById("editAddressForm"))
         );
-        window.deleteAddress = (id) => profileManager.handleAddressDelete(id);
-        window.refreshPersonalInfo = () => profileManager.refreshPersonalInfo();
-        window.viewSessions = () => profileManager.viewSessions();
-        window.terminateAllSessions = () => profileManager.terminateAllSessions();
-        window.confirmAccountDeletion = () => profileManager.confirmAccountDeletion();
-        window.executeAccountDeletion = () => profileManager.executeAccountDeletion();
-        window.debugProfileAuth = () => profileManager.debugProfileAuth();
+      window.deleteAddress = (id) => profileManager.handleAddressDelete(id);
+      window.refreshPersonalInfo = () => profileManager.refreshPersonalInfo();
+      window.viewSessions = () => profileManager.viewSessions();
+      window.terminateAllSessions = () => profileManager.terminateAllSessions();
+      window.confirmAccountDeletion = () =>
+        profileManager.confirmAccountDeletion();
+      window.executeAccountDeletion = () =>
+        profileManager.executeAccountDeletion();
+      window.debugProfileAuth = () => profileManager.debugProfileAuth();
     </script>
-</body>
+  </body>
 </html>
