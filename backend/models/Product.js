@@ -255,11 +255,7 @@ class Product extends BaseModel {
                 .from(constants.DATABASE_TABLES.CATEGORIES)
                 .select('*')
                 .eq('category_id', categoryId)
-                .single();
-            if (filters.search && filters.search.trim()) {
-            const searchTerm = `%${filters.search.trim()}%`;
-            query = query.or(`shoe_name.ilike.${searchTerm},description.ilike.${searchTerm}`);
-            }
+                .single();            
             return {
                 ...result,
                 category

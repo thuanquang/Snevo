@@ -1289,19 +1289,38 @@ async submitBatchImport() {
 /**
  * Load import history (when tab is clicked)
  */
+/**
+ * Load import history when tab is clicked
+ */
 async loadImportHistory() {
     try {
-        if (!this.importState.shoeId) return;
+        // ✅ Check if shoe ID exists
+        if (!this.importState.shoeId) {
+            console.error('No shoe ID in import state');
+            return;
+        }
 
         const container = document.getElementById('importHistoryContainer');
-        container.innerHTML = '<p class="text-center"><i class="bi bi-hourglass-split"></i> Loading...</p>';
-
-        const response = await window.importsAPI.getImportsByShoe(this.importState.shoeId);
         
+        // ✅ Show loading
+        container.innerHTML = `<p class="text-center">Loading...</p>`;
+
+        console.log('📥 Loading import history for shoe:', this.importState.shoeId);
+
+        // ✅ CHECK if API exists
+        if (!window.importsAPI) {
+            throw new Error('ImportsAPI not loaded');
+        }
+
+        // ✅ Call API - CORRECT!
+        const response = await window.importsAPI.getImportsByShoe(this.importState.shoeId);
+
+        console.log('📦 Import history response:', response);
+
+        // ✅ Check response format
         if (!response.success || !response.data || response.data.length === 0) {
             container.innerHTML = `
                 <p class="text-muted text-center py-4">
-                    <i class="bi bi-inbox fs-1 d-block mb-2"></i>
                     No import history for this shoe yet
                 </p>
             `;
@@ -1309,9 +1328,10 @@ async loadImportHistory() {
             return;
         }
 
+        // ✅ Update badge count
         document.getElementById('importHistoryCount').textContent = response.data.length;
 
-        // Render history table
+        // ⚠️ RENDER TABLE - CẦN FIX FORMAT!
         container.innerHTML = `
             <table class="table table-sm table-hover">
                 <thead>
@@ -1322,7 +1342,7 @@ async loadImportHistory() {
                         <th>Qty</th>
                         <th>Price</th>
                         <th>Cost</th>
-                        <th>By</th>
+                        <th>By</th>      <!-- ✅ TÊN NGƯỜI NHẬP -->
                         <th>Notes</th>
                     </tr>
                 </thead>
@@ -1331,14 +1351,14 @@ async loadImportHistory() {
                         <tr>
                             <td><small>${this.formatDate(imp.import_date)}</small></td>
                             <td>
-                                <span style="display:inline-block; width:12px; height:12px; border-radius:50%; background:${imp.variant?.color?.hex_code || '#ccc'}"></span>
+                                <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${imp.variant?.color?.hex_code || '#ccc'}"></span>
                                 ${imp.variant?.color?.color_name || 'N/A'}
                             </td>
                             <td>${imp.variant?.size?.size_value || 'N/A'}</td>
-                            <td><strong>+${imp.quantity_imported}</strong></td>
-                            <td>$${imp.import_price.toFixed(2)}</td>
-                            <td>$${(imp.quantity_imported * imp.import_price).toFixed(2)}</td>
-                            <td><small>${imp.user?.username || 'N/A'}</small></td>
+                            <td><strong>${imp.quantity_imported}</strong></td>
+                            <td>${imp.import_price.toFixed(2)}</td>
+                            <td>${(imp.quantity_imported * imp.import_price).toFixed(2)}</td>
+                            <td><small>${imp.profiles?.username || 'N/A'}</small></td>  <!-- ✅ NGƯỜI NHẬP -->
                             <td><small>${imp.notes || '-'}</small></td>
                         </tr>
                     `).join('')}
@@ -1348,9 +1368,32 @@ async loadImportHistory() {
 
     } catch (error) {
         console.error('❌ Load import history error:', error);
-        container.innerHTML = '<p class="text-danger">Failed to load history</p>';
+        
+        const container = document.getElementById('importHistoryContainer');
+        container.innerHTML = `
+            <div class="alert alert-danger">
+                <strong>Error:</strong> ${error.message}
+            </div>
+        `;
     }
 }
+
+
+    /**
+     * Format date helper
+     */
+    formatDate(dateString) {
+        if (!dateString) return 'N/A';
+        
+        const date = new Date(dateString);
+        return new Intl.DateTimeFormat('vi-VN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        }).format(date);
+    }
 getCategoryName(categoryId) {
     const category = this.categories.find(c => c.category_id === categoryId);
     return category?.category_name || 'N/A';

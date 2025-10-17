@@ -181,17 +181,26 @@ class Import extends BaseModel {
      * Get imports by shoe ID (all variants of a product)
      * Custom query required due to nested relationship
      */
+    /**
+     * ⭐ Get imports by shoe ID 
+     */
     async findByShoeId(shoeId, options = {}) {
         try {
-            // First get all variant IDs for this shoe
-            const { data: variants, error: variantError } = await this.supabaseConfig.getAdminClient()
+            console.log('📦 Finding imports for shoe:', shoeId);
+
+            // Step 1: Get all variant IDs for this shoe
+            const { data: variants, error: variantError } = await supabaseConfig.getAdminClient()
                 .from('shoe_variants')
                 .select('variant_id')
                 .eq('shoe_id', shoeId);
 
-            if (variantError) throw variantError;
+            if (variantError) {
+                console.error('❌ Variant query error:', variantError);
+                throw variantError;
+            }
 
             if (!variants || variants.length === 0) {
+                console.log('⚠️ No variants found for shoe', shoeId);
                 return {
                     data: [],
                     total: 0,
@@ -202,35 +211,71 @@ class Import extends BaseModel {
             }
 
             const variantIds = variants.map(v => v.variant_id);
+            console.log('📋 Found variant IDs:', variantIds);
 
-            // Get imports for these variants using BaseModel
-            const { page = 1, limit = 50, orderBy = 'import_date', orderDirection = 'desc' } = options;
+            // Step 2: ⭐ Query imports WITHOUT profiles join first
+            const { page = 1, limit = 50 } = options;
             const offset = (page - 1) * limit;
 
-            let query = this.supabaseConfig.getAdminClient()
-                .from(this.tableName)
+            const { data: imports, error: importError, count } = await supabaseConfig.getAdminClient()
+                .from('imports')
                 .select(`
                     *,
-                    profiles!user_id(username, full_name),
-                    variant:variant_id(
+                    variant:shoe_variants!variant_id (
                         sku,
                         stock_quantity,
-                        color:color_id(color_name, hex_code),
-                        size:size_id(size_value, size_type)
+                        color:colors!color_id (color_name, hex_code),
+                        size:sizes!size_id (size_value, size_type)
                     )
                 `, { count: 'exact' })
                 .in('variant_id', variantIds)
-                .order(orderBy, { ascending: orderDirection === 'asc' })
+                .order('import_date', { ascending: false })
                 .range(offset, offset + limit - 1);
 
-            const { data, error, count } = await query;
+            if (importError) {
+                console.error('❌ Import query error:', importError);
+                throw importError;
+            }
 
-            if (error) throw error;
+            console.log(`✅ Found ${imports?.length || 0} imports`);
+
+            // Step 3: ⭐ MANUALLY fetch user profiles (AVOID foreign key issue)
+            if (imports && imports.length > 0) {
+                // Get unique user IDs
+                const userIds = [...new Set(imports.map(imp => imp.user_id))];
+                console.log('👤 Fetching profiles for users:', userIds);
+
+                // Fetch all profiles in one query
+                const { data: profiles, error: profileError } = await supabaseConfig.getAdminClient()
+                    .from('profiles')
+                    .select('user_id, username, full_name')
+                    .in('user_id', userIds);
+
+                if (profileError) {
+                    console.error('⚠️ Profile query error (non-fatal):', profileError);
+                    // Continue without profiles
+                } else {
+                    // Map profiles to imports
+                    const profileMap = {};
+                    profiles?.forEach(p => {
+                        profileMap[p.user_id] = p;
+                    });
+
+                    imports.forEach(imp => {
+                        imp.profiles = profileMap[imp.user_id] || { 
+                            username: 'Unknown', 
+                            full_name: 'Unknown User' 
+                        };
+                    });
+
+                    console.log('✅ Attached profiles to imports');
+                }
+            }
 
             const totalPages = Math.ceil((count || 0) / limit);
 
             return {
-                data: data || [],
+                data: imports || [],
                 total: count || 0,
                 page: page,
                 limit: limit,
@@ -238,10 +283,12 @@ class Import extends BaseModel {
             };
 
         } catch (error) {
-            console.error('❌ Find imports by shoe error:', error);
+            console.error('❌ findByShoeId error:', error);
+            console.error('Stack:', error.stack);
             throw error;
         }
     }
+
 
 
     /**
