@@ -1,644 +1,1193 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin Dashboard - Nike Store</title>
-    
+
     <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="../assets/css/main.css" rel="stylesheet">
-    <link href="../assets/css/animations.css" rel="stylesheet">
-    <link href="../assets/css/components.css" rel="stylesheet">
-    <link href="../assets/css/responsive.css" rel="stylesheet">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <!-- Bootstrap Icons CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+    <link href="../assets/css/main.css" rel="stylesheet" />
+    <link href="../assets/css/animations.css" rel="stylesheet" />
+    <link href="../assets/css/components.css" rel="stylesheet" />
+    <link href="../assets/css/responsive.css" rel="stylesheet" />
+    <link href="../assets/css/navbar.css" rel="stylesheet" />
     <!-- Custom CSS -->
     <style>
-        :root {
-            --nike-black: #111111;
-            --nike-gray: #757575;
-            --nike-light-gray: #F5F5F5;
-            --nike-border: #E5E5E5;
-            --sidebar-width: 280px;
-        }
+      :root {
+        --nike-black: #111111;
+        --nike-gray: #757575;
+        --nike-light-gray: #f5f5f5;
+        --nike-border: #e5e5e5;
+        --sidebar-width: 280px;
+      }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-        body {
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            color: var(--nike-black);
-            background-color: #fff;
-        }
+      body {
+        font-family: "Helvetica Neue", Arial, sans-serif;
+        color: var(--nike-black);
+        background-color: #fff;
+      }
 
-        /* ========== Layout ========== */
-        .admin-container {
-            display: flex;
-            min-height: 100vh;
-            padding-top: 70px;
-        }
+      /* ========== Layout ========== */
+      .admin-container {
+        display: flex;
+        min-height: 100vh;
+        padding-top: 70px;
+      }
 
-        /* ========== Sidebar ========== */
+      /* ========== Sidebar ========== */
+      .admin-sidebar {
+        width: var(--sidebar-width);
+        background: var(--nike-light-gray);
+        border-right: 1px solid var(--nike-border);
+        padding: 30px 0;
+        position: fixed;
+        left: 0;
+        top: 70px;
+        bottom: 0;
+        overflow-y: auto;
+        transition: transform 0.3s ease;
+        z-index: 1000;
+      }
+
+      .sidebar-brand {
+        padding: 0 25px 20px;
+        border-bottom: 1px solid var(--nike-border);
+        margin-bottom: 20px;
+      }
+
+      .sidebar-brand h4 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--nike-black);
+      }
+
+      .sidebar-menu {
+        list-style: none;
+        padding: 0;
+      }
+
+      .sidebar-menu-item {
+        margin-bottom: 5px;
+      }
+
+      .sidebar-menu-link {
+        display: flex;
+        align-items: center;
+        padding: 15px 25px;
+        color: var(--nike-gray);
+        text-decoration: none;
+        transition: all 0.3s ease;
+      }
+
+      .sidebar-menu-link:hover {
+        background: rgba(0, 0, 0, 0.05);
+        color: var(--nike-black);
+      }
+
+      .sidebar-menu-link.active {
+        background: #fff;
+        color: var(--nike-black);
+        font-weight: 600;
+        border-left: 3px solid var(--nike-black);
+      }
+
+      .sidebar-menu-link i {
+        width: 24px;
+        margin-right: 15px;
+        font-size: 1.1rem;
+      }
+
+      /* ========== Main Content ========== */
+      .admin-main {
+        flex: 1;
+        margin-left: var(--sidebar-width);
+        padding: 40px;
+        background: #fff;
+      }
+
+      .admin-header {
+        margin-bottom: 40px;
+      }
+
+      .admin-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+      }
+
+      .admin-header p {
+        color: var(--nike-gray);
+        font-size: 1rem;
+      }
+
+      /* ========== Section Cards ========== */
+      .section-card {
+        background: #fff;
+        border: 1px solid var(--nike-border);
+        border-radius: 8px;
+        padding: 30px;
+        margin-bottom: 30px;
+        transition: box-shadow 0.3s ease;
+      }
+
+      .section-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid var(--nike-border);
+      }
+
+      .section-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--nike-black);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      /* ========== Data Table ========== */
+      .data-table {
+        width: 100%;
+        overflow-x: auto;
+      }
+
+      .table {
+        margin-bottom: 0;
+      }
+
+      .table thead th {
+        background: var(--nike-light-gray);
+        color: var(--nike-black);
+        font-weight: 600;
+        border-bottom: 2px solid var(--nike-border);
+        padding: 15px 12px;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .table tbody td {
+        padding: 15px 12px;
+        vertical-align: middle;
+        color: var(--nike-gray);
+      }
+
+      .table tbody tr:hover {
+        background: var(--nike-light-gray);
+      }
+
+      .product-img {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 6px;
+      }
+
+      /* ========== Stock Badges ========== */
+      .badge-stock {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+      }
+
+      .badge-in-stock {
+        background: #d4edda;
+        color: #155724;
+      }
+
+      .badge-low-stock {
+        background: #fff3cd;
+        color: #856404;
+      }
+
+      .badge-out-stock {
+        background: #f8d7da;
+        color: #721c24;
+      }
+
+      /* ========== Action Buttons ========== */
+      .btn-action {
+        padding: 8px 12px;
+        border: none;
+        background: transparent;
+        color: var(--nike-gray);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border-radius: 6px;
+      }
+
+      .btn-action:hover {
+        background: var(--nike-light-gray);
+        color: var(--nike-black);
+      }
+
+      .btn-primary-custom {
+        background: var(--nike-black);
+        color: #fff;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 25px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+      }
+
+      .btn-primary-custom:hover {
+        background: #333;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      }
+
+      /* ========== Empty State ========== */
+      .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--nike-gray);
+      }
+
+      .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        opacity: 0.3;
+      }
+
+      /* ========== Loading State ========== */
+      .loading-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 60px 20px;
+      }
+
+      .spinner-border {
+        width: 3rem;
+        height: 3rem;
+      }
+
+      /* ========== Modal Enhancements ========== */
+      .modal-xl {
+        max-width: 1200px;
+      }
+
+/* Variant Generator Modal - 2 Column Design */
+#variantGeneratorModal .modal-dialog {
+    max-width: 1000px;
+}
+
+#variantGeneratorModal .modal-header {
+    background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+    border: none;
+}
+
+#variantGeneratorModal .modal-body {
+    background: #f8f9fa;
+}
+
+/* Card Styles */
+#variantGeneratorModal .card {
+    transition: all 0.3s ease;
+}
+
+#variantGeneratorModal .card-header {
+    font-weight: 600;
+    border-bottom: 2px solid rgba(255,255,255,0.2);
+}
+
+/* Scrollable Containers */
+#colorSelectionContainer,
+#sizeSelectionContainer {
+    padding-right: 8px;
+}
+
+#colorSelectionContainer::-webkit-scrollbar,
+#sizeSelectionContainer::-webkit-scrollbar {
+    width: 8px;
+}
+
+#colorSelectionContainer::-webkit-scrollbar-track,
+#sizeSelectionContainer::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+#colorSelectionContainer::-webkit-scrollbar-thumb,
+#sizeSelectionContainer::-webkit-scrollbar-thumb {
+    background: #cbd5e0;
+    border-radius: 10px;
+}
+
+#colorSelectionContainer::-webkit-scrollbar-thumb:hover,
+#sizeSelectionContainer::-webkit-scrollbar-thumb:hover {
+    background: #a0aec0;
+}
+
+/* Checkbox Items */
+#colorSelectionContainer .form-check,
+#sizeSelectionContainer .form-check {
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    border: 2px solid #e9ecef;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    background: white;
+}
+
+#colorSelectionContainer .form-check:hover,
+#sizeSelectionContainer .form-check:hover {
+    border-color: #0d6efd;
+    background-color: #f8f9fa;
+    transform: translateX(4px);
+    box-shadow: 0 2px 8px rgba(13, 110, 253, 0.15);
+}
+
+#colorSelectionContainer .form-check:has(.form-check-input:checked) {
+    border-color: #0d6efd;
+    background: linear-gradient(to right, #e7f1ff, #ffffff);
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+}
+
+#sizeSelectionContainer .form-check:has(.form-check-input:checked) {
+    border-color: #198754;
+    background: linear-gradient(to right, #d1f4e0, #ffffff);
+    box-shadow: 0 0 0 3px rgba(25, 135, 84, 0.1);
+}
+
+#colorSelectionContainer .form-check-input:checked ~ .form-check-label,
+#sizeSelectionContainer .form-check-input:checked ~ .form-check-label {
+    font-weight: 600;
+}
+
+/* Color Swatch */
+.color-swatch {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    transition: transform 0.2s ease;
+}
+
+.form-check:hover .color-swatch {
+    transform: scale(1.1);
+}
+
+/* Status Alerts */
+#variantGen_Status .alert {
+    border-left: 5px solid;
+}
+
+#variantGen_Status .alert-info {
+    border-left-color: #0dcaf0;
+    background: linear-gradient(to right, #cff4fc, #ffffff);
+}
+
+#variantGen_Status .alert-warning {
+    border-left-color: #ffc107;
+    background: linear-gradient(to right, #fff3cd, #ffffff);
+}
+
+#variantGen_Status .alert-success {
+    border-left-color: #198754;
+    background: linear-gradient(to right, #d1e7dd, #ffffff);
+}
+
+/* Summary Boxes */
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+}
+
+/* Animations */
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#variantGeneratorModal .card,
+#variantGeneratorModal .alert {
+    animation: slideInUp 0.4s ease;
+}
+
+/* Badge Styles */
+.badge.bg-info {
+    background-color: #0dcaf0 !important;
+}
+
+/* Input Group */
+.input-group-text {
+    background-color: #e9ecef;
+    border: 1px solid #ced4da;
+    font-weight: 600;
+}
+
+/* Button Styles */
+#variantGeneratorModal .btn-lg {
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    #variantGeneratorModal .modal-dialog {
+        max-width: 95%;
+        margin: 1rem auto;
+    }
+    
+    #variantGeneratorModal .col-md-6 {
+        margin-bottom: 1rem;
+    }
+    
+    #colorSelectionContainer,
+    #sizeSelectionContainer {
+        max-height: 250px !important;
+    }
+}
+
+
+      /* Color Preview Circle */
+      .color-preview {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: 2px solid #dee2e6;
+        box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.2);
+      }
+
+      /* Loading Spinner Overlay */
+      .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9998;
+      }
+
+      .loading-content {
+        text-align: center;
+        color: white;
+      }
+
+      .loading-spinner {
+        width: 60px;
+        height: 60px;
+        border: 4px solid rgba(255, 255, 255, 0.3);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      /* Modal z-index hierarchy */
+      #shoeDetailsModal {
+          z-index: 1050 !important;
+      }
+
+      #shoeDetailsModal + .modal-backdrop {
+          z-index: 1049 !important;
+      }
+
+      #importModal {
+          z-index: 1060 !important;
+      }
+
+      #importModal + .modal-backdrop {
+          z-index: 1059 !important;
+      }
+
+      #variantGeneratorModal {
+          z-index: 1070 !important;
+      }
+
+      #variantGeneratorModal + .modal-backdrop {
+          z-index: 1069 !important;
+      }
+
+      /* When multiple modals are open */
+      .modal-backdrop:nth-of-type(1) {
+          z-index: 1049 !important;
+      }
+
+      .modal-backdrop:nth-of-type(2) {
+          z-index: 1059 !important;
+      }
+
+      .modal-backdrop:nth-of-type(3) {
+          z-index: 1069 !important;
+      }
+
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* ========== Responsive ========== */
+      @media (max-width: 992px) {
         .admin-sidebar {
-            width: var(--sidebar-width);
-            background: var(--nike-light-gray);
-            border-right: 1px solid var(--nike-border);
-            padding: 30px 0;
-            position: fixed;
-            left: 0;
-            top: 70px;
-            bottom: 0;
-            overflow-y: auto;
-            transition: transform 0.3s ease;
-            z-index: 1000;
+          transform: translateX(-100%);
         }
 
-        .sidebar-brand {
-            padding: 0 25px 20px;
-            border-bottom: 1px solid var(--nike-border);
-            margin-bottom: 20px;
+        .admin-sidebar.show {
+          transform: translateX(0);
         }
 
-        .sidebar-brand h4 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--nike-black);
-        }
-
-        .sidebar-menu {
-            list-style: none;
-            padding: 0;
-        }
-
-        .sidebar-menu-item {
-            margin-bottom: 5px;
-        }
-
-        .sidebar-menu-link {
-            display: flex;
-            align-items: center;
-            padding: 15px 25px;
-            color: var(--nike-gray);
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-
-        .sidebar-menu-link:hover {
-            background: rgba(0, 0, 0, 0.05);
-            color: var(--nike-black);
-        }
-
-        .sidebar-menu-link.active {
-            background: #fff;
-            color: var(--nike-black);
-            font-weight: 600;
-            border-left: 3px solid var(--nike-black);
-        }
-
-        .sidebar-menu-link i {
-            width: 24px;
-            margin-right: 15px;
-            font-size: 1.1rem;
-        }
-
-        /* ========== Main Content ========== */
         .admin-main {
-            flex: 1;
-            margin-left: var(--sidebar-width);
-            padding: 40px;
-            background: #fff;
+          margin-left: 0;
         }
-
-        .admin-header {
-            margin-bottom: 40px;
-        }
-
-        .admin-header h1 {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
-
-        .admin-header p {
-            color: var(--nike-gray);
-            font-size: 1rem;
-        }
-
-        /* ========== Section Cards ========== */
-        .section-card {
-            background: #fff;
-            border: 1px solid var(--nike-border);
-            border-radius: 8px;
-            padding: 30px;
-            margin-bottom: 30px;
-            transition: box-shadow 0.3s ease;
-        }
-
-        .section-card:hover {
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid var(--nike-border);
-        }
-
-        .section-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--nike-black);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        /* ========== Data Table ========== */
-        .data-table {
-            width: 100%;
-            overflow-x: auto;
-        }
-
-        .table {
-            margin-bottom: 0;
-        }
-
-        .table thead th {
-            background: var(--nike-light-gray);
-            color: var(--nike-black);
-            font-weight: 600;
-            border-bottom: 2px solid var(--nike-border);
-            padding: 15px 12px;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .table tbody td {
-            padding: 15px 12px;
-            vertical-align: middle;
-            color: var(--nike-gray);
-        }
-
-        .table tbody tr:hover {
-            background: var(--nike-light-gray);
-        }
-
-        .product-img {
-            width: 60px;
-            height: 60px;
-            object-fit: cover;
-            border-radius: 6px;
-        }
-
-        /* ========== Stock Badges ========== */
-        .badge-stock {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-
-        .badge-in-stock {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .badge-low-stock {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .badge-out-stock {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        /* ========== Action Buttons ========== */
-        .btn-action {
-            padding: 8px 12px;
-            border: none;
-            background: transparent;
-            color: var(--nike-gray);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border-radius: 6px;
-        }
-
-        .btn-action:hover {
-            background: var(--nike-light-gray);
-            color: var(--nike-black);
-        }
-
-        .btn-primary-custom {
-            background: var(--nike-black);
-            color: #fff;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 25px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .btn-primary-custom:hover {
-            background: #333;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        }
-
-        /* ========== Empty State ========== */
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: var(--nike-gray);
-        }
-
-        .empty-state i {
-            font-size: 4rem;
-            margin-bottom: 20px;
-            opacity: 0.3;
-        }
-
-        /* ========== Loading State ========== */
-        .loading-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 60px 20px;
-        }
-
-        .spinner-border {
-            width: 3rem;
-            height: 3rem;
-        }
-
-        /* ========== Modal Enhancements ========== */
-        .modal-xl {
-            max-width: 1200px;
-        }      
-
-        /* ========== Responsive ========== */
-        @media (max-width: 992px) {
-            .admin-sidebar {
-                transform: translateX(-100%);
-            }
-
-            .admin-sidebar.show {
-                transform: translateX(0);
-            }
-
-            .admin-main {
-                margin-left: 0;
-            }
-        }
-                  
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <!-- Navbar -->
     <div id="navbarRoot" data-navbar-page="admin"></div>
 
     <!-- Admin Container -->
     <div class="admin-container">
-        <!-- Sidebar -->
-        <aside class="admin-sidebar" id="adminSidebar">
-            <div class="sidebar-brand">
-                <h4><i class="fas fa-user-shield"></i> Admin Panel</h4>
-            </div>
-            <ul class="sidebar-menu">
-                <li class="sidebar-menu-item">
-                    <a href="#" class="sidebar-menu-link" data-section="dashboard">
-                        <i class="fas fa-chart-line"></i>
-                        <span>Dashboard</span>
-                    </a>
-                </li>
-                <li class="sidebar-menu-item">
-                    <a href="#" class="sidebar-menu-link active" data-section="inventory">
-                        <i class="fas fa-boxes"></i>
-                        <span>Inventory Management</span>
-                    </a>
-                </li>
-                <li class="logout-item mt-4">
-                    <a href="#" class="sidebar-menu-link" id="logoutBtn">
-                        <i class="fas fa-sign-out-alt"></i>
-                        <span>Logout</span>
-                    </a>
-                </li>
-            </ul>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="admin-main">
-            <!-- Dashboard Section -->
-            <div id="dashboardSection" class="content-section" style="display: none;">
-                <div class="admin-header">
-                    <h1>Dashboard</h1>
-                    <p>Overview of store statistics and metrics</p>
-                </div>
-                <div class="empty-state">
-                    <i class="fas fa-chart-pie"></i>
-                    <h3>Dashboard Coming Soon</h3>
-                    <p>Analytics and metrics will be displayed here</p>
-                </div>
-            </div>
-
-            <!-- Inventory Management Section -->
-            <div id="inventorySection" class="content-section">
-                <div class="admin-header">
-                    <h1>Inventory Management</h1>
-                    <p>Manage shoes, variants, and categories</p>
-                </div>
-
-                
-                <div class="section-card">
-                    <div class="section-header">
-                        <h2 class="section-title">
-                            <i class="fas fa-shoe-prints"></i>
-                            Shoes Products
-                        </h2>
-                        <div class="section-actions">
-                            <button class="btn btn-primary-custom" onclick="adminManager.addShoe()">
-                                <i class="fas fa-plus"></i> Add Product
-                            </button>
-                        </div>
-                    </div>
-                    <!-- Search Filter -->
-                    <div class="row mb-3">
-                        <div class="col-md-4 ms-auto">
-                            <div class="input-group">
-                                <span class="input-group-text bg-white">
-                                    <i class="fas fa-sort"></i>
-                                </span>
-                                <select class="form-select" id="sortSelect" onchange="adminManager.handleSort()">
-                                    <option value="stock_desc"selected>Stock: High to Low</option>
-                                    <option value="stock_asc">Stock: Low to High</option>
-                                    <option value="name_asc">Name: A → Z</option>
-                                    <option value="name_desc">Name: Z → A</option>
-                                    <option value="price_asc">Price: Low to High</option>
-                                    <option value="price_desc">Price: High to Low</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="shoesTableContainer">
-                        <div class="loading-container">
-                            <div class="spinner-border text-dark" role="status">
-                                <span class="visually-hidden">Loading...</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Categories Management -->
-                <div class="section-card">
-                    <div class="section-header">
-                        <h2 class="section-title">
-                            <i class="fas fa-tags"></i>
-                            Categories
-                        </h2>
-                        <div class="section-actions">
-                            <button class="btn btn-primary-custom" onclick="adminManager.addCategory()">
-                                <i class="fas fa-plus"></i> Add Category
-                            </button>
-                        </div>
-                    </div>
-                    <div id="categoriesTableContainer">
-                        <div class="loading-container">
-                            <div class="spinner-border text-dark" role="status">
-                                <span class="visually-hidden">Loading...</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
-     <!-- ==================== IMPORT MODAL ==================== -->
-<div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-xl modal-dialog-scrollable">
-    <div class="modal-content">
-      
-      <!-- Modal Header -->
-      <div class="modal-header bg-success text-white">
-        <div>
-          <h5 class="modal-title" id="importModalLabel">
-            <i class="bi bi-box-arrow-in-down"></i> Import Stock
-          </h5>
-          <small id="importShoeInfo" class="text-light opacity-75"></small>
+      <!-- Sidebar -->
+      <aside class="admin-sidebar" id="adminSidebar">
+        <div class="sidebar-brand">
+          <h4><i class="fas fa-user-shield"></i> Admin Panel</h4>
         </div>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-
-      <!-- Modal Body with Tabs -->
-      <div class="modal-body">
-        
-        <!-- Tabs Navigation -->
-        <ul class="nav nav-tabs mb-3" id="importTabs" role="tablist">
-          <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="import-form-tab" data-bs-toggle="tab" 
-                    data-bs-target="#import-form" type="button" role="tab">
-              <i class="bi bi-pencil-square"></i> Import Form
-            </button>
+        <ul class="sidebar-menu">
+          <li class="sidebar-menu-item">
+            <a href="#" class="sidebar-menu-link" data-section="dashboard">
+              <i class="fas fa-chart-line"></i>
+              <span>Dashboard</span>
+            </a>
           </li>
-          <li class="nav-item" role="presentation">
-            <button class="nav-link" id="import-history-tab" data-bs-toggle="tab" 
-                    data-bs-target="#import-history" type="button" role="tab">
-              <i class="bi bi-clock-history"></i> Import History
-              <span id="importHistoryCount" class="badge bg-secondary ms-1">0</span>
-            </button>
+          <li class="sidebar-menu-item">
+            <a
+              href="#"
+              class="sidebar-menu-link active"
+              data-section="inventory"
+            >
+              <i class="fas fa-boxes"></i>
+              <span>Inventory Management</span>
+            </a>
+          </li>
+          <li class="logout-item mt-4">
+            <a href="#" class="sidebar-menu-link" id="logoutBtn">
+              <i class="fas fa-sign-out-alt"></i>
+              <span>Logout</span>
+            </a>
           </li>
         </ul>
+      </aside>
 
-        <!-- Tabs Content -->
-        <div class="tab-content" id="importTabsContent">
-          
-          <!-- ===== Tab 1: Import Form ===== -->
-          <div class="tab-pane fade show active" id="import-form" role="tabpanel">
-            
-            <!-- Shoe Info Card -->
-            <div class="card mb-3 bg-light border-success">
-              <div class="card-body">
-                <div class="row align-items-center">
-                  <div class="col-auto">
-                    <img id="importShoeImage" src="" width="80" class="rounded border">
-                  </div>
-                  <div class="col">
-                    <h6 id="importShoeName" class="mb-1 fw-bold"></h6>
-                    <p class="text-muted mb-1">
-                      <small><strong>Category:</strong> <span id="importShoeCategory"></span></small>
-                    </p>
-                    <p class="mb-0">
-                      <span class="badge bg-info">
-                        Current Total Stock: <strong id="importCurrentStock">0</strong> units
-                      </span>
-                    </p>
-                  </div>
+      <!-- Main Content -->
+      <main class="admin-main">
+        <!-- Dashboard Section -->
+        <div
+          id="dashboardSection"
+          class="content-section"
+          style="display: none"
+        >
+          <div class="admin-header">
+            <h1>Dashboard</h1>
+            <p>Overview of store statistics and metrics</p>
+          </div>
+          <div class="empty-state">
+            <i class="fas fa-chart-pie"></i>
+            <h3>Dashboard Coming Soon</h3>
+            <p>Analytics and metrics will be displayed here</p>
+          </div>
+        </div>
+
+        <!-- Inventory Management Section -->
+        <div id="inventorySection" class="content-section">
+          <div class="admin-header">
+            <h1>Inventory Management</h1>
+            <p>Manage shoes, variants, and categories</p>
+          </div>
+
+          <div class="section-card">
+            <div class="section-header">
+              <h2 class="section-title">
+                <i class="fas fa-shoe-prints"></i>
+                Shoes Products
+              </h2>
+              <div class="section-actions">
+                <button
+                  class="btn btn-primary-custom"
+                  onclick="adminManager.addShoe()"
+                >
+                  <i class="fas fa-plus"></i> Add Product
+                </button>
+              </div>
+            </div>
+            <!-- Search Filter -->
+            <div class="row mb-3">
+              <div class="col-md-4 ms-auto">
+                <div class="input-group">
+                  <span class="input-group-text bg-white">
+                    <i class="fas fa-sort"></i>
+                  </span>
+                  <select
+                    class="form-select"
+                    id="sortSelect"
+                    onchange="adminManager.handleSort()"
+                  >
+                    <option value="stock_desc" selected>
+                      Stock: High to Low
+                    </option>
+                    <option value="stock_asc">Stock: Low to High</option>
+                    <option value="name_asc">Name: A → Z</option>
+                    <option value="name_desc">Name: Z → A</option>
+                    <option value="price_asc">Price: Low to High</option>
+                    <option value="price_desc">Price: High to Low</option>
+                  </select>
                 </div>
               </div>
             </div>
-
-            <!-- Variants Selection Table -->
-            <div class="table-responsive">
-              <table class="table table-hover table-sm">
-                <thead class="table-light">
-                  <tr>
-                    <th width="50">
-                      <input type="checkbox" id="selectAllVariants" class="form-check-input" 
-                             onchange="adminManager.toggleAllVariants(this.checked)">
-                    </th>
-                    <th>Color</th>
-                    <th>Size</th>
-                    <th>SKU</th>
-                    <th>Current Stock</th>
-                    <th width="120">Import Qty</th>
-                    <th width="120">Import Price</th>
-                  </tr>
-                </thead>
-                <tbody id="importVariantsTable">
-                  <!-- Populated by JS: renderImportVariantsTable() -->
-                </tbody>
-              </table>
-            </div>
-
-            <!-- Import Notes -->
-            <div class="mb-3">
-              <label for="importNotes" class="form-label">
-                <i class="bi bi-sticky"></i> Import Notes (Optional)
-              </label>
-              <textarea class="form-control" id="importNotes" rows="2" 
-                        placeholder="e.g., Weekly restock, Black Friday inventory..."></textarea>
-            </div>
-
-            <!-- Import Summary -->
-            <div class="alert alert-success border-success mb-0">
-              <h6 class="mb-2"><i class="bi bi-info-circle"></i> Import Summary</h6>
-              <div class="row">
-                <div class="col-md-4">
-                  <small><strong>Selected Variants:</strong></small><br>
-                  <span id="summaryVariants" class="fs-5 fw-bold">0</span>
-                </div>
-                <div class="col-md-4">
-                  <small><strong>Total Quantity:</strong></small><br>
-                  <span id="summaryQuantity" class="fs-5 fw-bold">0</span> units
-                </div>
-                <div class="col-md-4">
-                  <small><strong>Total Cost:</strong></small><br>
-                  <span class="fs-5 fw-bold text-success">$<span id="summaryCost">0.00</span></span>
+            <div id="shoesTableContainer">
+              <div class="loading-container">
+                <div class="spinner-border text-dark" role="status">
+                  <span class="visually-hidden">Loading...</span>
                 </div>
               </div>
             </div>
-
           </div>
 
-          <!-- ===== Tab 2: Import History ===== -->
-          <div class="tab-pane fade" id="import-history" role="tabpanel">
-            <div id="importHistoryContainer">
-              <p class="text-muted text-center py-5">
-                <i class="bi bi-clock-history display-4 d-block mb-3 text-secondary"></i>
-                <span class="fs-6">Switch to this tab to view import history</span>
-              </p>
+          <!-- Categories Management -->
+          <div class="section-card">
+            <div class="section-header">
+              <h2 class="section-title">
+                <i class="fas fa-tags"></i>
+                Categories
+              </h2>
+              <div class="section-actions">
+                <button
+                  class="btn btn-primary-custom"
+                  onclick="adminManager.addCategory()"
+                >
+                  <i class="fas fa-plus"></i> Add Category
+                </button>
+              </div>
+            </div>
+            <div id="categoriesTableContainer">
+              <div class="loading-container">
+                <div class="spinner-border text-dark" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+    <!-- ==================== IMPORT MODAL ==================== -->
+    <div
+      class="modal fade"
+      id="importModal"
+      tabindex="-1"
+      aria-labelledby="importModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+          <!-- Modal Header -->
+          <div class="modal-header bg-success text-white">
+            <div>
+              <h5 class="modal-title" id="importModalLabel">
+                <i class="bi bi-box-arrow-in-down"></i> Import Stock
+              </h5>
+              <small id="importShoeInfo" class="text-light opacity-75"></small>
+            </div>
+            <button
+              type="button"
+              class="btn-close btn-close-white"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+
+          <!-- Modal Body with Tabs -->
+          <div class="modal-body">
+            <!-- Tabs Navigation -->
+            <ul class="nav nav-tabs mb-3" id="importTabs" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button
+                  class="nav-link active"
+                  id="import-form-tab"
+                  data-bs-toggle="tab"
+                  data-bs-target="#import-form"
+                  type="button"
+                  role="tab"
+                >
+                  <i class="bi bi-pencil-square"></i> Import Form
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button
+                  class="nav-link"
+                  id="import-history-tab"
+                  data-bs-toggle="tab"
+                  data-bs-target="#import-history"
+                  type="button"
+                  role="tab"
+                >
+                  <i class="bi bi-clock-history"></i> Import History
+                  <span id="importHistoryCount" class="badge bg-secondary ms-1"
+                    >0</span
+                  >
+                </button>
+              </li>
+            </ul>
+
+            <!-- Tabs Content -->
+            <div class="tab-content" id="importTabsContent">
+              <!-- ===== Tab 1: Import Form ===== -->
+              <div
+                class="tab-pane fade show active"
+                id="import-form"
+                role="tabpanel"
+              >
+                <!-- Shoe Info Card -->
+                <div class="card mb-3 bg-light border-success">
+                  <div class="card-body">
+                    <div class="row align-items-center">
+                      <div class="col-auto">
+                        <img
+                          id="importShoeImage"
+                          src=""
+                          width="80"
+                          class="rounded border"
+                        />
+                      </div>
+                      <div class="col">
+                        <h6 id="importShoeName" class="mb-1 fw-bold"></h6>
+                        <p class="text-muted mb-1">
+                          <small
+                            ><strong>Category:</strong>
+                            <span id="importShoeCategory"></span
+                          ></small>
+                        </p>
+                        <p class="mb-0">
+                          <span class="badge bg-info">
+                            Current Total Stock:
+                            <strong id="importCurrentStock">0</strong> units
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <button
+                    class="btn btn-outline-primary btn-sm"
+                    onclick="adminManager.openVariantGenerator()"
+                  >
+                    <i class="fas fa-plus-circle me-1"></i>
+                    Add More Variants
+                  </button>
+                </div>
+                <!-- Variants Selection Table -->
+                <div class="table-responsive">
+                  <table class="table table-hover table-sm">
+                    <thead class="table-light">
+                      <tr>
+                        <th width="50">
+                          <input
+                            type="checkbox"
+                            id="selectAllVariants"
+                            class="form-check-input"
+                            onchange="adminManager.toggleAllVariants(this.checked)"
+                          />
+                        </th>
+                        <th>Color</th>
+                        <th>Size</th>
+                        <th>Current Stock</th>
+                        <th width="120">Import Qty</th>
+                        <th width="120">Import Price</th>
+                      </tr>
+                    </thead>
+                    <tbody id="importVariantsTable">
+                      <!-- Populated by JS: renderImportVariantsTable() -->
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- Import Notes -->
+                <div class="mb-3">
+                  <label for="importNotes" class="form-label">
+                    <i class="bi bi-sticky"></i> Import Notes (Optional)
+                  </label>
+                  <textarea
+                    class="form-control"
+                    id="importNotes"
+                    rows="2"
+                    placeholder="e.g., Weekly restock, Black Friday inventory..."
+                  ></textarea>
+                </div>
+
+                <!-- Import Summary -->
+                <div class="alert alert-success border-success mb-0">
+                  <h6 class="mb-2">
+                    <i class="bi bi-info-circle"></i> Import Summary
+                  </h6>
+                  <div class="row">
+                    <div class="col-md-4">
+                      <small><strong>Selected Variants:</strong></small
+                      ><br />
+                      <span id="summaryVariants" class="fs-5 fw-bold">0</span>
+                    </div>
+                    <div class="col-md-4">
+                      <small><strong>Total Quantity:</strong></small
+                      ><br />
+                      <span id="summaryQuantity" class="fs-5 fw-bold">0</span>
+                      units
+                    </div>
+                    <div class="col-md-4">
+                      <small><strong>Total Cost:</strong></small
+                      ><br />
+                      <span class="fs-5 fw-bold text-success"
+                        >$<span id="summaryCost">0.00</span></span
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ===== Tab 2: Import History ===== -->
+              <div class="tab-pane fade" id="import-history" role="tabpanel">
+                <div id="importHistoryContainer">
+                  <p class="text-muted text-center py-5">
+                    <i
+                      class="bi bi-clock-history display-4 d-block mb-3 text-secondary"
+                    ></i>
+                    <span class="fs-6"
+                      >Switch to this tab to view import history</span
+                    >
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
 
+          <!-- Modal Footer -->
+          <div class="modal-footer bg-light">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              <i class="bi bi-x-circle"></i> Cancel
+            </button>
+            <button
+              type="button"
+              class="btn btn-success"
+              id="submitImportBtn"
+              onclick="adminManager.submitBatchImport()"
+            >
+              <i class="bi bi-check-circle"></i> Submit Import
+            </button>
+          </div>
         </div>
       </div>
-
-      <!-- Modal Footer -->
-      <div class="modal-footer bg-light">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-          <i class="bi bi-x-circle"></i> Cancel
-        </button>
-        <button type="button" class="btn btn-success" id="submitImportBtn" 
-                onclick="adminManager.submitBatchImport()">
-          <i class="bi bi-check-circle"></i> Submit Import
-        </button>
-      </div>
-
     </div>
-  </div>
+<!-- Variant Generator Modal - 2 Column Layout -->
+<div class="modal fade" id="variantGeneratorModal" tabindex="-1" aria-hidden="true" style="z-index: 1070;">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-gradient-primary text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-gear-fill me-2"></i>
+                    Generate Product Variants
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <!-- Product Info Card -->
+                <div class="card bg-light border-0 mb-4 shadow-sm">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <h6 class="mb-1 fw-bold">
+                                    <i class="bi bi-box-seam text-primary me-2"></i>
+                                    <span id="variantGen_ShoeName">Product Name</span>
+                                </h6>
+                                <small class="text-muted">
+                                    Product ID: <span id="variantGen_ShoeID" class="badge bg-secondary">-</span>
+                                </small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small mb-1 fw-bold">
+                                    <i class="bi bi-tag-fill me-1"></i>
+                                    Default Price
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">₫</span>
+                                    <input type="number" class="form-control" 
+                                           id="variantGen_DefaultPrice" value="0" min="0" step="1000">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Selection Grid - 2 Columns -->
+                <div class="row g-4 mb-4">
+                    <!-- Colors Column -->
+                    <div class="col-md-6">
+                        <div class="card h-100 border-primary border-2">
+                            <div class="card-header bg-primary text-white">
+                                <h6 class="mb-0">
+                                    <i class="bi bi-palette-fill me-2"></i>
+                                    Select Colors
+                                </h6>
+                            </div>
+                            <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                                <div id="colorSelectionContainer">
+                                    <!-- Colors rendered here as checkboxes -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sizes Column -->
+                    <div class="col-md-6">
+                        <div class="card h-100 border-success border-2">
+                            <div class="card-header bg-success text-white">
+                                <h6 class="mb-0">
+                                    <i class="bi bi-rulers me-2"></i>
+                                    Select Sizes
+                                </h6>
+                            </div>
+                            <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                                <div id="sizeSelectionContainer">
+                                    <!-- Sizes rendered here as checkboxes -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preview/Status -->
+                <div id="variantGen_Status" class="mb-4">
+                    <div class="alert alert-info border-0 shadow-sm mb-0">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Please select at least one color and one size to generate variants
+                    </div>
+                </div>
+
+                <!-- Summary Card -->
+                <div class="card border-0 shadow-sm mb-3">
+                    <div class="card-body">
+                        <h6 class="card-title text-muted mb-3">
+                            <i class="bi bi-graph-up me-2"></i>
+                            Generation Summary
+                        </h6>
+                        <div class="row text-center g-3">
+                            <div class="col-4">
+                                <div class="p-3 bg-primary bg-opacity-10 rounded-3 border border-primary border-opacity-25">
+                                    <div class="fs-2 fw-bold text-primary mb-1" id="variantGen_Colors">0</div>
+                                    <small class="text-muted d-block">Colors</small>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="p-3 bg-success bg-opacity-10 rounded-3 border border-success border-opacity-25">
+                                    <div class="fs-2 fw-bold text-success mb-1" id="variantGen_Sizes">0</div>
+                                    <small class="text-muted d-block">Sizes</small>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="p-3 bg-danger bg-opacity-10 rounded-3 border border-danger border-opacity-25">
+                                    <div class="fs-2 fw-bold text-danger mb-1" id="variantGen_Total">0</div>
+                                    <small class="text-muted d-block">New Variants</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Default Stock -->
+                <div class="card border-0 bg-light">
+                    <div class="card-body">
+                        <label class="form-label fw-bold mb-2">
+                            <i class="bi bi-box-seam text-warning me-2"></i>
+                            Initial Stock Quantity (Optional)
+                        </label>
+                        <input type="number" class="form-control form-control-lg" 
+                               id="variantGen_DefaultStock" 
+                               value="0" min="0" 
+                               placeholder="Leave 0 for no initial stock">
+                        <small class="form-text text-muted d-block mt-2">
+                            <i class="bi bi-lightbulb me-1"></i>
+                            Set starting inventory for all generated variants. Individual quantities can be adjusted later.
+                        </small>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary btn-lg" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-2"></i>
+                    Cancel
+                </button>
+                <button type="button" class="btn btn-primary btn-lg px-4" onclick="adminManager.variantGenerator.submitGenerateVariants()">
+                    <i class="bi bi-check-circle me-2"></i>
+                    Generate Variants
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
-    <script>
-    // ⭐ Set auth token from Supabase session to localStorage
-    async function setupAuthForAdmin() {
-        if (window.authService && window.authService.supabase) {
-            const { data: { session } } = await window.authService.supabase.auth.getSession();
-            if (session?.access_token) {
-                localStorage.setItem('authToken', session.access_token);
-                console.log('✅ Auth token set for admin');
-            } else {
-                console.warn('⚠️ No Supabase session found - redirecting to login');
-                window.location.href = '/login.html';
-            }
-        }
-    }
 
-    // Run on page load
-    setupAuthForAdmin();
+<!-- Toast Notification -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="notificationToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <i id="toastIcon" class="bi bi-check-circle-fill text-success me-2"></i>
+            <strong id="toastTitle" class="me-auto">Success</strong>
+            <small>Just now</small>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            <span id="toastMessage">Operation completed successfully!</span>
+        </div>
+    </div>
+</div>
+
+
+    <script>
+      // ⭐ Set auth token from Supabase session to localStorage
+      async function setupAuthForAdmin() {
+        if (window.authService && window.authService.supabase) {
+          const {
+            data: { session },
+          } = await window.authService.supabase.auth.getSession();
+          if (session?.access_token) {
+            localStorage.setItem("authToken", session.access_token);
+            console.log("✅ Auth token set for admin");
+          } else {
+            console.warn("⚠️ No Supabase session found - redirecting to login");
+            window.location.href = "/login.html";
+          }
+        }
+      }
+      // Run on page load
+      setupAuthForAdmin();
     </script>
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     <!-- API Client -->
     <script type="module" src="../assets/js/ApiClient.js"></script>
-    
+
     <!-- Admin Manager -->
-    <script type="module" src="../assets/js/AdminManager.js"></script>
+    <script src="../assets/js/admin/AdminCore.js"></script>
+    <script src="../assets/js/admin/AdminUtils.js"></script>
+    <script src="../assets/js/admin/AdminProductRenderer.js"></script>
+    <script src="../assets/js/admin/AdminVariantRenderer.js"></script>
+    <script src="../assets/js/admin/AdminCategory.js"></script>
+    <script src="../assets/js/admin/AdminImport.js"></script>
+    <script src="../assets/js/admin/AdminImportHistory.js"></script>
+    <script src="../assets/js/admin/AdminVariantGenerator.js"></script>
+    <script src="../assets/js/admin/AdminActions.js"></script>
+    <script src="../assets/js/admin/AdminManager.js"></script>
     <!-- Navbar Manager -->
     <script type="module" src="../assets/js/NavbarManager.js"></script>
     <script type="module" src="../assets/js/animations.js"></script>
     <!-- Auth Manager -->
-    <script type="module" src="../assets/js/AuthManager.js"></script> 
-       
+    <script type="module" src="../assets/js/AuthManager.js"></script>
+
     <!-- Page Initialization -->
     <script>
-        // Sidebar navigation
-        document.querySelectorAll('.sidebar-menu-link').forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                
-                // Update active state
-                document.querySelectorAll('.sidebar-menu-link').forEach(l => l.classList.remove('active'));
-                link.classList.add('active');
-                
-                // Show/hide sections
-                document.querySelectorAll('.content-section').forEach(section => {
-                    section.style.display = 'none';
-                });
-                
-                const sectionName = link.dataset.section;
-                const section = document.getElementById(`${sectionName}Section`);
-                if (section) section.style.display = 'block';
-            });
-        });
+      // Sidebar navigation
+      document.querySelectorAll(".sidebar-menu-link").forEach((link) => {
+        link.addEventListener("click", (e) => {
+          e.preventDefault();
 
-        // Initialize AdminManager
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('🔄 DOM Ready - Initializing Admin');
-            
-            const checkScriptsLoaded = setInterval(() => {
-                if (typeof window.adminManager !== 'undefined' && 
-                    typeof window.productsAPI !== 'undefined') {
-                    
-                    clearInterval(checkScriptsLoaded);
-                    console.log('✅ Scripts loaded');
-                    
-                    if (window.adminManager && typeof window.adminManager.init === 'function') {
-                        window.adminManager.init();
-                    }
-                }
-            }, 100);
-            
-            setTimeout(() => clearInterval(checkScriptsLoaded), 5000);
+          // Update active state
+          document
+            .querySelectorAll(".sidebar-menu-link")
+            .forEach((l) => l.classList.remove("active"));
+          link.classList.add("active");
+
+          // Show/hide sections
+          document.querySelectorAll(".content-section").forEach((section) => {
+            section.style.display = "none";
+          });
+
+          const sectionName = link.dataset.section;
+          const section = document.getElementById(`${sectionName}Section`);
+          if (section) section.style.display = "block";
         });
+      });
+
+      // Initialize AdminManager
+      document.addEventListener("DOMContentLoaded", () => {
+        console.log("🔄 DOM Ready - Initializing Admin");
+
+        const checkScriptsLoaded = setInterval(() => {
+          if (
+            typeof window.adminManager !== "undefined" &&
+            typeof window.productsAPI !== "undefined"
+          ) {
+            clearInterval(checkScriptsLoaded);
+            console.log("✅ Scripts loaded");
+
+            if (
+              window.adminManager &&
+              typeof window.adminManager.init === "function"
+            ) {
+              window.adminManager.init();
+            }
+          }
+        }, 100);
+
+        setTimeout(() => clearInterval(checkScriptsLoaded), 5000);
+      });
     </script>
-</body>
+    <script>
+      // ✅ Global backdrop cleanup on every modal hide
+      document.addEventListener('hidden.bs.modal', function(event) {
+          // Remove all stuck backdrops
+          setTimeout(() => {
+              document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+                  backdrop.remove();
+              });
+              
+              // If no modals are shown, remove modal-open class
+              if (!document.querySelector('.modal.show')) {
+                  document.body.classList.remove('modal-open');
+                  document.body.style.overflow = '';
+                  document.body.style.paddingRight = '';
+              }
+          }, 100);
+      });
+    </script>
+  </body>
 </html>
