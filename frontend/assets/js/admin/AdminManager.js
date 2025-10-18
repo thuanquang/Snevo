@@ -50,6 +50,7 @@ class AdminManager {
             this.setupEventListeners();
             
             console.log("✅ AdminManager initialized successfully");
+            this.setupLogoutButton();
         } catch (error) {
             console.error("❌ Init error:", error);
             AdminUtils.showError("Failed to load admin data");
@@ -105,6 +106,181 @@ class AdminManager {
         // ✅ Mark as setup
         this._listenersSetup = true;
         console.log("✅ Event listeners setup complete");
+    }
+    /**
+     * Setup logout button
+     */
+    setupLogoutButton() {
+        const logoutBtn = document.getElementById("logoutBtn");
+        if (!logoutBtn) {
+            console.warn("⚠️ Logout button not found");
+            return;
+        }
+        
+        console.log("🔐 Setting up logout button");
+        logoutBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            console.log("👋 Logout clicked");
+            this.handleLogout();
+        });
+    }
+
+    /**
+     * Handle logout
+     */
+    async handleLogout() {
+        console.log("🚪 Starting logout...");
+        
+        const logoutBtn = document.getElementById("logoutBtn");
+        if (logoutBtn) {
+            logoutBtn.disabled = true;
+            logoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Logging out...';
+        }
+
+        try {
+            // Clear session data
+            await this.clearAllSessionData();
+            
+            // Show success
+            this.showLogoutSuccessToast();
+            
+            // Wait a bit
+            await new Promise(resolve => setTimeout(resolve, 800));
+            
+            // Redirect
+            console.log("✅ Logout complete - redirecting");
+            window.location.href = "index.html";
+            
+        } catch (error) {
+            console.error("❌ Logout error:", error);
+            AdminUtils.showToast("Error", "Logout failed. Redirecting...", "error");
+            
+            // Force redirect
+            setTimeout(() => {
+                window.location.href = "index.html";
+            }, 1500);
+        }
+    }
+
+    /**
+     * Clear all session data
+     */
+    async clearAllSessionData() {
+        console.log("🧹 Clearing session data...");
+        
+        try {
+            // STEP 1: Supabase signout (with safety check)
+            try {
+                if (window.supabaseClient) {
+                    console.log("🔑 Signing out from Supabase...");
+                    const { error } = await window.supabaseClient.auth.signOut();
+                    if (error) {
+                        console.error("⚠️ Supabase signOut error:", error);
+                    } else {
+                        console.log("✅ Supabase signOut successful");
+                    }
+                } else {
+                    console.warn("⚠️ Supabase client not available");
+                }
+            } catch (err) {
+                console.error("⚠️ Supabase signOut failed:", err);
+                // Continue anyway
+            }
+
+            // STEP 2: Clear localStorage
+            console.log("🗑️ Clearing localStorage...");
+            const keysToRemove = [
+                "authtoken",
+                "refreshtoken",
+                "user",
+                "supabase.auth.token",
+                "supabase.auth.refreshToken",
+                "supabase.auth.user"
+            ];
+            
+            keysToRemove.forEach(key => {
+                if (localStorage.getItem(key)) {
+                    localStorage.removeItem(key);
+                    console.log(`  ✓ Removed ${key}`);
+                }
+            });
+
+            // STEP 3: Clear Supabase keys
+            const allKeys = Object.keys(localStorage);
+            allKeys.forEach(key => {
+                if (key.startsWith("sb-") || key.includes("supabase")) {
+                    localStorage.removeItem(key);
+                    console.log(`  ✓ Removed: ${key}`);
+                }
+            });
+
+            // STEP 4: Clear sessionStorage
+            console.log("🗑️ Clearing sessionStorage...");
+            sessionStorage.clear();
+
+            // STEP 5: Clear cookies
+            console.log("🍪 Clearing cookies...");
+            document.cookie.split(";").forEach(cookie => {
+                const eqPos = cookie.indexOf("=");
+                const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+                
+                if (name.includes("auth") || name.includes("sb-") || name.includes("supabase") || name.includes("token")) {
+                    document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+                    document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=${window.location.hostname}`;
+                    console.log(`  ✓ Cleared: ${name}`);
+                }
+            });
+
+            // STEP 6: Update AuthManager (if exists and has method)
+            if (window.authManager) {
+                console.log("🔄 Updating AuthManager...");
+                if (typeof window.authManager.clearAuthData === 'function') {
+                    window.authManager.clearAuthData();
+                }
+                if (typeof window.authManager.updateAuthUI === 'function') {
+                    window.authManager.updateAuthUI();
+                }
+                // Skip emit() - không có trong authManager
+            }
+
+            console.log("✅ All session data cleared");
+        } catch (error) {
+            console.error("❌ Error clearing session:", error);
+            throw error;
+        }
+    }
+
+    /**
+     * Show logout success toast
+     */
+    showLogoutSuccessToast() {
+        const toast = document.createElement("div");
+        toast.className = "toast align-items-center text-white bg-success border-0";
+        toast.setAttribute("role", "alert");
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas fa-check-circle me-2"></i>Logout successful! Redirecting...
+                </div>
+            </div>
+        `;
+
+        toast.style.position = "fixed";
+        toast.style.top = "50%";
+        toast.style.left = "50%";
+        toast.style.transform = "translate(-50%, -50%)";
+        toast.style.zIndex = "9999";
+        toast.style.minWidth = "300px";
+        document.body.appendChild(toast);
+
+        const bsToast = new bootstrap.Toast(toast, { delay: 2000 });
+        bsToast.show();
+
+        toast.addEventListener("hidden.bs.toast", () => {
+            if (document.body.contains(toast)) {
+                document.body.removeChild(toast);
+            }
+        });
     }
     
     // ==================== DELEGATE METHODS ====================
