@@ -1125,23 +1125,22 @@ class AdminManager {
       }
 
       // Reset import state
-        this.importState = {
-            shoeId: shoeId,
-            currentShoe: this.currentShoe,  // ← ADD THIS LINE!
-            variants: [],
-            selectedVariants: new Set(),
-            importData: []
-        };
-
-      // Load variants
+      this.importState = {
+        shoeId: shoeId,
+        currentShoe: this.currentShoe, // ← ADD THIS LINE!
+        variants: [],
+        selectedVariants: new Set(),
+        importData: [],
+      };
       const response = await this.api.getProductVariants(shoeId);
-      if (!response.success || !response.data || response.data.length === 0) {
-        console.log('⚠️ No variants yet for shoe:', shoeId);
-        this.importState.variants = []; // Empty array, no error!
-        return;
+      // Load variants
+      if (response?.success && response.data) {
+          this.importState.variants = response.data;
+          console.log(`✅ Loaded ${response.data.length} variants for shoe ${shoeId}`);
+      } else {
+          this.importState.variants = [];  // Empty array for shoes without variants
+          console.log(`ℹ️ No variants yet for shoe ${shoeId}`);
       }
-
-      this.importState.variants = response.data;
 
       // Show modal
       this.showImportModal();
@@ -1195,9 +1194,16 @@ class AdminManager {
 
     if (!this.importState.variants || this.importState.variants.length === 0) {
       tbody.innerHTML = `
-            <tr>
-                <td colspan="6" class="text-center text-muted py-4">
-                    No variants available for import
+             <tr>
+                <td colspan="6" class="text-center py-4">
+                    <div class="empty-state-sm">
+                        <i class="fas fa-box-open text-muted mb-2" style="font-size: 2rem;"></i>
+                        <p class="text-muted mb-3">No variants available yet</p>
+                        <button class="btn btn-primary btn-sm" 
+                                onclick="adminManager.openVariantGenerator(adminManager.currentShoe)">
+                            <i class="fas fa-plus me-2"></i>Add First Variants
+                        </button>
+                    </div>
                 </td>
             </tr>
         `;
@@ -1515,129 +1521,150 @@ class AdminManager {
    * =====================================================
    */
 
-/**
- * ⭐ Open variant generator modal
- */
-async openVariantGenerator(shoe) {
+  /**
+   * ⭐ Open variant generator modal
+   */
+  async openVariantGenerator(shoe) {
     try {
-        const targetShoe = shoe || this.importState?.currentShoe;
-        
-        if (!targetShoe) {
-            console.error('No shoe data available');
-            this.showToast('Error', 'No shoe selected. Please try again.', 'error');
-            return;
-        }
+      const targetShoe = shoe || this.importState?.currentShoe;
 
-        this.currentShoe = targetShoe;
-
-        // Set shoe info in modal
-        document.getElementById('variantGen_ShoeName').textContent = targetShoe.shoe_name || 'Unknown Shoe';
-        document.getElementById('variantGen_Status').innerHTML = 
-            '<i class="fas fa-info-circle me-2"></i>Loading...';
-
-        // ⭐ Set default price from shoe
-        const priceInput = document.getElementById('variantGen_DefaultPrice');
-        if (priceInput) {
-            priceInput.value = targetShoe.base_price || 0;
-        }
-
-        // Show variant generator modal
-        const modal = new bootstrap.Modal(document.getElementById('variantGeneratorModal'));
-        modal.show();
-
-        // Load data
-        await this.loadVariantGeneratorData();
-
-    } catch (error) {
-        console.error('❌ Open variant generator error:', error);
-        this.showToast('Error', 'Failed to open variant generator: ' + error.message, 'error');
-    }
-}
-/**
- * ⭐ Load variant generator data with duplicate detection
- */
-async loadVariantGeneratorData() {
-    try {
-        const shoeId = this.currentShoe.shoe_id;
-        
-        // ⭐ USE window.variantsAPI directly
-        const response = await window.variantsAPI.getVariantsByShoe(shoeId);
-        
-        // ⭐ DEBUG - check structure
-        console.log('📦 API Response:', response);
-        
-        // ⭐ Extract array from response
-        const existingVariants = Array.isArray(response) ? response : (response.data || []);
-        
-        console.log('📦 Existing variants array:', existingVariants);
-        
-        this.existingVariantMap = new Set(
-            existingVariants.map(v => `${v.color_id}-${v.size_id}`)
-        );
-        
-        console.log('📦 Existing variant map:', this.existingVariantMap);
-
-        // Render selection UI
-        this.renderColorSelection();
-        this.renderSizeSelection();
-        
-        // Update status
-        document.getElementById('variantGen_Status').innerHTML = 
-            `<strong>${existingVariants.length}</strong> variants already exist. Select new combinations to create.`;
-
-    } catch (error) {
-        console.error('❌ Load variant generator data error:', error);
-        this.showToast('Error', 'Failed to load variant data', 'error');
-    }
-}
-/**
- * ⭐ Render color selection with duplicate indicators
- */
-renderColorSelection() {
-    const container = document.getElementById('variantGen_ColorsList');
-    if (!this.colors || this.colors.length === 0) {
-        container.innerHTML = '<div class="col-12 text-center text-muted">No colors available</div>';
+      if (!targetShoe) {
+        console.error("No shoe data available");
+        this.showToast("Error", "No shoe selected. Please try again.", "error");
         return;
+      }
+
+      this.currentShoe = targetShoe;
+
+      // Set shoe info in modal
+      document.getElementById("variantGen_ShoeName").textContent =
+        targetShoe.shoe_name || "Unknown Shoe";
+      document.getElementById("variantGen_Status").innerHTML =
+        '<i class="fas fa-info-circle me-2"></i>Loading...';
+
+      // ⭐ Set default price from shoe
+      const priceInput = document.getElementById("variantGen_DefaultPrice");
+      if (priceInput) {
+        priceInput.value = targetShoe.base_price || 0;
+      }
+
+      // Show variant generator modal
+      const modal = new bootstrap.Modal(
+        document.getElementById("variantGeneratorModal")
+      );
+      modal.show();
+
+      // Load data
+      await this.loadVariantGeneratorData();
+    } catch (error) {
+      console.error("❌ Open variant generator error:", error);
+      this.showToast(
+        "Error",
+        "Failed to open variant generator: " + error.message,
+        "error"
+      );
+    }
+  }
+  /**
+   * ⭐ Load variant generator data with duplicate detection
+   */
+  async loadVariantGeneratorData() {
+    try {
+      const shoeId = this.currentShoe.shoe_id;
+
+      // ⭐ USE window.variantsAPI directly
+      const response = await window.variantsAPI.getVariantsByShoe(shoeId);
+
+      // ⭐ DEBUG - check structure
+      console.log("📦 API Response:", response);
+
+      // ⭐ Extract array from response
+      const existingVariants = Array.isArray(response)
+        ? response
+        : response.data || [];
+
+      console.log("📦 Existing variants array:", existingVariants);
+
+      this.existingVariantMap = new Set(
+        existingVariants.map((v) => `${v.color_id}-${v.size_id}`)
+      );
+
+      console.log("📦 Existing variant map:", this.existingVariantMap);
+
+      // Render selection UI
+      this.renderColorSelection();
+      this.renderSizeSelection();
+
+      // Update status
+      document.getElementById(
+        "variantGen_Status"
+      ).innerHTML = `<strong>${existingVariants.length}</strong> variants already exist. Select new combinations to create.`;
+    } catch (error) {
+      console.error("❌ Load variant generator data error:", error);
+      this.showToast("Error", "Failed to load variant data", "error");
+    }
+  }
+  /**
+   * ⭐ Render color selection with duplicate indicators
+   */
+  renderColorSelection() {
+    const container = document.getElementById("variantGen_ColorsList");
+    if (!this.colors || this.colors.length === 0) {
+      container.innerHTML =
+        '<div class="col-12 text-center text-muted">No colors available</div>';
+      return;
     }
 
-    container.innerHTML = this.colors.map(color => {
+    container.innerHTML = this.colors
+      .map((color) => {
         // Check if this color has ANY existing variants
-        const hasExisting = Array.from(this.existingVariantMap).some(key => 
-            key.startsWith(`${color.color_id}-`)
+        const hasExisting = Array.from(this.existingVariantMap).some((key) =>
+          key.startsWith(`${color.color_id}-`)
         );
 
         return `
             <div class="col-6 col-md-4 col-lg-3">
                 <div class="card variant-option-card" 
                      data-color-id="${color.color_id}"
-                     onclick="window.adminManager.toggleColor(${color.color_id})">
+                     onclick="window.adminManager.toggleColor(${
+                       color.color_id
+                     })">
                     <div class="card-body p-2 text-center position-relative">
                         <i class="fas fa-check-circle check-icon"></i>
                         <div class="color-preview mx-auto mb-2" 
                              style="background-color: ${color.hex_code}"></div>
-                        <small class="d-block fw-bold">${color.color_name}</small>
-                        ${hasExisting ? '<span class="badge bg-warning badge-sm mt-1">Has variants</span>' : ''}
+                        <small class="d-block fw-bold">${
+                          color.color_name
+                        }</small>
+                        ${
+                          hasExisting
+                            ? '<span class="badge bg-warning badge-sm mt-1">Has variants</span>'
+                            : ""
+                        }
                     </div>
                 </div>
             </div>
         `;
-    }).join('');
-}
+      })
+      .join("");
+  }
 
-/**
- * ⭐ Render size selection with duplicate indicators
- */
-renderSizeSelection() {
-    const container = document.getElementById('variantGen_SizesList');
+  /**
+   * ⭐ Render size selection with duplicate indicators
+   */
+  renderSizeSelection() {
+    const container = document.getElementById("variantGen_SizesList");
     if (!this.sizes || this.sizes.length === 0) {
-        container.innerHTML = '<div class="col-12 text-center text-muted">No sizes available</div>';
-        return;
+      container.innerHTML =
+        '<div class="col-12 text-center text-muted">No sizes available</div>';
+      return;
     }
 
-    container.innerHTML = this.sizes.map(size => {
+    container.innerHTML = this.sizes
+      .map((size) => {
         // Check if this size has ANY existing variants
-        const hasExisting = Array.from(this.existingVariantMap).some(key => 
-            key.endsWith(`-${size.size_id}`)
+        const hasExisting = Array.from(this.existingVariantMap).some((key) =>
+          key.endsWith(`-${size.size_id}`)
         );
 
         return `
@@ -1647,174 +1674,215 @@ renderSizeSelection() {
                      onclick="window.adminManager.toggleSize(${size.size_id})">
                     <div class="card-body p-2 text-center position-relative">
                         <i class="fas fa-check-circle check-icon"></i>
-                        <div class="fs-5 fw-bold text-primary mb-1">${size.size_value}</div>
-                        <small class="text-muted">${size.size_type || 'US'}</small>
-                        ${hasExisting ? '<span class="badge bg-warning badge-sm mt-1">Has variants</span>' : ''}
+                        <div class="fs-5 fw-bold text-primary mb-1">${
+                          size.size_value
+                        }</div>
+                        <small class="text-muted">${
+                          size.size_type || "US"
+                        }</small>
+                        ${
+                          hasExisting
+                            ? '<span class="badge bg-warning badge-sm mt-1">Has variants</span>'
+                            : ""
+                        }
                     </div>
                 </div>
             </div>
         `;
-    }).join('');
-}
+      })
+      .join("");
+  }
 
-/**
- * ⭐ Toggle color selection
- */
-toggleColor(colorId) {
+  /**
+   * ⭐ Toggle color selection
+   */
+  toggleColor(colorId) {
     const card = document.querySelector(`[data-color-id="${colorId}"]`);
-    card.classList.toggle('selected');
+    card.classList.toggle("selected");
     this.updateSelectionSummary();
-}
+  }
 
-/**
- * ⭐ Toggle size selection
- */
-toggleSize(sizeId) {
+  /**
+   * ⭐ Toggle size selection
+   */
+  toggleSize(sizeId) {
     const card = document.querySelector(`[data-size-id="${sizeId}"]`);
-    card.classList.toggle('selected');
+    card.classList.toggle("selected");
     this.updateSelectionSummary();
-}
+  }
 
-/**
- * ⭐ Select all colors
- */
-selectAllColors() {
-    document.querySelectorAll('[data-color-id]').forEach(card => {
-        card.classList.add('selected');
+  /**
+   * ⭐ Select all colors
+   */
+  selectAllColors() {
+    document.querySelectorAll("[data-color-id]").forEach((card) => {
+      card.classList.add("selected");
     });
     this.updateSelectionSummary();
-}
+  }
 
-/**
- * ⭐ Select all sizes
- */
-selectAllSizes() {
-    document.querySelectorAll('[data-size-id]').forEach(card => {
-        card.classList.add('selected');
+  /**
+   * ⭐ Select all sizes
+   */
+  selectAllSizes() {
+    document.querySelectorAll("[data-size-id]").forEach((card) => {
+      card.classList.add("selected");
     });
     this.updateSelectionSummary();
-}
+  }
 
-/**
- * ⭐ Update selection summary with duplicate warnings
- */
-updateSelectionSummary() {
-    const selectedColors = Array.from(document.querySelectorAll('[data-color-id].selected'))
-        .map(card => parseInt(card.dataset.colorId));
-    const selectedSizes = Array.from(document.querySelectorAll('[data-size-id].selected'))
-        .map(card => parseInt(card.dataset.sizeId));
-    
+  /**
+   * ⭐ Update selection summary with duplicate warnings
+   */
+  updateSelectionSummary() {
+    const selectedColors = Array.from(
+      document.querySelectorAll("[data-color-id].selected")
+    ).map((card) => parseInt(card.dataset.colorId));
+    const selectedSizes = Array.from(
+      document.querySelectorAll("[data-size-id].selected")
+    ).map((card) => parseInt(card.dataset.sizeId));
+
     const totalCombinations = selectedColors.length * selectedSizes.length;
-    
+
     // Calculate duplicates
     let duplicateCount = 0;
     for (const colorId of selectedColors) {
-        for (const sizeId of selectedSizes) {
-            if (this.existingVariantMap.has(`${colorId}-${sizeId}`)) {
-                duplicateCount++;
-            }
+      for (const sizeId of selectedSizes) {
+        if (this.existingVariantMap.has(`${colorId}-${sizeId}`)) {
+          duplicateCount++;
         }
+      }
     }
-    
+
     const newCount = totalCombinations - duplicateCount;
-    
+
     // Update UI
-    document.getElementById('variantGen_ColorCount').textContent = `${selectedColors.length} colors`;
-    document.getElementById('variantGen_SizeCount').textContent = `${selectedSizes.length} sizes`;
-    document.getElementById('variantGen_TotalCount').textContent = `${newCount} new variants`;
-    
+    document.getElementById(
+      "variantGen_ColorCount"
+    ).textContent = `${selectedColors.length} colors`;
+    document.getElementById(
+      "variantGen_SizeCount"
+    ).textContent = `${selectedSizes.length} sizes`;
+    document.getElementById(
+      "variantGen_TotalCount"
+    ).textContent = `${newCount} new variants`;
+
     // Show warning if duplicates exist
     if (duplicateCount > 0) {
-        document.getElementById('variantGen_Status').innerHTML = `
+      document.getElementById("variantGen_Status").innerHTML = `
             <i class="fas fa-exclamation-triangle text-warning me-2"></i>
             <strong>${duplicateCount}</strong> variants already exist and will be skipped. 
             <strong>${newCount}</strong> new variants will be created.
         `;
-        document.getElementById('variantGen_Status').className = 'alert alert-warning d-flex align-items-center mb-4';
+      document.getElementById("variantGen_Status").className =
+        "alert alert-warning d-flex align-items-center mb-4";
     } else if (newCount > 0) {
-        document.getElementById('variantGen_Status').innerHTML = `
+      document.getElementById("variantGen_Status").innerHTML = `
             <i class="fas fa-check-circle text-success me-2"></i>
             Ready to create <strong>${newCount}</strong> new variants.
         `;
-        document.getElementById('variantGen_Status').className = 'alert alert-success d-flex align-items-center mb-4';
+      document.getElementById("variantGen_Status").className =
+        "alert alert-success d-flex align-items-center mb-4";
     } else {
-        document.getElementById('variantGen_Status').innerHTML = `
+      document.getElementById("variantGen_Status").innerHTML = `
             <i class="fas fa-info-circle text-info me-2"></i>
             Select colors and sizes to generate variants.
         `;
-        document.getElementById('variantGen_Status').className = 'alert alert-info d-flex align-items-center mb-4';
+      document.getElementById("variantGen_Status").className =
+        "alert alert-info d-flex align-items-center mb-4";
     }
-}
+  }
 
-/**
- * ⭐ Generate selected variants with price
- */
-async generateSelectedVariants() {
+  /**
+   * ⭐ Generate selected variants with price
+   */
+  async generateSelectedVariants() {
     try {
-        const selectedColors = Array.from(document.querySelectorAll('[data-color-id].selected'))
-            .map(card => parseInt(card.dataset.colorId));
-        const selectedSizes = Array.from(document.querySelectorAll('[data-size-id].selected'))
-            .map(card => parseInt(card.dataset.sizeId));
-        
-        if (selectedColors.length === 0 || selectedSizes.length === 0) {
-            this.showToast('Warning', 'Please select at least one color and one size', 'warning');
-            return;
-        }
-        
-        const defaultStock = parseInt(document.getElementById('variantGen_DefaultStock').value) || 0;
-        
-        // ⭐ ONLY CHANGE THIS PART - Read price (null if empty)
-        const priceInput = document.getElementById('variantGen_DefaultPrice');
-        const defaultPrice = priceInput && priceInput.value.trim() !== '' 
-            ? parseFloat(priceInput.value) 
-            : null;  // null = backend uses shoe.base_price
-        
-        // Show loading
-        this.showLoading('Generating variants...');
-        
-        // Call API
-        const response = await window.variantsAPI.generateSpecificVariants(
-            this.currentShoe.shoe_id,
-            selectedColors,
-            selectedSizes,
-            defaultStock,
-            defaultPrice  // ⭐ Pass price (can be null)
+      const selectedColors = Array.from(
+        document.querySelectorAll("[data-color-id].selected")
+      ).map((card) => parseInt(card.dataset.colorId));
+      const selectedSizes = Array.from(
+        document.querySelectorAll("[data-size-id].selected")
+      ).map((card) => parseInt(card.dataset.sizeId));
+
+      if (selectedColors.length === 0 || selectedSizes.length === 0) {
+        this.showToast(
+          "Warning",
+          "Please select at least one color and one size",
+          "warning"
         );
-        
-        this.hideLoading();
-        
-        console.log('✅ Generate variants response:', response);
-        
-        // Handle response... (keep existing code)
-        if (response && response.success) {
-            const data = response.data || response;
-            const created = data.created || 0;
-            const skipped = data.skipped || 0;
-            
-            if (created > 0) {
-                let message = `Successfully created ${created} new variants!`;
-                if (skipped > 0) {
-                    message += ` (${skipped} duplicates skipped)`;
-                }
-                this.showToast('Success', message, 'success');
-                
-                bootstrap.Modal.getInstance(document.getElementById('variantGeneratorModal')).hide();
-                await this.loadShoes();
-            } else if (skipped > 0) {
-                this.showToast('Info', `All ${skipped} selected variants already exist`, 'info');
-            } else {
-                this.showToast('Info', 'No variants were created', 'info');
-            }
+        return;
+      }
+
+      const defaultStock =
+        parseInt(document.getElementById("variantGen_DefaultStock").value) || 0;
+
+      // ⭐ ONLY CHANGE THIS PART - Read price (null if empty)
+      const priceInput = document.getElementById("variantGen_DefaultPrice");
+      const defaultPrice =
+        priceInput && priceInput.value.trim() !== ""
+          ? parseFloat(priceInput.value)
+          : null; // null = backend uses shoe.base_price
+
+      // Show loading
+      this.showLoading("Generating variants...");
+
+      // Call API
+      const response = await window.variantsAPI.generateSpecificVariants(
+        this.currentShoe.shoe_id,
+        selectedColors,
+        selectedSizes,
+        defaultStock,
+        defaultPrice // ⭐ Pass price (can be null)
+      );
+
+      this.hideLoading();
+
+      console.log("✅ Generate variants response:", response);
+
+      // Handle response... (keep existing code)
+      if (response && response.success) {
+        const data = response.data || response;
+        const created = data.created || 0;
+        const skipped = data.skipped || 0;
+
+        if (created > 0) {
+          let message = `Successfully created ${created} new variants!`;
+          if (skipped > 0) {
+            message += ` (${skipped} duplicates skipped)`;
+          }
+          this.showToast("Success", message, "success");
+
+          bootstrap.Modal.getInstance(
+            document.getElementById("variantGeneratorModal")
+          ).hide();
+          await this.loadShoes();
+        } else if (skipped > 0) {
+          this.showToast(
+            "Info",
+            `All ${skipped} selected variants already exist`,
+            "info"
+          );
         } else {
-            this.showToast('Error', response.message || 'Failed to generate variants', 'error');
+          this.showToast("Info", "No variants were created", "info");
         }
-        
+      } else {
+        this.showToast(
+          "Error",
+          response.message || "Failed to generate variants",
+          "error"
+        );
+      }
     } catch (error) {
-        this.hideLoading();
-        console.error('❌ Generate variants error:', error);
-        this.showToast('Error', error.message || 'Failed to generate variants', 'error');
+      this.hideLoading();
+      console.error("❌ Generate variants error:", error);
+      this.showToast(
+        "Error",
+        error.message || "Failed to generate variants",
+        "error"
+      );
     }
-}
+  }
 
   /**
    * Render color checkboxes
@@ -1956,135 +2024,146 @@ async generateSelectedVariants() {
     }
   }
 
-/**
- * GENERATE SPECIFIC VARIANTS
- * Create variants for selected colors and sizes only
- */
-async generateSpecificVariants(shoeId, colorIds, sizeIds, options = {}) {
+  /**
+   * GENERATE SPECIFIC VARIANTS
+   * Create variants for selected colors and sizes only
+   */
+  async generateSpecificVariants(shoeId, colorIds, sizeIds, options = {}) {
     try {
-        console.log('🎯 Generating specific variants for shoe:', shoeId);
-        console.log('Colors:', colorIds);
-        console.log('Sizes:', sizeIds);
-        console.log('Options:', options);  // ⭐ ADD DEBUG
+      console.log("🎯 Generating specific variants for shoe:", shoeId);
+      console.log("Colors:", colorIds);
+      console.log("Sizes:", sizeIds);
+      console.log("Options:", options); // ⭐ ADD DEBUG
 
-        // Validation
-        if (!shoeId || isNaN(parseInt(shoeId))) {
-            throw new ValidationError('Invalid shoe ID');
+      // Validation
+      if (!shoeId || isNaN(parseInt(shoeId))) {
+        throw new ValidationError("Invalid shoe ID");
+      }
+
+      if (!Array.isArray(colorIds) || colorIds.length === 0) {
+        throw new ValidationError("At least one color must be selected");
+      }
+
+      if (!Array.isArray(sizeIds) || sizeIds.length === 0) {
+        throw new ValidationError("At least one size must be selected");
+      }
+
+      // ⭐ Get shoe info WITH BASE_PRICE
+      const { data: shoe } = await supabaseConfig
+        .getAdminClient()
+        .from("shoes")
+        .select("shoe_id, shoe_name, base_price")
+        .eq("shoe_id", shoeId)
+        .single();
+
+      if (!shoe) {
+        throw new NotFoundError(`Shoe with ID ${shoeId} not found`);
+      }
+
+      console.log(
+        "📦 Shoe found:",
+        shoe.shoe_name,
+        "Base price:",
+        shoe.base_price
+      );
+
+      // Get selected colors
+      const { data: colors } = await supabaseConfig
+        .getAdminClient()
+        .from("colors")
+        .select("color_id, color_name")
+        .in("color_id", colorIds);
+
+      // Get selected sizes
+      const { data: sizes } = await supabaseConfig
+        .getAdminClient()
+        .from("sizes")
+        .select("size_id, size_value")
+        .in("size_id", sizeIds);
+
+      // Get existing variants
+      const { data: existingVariants } = await supabaseConfig
+        .getAdminClient()
+        .from("shoe_variants")
+        .select("color_id, size_id")
+        .eq("shoe_id", shoeId);
+
+      const existingSet = new Set(
+        existingVariants?.map((v) => `${v.color_id}-${v.size_id}`) || []
+      );
+
+      // ⭐ GET PRICE: Use user input OR fallback to shoe base_price
+      const defaultPrice =
+        options.defaultPrice !== undefined && options.defaultPrice !== null
+          ? parseFloat(options.defaultPrice)
+          : shoe.base_price;
+
+      console.log("💰 Using price:", defaultPrice); // ⭐ DEBUG
+
+      // Generate combinations
+      const variantsToCreate = [];
+      for (const color of colors) {
+        for (const size of sizes) {
+          const key = `${color.color_id}-${size.size_id}`;
+
+          if (existingSet.has(key)) {
+            continue;
+          }
+
+          const sku = this.generateSKU(
+            shoe.shoe_name,
+            color.color_name,
+            size.size_value
+          );
+
+          variantsToCreate.push({
+            shoe_id: shoeId,
+            color_id: color.color_id,
+            size_id: size.size_id,
+            sku: sku,
+            stock_quantity: options.defaultStock || 0,
+            variant_price: defaultPrice, // ⭐ USE DYNAMIC PRICE
+            created_at: new Date().toISOString(),
+          });
         }
+      }
 
-        if (!Array.isArray(colorIds) || colorIds.length === 0) {
-            throw new ValidationError('At least one color must be selected');
-        }
-
-        if (!Array.isArray(sizeIds) || sizeIds.length === 0) {
-            throw new ValidationError('At least one size must be selected');
-        }
-
-        // ⭐ Get shoe info WITH BASE_PRICE
-        const { data: shoe } = await supabaseConfig
-            .getAdminClient()
-            .from('shoes')
-            .select('shoe_id, shoe_name, base_price')
-            .eq('shoe_id', shoeId)
-            .single();
-
-        if (!shoe) {
-            throw new NotFoundError(`Shoe with ID ${shoeId} not found`);
-        }
-
-        console.log('📦 Shoe found:', shoe.shoe_name, 'Base price:', shoe.base_price);
-
-        // Get selected colors
-        const { data: colors } = await supabaseConfig
-            .getAdminClient()
-            .from('colors')
-            .select('color_id, color_name')
-            .in('color_id', colorIds);
-
-        // Get selected sizes
-        const { data: sizes } = await supabaseConfig
-            .getAdminClient()
-            .from('sizes')
-            .select('size_id, size_value')
-            .in('size_id', sizeIds);
-
-        // Get existing variants
-        const { data: existingVariants } = await supabaseConfig
-            .getAdminClient()
-            .from('shoe_variants')
-            .select('color_id, size_id')
-            .eq('shoe_id', shoeId);
-
-        const existingSet = new Set(
-            existingVariants?.map(v => `${v.color_id}-${v.size_id}`) || []
-        );
-
-        // ⭐ GET PRICE: Use user input OR fallback to shoe base_price
-        const defaultPrice = options.defaultPrice !== undefined && options.defaultPrice !== null 
-            ? parseFloat(options.defaultPrice) 
-            : shoe.base_price;
-
-        console.log('💰 Using price:', defaultPrice);  // ⭐ DEBUG
-
-        // Generate combinations
-        const variantsToCreate = [];
-        for (const color of colors) {
-            for (const size of sizes) {
-                const key = `${color.color_id}-${size.size_id}`;
-                
-                if (existingSet.has(key)) {
-                    continue;
-                }
-
-                const sku = this.generateSKU(shoe.shoe_name, color.color_name, size.size_value);
-
-                variantsToCreate.push({
-                    shoe_id: shoeId,
-                    color_id: color.color_id,
-                    size_id: size.size_id,
-                    sku: sku,
-                    stock_quantity: options.defaultStock || 0,
-                    variant_price: defaultPrice,  // ⭐ USE DYNAMIC PRICE
-                    created_at: new Date().toISOString(),
-                });
-            }
-        }
-
-        if (variantsToCreate.length === 0) {
-            return {
-                success: true,
-                message: 'All selected variants already exist',
-                created: 0,
-                skipped: existingSet.size,
-            };
-        }
-
-        // Insert variants
-        const { data: createdVariants, error } = await supabaseConfig
-            .getAdminClient()
-            .from('shoe_variants')
-            .insert(variantsToCreate)
-            .select();
-
-        if (error) {
-            throw error;
-        }
-
-        console.log(`✅ Created ${createdVariants.length} specific variants with price: ${defaultPrice}`);
-
+      if (variantsToCreate.length === 0) {
         return {
-            success: true,
-            message: `Created ${createdVariants.length} variants`,
-            created: createdVariants.length,
-            skipped: existingSet.size,
-            variants: createdVariants,
+          success: true,
+          message: "All selected variants already exist",
+          created: 0,
+          skipped: existingSet.size,
         };
+      }
 
-    } catch (error) {
-        console.error('❌ Generate specific variants error:', error);
+      // Insert variants
+      const { data: createdVariants, error } = await supabaseConfig
+        .getAdminClient()
+        .from("shoe_variants")
+        .insert(variantsToCreate)
+        .select();
+
+      if (error) {
         throw error;
+      }
+
+      console.log(
+        `✅ Created ${createdVariants.length} specific variants with price: ${defaultPrice}`
+      );
+
+      return {
+        success: true,
+        message: `Created ${createdVariants.length} variants`,
+        created: createdVariants.length,
+        skipped: existingSet.size,
+        variants: createdVariants,
+      };
+    } catch (error) {
+      console.error("❌ Generate specific variants error:", error);
+      throw error;
     }
-}
+  }
   /**
    * Setup variant generator event listeners
    */
@@ -2120,40 +2199,40 @@ async generateSpecificVariants(shoeId, colorIds, sizeIds, options = {}) {
     });
   }
   /**
- * ⭐ Show toast notification
- */
-showToast(title, message, type = 'success') {
-    const toast = document.getElementById('notificationToast');
-    const toastTitle = document.getElementById('toastTitle');
-    const toastMessage = document.getElementById('toastMessage');
-    const toastIcon = document.getElementById('toastIcon');
-    
+   * ⭐ Show toast notification
+   */
+  showToast(title, message, type = "success") {
+    const toast = document.getElementById("notificationToast");
+    const toastTitle = document.getElementById("toastTitle");
+    const toastMessage = document.getElementById("toastMessage");
+    const toastIcon = document.getElementById("toastIcon");
+
     // Set icon based on type
     const icons = {
-        success: 'fa-check-circle text-success',
-        error: 'fa-exclamation-circle text-danger',
-        warning: 'fa-exclamation-triangle text-warning',
-        info: 'fa-info-circle text-info'
+      success: "fa-check-circle text-success",
+      error: "fa-exclamation-circle text-danger",
+      warning: "fa-exclamation-triangle text-warning",
+      info: "fa-info-circle text-info",
     };
-    
+
     toastIcon.className = `fas ${icons[type] || icons.success} me-2`;
     toastTitle.textContent = title;
     toastMessage.textContent = message;
-    
+
     const bsToast = new bootstrap.Toast(toast);
     bsToast.show();
-}
+  }
 
-/**
- * ⭐ Show loading overlay
- */
-showLoading(message = 'Processing...') {
+  /**
+   * ⭐ Show loading overlay
+   */
+  showLoading(message = "Processing...") {
     // Remove existing overlay if any
     this.hideLoading();
-    
-    const overlay = document.createElement('div');
-    overlay.id = 'loadingOverlay';
-    overlay.className = 'loading-overlay';
+
+    const overlay = document.createElement("div");
+    overlay.id = "loadingOverlay";
+    overlay.className = "loading-overlay";
     overlay.innerHTML = `
         <div class="loading-content">
             <div class="loading-spinner mb-3"></div>
@@ -2161,18 +2240,17 @@ showLoading(message = 'Processing...') {
         </div>
     `;
     document.body.appendChild(overlay);
-}
+  }
 
-/**
- * ⭐ Hide loading overlay
- */
-hideLoading() {
-    const overlay = document.getElementById('loadingOverlay');
+  /**
+   * ⭐ Hide loading overlay
+   */
+  hideLoading() {
+    const overlay = document.getElementById("loadingOverlay");
     if (overlay) {
-        overlay.remove();
+      overlay.remove();
     }
-}
-
+  }
 }
 
 // Initialize global instance
