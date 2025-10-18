@@ -13,14 +13,20 @@ class AdminVariantGenerator {
      * Setup variant generator listeners
      */
     setupVariantGeneratorListeners() {
+        // ✅ Check if already setup
+        if (this._listenersSetup) {
+            console.log("⚠️ Variant generator listeners already setup, skipping...");
+            return;
+        }
+
         const generateBtn = document.getElementById("generateVariantsBtn");
         if (generateBtn) {
             generateBtn.addEventListener("click", () => {
-                this.openVariantGenerator(); // ✅ Không pass shoe parameter
+                this.openVariantGenerator();
             });
         }
-        
-        // Submit button
+
+        // ✅ Submit button - ONLY ADD ONCE
         document.addEventListener('click', (e) => {
             const modal = document.getElementById('variantGeneratorModal');
             if (modal && modal.classList.contains('show')) {
@@ -31,6 +37,10 @@ class AdminVariantGenerator {
                 }
             }
         });
+
+        // ✅ Mark as setup
+        this._listenersSetup = true;
+        console.log("✅ Variant generator listeners setup complete");
     }
     
     /**
@@ -41,8 +51,6 @@ async openVariantGenerator() {
     try {
         // ✅ Lấy shoe từ importState (vì button trong import modal)
         const shoe = this.core.importState?.currentShoe || this.core.currentShoe;
-        
-
         
         console.log(`📊 Opening variant generator for: ${shoe.shoe_name}`);
         
