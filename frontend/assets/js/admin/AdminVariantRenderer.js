@@ -7,49 +7,56 @@ class AdminVariantRenderer {
     constructor(core, productRenderer) {
         this.core = core;
         this.productRenderer = productRenderer;
-    }
-    
+    }  
     /**
      * View shoe details with variants
      * ✅ Y nguyên logic: Hiển thị modal với đầy đủ thông tin
      */
     async viewShoeDetails(shoeId) {
         try {
-            console.log("👀 Viewing shoe details:", shoeId);
+            console.log("📋 Viewing shoe details:", shoeId);
+            const shoe = this.core.shoes.find(s => s.shoe_id === shoeId);
             
-            const shoe = this.core.shoes.find((s) => s.shoe_id === shoeId);
             if (!shoe) {
                 this.showToast("Error", "Shoe not found", "error");
                 return;
             }
             
+            // ✅ Set currentShoe
             this.core.currentShoe = shoe;
             
-            // ✅ Load variants
-            console.log("📥 Loading variants for shoe:", shoeId);
+            // ✅ ADD THIS: Set importState for consistency
+            this.core.importState = {
+                shoeId: shoeId,
+                currentShoe: shoe,
+                variants: [],
+                selectedVariants: new Set(),
+                importData: []
+            };
+            
+            // Load variants
+            console.log("📦 Loading variants for shoe:", shoeId);
             const variantsResponse = await this.core.api.getProductVariants(shoeId);
             
             if (variantsResponse?.success) {
-                this.core.currentVariants = variantsResponse.data || [];
+                this.core.currentVariants = variantsResponse.data;
+                this.core.importState.variants = variantsResponse.data; // ✅ Also set in importState
                 console.log(`✅ Loaded ${this.core.currentVariants.length} variants`);
             } else {
                 this.core.currentVariants = [];
+                this.core.importState.variants = [];
                 console.log("⚠️ No variants found");
             }
             
-            // ✅ Render modal content
+            // Render modal
             this.renderShoeDetailsModal();
-            
-            // ✅ Show modal using importModal (vì HTML không có shoeDetailsModal riêng)
-            // Hoặc tạo modal động
             this.showShoeDetailsModal();
             
         } catch (error) {
             console.error("❌ View details error:", error);
             this.showToast("Error", "Failed to load shoe details", "error");
         }
-    }
-    
+    }  
     /**
      * Render shoe details modal content
      * ✅ Y nguyên giao diện từ AdminManager.js gốc
@@ -147,9 +154,8 @@ class AdminVariantRenderer {
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    
-                                    <!-- Action Buttons -->
+                                    </div>    
+                                      <!-- Action Buttons -->
                                     <div class="d-flex gap-2">
                                         <button class="btn btn-primary" 
                                                 onclick="adminManager.openVariantGenerator(adminManager.currentShoe)">
@@ -162,6 +168,7 @@ class AdminVariantRenderer {
                                             Import Stock
                                         </button>
                                     </div>
+                                </div>                               
                                 </div>
                             </div>
                             
