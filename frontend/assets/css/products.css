@@ -1,22 +1,51 @@
 /* Product Card Styles */
+html {
+  overflow-x: hidden !important;
+  width: 100%;
+  position: relative;
+  scroll-behavior: smooth !important;
+}
+
+.container {
+  max-width: 1520px !important;
+  padding-left: 60px;
+  padding-right: 60px;
+} 
+
+.products-section{
+  padding-bottom: 0px !important;
+  margin:0px 0px 50px 0px !important;
+}
+.filters-sidebar{
+  padding: 16px !important;
+}
+
+.products-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px; 
+  grid-auto-rows: min-content !important; 
+}
+
 .product-card {
-    border: 2px solid #e5e7eb;
-    border-radius: 12px;
-    overflow: hidden;
-    background: white;
-    display: flex;
-    flex-direction: column;
-    height: 70% !important;
+  border: 2px solid #dedede;
+  border-radius: 12px;
+  overflow: hidden;
+  background: white;
+  height: 70% !important;
+  position: relative;
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
 }
 
 .product-image {
+  width: 100%;
+  height: 400px;
+  margin-top: -100px !important;
   object-fit: cover;
-}
-
-.card-body {
-  position: relative!important;
-  transform: translateY(-20px);
-  
 }
 
 .product-title {

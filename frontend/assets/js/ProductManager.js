@@ -620,8 +620,7 @@ class ProductManager {
             : "/assets/images/ui/thian.jpg";
 
         return `
-            <div class="col-lg-4 col-md-6 mb-4">
-            <div class="card product-card h-100" style="cursor: pointer;" onclick="window.location.href='product-detail.html?id=${
+            <div class="card product-card" style="cursor: pointer;" onclick="window.location.href='product-detail.html?id=${
               product.shoe_id
             }'">
                 <div class="product-image">
