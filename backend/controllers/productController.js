@@ -137,8 +137,11 @@ class ProductController extends BaseController {
             type: 'string'
           }
         });
-
-        const newProduct = await this.Shoe.create(req.body);
+        const productData = {
+          ...req.body,
+          image_url: req.body.image_url || null
+        };
+        const newProduct = await this.Shoe.create(productData);
 
         this.sendResponse(
           res,
@@ -187,8 +190,9 @@ class ProductController extends BaseController {
             }
           }
         );
+        const updateData = { ...req.body };
 
-        const updatedProduct = await this.Shoe.update(parseInt(id), req.body);
+        const updatedProduct = await this.Shoe.updateById(parseInt(id), updateData);
 
         this.sendResponse(
           res,
