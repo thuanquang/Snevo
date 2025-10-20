@@ -3,6 +3,7 @@
  * Handles user profile operations, address management, and settings
  */
 
+
 class ProfileManager {
     constructor() {
         this.currentUser = null;

@@ -850,28 +850,42 @@ class VariantsAPI {
     }
   }
 
- /**
- * ⭐ POST - Generate SPECIFIC variants (selected colors/sizes)
- */
-async generateSpecificVariants(shoeId, colorIds, sizeIds, defaultStock, defaultPrice) {
+  /**
+   * ⭐ POST - Generate SPECIFIC variants (selected colors/sizes)
+   */
+  async generateSpecificVariants(
+    shoeId,
+    colorIds,
+    sizeIds,
+    defaultStock,
+    defaultPrice
+  ) {
     try {
-        console.log('🎯 Generating specific variants:', { shoeId, colorIds, sizeIds, defaultStock, defaultPrice });
-        
-        // ⭐ CORRECT: Use this.client.post() method
-        const response = await this.client.post(`/api/variants/generate-specific/${shoeId}`, {
-            colorIds,
-            sizeIds,
-            defaultStock,
-            defaultPrice
-        });
-        
-        return response.data;
-    } catch (error) {
-        console.error('❌ Generate specific variants error:', error);
-        throw error;
-    }
-}
+      console.log("🎯 Generating specific variants:", {
+        shoeId,
+        colorIds,
+        sizeIds,
+        defaultStock,
+        defaultPrice,
+      });
 
+      // ⭐ CORRECT: Use this.client.post() method
+      const response = await this.client.post(
+        `/api/variants/generate-specific/${shoeId}`,
+        {
+          colorIds,
+          sizeIds,
+          defaultStock,
+          defaultPrice,
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      console.error("❌ Generate specific variants error:", error);
+      throw error;
+    }
+  }
 
   /**
    * CREATE single variant
