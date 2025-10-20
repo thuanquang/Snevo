@@ -10,21 +10,21 @@ html {
   max-width: 1520px !important;
   padding-left: 60px;
   padding-right: 60px;
-} 
-
-.products-section{
-  padding-bottom: 0px !important;
-  margin:0px 0px 50px 0px !important;
 }
-.filters-sidebar{
+
+.products-section {
+  padding-bottom: 0px !important;
+  margin: 0px 0px 50px 0px !important;
+}
+.filters-sidebar {
   padding: 16px !important;
 }
 
 .products-grid {
   display: grid !important;
   grid-template-columns: repeat(3, 1fr);
-  gap: 24px; 
-  grid-auto-rows: min-content !important; 
+  gap: 24px;
+  grid-auto-rows: min-content !important;
 }
 
 .product-card {
@@ -118,25 +118,20 @@ html {
 
 .size-option {
   display: inline-block;
-  
-  /* Fixed width - Tất cả button đều rộng bằng nhau */
-  width: 50px; /* ← THÊM: Chiều rộng cố định */
-  min-width: 50px; /* Đảm bảo không nhỏ hơn 50px */
-  
-  padding: 8px 0; /* ← SỬA: Bỏ padding left/right vì đã có width */
+  width: 50px; 
+  min-width: 50px; 
+  padding: 8px 0; 
   margin: 4px 4px 4px 0;
-  
   border: 2px solid #ddd;
   border-radius: 4px;
   background: white;
   color: #333;
-  
   font-size: 14px;
   font-weight: 500;
-  text-align: center; /* ← THÊM: Căn giữa text */
-  
+  text-align: center;
   cursor: pointer;
   transition: all 0.2s ease;
+  
 }
 .size-option:hover {
   border-color: #000;
