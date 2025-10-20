@@ -282,27 +282,32 @@ export default class BaseModel {
      * Update record by ID
      */
     async updateById(id, data) {
-        try {
-            this.validate(data, this.getUpdateValidationRules());
-            const filteredData = this.filterFillable(data);
-            
-            const { data: result, error } = await this.supabaseConfig.getAdminClient()
-                .from(this.getQualifiedTableName())
-                .update(filteredData)
-                .eq(this.primaryKey, id)
-                .select()
-                .single();
+    try {
+        // Remove undefined values
+        const cleanData = Object.fromEntries(
+        Object.entries(data).filter(([_, v]) => v !== undefined)
+        );
 
-            if (error) throw new DatabaseError(`Failed to update record: ${error.message}`, error);
-            
-            return this.hideFields(result);
-        } catch (error) {
-            if (error instanceof ValidationError || error instanceof DatabaseError) {
-                throw error;
-            }
-            throw new DatabaseError(`Update operation failed: ${error.message}`, error);
+        // ⭐ FIX: Use this.supabaseConfig.getAdminClient() instead of this.db
+        const { data: result, error } = await this.supabaseConfig.getAdminClient()
+        .from(this.getQualifiedTableName())  // ⭐ Also use getQualifiedTableName()
+        .update(cleanData)
+        .eq(this.primaryKey, id)
+        .select()
+        .single();
+
+        if (error) {
+        throw new DatabaseError(`Failed to update record: ${error.message}`, error);
         }
+
+        return this.hideFields(result);
+    } catch (error) {
+        console.error(`Error updating ${this.tableName}:`, error);
+        if (error instanceof DatabaseError) throw error;
+        throw new DatabaseError(`Update operation failed: ${error.message}`, error);
     }
+    }
+
 
     /**
      * Delete record by ID

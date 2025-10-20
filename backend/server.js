@@ -26,6 +26,7 @@ import ImportController from './controllers/ImportController.js';
 import PaymentController from './controllers/PaymentController.js';
 import AdminController from './controllers/AdminController.js';
 import authMiddleware from './middleware/auth.js';
+import uploadMiddleware from './middleware/upload.js';
 import corsMiddleware from './middleware/cors.js';
 import createSupabaseConfig from '../config/supabase.js';
 import { initializeModels } from './models/index.js';
@@ -166,12 +167,24 @@ class Server {
             res.end();
             return;
         }
+        // SKIP body parsing for upload routes
+        const isUploadRoute = (
+        (req.method === 'POST' && pathname === '/api/products') ||
+        (req.method === 'PUT' && pathname.match(/^\/api\/products\/\d+$/))
+        );
 
         // Parse body for POST/PUT/PATCH requests
         let body = {};
         if (['POST', 'PUT', 'PATCH'].includes(req.method)) {
+        if (isUploadRoute) {
+            // ✅ SKIP parsing for upload routes - middleware will handle it
+            console.log('⏭️ Skipping JSON body parse for upload route');
+            // Upload middleware will populate req.body
+        } else {
+            // ✅ Parse JSON body for normal routes
             body = await this.parseBody(req);
             req.body = body;
+        }
         }
 
         // Parse query parameters
