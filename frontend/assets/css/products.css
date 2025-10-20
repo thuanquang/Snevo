@@ -28,11 +28,12 @@ html {
 }
 
 .product-card {
+  padding: 0 0 0 0;
   border: 2px solid #dedede;
   border-radius: 12px;
   overflow: hidden;
   background: white;
-  height: 70% !important;
+  height: 100% !important;
   position: relative;
 }
 
