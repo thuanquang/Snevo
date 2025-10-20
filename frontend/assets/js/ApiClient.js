@@ -671,6 +671,51 @@ class ProductsAPI {
     const response = await this.client.get("/api/sizes", params);
     return response.data;
   }
+   /**
+   * ⭐ Update product with FormData
+   */
+  async updateProduct(id, formData) {
+    try {
+      console.log(`🔄 Updating product ${id}`);
+      
+      // Use PUT request with FormData
+      const response = await this.client.request(`/api/products/${id}`, {
+        method: 'PUT',
+        body: formData,
+        headers: {
+          // Don't set Content-Type - browser will automatically set it for FormData
+          // with correct boundary
+        }
+      });
+
+      console.log('✅ Product updated:', response);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Update product error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * ⭐ Create product with FormData
+   */
+  async createProduct(formData) {
+    try {
+      console.log('➕ Creating product');
+      
+      const response = await this.client.request('/api/products', {
+        method: 'POST',
+        body: formData,
+        headers: {}
+      });
+
+      console.log('✅ Product created:', response);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Create product error:', error);
+      throw error;
+    }
+  }
 }
 class ImportsAPI {
   constructor(client) {

@@ -6,13 +6,15 @@ class AdminActions {
     constructor(core) {
         this.core = core;
     }
+    addShoe() {
+        return this.productManager.openProductForm();
+    }
     
     /**
      * Edit shoe
      */
     editShoe(shoeId) {
-        console.log("✏️ Edit shoe:", shoeId);
-        alert("Edit shoe feature - Coming soon");
+        return this.productManager.openProductForm(shoeId);
     }
     
     /**

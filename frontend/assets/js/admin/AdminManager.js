@@ -16,6 +16,7 @@ class AdminManager {
         this.importManager = new AdminImport(this.core, this.productRenderer);
         this.importHistoryManager = new AdminImportHistory(this.core, this.productRenderer);
         this.variantGenerator = new AdminVariantGenerator(this.core, this.productRenderer);
+        this.productManager = new AdminProduct(this.core, this.productRenderer);
         this.actions = new AdminActions(this.core);
         
         console.log("✅ AdminManager initialized");
@@ -68,6 +69,7 @@ class AdminManager {
         this.importHistoryManager.setupImportHistoryTabListener();
         this.importManager.setupImportButtonListeners();
         this.variantGenerator.setupVariantGeneratorListeners();
+        this.productManager.setupProductFormListeners();
         
         // Setup sort handler
         const sortSelect = document.getElementById("sortSelect");
@@ -284,7 +286,10 @@ class AdminManager {
     }
     
     // ==================== DELEGATE METHODS ====================
-    
+    // Product Management
+    addShoe() {
+        return this.productManager.openProductForm();
+    }
     // Product & Variant Display
     viewShoeDetails(shoeId) {
         return this.variantRenderer.viewShoeDetails(shoeId);
@@ -344,7 +349,7 @@ class AdminManager {
     
     // CRUD Actions
     editShoe(shoeId) {
-        return this.actions.editShoe(shoeId);
+        return this.productManager.openProductForm(shoeId);
     }
     
     deleteShoe(shoeId) {
