@@ -10,21 +10,21 @@ html {
   max-width: 1520px !important;
   padding-left: 60px;
   padding-right: 60px;
-} 
-
-.products-section{
-  padding-bottom: 0px !important;
-  margin:0px 0px 50px 0px !important;
 }
-.filters-sidebar{
+
+.products-section {
+  padding-bottom: 0px !important;
+  margin: 0px 0px 50px 0px !important;
+}
+.filters-sidebar {
   padding: 16px !important;
 }
 
 .products-grid {
   display: grid !important;
   grid-template-columns: repeat(3, 1fr);
-  gap: 24px; 
-  grid-auto-rows: min-content !important; 
+  gap: 24px;
+  grid-auto-rows: min-content !important;
 }
 
 .product-card {
@@ -76,7 +76,7 @@ html {
 .color-option {
   width: 30px;
   height: 30px;
-  border-radius: 50%;
+  border-radius: 8px;
   display: inline-block;
   cursor: pointer;
   position: relative;
@@ -116,39 +116,23 @@ html {
   background-color: #333;
 }
 
-/* Add to Cart Button */
-.add-to-cart {
-  background-color: #000;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 12px 24px;
-  font-family: "Inter", sans-serif;
-  font-weight: 500;
-  transition: background-color 0.2s ease;
-  width: 100%;
-  margin-top: 16px;
-}
-
-.add-to-cart:hover {
-  background-color: #333;
-}
-
-/* Size filter buttons */
 .size-option {
   display: inline-block;
-  padding: 8px 16px;
-  margin: 4px;
+  width: 50px; 
+  min-width: 50px; 
+  padding: 8px 0; 
+  margin: 4px 4px 4px 0;
   border: 2px solid #ddd;
   border-radius: 4px;
   background: white;
   color: #333;
   font-size: 14px;
   font-weight: 500;
+  text-align: center;
   cursor: pointer;
   transition: all 0.2s ease;
+  
 }
-
 .size-option:hover {
   border-color: #000;
   background: #f5f5f5;
