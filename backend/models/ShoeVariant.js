@@ -404,7 +404,7 @@ class ShoeVariant extends BaseModel {
       console.log("🎯 Generating specific variants for shoe:", shoeId);
       console.log("Colors:", colorIds);
       console.log("Sizes:", sizeIds);
-      console.log('Options:', options);  // ⭐ ADD THIS DEBUG
+      console.log("Options:", options); // ⭐ ADD THIS DEBUG
       const { defaultStock = 0, defaultPrice = null } = options;
       // Validation
       if (!shoeId || isNaN(parseInt(shoeId))) {
@@ -477,7 +477,8 @@ class ShoeVariant extends BaseModel {
             size_id: size.size_id,
             sku: sku,
             stock_quantity: options.defaultStock || 0,
-            variant_price: defaultPrice !== null ? defaultPrice : shoe.base_price,  // ⭐ USE PROVIDED PRICE OR SHOE BASE_PRICE
+            variant_price:
+              defaultPrice !== null ? defaultPrice : shoe.base_price, // ⭐ USE PROVIDED PRICE OR SHOE BASE_PRICE
             created_at: new Date().toISOString(),
           });
         }
@@ -520,22 +521,22 @@ class ShoeVariant extends BaseModel {
    * Example: VOMERO-PLUS-BLACK-42 (Nike Vomero Plus, Black, Size 42)
    */
   generateSKU(shoeName, colorId, sizeId) {
-      // Step 1: Clean shoe name
-      // - Convert to uppercase
-      // - Remove special characters (keep alphanumeric + spaces)
-      // - Replace spaces with hyphens
-      // - Remove trailing/leading hyphens
-      const cleanName = shoeName
-          .toUpperCase()
-          .trim()
-          .replace(/[^A-Z0-9\s-]/g, '')   // Remove special chars, keep letters, numbers, spaces, hyphens
-          .replace(/\s+/g, '-')           // Replace spaces with single hyphen
-          .replace(/-+/g, '-')            // Replace multiple hyphens with single
-          .replace(/^-|-$/g, '');         // Remove leading/trailing hyphens
-      
-      // Step 2: Format SKU
-      // Format: {SHOE-NAME}-C{colorId}-S{sizeId}
-      return `${cleanName}-C${colorId}-S${sizeId}`;
+    // Step 1: Clean shoe name
+    // - Convert to uppercase
+    // - Remove special characters (keep alphanumeric + spaces)
+    // - Replace spaces with hyphens
+    // - Remove trailing/leading hyphens
+    const cleanName = shoeName
+      .toUpperCase()
+      .trim()
+      .replace(/[^A-Z0-9\s-]/g, "") // Remove special chars, keep letters, numbers, spaces, hyphens
+      .replace(/\s+/g, "-") // Replace spaces with single hyphen
+      .replace(/-+/g, "-") // Replace multiple hyphens with single
+      .replace(/^-|-$/g, ""); // Remove leading/trailing hyphens
+
+    // Step 2: Format SKU
+    // Format: {SHOE-NAME}-C{colorId}-S{sizeId}
+    return `${cleanName}-C${colorId}-S${sizeId}`;
   }
 }
 // Export CLASS - OOP standard

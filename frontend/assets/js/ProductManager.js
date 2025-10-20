@@ -648,11 +648,10 @@ class ProductManager {
       })
       .join("");
 
-    container.innerHTML = productsHTML;
-    container.style.display = "flex";
-    console.log(`✅ Rendered ${products.length} products`);
-  }
-
+        container.innerHTML = productsHTML;
+        container.style.display = 'flex';
+        console.log(`✅ Rendered ${products.length} products`);
+    }
   /**
    * Render pagination
    */
