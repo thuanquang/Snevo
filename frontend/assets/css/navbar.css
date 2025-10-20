@@ -67,3 +67,38 @@
 #navbarRoot.navbar-scrolled .navbar-brand img {
   filter: none;
 }
+
+.user-avatar-link {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    padding: 4px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.user-avatar-link:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.1);
+}
+
+/* User Avatar Image */
+.user-avatar {
+    width: auto;
+    height: 30px;
+    object-fit: cover;
+    border: 2px solid #e5e7eb;
+    transition: border-color 0.3s ease;
+    cursor: pointer;
+}
+
+.user-avatar-link:hover .user-avatar {
+    border-color: #111827;
+}
+
+/* Adjust navbar alignment for avatar */
+#authButtons {
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
