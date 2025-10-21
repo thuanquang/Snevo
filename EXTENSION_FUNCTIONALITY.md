@@ -206,7 +206,7 @@ Issues Fixed:
 1. **products.html** had typo in config.js path (`assetasfas` instead of `assets`)
 2. **product-detail.html** was missing Supabase SDK, config.js, and Application.js
 3. **categories.html**, **orders.html**, **addresses.html** were bare-bones stubs
-4. **verify-email.html** was missing NavbarManager and Application.js
+4. Email verification flow removed (verify-email.html deleted)
 
 Standardized Script Loading Order (All Pages):
 ```html
@@ -232,7 +232,7 @@ Pages Updated:
 - ✅ `frontend/pages/categories.html` - Rebuilt with proper structure
 - ✅ `frontend/pages/orders.html` - Rebuilt with proper structure and auth wait
 - ✅ `frontend/pages/addresses.html` - Rebuilt with proper structure and auth wait
-- ✅ `frontend/pages/verify-email.html` - Added missing NavbarManager and Application.js
+// Removed: `frontend/pages/verify-email.html` (email verification flow eliminated)
 - ✅ `frontend/pages/index.html` - Already correct
 - ✅ `frontend/pages/profile.html` - Already correct
 - ✅ `frontend/pages/admin.html` - Already correct
