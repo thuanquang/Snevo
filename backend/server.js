@@ -27,6 +27,7 @@ import PaymentController from './controllers/PaymentController.js';
 import AdminController from './controllers/AdminController.js';
 import authMiddleware from './middleware/auth.js';
 import uploadMiddleware from './middleware/upload.js';
+import avatarUploadMiddleware from './middleware/avatarUpload.js';
 import corsMiddleware from './middleware/cors.js';
 import createSupabaseConfig from '../config/supabase.js';
 import { initializeModels } from './models/index.js';
@@ -308,7 +309,24 @@ class Server {
             if (method === 'GET') {
                 await this.profileController.getProfile(req, res);
             } else if (method === 'PUT') {
-                req.body = body;
+                // Apply avatar upload middleware for profile updates with files
+                const contentType = req.headers['content-type'] || '';
+                if (contentType.includes('multipart/form-data')) {
+                    // Handle multipart with avatar middleware
+                    await new Promise((resolve, reject) => {
+                        avatarUploadMiddleware.handleUpload(req, res, () => {
+                            resolve();
+                        });
+                    });
+                    
+                    // Check if middleware errored (it sends response itself)
+                    if (res.writableEnded) {
+                        return;
+                    }
+                } else {
+                    // Handle regular JSON updates
+                    req.body = body;
+                }
                 await this.profileController.updateProfile(req, res);
             } else if (method === 'DELETE') {
                 await this.profileController.deleteProfile(req, res);

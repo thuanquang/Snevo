@@ -544,6 +544,25 @@ WITH CHECK (
 
 
 -- ===================================
+-- 8. Storage RLS Policies
+-- ===================================
+
+-- Enable RLS on storage.objects for avatars bucket
+-- Note: These policies are created via Supabase Dashboard for storage buckets
+
+-- Policy: Users can upload avatars to their own folder
+-- (Created in Supabase Storage settings)
+-- Path pattern: avatars/{user_id}/*
+
+-- Policy: Users can delete their own avatars
+-- (Created in Supabase Storage settings)
+-- Path pattern: avatars/{user_id}/*
+
+-- Policy: Public can view avatars
+-- (Created in Supabase Storage settings with public bucket)
+
+
+-- ===================================
 -- 8. Triggers and Functions
 -- ===================================
 

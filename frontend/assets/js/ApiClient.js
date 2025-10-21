@@ -366,44 +366,16 @@ class ApiClient {
     }
   }
 
-  /**
-   * Handle forbidden response
-   */
-  handleForbidden(error) {
-    // Check if it's an email verification error
-    if (error?.response?.data?.code === "EMAIL_VERIFICATION_REQUIRED") {
-      console.warn("Email verification required");
-
-      // Emit event for AuthManager to handle
-      if (typeof authManager !== "undefined") {
-        authManager.emit("emailVerificationRequired", {
-          message: error.response.data.message,
-          email: error.response.data.details?.email,
-        });
-      }
-
-      // Show notification
-      if (window.showToast) {
-        window.showToast(
-          "Please verify your email to access this feature",
-          "warning"
-        );
-      }
-
-      // Redirect to verification page if not already there
-      if (!window.location.pathname.includes("verify-email")) {
-        setTimeout(() => {
-          window.location.href = "verify-email.html";
-        }, 2000);
-      }
-    } else {
-      console.warn("Access forbidden");
-      // Could show a toast or modal
-      if (window.showToast) {
-        window.showToast("Access denied - insufficient permissions", "error");
-      }
+    /**
+     * Handle forbidden response
+     */
+    handleForbidden(error) {
+        console.warn('Access forbidden');
+        // Show a generic permissions toast only
+        if (window.showToast) {
+            window.showToast('Access denied - insufficient permissions', 'error');
+        }
     }
-  }
 
   /**
    * Handle server error
@@ -524,12 +496,8 @@ class AuthAPI {
     return response.data;
   }
 
-  async resendVerification(email) {
-    const response = await this.client.post("/api/auth/resend-verification", {
-      email,
-    });
-    return response.data;
-  }
+    // resendVerification removed: email verification flow is not used
+
 }
 
 // Products API - UPDATED to match your backend routes
