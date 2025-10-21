@@ -700,6 +700,12 @@ class ProfileManager {
         if (personalInfoForm) {
             personalInfoForm.addEventListener('submit', (e) => this.handlePersonalInfoSubmit(e));
         }
+
+        // Avatar file input
+        const avatarInput = document.getElementById('avatarFile');
+        if (avatarInput) {
+            avatarInput.addEventListener('change', (e) => this.handleAvatarSelect(e));
+        }
     }
 
     /**
@@ -798,14 +804,24 @@ class ProfileManager {
         const form = document.getElementById('personalInfoForm');
         if (!form) return;
         
-        // Populate form fields
-        const fields = ['full_name', 'username', 'email', 'phone', 'date_of_birth', 'gender', 'avatar_url'];
-        fields.forEach(field => {
+        // Populate text form fields (excluding avatar file input)
+        const textFields = ['full_name', 'username', 'email', 'phone', 'date_of_birth', 'gender'];
+        textFields.forEach(field => {
             const input = form.querySelector(`[name="${field}"]`);
             if (input && this.currentUser[field] !== undefined) {
                 input.value = this.currentUser[field] || '';
             }
         });
+
+        // Display current avatar as preview if it exists
+        if (this.currentUser.avatar_url) {
+            const preview = document.getElementById('avatarPreview');
+            const previewImg = document.getElementById('avatarPreviewImg');
+            if (preview && previewImg) {
+                previewImg.src = this.currentUser.avatar_url;
+                preview.style.display = 'block';
+            }
+        }
     }
 
     /**
@@ -939,19 +955,21 @@ class ProfileManager {
         messageDiv.className = 'd-none';
 
         try {
-            const formData = new FormData(form);
-            const data = Object.fromEntries(formData);
+            // Get avatar file if selected
+            const avatarInput = document.getElementById('avatarFile');
+            const avatarFile = avatarInput?.files[0];
 
-            // Remove empty fields and convert date to ISO string if present
-            Object.keys(data).forEach(key => {
-                if (data[key] === '' || data[key] === null || data[key] === undefined) {
-                    delete data[key];
-                } else if (key === 'date_of_birth' && data[key]) {
-                    data[key] = new Date(data[key]).toISOString().split('T')[0];
+            // Validate avatar file if provided
+            if (avatarFile) {
+                const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+                if (!validTypes.includes(avatarFile.type)) {
+                    throw new Error('Avatar must be JPG, PNG, or WEBP format');
                 }
-            });
-
-            console.log('📝 Submitting profile update:', data);
+                const maxSize = 5 * 1024 * 1024; // 5MB
+                if (avatarFile.size > maxSize) {
+                    throw new Error('Avatar file size must be less than 5MB');
+                }
+            }
 
             // Get the current session token
             const { data: { session } } = await window.authService.supabase.auth.getSession();
@@ -959,13 +977,43 @@ class ProfileManager {
                 throw new Error('Please log in to update your profile');
             }
 
+            // Create FormData for multipart request
+            const formDataRequest = new FormData();
+            
+            // Add text fields
+            const fields = ['full_name', 'username', 'phone', 'date_of_birth', 'gender'];
+            fields.forEach(field => {
+                const value = document.getElementById(
+                    field === 'full_name' ? 'fullName' :
+                    field === 'date_of_birth' ? 'dateOfBirth' :
+                    field
+                )?.value;
+                if (value) {
+                    if (field === 'date_of_birth' && value) {
+                        formDataRequest.append(field, new Date(value).toISOString().split('T')[0]);
+                    } else {
+                        formDataRequest.append(field, value);
+                    }
+                }
+            });
+
+            // Add avatar file if provided
+            if (avatarFile) {
+                formDataRequest.append('avatar', avatarFile);
+                // Also send old avatar URL for cleanup
+                if (this.currentUser?.avatar_url) {
+                    formDataRequest.append('old_avatar_url', this.currentUser.avatar_url);
+                }
+            }
+
+            console.log('📝 Submitting profile update with avatar...');
+
             const response = await fetch('/api/auth/profile', {
                 method: 'PUT',
                 headers: {
-                    'Content-Type': 'application/json',
                     'Authorization': `Bearer ${session.access_token}`
                 },
-                body: JSON.stringify(data)
+                body: formDataRequest
             });
 
             if (response.ok) {
@@ -1005,6 +1053,42 @@ class ProfileManager {
             submitBtn.innerHTML = '<i class="fas fa-save me-2"></i>Save Changes';
             loadingIndicator.classList.add('d-none');
         }
+    }
+
+    /**
+     * Handle avatar file selection with preview
+     */
+    handleAvatarSelect(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // Validate file type
+        const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+        if (!validTypes.includes(file.type)) {
+            this.showError('Please select a valid image (JPG, PNG, WEBP)');
+            event.target.value = '';
+            return;
+        }
+
+        // Validate file size (max 5MB)
+        const maxSize = 5 * 1024 * 1024;
+        if (file.size > maxSize) {
+            this.showError('Image size must be less than 5MB');
+            event.target.value = '';
+            return;
+        }
+
+        // Show preview
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const preview = document.getElementById('avatarPreview');
+            const previewImg = document.getElementById('avatarPreviewImg');
+            previewImg.src = e.target.result;
+            preview.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+
+        console.log('✅ Avatar file selected:', file.name);
     }
 
     /**

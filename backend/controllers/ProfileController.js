@@ -142,11 +142,16 @@ class ProfileController {
             }
 
             // Validate avatar URL format if provided
-            if (filteredUpdates.avatar_url && filteredUpdates.avatar_url !== '' && !/^https?:\/\/.*\.(jpg|jpeg|png|gif|webp|webp\?.*|googleusercontent\.com.*|gravatar\.com.*|github\.com.*|facebook\.com.*)$/i.test(filteredUpdates.avatar_url)) {
-                return this.sendJson(res, {
-                    success: false,
-                    message: 'Invalid avatar URL format (supports jpg, png, gif, webp, Google, Gravatar, GitHub, Facebook)'
-                }, 400);
+            // If avatar_url is set by the upload middleware, it's a valid Supabase URL
+            // Only validate external URLs (those not from upload middleware)
+            if (filteredUpdates.avatar_url && filteredUpdates.avatar_url !== '' && !filteredUpdates.avatar_url.includes('supabase.co')) {
+                // External URL - validate format
+                if (!/^https?:\/\/.*\.(jpg|jpeg|png|gif|webp|webp\?.*|googleusercontent\.com.*|gravatar\.com.*|github\.com.*|facebook\.com.*)$/i.test(filteredUpdates.avatar_url)) {
+                    return this.sendJson(res, {
+                        success: false,
+                        message: 'Invalid avatar URL format (supports jpg, png, gif, webp, Google, Gravatar, GitHub, Facebook)'
+                    }, 400);
+                }
             }
 
             // Update profile in database

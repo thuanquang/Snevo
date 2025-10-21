@@ -234,21 +234,33 @@
                   </div>
 
                   <div class="mb-4">
-                    <label for="avatarUrl" class="form-label">Avatar URL</label>
+                    <label for="avatarFile" class="form-label">Profile Picture *</label>
                     <input
-                      type="url"
+                      type="file"
                       class="form-control"
-                      id="avatarUrl"
-                      name="avatar_url"
-                      placeholder="https://example.com/avatar.jpg"
-                      pattern="^https?://.*\.(jpg|jpeg|png|gif|webp|webp\?.*|googleusercontent\.com.*|gravatar\.com.*|github\.com.*|facebook\.com.*)$"
-                      title="Please enter a valid image URL (supports jpg, png, gif, webp, Google, Gravatar, GitHub, Facebook)"
+                      id="avatarFile"
+                      name="avatar_file"
+                      accept="image/jpeg,image/png,image/webp,image/jpg"
                     />
                     <div
                       class="form-text"
                       style="font-size: 12px; color: #999; margin-top: 4px"
                     >
-                      Enter a URL to your profile picture
+                      Max size: 5MB. Formats: JPG, PNG, WEBP
+                    </div>
+                    <div
+                      id="avatarPreview"
+                      class="mt-3"
+                      style="text-align: center; display: none;"
+                    >
+                      <img
+                        id="avatarPreviewImg"
+                        src=""
+                        alt="Preview"
+                        class="img-thumbnail"
+                        style="max-width: 150px; max-height: 150px; border-radius: 8px;"
+                      />
+                      <p class="mt-2 text-muted small">Preview</p>
                     </div>
                   </div>
 
