@@ -394,11 +394,11 @@ class NavbarManager {
                             </li>
                         </ul>
                         
-                        <ul class="navbar-nav" style="gap: 30px;">                           
+                        <ul class="navbar-nav " style="gap: 30px;">    
                             <li class="nav-item" id="cartNavItem">
                                 <a class="nav-link position-relative" href="#" data-navbar-link="cart">
                                     <img src="../assets/images/ui/cart.svg" alt="Cart" height="23" width="23">
-                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="cartCount">
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-white text-black" id="cartCount">
                                         0
                                     </span>
                                 </a>
