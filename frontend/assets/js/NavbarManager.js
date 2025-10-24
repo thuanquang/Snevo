@@ -397,7 +397,7 @@ class NavbarManager {
                         <ul class="navbar-nav " style="gap: 30px;">    
                             <li class="nav-item" id="searchNavItem">
                                 <header>
-                                    <input type="text"/>    
+                                    <input type="text" class = "input"/>    
                                     <div class="close">
                                         <span class="front"></span>
                                         <span class="back"></span>
