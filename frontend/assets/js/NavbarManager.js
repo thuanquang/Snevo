@@ -395,6 +395,15 @@ class NavbarManager {
                         </ul>
                         
                         <ul class="navbar-nav " style="gap: 30px;">    
+                            <li class="nav-item" id="searchNavItem">
+                                <header>
+                                    <input type="text"/>    
+                                    <div class="close">
+                                        <span class="front"></span>
+                                        <span class="back"></span>
+                                    </div> 
+                                    </header>
+                            </li>
                             <li class="nav-item" id="cartNavItem">
                                 <a class="nav-link position-relative" href="#" data-navbar-link="cart">
                                     <img src="../assets/images/ui/cart.svg" alt="Cart" height="23" width="23">

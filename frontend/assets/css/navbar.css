@@ -35,7 +35,8 @@
   left: 0;
   right: 0;
   z-index: 1000;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s linear;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease,
+    transform 0.3s linear;
   will-change: transform, background-color;
 }
 
@@ -55,8 +56,8 @@
 
 /* White navbar when scrolled */
 #navbarRoot.navbar-scrolled .navbar {
-  background-color: rgba(255, 255, 255, 0.35)!important;
-  backdrop-filter: blur(5px)!important;
+  background-color: rgba(255, 255, 255, 0.35) !important;
+  backdrop-filter: blur(5px) !important;
 }
 
 #navbarRoot.navbar-scrolled .navbar-brand,
@@ -69,36 +70,120 @@
 }
 
 .user-avatar-link {
-    display: flex;
-    align-items: center;
-    text-decoration: none;
-    padding: 4px;
-    border-radius: 50%;
-    transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  padding: 4px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
 }
 
 .user-avatar-link:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.1);
+  transform: scale(1.05);
+  box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.1);
 }
 
 /* User Avatar Image */
 .user-avatar {
-    width: auto;
-    height: 30px;
-    object-fit: cover;
-    border: 2px solid #e5e7eb;
-    transition: border-color 0.3s ease;
-    cursor: pointer;
+  width: auto;
+  height: 30px;
+  object-fit: cover;
+  border: 2px solid #e5e7eb;
+  transition: border-color 0.3s ease;
+  cursor: pointer;
 }
 
 .user-avatar-link:hover .user-avatar {
-    border-color: #111827;
+  border-color: #111827;
 }
 
 /* Adjust navbar alignment for avatar */
 #authButtons {
-    display: flex;
-    align-items: center;
-    height: 100%;
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+/* Search Bar Styles */
+header {
+  margin-top: 10px !important;
+  width: 200px;
+  position: Relative;
+  margin: 0 auto;
+}
+
+input:focus {
+  width: 200px;
+  height: 20px;
+  border-radius: 40px;
+  padding: 0 20px;
+  line-height: 2em;
+  font-weight: 100;
+  font-size: 10px;
+  cursor: auto;
+}
+
+input {
+  float: right;
+  border: 1.6px solid black;
+  outline: none;
+  width: 18px;
+  cursor: pointer;
+  -webkit-transition: 0.2s all ease-in;
+  -moz-transition: 0.2s all ease-in;
+  transition: 0.2s all ease-in;
+  height: 18px;
+  color: #000;
+  border-radius: 24px;
+  background: none;
+  font-size: 0;
+}
+
+.close span {
+  width: 3px;
+  height: 20px;
+  border-radius: 2px;
+  background: black;
+  display: inline-block;
+}
+
+.front {
+  position: absolute;
+  right: 16px;
+  top: 7px;
+  transform: rotate(-45deg);
+  opacity: 0;
+  animation-delay: 2s;
+  -webkit-transition: 0.2s all ease-in;
+  -moz-transition: 0.2s all ease-in;
+  transition: 0.2s all ease-in;
+}
+
+.back {
+  position: absolute;
+  right: 0px;
+  top: 14px;
+  height: 8px !important;
+  width: 1.5px !important;
+  -webkit-transform: rotate(-45deg);
+  -moz-transform: rotate(-45deg);
+  transform: rotate(-45deg);
+  transition: 0.2s all ease-in;
+}
+
+input:focus + div .front {
+  opacity: 1;
+  height: 8px;
+  width: 1.5px;
+  -webkit-transition-delay: 0.2s;
+  -moz-transition-delay: 0.2s;
+  transition-delay: 0.2s;
+  -webkit-transform: rotate(45deg);
+  -moz-transform: rotate(45deg);
+  transform: rotate(45deg);
+}
+
+input:focus + div .back {
+  right: 16px;
+  top: 7px;
 }
