@@ -813,6 +813,107 @@ class ImportsAPI {
       return { success: false, data: null, message: error.message };
     }
   }
+  /**
+   * Get all import history (uses existing backend: GET /api/imports)
+   * @param {Object} filters - Optional filters { shoeid, variantid, userid, fromdate, todate }
+   * @param {Object} pagination - Optional { page, limit }
+   */
+  async getAllImportHistory(filters = {}, pagination = {}) {
+    console.log('📦 API: Getting all import history...', { filters, pagination });
+    
+    try {
+      // Build query params
+      const params = new URLSearchParams();
+      
+      // Add pagination
+      if (pagination.page) params.append('page', pagination.page);
+      if (pagination.limit) params.append('limit', pagination.limit);
+      
+      // Add filters
+      if (filters.shoeid) params.append('shoeid', filters.shoeid);
+      if (filters.variantid) params.append('variantid', filters.variantid);
+      if (filters.userid) params.append('userid', filters.userid);
+      if (filters.fromdate) params.append('fromdate', filters.fromdate);
+      if (filters.todate) params.append('todate', filters.todate);
+      
+      const queryString = params.toString();
+      const url = `/api/imports${queryString ? '?' + queryString : ''}`;
+      
+      const response = await this.client.get(url);
+      
+      console.log('✅ Import history response:', response);
+      
+      return {
+        success: true,
+        data: response.data.data || [],
+        pagination: response.data.pagination || {},
+        message: response.data.message
+      };
+    } catch (error) {
+      console.error('❌ Get import history error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get import history for specific shoe (uses: GET /api/imports/shoe/:shoeId)
+   */
+  async getImportHistoryByShoe(shoeId, pagination = {}) {
+    console.log(`📦 API: Getting import history for shoe ${shoeId}...`);
+    
+    try {
+      const params = new URLSearchParams();
+      if (pagination.page) params.append('page', pagination.page);
+      if (pagination.limit) params.append('limit', pagination.limit);
+      
+      const queryString = params.toString();
+      const url = `/api/imports/shoe/${shoeId}${queryString ? '?' + queryString : ''}`;
+      
+      const response = await this.client.get(url);
+      
+      console.log('✅ Shoe import history response:', response);
+      
+      return {
+        success: true,
+        data: response.data.data || [],
+        pagination: response.data.pagination || {},
+        message: response.data.message
+      };
+    } catch (error) {
+      console.error('❌ Get shoe import history error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get import statistics (uses: GET /api/imports/statistics)
+   */
+  async getImportStatistics(filters = {}) {
+    console.log('📊 API: Getting import statistics...', filters);
+    
+    try {
+      const params = new URLSearchParams();
+      if (filters.userid) params.append('userid', filters.userid);
+      if (filters.fromdate) params.append('fromdate', filters.fromdate);
+      if (filters.todate) params.append('todate', filters.todate);
+      
+      const queryString = params.toString();
+      const url = `/api/imports/statistics${queryString ? '?' + queryString : ''}`;
+      
+      const response = await this.client.get(url);
+      
+      console.log('✅ Import statistics response:', response);
+      
+      return {
+        success: true,
+        data: response.data.data || {},
+        message: response.data.message
+      };
+    } catch (error) {
+      console.error('❌ Get import statistics error:', error);
+      throw error;
+    }
+  }
 }
 
 // Orders API

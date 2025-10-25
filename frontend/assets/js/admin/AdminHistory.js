@@ -12,6 +12,43 @@ class AdminHistory {
     this.allDeletedProducts = []; // Store unfiltered list
     this.productsAPI = window.productsAPI;
     this.searchDebounceTimer = null;
+
+    // ✅ Add global import history data
+    this.allGlobalImports = [];
+    this.filteredGlobalImports = [];
+  }
+  /**
+   * ⭐ Setup listener for Import History tab
+   * Called by AdminManager during initialization
+   */
+  setupGlobalImportHistoryListener() {
+    // ✅ Find tab button for OLD HTML (data-bs-target="#import-history-main")
+    const importHistoryTab = document.querySelector(
+      '[data-bs-target="#import-history-main"]'
+    );
+
+    if (!importHistoryTab) {
+      console.warn("⚠️ Import History tab button not found");
+      return;
+    }
+
+    // Remove existing listeners to prevent duplicates
+    const newTab = importHistoryTab.cloneNode(true);
+    importHistoryTab.parentNode.replaceChild(newTab, importHistoryTab);
+
+    // Add new listener for Bootstrap tab shown event
+    newTab.addEventListener("shown.bs.tab", async () => {
+      console.log("📦 Import History tab activated");
+
+      try {
+        await this.loadGlobalImportHistory();
+      } catch (error) {
+        console.error("❌ Error loading import history on tab show:", error);
+        AdminUtils.showError("Failed to load import history");
+      }
+    });
+
+    console.log("✅ Import History tab listener setup complete");
   }
 
   /**
@@ -465,6 +502,531 @@ class AdminHistory {
     } catch (error) {
       console.error("Bulk restore error:", error);
       AdminUtils.showError("Failed to restore some products");
+    }
+  }
+  /**
+   * 📦 Load global import history (grouped by shoes)
+   * Shows list of shoes with import counts, expandable to see details
+   */
+  async loadGlobalImportHistory() {
+    try {
+      console.log("📦 Loading global import history (grouped by shoes)...");
+
+      // Show loading
+      const container = document.getElementById("importHistoryContainerMain");
+      if (container) {
+        container.innerHTML = `
+        <div class="loading-container text-center py-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p class="mt-3">Loading import history...</p>
+        </div>
+      `;
+      }
+
+      // ✅ Fetch ALL import history
+      const response = await window.importsAPI.getAllImportHistory(
+        {},
+        { limit: 10000 }
+      );
+
+      console.log("Import history response:", response);
+
+      if (response.success && response.data) {
+        this.allGlobalImports = response.data.map((imp) => ({
+          import_id: imp.import_id,
+          shoe_id: imp.variant?.shoe?.shoe_id,
+          shoe_name: imp.variant?.shoe?.shoe_name || "Unknown Product",
+          shoe_image: imp.variant?.shoe?.image_url,
+          variant_id: imp.variant_id,
+          color_name: imp.variant?.color?.color_name || "N/A",
+          size_value: imp.variant?.size?.size_value || "N/A",
+          sku: imp.variant?.sku || "N/A",
+          import_quantity: imp.quantity_imported || 0,
+          import_price: imp.import_price || 0,
+          import_date: imp.import_date || imp.created_at,
+          imported_by_id: imp.user_id,
+          imported_by_name:
+            imp.user?.full_name || imp.user?.username || "System",
+          notes: imp.notes || "",
+          created_at: imp.created_at,
+        }));
+
+        // Sort by date (newest first)
+        this.allGlobalImports.sort(
+          (a, b) => new Date(b.import_date) - new Date(a.import_date)
+        );
+
+        this.filteredGlobalImports = [...this.allGlobalImports];
+
+        // ✅ Group imports by shoe
+        this.groupImportsByShoe();
+
+        // Render UI
+        this.renderImportShoeList();
+        this.updateGlobalImportStats();
+        this.populateGlobalUserFilter();
+
+        console.log(
+          `✅ Loaded ${this.allGlobalImports.length} imports from ${this.shoeImportGroups.length} shoes`
+        );
+      } else {
+        throw new Error(response.message || "Failed to load import history");
+      }
+    } catch (error) {
+      console.error("❌ Load global import history error:", error);
+
+      const container = document.getElementById("importHistoryContainerMain");
+      if (container) {
+        container.innerHTML = `
+        <div class="alert alert-danger">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          <strong>Error loading import history:</strong> ${AdminUtils.escapeHtml(
+            error.message
+          )}
+        </div>
+      `;
+      }
+
+      AdminUtils.showError("Failed to load import history");
+    }
+  }
+
+  /**
+   * 📦 Group imports by shoe
+   */
+  groupImportsByShoe() {
+    const shoeMap = {};
+
+    this.filteredGlobalImports.forEach((imp) => {
+      if (!shoeMap[imp.shoe_id]) {
+        shoeMap[imp.shoe_id] = {
+          shoe_id: imp.shoe_id,
+          shoe_name: imp.shoe_name,
+          shoe_image: imp.shoe_image,
+          total_imports: 0,
+          total_quantity: 0,
+          total_cost: 0,
+          latest_import_date: imp.import_date,
+          imports: [],
+        };
+      }
+
+      shoeMap[imp.shoe_id].total_imports++;
+      shoeMap[imp.shoe_id].total_quantity += imp.import_quantity;
+      shoeMap[imp.shoe_id].total_cost += imp.import_price * imp.import_quantity;
+      shoeMap[imp.shoe_id].imports.push(imp);
+
+      // Track latest import
+      if (
+        new Date(imp.import_date) >
+        new Date(shoeMap[imp.shoe_id].latest_import_date)
+      ) {
+        shoeMap[imp.shoe_id].latest_import_date = imp.import_date;
+      }
+    });
+
+    // Convert to array and sort by latest import date
+    this.shoeImportGroups = Object.values(shoeMap).sort(
+      (a, b) => new Date(b.latest_import_date) - new Date(a.latest_import_date)
+    );
+
+    console.log("📦 Grouped into", this.shoeImportGroups.length, "shoes");
+  }
+
+  /**
+   * 🎨 Render shoe list (accordion style)
+   */
+  renderImportShoeList() {
+    const container = document.getElementById("importHistoryContainerMain");
+    if (!container) return;
+
+    if (this.shoeImportGroups.length === 0) {
+      container.innerHTML = `
+      <div class="empty-state text-center py-5">
+        <i class="bi bi-inbox display-1 text-muted"></i>
+        <h5 class="mt-3">No Import History Found</h5>
+        <p class="text-muted">No imports match your current filters.</p>
+      </div>
+    `;
+      return;
+    }
+
+    const html = `
+    <div class="accordion" id="importAccordion">
+      ${this.shoeImportGroups
+        .map((group, index) => this.renderShoeAccordionItem(group, index))
+        .join("")}
+    </div>
+  `;
+
+    container.innerHTML = html;
+
+    // Hide empty state
+    const emptyState = document.getElementById("globalImportHistoryEmpty");
+    if (emptyState) emptyState.style.display = "none";
+  }
+
+  /**
+   * 🎨 Render single shoe accordion item
+   */
+  renderShoeAccordionItem(group, index) {
+    const isFirstItem = index === 0;
+
+    return `
+    <div class="accordion-item">
+      <h2 class="accordion-header">
+        <button 
+          class="accordion-button ${isFirstItem ? "" : "collapsed"}" 
+          type="button" 
+          data-bs-toggle="collapse" 
+          data-bs-target="#collapse-${group.shoe_id}"
+          aria-expanded="${isFirstItem}"
+          aria-controls="collapse-${group.shoe_id}"
+        >
+          <div class="d-flex align-items-center w-100">
+            ${
+              group.shoe_image
+                ? `
+              <img 
+                src="${AdminUtils.escapeHtml(group.shoe_image)}" 
+                alt="${AdminUtils.escapeHtml(group.shoe_name)}"
+                class="me-3"
+                style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;"
+              >
+            `
+                : `
+              <div class="bg-secondary me-3 d-flex align-items-center justify-content-center" 
+                   style="width: 50px; height: 50px; border-radius: 4px;">
+                <i class="bi bi-image text-white"></i>
+              </div>
+            `
+            }
+            
+            <div class="flex-grow-1">
+              <div class="fw-semibold">${AdminUtils.escapeHtml(
+                group.shoe_name
+              )}</div>
+              <div class="small text-muted">
+                ${group.total_imports} imports • 
+                ${group.total_quantity} units • 
+                ${AdminUtils.formatCurrency(group.total_cost)} total cost
+              </div>
+            </div>
+            
+            <div class="text-end me-3">
+              <span class="badge bg-primary">${
+                group.total_imports
+              } imports</span>
+              <div class="small text-muted mt-1">
+                Latest: ${AdminUtils.formatDate(group.latest_import_date)}
+              </div>
+            </div>
+          </div>
+        </button>
+      </h2>
+      <div 
+        id="collapse-${group.shoe_id}" 
+        class="accordion-collapse collapse ${isFirstItem ? "show" : ""}" 
+        data-bs-parent="#importAccordion"
+      >
+        <div class="accordion-body">
+          ${this.renderShoeImportDetails(group)}
+        </div>
+      </div>
+    </div>
+  `;
+  }
+
+  /**
+   * 🎨 Render import details table for a shoe
+   */
+  renderShoeImportDetails(group) {
+    return `
+    <div class="table-responsive">
+      <table class="table table-sm table-hover">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Variant</th>
+            <th>SKU</th>
+            <th>Quantity</th>
+            <th>Unit Price</th>
+            <th>Total Cost</th>
+            <th>Imported By</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${group.imports
+            .map(
+              (imp) => `
+            <tr>
+              <td>
+                <small>${AdminUtils.formatDate(imp.import_date)}</small>
+              </td>
+              <td>
+                <span class="badge bg-light text-dark border">
+                  ${AdminUtils.escapeHtml(
+                    imp.color_name
+                  )} / ${AdminUtils.escapeHtml(imp.size_value)}
+                </span>
+              </td>
+              <td>
+                <code class="small">${AdminUtils.escapeHtml(imp.sku)}</code>
+              </td>
+              <td class="text-center">
+                <span class="badge bg-info">${imp.import_quantity}</span>
+              </td>
+              <td class="text-end">
+                ${AdminUtils.formatCurrency(imp.import_price)}
+              </td>
+              <td class="text-end fw-semibold">
+                ${AdminUtils.formatCurrency(
+                  imp.import_price * imp.import_quantity
+                )}
+              </td>
+              <td>
+                <small>${AdminUtils.escapeHtml(imp.imported_by_name)}</small>
+              </td>
+              <td>
+                <small class="text-muted">
+                  ${imp.notes ? AdminUtils.escapeHtml(imp.notes) : "-"}
+                </small>
+              </td>
+            </tr>
+          `
+            )
+            .join("")}
+        </tbody>
+        <tfoot>
+          <tr class="table-light fw-semibold">
+            <td colspan="3" class="text-end">Subtotal:</td>
+            <td class="text-center">${group.total_quantity} units</td>
+            <td></td>
+            <td class="text-end">${AdminUtils.formatCurrency(
+              group.total_cost
+            )}</td>
+            <td colspan="2"></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  `;
+  }
+
+  /**
+   * 🔍 Handle global import filters - OLD HTML VERSION
+   */
+  filterGlobalImportHistory() {
+    // ✅ OLD HTML IDs
+    const searchInput = document.getElementById("globalImportSearchInput");
+    const userFilter = document.getElementById("globalImportUserFilter");
+    const startDate = document.getElementById("globalImportStartDate");
+    const endDate = document.getElementById("globalImportEndDate");
+
+    const searchTerm = searchInput?.value.toLowerCase() || "";
+    const selectedUser = userFilter?.value || "";
+    const dateStart = startDate?.value || "";
+    const dateEnd = endDate?.value || "";
+
+    console.log("🔍 Filtering imports:", {
+      searchTerm,
+      selectedUser,
+      dateStart,
+      dateEnd,
+    });
+
+    this.filteredGlobalImports = this.allGlobalImports.filter((imp) => {
+      // ✅ Search shoe name, color, size
+      const matchesSearch =
+        !searchTerm ||
+        imp.shoe_name.toLowerCase().includes(searchTerm) ||
+        imp.color_name.toLowerCase().includes(searchTerm) ||
+        imp.size_value.toLowerCase().includes(searchTerm);
+
+      // ✅ Filter by user
+      const matchesUser = !selectedUser || imp.imported_by_id === selectedUser;
+
+      // ✅ Filter by date range
+      const importDate = new Date(imp.import_date);
+      const matchesStartDate = !dateStart || importDate >= new Date(dateStart);
+      const matchesEndDate =
+        !dateEnd || importDate <= new Date(dateEnd + " 23:59:59");
+
+      return matchesSearch && matchesUser && matchesStartDate && matchesEndDate;
+    });
+
+    // Re-group and render
+    this.groupImportsByShoe();
+    this.renderImportShoeList();
+    this.updateGlobalImportStats();
+
+    console.log(
+      `✅ Filtered to ${this.filteredGlobalImports.length} imports in ${this.shoeImportGroups.length} shoes`
+    );
+  }
+
+  /**
+   * 📊 Update stats
+   */
+  updateGlobalImportStats() {
+    const totalImports = this.filteredGlobalImports.length;
+    const totalQuantity = this.filteredGlobalImports.reduce(
+      (sum, imp) => sum + imp.import_quantity,
+      0
+    );
+    const totalCost = this.filteredGlobalImports.reduce(
+      (sum, imp) => sum + imp.import_price * imp.import_quantity,
+      0
+    );
+    const totalShoes = this.shoeImportGroups.length;
+
+    // ✅ Update stat cards with OLD HTML IDs
+    const totalImportsEl = document.getElementById("globalTotalImportsCount");
+    const totalQtyEl = document.getElementById("globalTotalImportQty");
+    const totalValueEl = document.getElementById("globalTotalImportValue");
+    const totalShoesEl = document.getElementById("globalUniqueProductsCount");
+
+    if (totalImportsEl) totalImportsEl.textContent = totalImports;
+    if (totalQtyEl) totalQtyEl.textContent = totalQuantity;
+    if (totalValueEl)
+      totalValueEl.textContent = AdminUtils.formatCurrency(totalCost);
+    if (totalShoesEl) totalShoesEl.textContent = totalShoes;
+  }
+
+  /**
+   * 🔍 Populate user filter dropdown
+   */
+  populateGlobalUserFilter() {
+    // ✅ OLD HTML ID
+    const select = document.getElementById("globalImportUserFilter");
+    if (!select) return;
+
+    // Get unique users
+    const users = [
+      ...new Map(
+        this.allGlobalImports.map((imp) => [
+          imp.imported_by_id,
+          {
+            id: imp.imported_by_id,
+            name: imp.imported_by_name,
+          },
+        ])
+      ).values(),
+    ];
+
+    select.innerHTML = `
+    <option value="">All Users</option>
+    ${users
+      .map(
+        (user) => `
+      <option value="${user.id}">${AdminUtils.escapeHtml(user.name)}</option>
+    `
+      )
+      .join("")}
+  `;
+  }
+  /**
+   * 🧹 Clear all filters - OLD HTML IDs
+   */
+  clearGlobalImportFilters() {
+    // ✅ Clear all inputs with OLD HTML IDs
+    const searchInput = document.getElementById("globalImportSearchInput");
+    const userFilter = document.getElementById("globalImportUserFilter");
+    const startDate = document.getElementById("globalImportStartDate");
+    const endDate = document.getElementById("globalImportEndDate");
+
+    if (searchInput) searchInput.value = "";
+    if (userFilter) userFilter.value = "";
+    if (startDate) startDate.value = "";
+    if (endDate) endDate.value = "";
+
+    // Reset to all data
+    this.filteredGlobalImports = [...this.allGlobalImports];
+    this.groupImportsByShoe();
+    this.renderImportShoeList();
+    this.updateGlobalImportStats();
+
+    console.log("✅ Filters cleared");
+  }
+
+  /**
+   * 📤 Export import history to CSV
+   */
+  exportImportHistory() {
+    if (this.filteredGlobalImports.length === 0) {
+      AdminUtils.showError("No data to export");
+      return;
+    }
+
+    // CSV headers
+    const headers = [
+      "Date",
+      "Shoe Name",
+      "Color",
+      "Size",
+      "SKU",
+      "Quantity",
+      "Unit Price",
+      "Total Cost",
+      "Imported By",
+      "Notes",
+    ];
+
+    // CSV rows
+    const rows = this.filteredGlobalImports.map((imp) => [
+      AdminUtils.formatDate(imp.import_date),
+      imp.shoe_name,
+      imp.color_name,
+      imp.size_value,
+      imp.sku,
+      imp.import_quantity,
+      imp.import_price,
+      imp.import_price * imp.import_quantity,
+      imp.imported_by_name,
+      imp.notes || "",
+    ]);
+
+    // Generate CSV
+    const csvContent = [
+      headers.join(","),
+      ...rows.map((row) => row.map((cell) => `"${cell}"`).join(",")),
+    ].join("\n");
+
+    // Download
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `import-history-${
+      new Date().toISOString().split("T")[0]
+    }.csv`;
+    link.click();
+
+    AdminUtils.showSuccess("Import history exported successfully");
+  }
+  /**
+   * 📅 Check if date matches filter
+   */
+  matchesDateFilter(dateString, filter) {
+    if (filter === "all") return true;
+
+    const date = new Date(dateString);
+    const now = new Date();
+    const dayMs = 24 * 60 * 60 * 1000;
+
+    switch (filter) {
+      case "today":
+        return date.toDateString() === now.toDateString();
+      case "week":
+        return now - date <= 7 * dayMs;
+      case "month":
+        return now - date <= 30 * dayMs;
+      case "quarter":
+        return now - date <= 90 * dayMs;
+      default:
+        return true;
     }
   }
 }

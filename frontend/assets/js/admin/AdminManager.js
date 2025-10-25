@@ -84,6 +84,7 @@ class AdminManager {
     this.importManager.setupImportButtonListeners();
     this.variantGenerator.setupVariantGeneratorListeners();
     this.productManager.setupProductFormListeners();
+    this.historyManager.setupGlobalImportHistoryListener();
 
     // Setup sort handler
     const sortSelect = document.getElementById("sortSelect");
@@ -450,6 +451,7 @@ class AdminManager {
         case "history":
           if (this.historyManager) {
             this.historyManager.loadDeletedProducts(); // ✅ Load deleted products
+            this.historyManager.loadGlobalImportHistory(); // ✅ Load global imports
           }
           break;
         case "inventory":
