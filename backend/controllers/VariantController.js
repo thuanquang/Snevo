@@ -678,6 +678,114 @@ class VariantController extends BaseController {
       );
     });
   }
+/**
+ * ✅ Soft delete variant (preserve stock)
+ * DELETE /api/variants/:variantId
+ */
+async softDeleteVariant(req, res) {
+  return this.handleRequest(req, res, async () => {
+    try {
+      this.requireRole(req, ["seller", "admin"]);
+      
+      const { variantId } = req.params;  // ✅ NOW CORRECT
+      
+      // Get variant info BEFORE deletion
+      const variant = await this.ShoeVariant.findById(parseInt(variantId));  // ✅ USE ShoeVariant
+      
+      if (!variant) {
+        return this.sendError(
+          res,
+          "Variant not found",
+          constants.HTTP_STATUS.NOT_FOUND
+        );
+      }
+
+      // Soft delete by calling model method
+      await this.ShoeVariant.softDeleteVariant(parseInt(variantId));  // ✅ Call model method
+
+      this.sendResponse(res, {
+        variant_id: variant.variant_id,
+        sku: variant.sku,
+        stock_preserved: variant.stock_quantity,
+        is_active: false
+      }, variant.stock_quantity > 0 
+        ? `Variant deleted. Stock preserved: ${variant.stock_quantity} units` 
+        : "Variant deleted successfully");
+    } catch (error) {
+      throw error;
+    }
+  });
 }
+
+/**
+ * ✅ Restore deleted variant
+ * POST /api/variants/:variantId/restore
+ */
+async restoreVariant(req, res) {
+  return this.handleRequest(req, res, async () => {
+    try {
+      this.requireRole(req, ["seller", "admin"]);
+      
+      const { variantId } = req.params;
+
+      // Get variant (including inactive ones)
+      const variant = await this.ShoeVariant.findById(parseInt(variantId));
+      
+      if (!variant) {
+        return this.sendError(
+          res,
+          "Variant not found",
+          constants.HTTP_STATUS.NOT_FOUND
+        );
+      }
+
+      if (variant.is_active) {
+        return this.sendError(
+          res,
+          "Variant is already active",
+          constants.HTTP_STATUS.BAD_REQUEST
+        );
+      }
+
+      // Restore by calling model method
+      await this.ShoeVariant.restoreVariant(parseInt(variantId));
+
+      this.sendResponse(res, {
+        variant_id: variant.variant_id,
+        sku: variant.sku,
+        stock_quantity: variant.stock_quantity,
+        is_active: true
+      }, `Variant restored successfully. Stock recovered: ${variant.stock_quantity} units`);
+    } catch (error) {
+      throw error;
+    }
+  });
+}
+
+/**
+ * ✅ Get deleted variants for a shoe
+ * GET /api/variants/deleted/:shoeId
+ */
+async getDeletedVariants(req, res) {
+  return this.handleRequest(req, res, async () => {
+    try {
+      this.requireRole(req, ["seller", "admin"]);
+      
+      const { shoeId } = req.params;
+
+      // Get deleted variants from model
+      const deletedVariants = await this.ShoeVariant.getDeletedVariants(parseInt(shoeId));
+
+      this.sendResponse(res, {
+        variants: deletedVariants,
+        count: deletedVariants.length
+      }, "Deleted variants fetched successfully");
+    } catch (error) {
+      throw error;
+    }
+  });
+}
+
+} 
 
 export default VariantController;

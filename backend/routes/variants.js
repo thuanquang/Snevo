@@ -128,11 +128,22 @@ export default async function variantRoutes(req, res, controller, pathname) {
       req.params = { id: segments[0] };
       return controller.updateVariant(req, res);
     }
-
-    // DELETE /api/variants/:id
+    // ✅ DELETE /api/variants/:id (soft delete)
     if (segments.length === 1 && method === "DELETE") {
-      req.params = { id: segments[0] };
-      return controller.deleteVariant(req, res);
+      req.params = { variantId: segments[0] };
+      return controller.softDeleteVariant(req, res);
+    }
+
+    // ✅ POST /api/variants/:id/restore
+    if (segments.length === 2 && segments[1] === "restore" && method === "POST") {
+      req.params = { variantId: segments[0] };
+      return controller.restoreVariant(req, res);
+    }
+
+    // ✅ GET /api/variants/deleted/:shoeId
+    if (segments.length === 2 && segments[0] === "deleted" && method === "GET") {
+      req.params = { shoeId: segments[1] };
+      return controller.getDeletedVariants(req, res);
     }
 
     // 404 - Route not found

@@ -538,6 +538,153 @@ class ShoeVariant extends BaseModel {
     // Format: {SHOE-NAME}-C{colorId}-S{sizeId}
     return `${cleanName}-C${colorId}-S${sizeId}`;
   }
+
+  /**
+   *  Soft delete variant (preserve stock)
+   */
+  async softDeleteVariant(variantId) {
+    try {
+      const query = `
+      UPDATE ${this.tableName}
+      SET 
+        is_active = false,
+        deleted_at = NOW(),
+        updated_at = NOW()
+      WHERE variant_id = $1
+      RETURNING *;
+    `;
+
+      const result = await this.db.query(query, [variantId]);
+
+      if (result.rows.length === 0) {
+        throw new Error(`Variant ${variantId} not found`);
+      }
+
+      return result.rows[0];
+    } catch (error) {
+      console.error("Error in softDeleteVariant:", error);
+      throw error;
+    }
+  }
+
+  /**
+   *  Restore deleted variant
+   */
+  async restoreVariant(variantId) {
+    try {
+      const query = `
+      UPDATE ${this.tableName}
+      SET 
+        is_active = true,
+        deleted_at = NULL,
+        updated_at = NOW()
+      WHERE variant_id = $1
+      RETURNING *;
+    `;
+
+      const result = await this.db.query(query, [variantId]);
+
+      if (result.rows.length === 0) {
+        throw new Error(`Variant ${variantId} not found`);
+      }
+
+      return result.rows[0];
+    } catch (error) {
+      console.error("Error in restoreVariant:", error);
+      throw error;
+    }
+  }
+
+/**
+ * ✅ Soft delete variant (preserve stock)
+ */
+async softDeleteVariant(variantId) {
+  try {
+    const { data, error } = await supabaseConfig
+      .getAdminClient()
+      .from(this.tableName)
+      .update({
+        is_active: false,
+        deleted_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .eq('variant_id', variantId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    
+    if (!data) {
+      throw new Error(`Variant ${variantId} not found`);
+    }
+
+    console.log(`✅ Variant ${variantId} soft deleted, stock preserved: ${data.stock_quantity}`);
+    return data;
+  } catch (error) {
+    console.error('Error in softDeleteVariant:', error);
+    throw new Error(`Failed to soft delete variant: ${error.message}`);
+  }
+}
+
+/**
+ * ✅ Restore deleted variant
+ */
+async restoreVariant(variantId) {
+  try {
+    const { data, error } = await supabaseConfig
+      .getAdminClient()
+      .from(this.tableName)
+      .update({
+        is_active: true,
+        deleted_at: null,
+        updated_at: new Date().toISOString()
+      })
+      .eq('variant_id', variantId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    
+    if (!data) {
+      throw new Error(`Variant ${variantId} not found`);
+    }
+
+    console.log(`✅ Variant ${variantId} restored, stock recovered: ${data.stock_quantity}`);
+    return data;
+  } catch (error) {
+    console.error('Error in restoreVariant:', error);
+    throw new Error(`Failed to restore variant: ${error.message}`);
+  }
+}
+
+/**
+ * ✅ Get deleted variants for a shoe
+ */
+async getDeletedVariants(shoeId) {
+  try {
+    const { data, error } = await supabaseConfig
+      .getAdminClient()
+      .from(this.tableName)
+      .select(`
+        *,
+        colors (color_id, color_name, hex_code),
+        sizes (size_id, size_value, size_type)
+      `)
+      .eq('shoe_id', shoeId)
+      .eq('is_active', false)
+      .not('deleted_at', 'is', null)
+      .order('deleted_at', { ascending: false });
+
+    if (error) throw error;
+    
+    console.log(`✅ Found ${data.length} deleted variants for shoe ${shoeId}`);
+    return data || [];
+  } catch (error) {
+    console.error('Error in getDeletedVariants:', error);
+    throw new Error(`Failed to get deleted variants: ${error.message}`);
+  }
+}
+
 }
 // Export CLASS - OOP standard
 export default ShoeVariant;

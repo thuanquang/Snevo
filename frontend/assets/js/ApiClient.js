@@ -1067,6 +1067,50 @@ class VariantsAPI {
       throw error;
     }
   }
+/**
+ * ✅ Soft delete variant (preserve stock)
+ */
+async softDeleteVariant(variantId) {
+  try {
+    console.log('🗑️ Soft deleting variant:', variantId);
+    const response = await this.client.delete(`/api/variants/${variantId}`);  // ✅ ADD /api
+    console.log('✅ Soft delete response:', response);
+    return response.data;  // ✅ Return response.data not response
+  } catch (error) {
+    console.error('❌ Error soft deleting variant:', error);
+    throw error;
+  }
+}
+
+/**
+ * ✅ Restore deleted variant
+ */
+async restoreVariant(variantId) {
+  try {
+    console.log('♻️ Restoring variant:', variantId);
+    const response = await this.client.post(`/api/variants/${variantId}/restore`);  // ✅ ADD /api
+    console.log('✅ Restore response:', response);
+    return response.data;  // ✅ Return response.data
+  } catch (error) {
+    console.error('❌ Error restoring variant:', error);
+    throw error;
+  }
+}
+
+/**
+ * ✅ Get deleted variants for a shoe
+ */
+async getDeletedVariants(shoeId) {
+  try {
+    console.log('📋 Getting deleted variants for shoe:', shoeId);
+    const response = await this.client.get(`/api/variants/deleted/${shoeId}`);  // ✅ ADD /api
+    console.log('✅ Deleted variants response:', response);
+    return response.data;  // ✅ Return response.data
+  } catch (error) {
+    console.error('❌ Error getting deleted variants:', error);
+    throw error;
+  }
+}
 }
 // Create API instances
 const authAPI = new AuthAPI(apiClient);
