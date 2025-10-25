@@ -251,14 +251,27 @@ class AdminActions {
   /**
    * Delete variant
    */
-  async deleteVariant(variantId) {
-    if (!confirm("Are you sure you want to delete this variant?")) {
+async deleteVariant(variantId, buttonElement) {  // ✅ ADD buttonElement parameter
+  try {
+    // Get row from button element
+    const row = buttonElement.closest('tr');
+    
+    if (!row) {
+      console.error('❌ Could not find variant row');
       return;
     }
-
-    console.log("🗑️ Delete variant:", variantId);
-    alert("Delete variant feature - Coming soon");
+    
+    // Delegate to AdminVariantGenerator for business logic
+    if (window.adminManager?.variantGenerator) {
+      await window.adminManager.variantGenerator.deleteVariant(variantId, row);
+    } else {
+      throw new Error('Variant generator not initialized');
+    }
+  } catch (error) {
+    console.error('Delete variant failed:', error);
+    // Error already handled in AdminVariantGenerator
   }
+}
 
   /**
    * Edit category

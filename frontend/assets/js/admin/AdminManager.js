@@ -476,6 +476,18 @@ class AdminManager {
       activeLink.classList.add("active");
     }
   }
+    /**
+     * Delete variant wrapper - called from HTML onclick
+     */
+    async deleteVariant(variantId, buttonElement) {
+    try {
+        console.log('🗑️ Delete variant called:', variantId);     
+        // Pass to AdminActions with buttonElement
+        await this.actions.deleteVariant(variantId, buttonElement);
+    } catch (error) {
+        console.error('Delete variant failed in AdminManager:', error);
+    }
+    }
 }
 
 // Initialize on page load
