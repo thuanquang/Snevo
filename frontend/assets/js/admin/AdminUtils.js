@@ -80,6 +80,35 @@ class AdminUtils {
       minute: "2-digit",
     });
   }
+  /**
+   * ✅ Escape HTML to prevent XSS
+   * Converts special characters to HTML entities
+   */
+  static escapeHtml(text) {
+    if (!text) return '';
+    
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+    
+    // Alternative implementation:
+    // return String(text)
+    //   .replace(/&/g, '&amp;')
+    //   .replace(/</g, '&lt;')
+    //   .replace(/>/g, '&gt;')
+    //   .replace(/"/g, '&quot;')
+    //   .replace(/'/g, '&#039;');
+  }
+
+  /**
+   * ✅ Truncate text with ellipsis
+   */
+  static truncate(text, maxLength = 50) {
+    if (!text) return '';
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+  }
+
 
   /**
    * Setup logout button

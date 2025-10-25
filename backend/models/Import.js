@@ -54,112 +54,157 @@ class Import extends BaseModel {
         };
     }
 
-    /**
-     * ⭐ Get all imports with full details (JOIN với related tables)
-     * Sử dụng Supabase foreign key expansion
-     */
-    async findAllWithDetails(filters = {}, pagination = {}) {
-        try {
-            const {
-                page = 1,
-                limit = 50,
-                shoe_id,
-                variant_id,
-                user_id,
-                from_date,
-                to_date,
-                orderBy = 'import_date',
-                orderDirection = 'desc'
-            } = { ...filters, ...pagination };
+/**
+ * ⭐ Get all imports with full details
+ * FIXED: Use correct table name 'shoe_variants' not 'variants'
+ */
+async findAllWithDetails(filters = {}, pagination = {}) {
+  try {
+    const {
+      page = 1,
+      limit = 50,
+      shoe_id,
+      variant_id,
+      user_id,
+      from_date,
+      to_date,
+      orderBy = 'import_date',
+      orderDirection = 'desc'
+    } = { ...filters, ...pagination };
 
-            // Build query với JOINs using foreign key expansion
-            let query = this.supabaseConfig.getAdminClient()
-                .from(this.tableName)
-                .select(`
-                    *,
-                    user:user_id (
-                        user_id,
-                        username,
-                        full_name
-                    ),
-                    variant:variant_id (
-                        variant_id,
-                        sku,
-                        stock_quantity,
-                        variant_price,
-                        shoe:shoe_id (
-                            shoe_id,
-                            shoe_name,
-                            image_url,
-                            category:category_id (
-                                category_id,
-                                category_name
-                            )
-                        ),
-                        color:color_id (
-                            color_id,
-                            color_name,
-                            hex_code
-                        ),
-                        size:size_id (
-                            size_id,
-                            size_value,
-                            size_type
-                        )
-                    )
-                `, { count: 'exact' });
+    console.log('📦 Finding all imports with details:', { filters, pagination });
 
-            // Apply filters
-            if (variant_id) {
-                query = query.eq('variant_id', variant_id);
-            }
+    // ✅ CORRECT: Use 'shoe_variants' not 'variants'
+    let query = this.supabaseConfig.getAdminClient()
+      .from(this.tableName)  // 'imports'
+      .select(`
+        import_id,
+        variant_id,
+        quantity_imported,
+        import_price,
+        import_date,
+        notes,
+        user_id,
+        created_at,       
+        variant:shoe_variants!inner (
+          variant_id,
+          sku,
+          stock_quantity,
+          variant_price,
+          shoe:shoes!inner (
+            shoe_id,
+            shoe_name,
+            image_url,
+            category:categories (
+              category_id,
+              category_name
+            )
+          ),
+          color:colors (
+            color_id,
+            color_name,
+            hex_code
+          ),
+          size:sizes (
+            size_id,
+            size_value,
+            size_type
+          )
+        )
+      `, { count: 'exact' });
 
-            if (user_id) {
-                query = query.eq('user_id', user_id);
-            }
-
-            // ⭐ Filter by shoe_id requires joining through variants
-            // We'll handle this in post-processing or use a different approach
-
-            if (from_date) {
-                query = query.gte('import_date', from_date);
-            }
-
-            if (to_date) {
-                query = query.lte('import_date', to_date);
-            }
-
-            // Sorting
-            query = query.order(orderBy, { ascending: orderDirection === 'asc' });
-
-            // Pagination
-            const offset = (page - 1) * limit;
-            query = query.range(offset, offset + limit - 1);
-
-            const { data, error, count } = await query;
-
-            if (error) throw error;
-
-            // Post-filter by shoe_id if needed
-            let filteredData = data || [];
-            if (shoe_id) {
-                filteredData = filteredData.filter(imp => 
-                    imp.variant?.shoe?.shoe_id === parseInt(shoe_id)
-                );
-            }
-
-            return {
-                data: filteredData,
-                total: shoe_id ? filteredData.length : (count || 0),
-                page: parseInt(page),
-                limit: parseInt(limit),
-                totalPages: Math.ceil((shoe_id ? filteredData.length : (count || 0)) / limit)
-            };
-
-        } catch (error) {
-            throw new Error(`Failed to fetch imports with details: ${error.message}`);
-        }
+    // Apply filters
+    if (variant_id) {
+      query = query.eq('variant_id', variant_id);
     }
+
+    if (user_id) {
+      query = query.eq('user_id', user_id);
+    }
+
+    if (shoe_id) {
+      query = query.eq('variant.shoe_id', shoe_id);
+    }
+
+    if (from_date) {
+      query = query.gte('import_date', from_date);
+    }
+
+    if (to_date) {
+      query = query.lte('import_date', to_date);
+    }
+
+    // Sorting
+    query = query.order(orderBy, { ascending: orderDirection === 'asc' });
+
+    // Pagination
+    const offset = (page - 1) * limit;
+    query = query.range(offset, offset + limit - 1);
+
+    const { data, error, count } = await query;
+
+    if (error) {
+      console.error('❌ Supabase query error:', error);
+      throw error;
+    }
+
+    console.log(`✅ Found ${data?.length || 0} imports (raw)`);
+
+    // ✅ MANUALLY fetch user profiles
+    let processedData = data || [];
+    
+    if (processedData.length > 0) {
+      // Get unique user IDs
+      const userIds = [...new Set(processedData.map(imp => imp.user_id))].filter(Boolean);
+      
+      if (userIds.length > 0) {
+        console.log('👤 Fetching profiles for', userIds.length, 'users...');
+        
+        // Fetch profiles
+        const { data: profiles, error: profileError } = await this.supabaseConfig.getAdminClient()
+          .from('profiles')
+          .select('user_id, username, full_name')
+          .in('user_id', userIds);
+        
+        if (profileError) {
+          console.warn('⚠️ Profile query error (non-fatal):', profileError.message);
+        }
+        
+        // Map profiles to imports
+        const profileMap = {};
+        (profiles || []).forEach(p => {
+          profileMap[p.user_id] = p;
+        });
+        
+        // Attach user info to each import
+        processedData = processedData.map(imp => ({
+          ...imp,
+          user: profileMap[imp.user_id] || {
+            user_id: imp.user_id,
+            username: 'Unknown',
+            full_name: 'Unknown User'
+          }
+        }));
+        
+        console.log('✅ Attached user profiles to imports');
+      }
+    }
+
+    return {
+      data: processedData,
+      total: count || 0,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      totalPages: Math.ceil((count || 0) / limit)
+    };
+  } catch (error) {
+    console.error('❌ findAllWithDetails error:', error);
+    throw new Error(`Failed to fetch imports with details: ${error.message}`);
+  }
+}
+
+
+
 
     /**
      * Get imports by user ID (admin history)
