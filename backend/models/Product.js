@@ -313,6 +313,65 @@ class Product extends BaseModel {
             throw new Error(`Failed to fetch product variants: ${error.message}`);
         }
     }
+    /**
+     * Soft delete product and cascade to variants
+     * @param {number} shoeId - Shoe ID to delete
+     * @returns {Promise<Object>} - Deleted product data
+     */
+    async softDelete(shoeId) {
+        try {
+            // Soft delete the product first
+            const product = await super.softDelete(shoeId);
+            
+            // Cascade soft delete to all variants
+            const { error: variantsError } = await this.supabaseConfig.getAdminClient()
+            .from(constants.DATABASE_TABLES.SHOE_VARIANTS)
+            .update({ 
+                is_active: false,
+                updated_at: new Date().toISOString()
+            })
+            .eq('shoe_id', shoeId);
+
+            if (variantsError) {
+            console.error('Warning: Failed to soft delete variants:', variantsError);
+            // Don't throw error - product is already deleted
+            }
+
+            return product;
+        } catch (error) {
+            throw new DatabaseError(
+            `Failed to delete product with variants: ${error.message}`, 
+            error
+            );
+        }
+    }
+
+    /**
+     * Restore product and its variants
+     */
+    async restore(shoeId) {
+        try {
+            // Restore the product
+            const product = await super.restore(shoeId);
+            
+            // Restore all variants
+            await this.supabaseConfig.getAdminClient()
+            .from(constants.DATABASE_TABLES.SHOE_VARIANTS)
+            .update({ 
+                is_active: true,
+                updated_at: new Date().toISOString()
+            })
+            .eq('shoe_id', shoeId);
+
+            return product;
+        } catch (error) {
+            throw new DatabaseError(
+            `Failed to restore product with variants: ${error.message}`, 
+            error
+            );
+        }
+    }
+
 
     /**
      * Get product reviews

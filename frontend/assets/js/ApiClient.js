@@ -671,48 +671,70 @@ class ProductsAPI {
     const response = await this.client.get("/api/sizes", params);
     return response.data;
   }
-   /**
+  /**
    * ⭐ Update product with FormData
    */
   async updateProduct(id, formData) {
     try {
       console.log(`🔄 Updating product ${id}`);
-      
+
       // Use PUT request with FormData
       const response = await this.client.request(`/api/products/${id}`, {
-        method: 'PUT',
+        method: "PUT",
         body: formData,
         headers: {
           // Don't set Content-Type - browser will automatically set it for FormData
           // with correct boundary
-        }
+        },
       });
 
-      console.log('✅ Product updated:', response);
+      console.log("✅ Product updated:", response);
       return response.data;
     } catch (error) {
-      console.error('❌ Update product error:', error);
+      console.error("❌ Update product error:", error);
       throw error;
     }
   }
 
   /**
-   * ⭐ Create product with FormData
+   * Create product with FormData
    */
   async createProduct(formData) {
     try {
-      console.log('➕ Creating product');
-      
-      const response = await this.client.request('/api/products', {
-        method: 'POST',
+      console.log("➕ Creating product");
+
+      const response = await this.client.request("/api/products", {
+        method: "POST",
         body: formData,
-        headers: {}
+        headers: {},
       });
 
-      console.log('✅ Product created:', response);
+      console.log("✅ Product created:", response);
       return response.data;
     } catch (error) {
-      console.error('❌ Create product error:', error);
+      console.error("❌ Create product error:", error);
+      throw error;
+    }
+  }
+  async deleteProduct(id) {
+    try {
+      console.log(`🗑️ Deleting product ${id}`);
+      const response = await this.client.delete(`/api/products/${id}`);
+      console.log("✅ Product deleted:", response);
+      return response.data;
+    } catch (error) {
+      console.error("❌ Delete product error:", error);
+      throw error;
+    }
+  }
+  async restoreProduct(id) {
+    try {
+      console.log(`♻️ Restoring product ${id}`);
+      const response = await this.client.put(`/api/products/${id}/restore`);
+      console.log("✅ Product restored:", response);
+      return response.data;
+    } catch (error) {
+      console.error("❌ Restore product error:", error);
       throw error;
     }
   }
