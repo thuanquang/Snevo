@@ -104,6 +104,12 @@ export default async function productRoutes(req, res, controller, pathname) {
       req.params = { id: segments[0] };
       return controller.deleteProduct(req, res);
     }
+    
+    // PUT /api/products/:id/restore - Restore deleted product
+    if (segments.length === 2 && segments[1] === 'restore' && method === 'PUT') {
+      req.params = { id: segments[0] };
+      return controller.restoreProduct(req, res);
+    }
 
     // Route not found
     return res.writeHead(404, { 'Content-Type': 'application/json' }).end(

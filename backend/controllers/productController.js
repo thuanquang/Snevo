@@ -204,29 +204,109 @@ class ProductController extends BaseController {
       }
     });
   }
-
   /**
    * DELETE /api/products/:id
-   * Soft delete product (Admin/Seller only)
+   * Soft delete a product (requires seller/admin role)
    */
   async deleteProduct(req, res) {
     return this.handleRequest(req, res, async () => {
-      try {
-        this.requireRole(req, ['seller', 'admin']);
+      // Check authentication and authorization
+      this.requireRole(req, ['seller', 'admin']);
+      
+      const { id } = req.params;
+      const productId = parseInt(id);
 
-        const { id } = req.params;
-        await this.Shoe.softDelete(parseInt(id));
-
-        this.sendResponse(
-          res,
-          null,
-          'Product deleted successfully'
-        );
-      } catch (error) {
-        throw error;
+      // Validate ID
+      if (isNaN(productId) || productId <= 0) {
+        return this.sendError(res, 'Invalid product ID', 400);
       }
+
+      // Check if product exists
+      const product = await this.Shoe.findById(productId);
+      if (!product) {
+        return this.sendError(res, 'Product not found', 404);
+      }
+
+      // Check if product is already deleted
+      if (!product.is_active) {
+        return this.sendError(res, 'Product is already deleted', 400);
+      }
+
+      // Optional: Check if product has active orders
+      // Uncomment này nếu muốn prevent deletion khi có orders
+      /*
+      const { data: activeOrders } = await this.Shoe.supabaseConfig.getAdminClient()
+        .from(constants.DATABASE_TABLES.ORDER_ITEMS)
+        .select('order_id, orders!inner(status)')
+        .in('orders.status', ['pending', 'processing'])
+        .eq('variant_id', productId)
+        .limit(1);
+
+      if (activeOrders && activeOrders.length > 0) {
+        return this.sendError(
+          res,
+          'Cannot delete product with active orders. Please complete or cancel orders first.',
+          409
+        );
+      }
+      */
+
+      // Soft delete the product
+      const deletedProduct = await this.Shoe.softDelete(productId);
+
+      // Log the deletion (for audit trail)
+      console.log(`✅ Product ${productId} deleted by user ${req.user?.email || 'unknown'} at ${new Date().toISOString()}`);
+
+      // Return success response
+      this.sendResponse(res, {
+        product: deletedProduct,
+        message: 'Product and its variants have been deleted successfully'
+      }, 'Product deleted successfully');
     });
   }
+  /**
+   * PUT /api/products/:id/restore
+   * Restore a soft-deleted product (requires seller/admin role)
+   */
+  async restoreProduct(req, res) {
+    return this.handleRequest(req, res, async () => {
+      this.requireRole(req, ['seller', 'admin']);
+      
+      const { id } = req.params;
+      const productId = parseInt(id);
+
+      if (isNaN(productId) || productId <= 0) {
+        return this.sendError(res, 'Invalid product ID', 400);
+      }
+
+      // Find the product (including deleted ones)
+      const { data: product } = await this.Shoe.supabaseConfig.getAdminClient()
+        .from(constants.DATABASE_TABLES.SHOES)
+        .select('*')
+        .eq('shoe_id', productId)
+        .single();
+
+      if (!product) {
+        return this.sendError(res, 'Product not found', 404);
+      }
+
+      if (product.is_active) {
+        return this.sendError(res, 'Product is not deleted', 400);
+      }
+
+      // Restore the product
+      const restoredProduct = await this.Shoe.restore(productId);
+
+      console.log(`✅ Product ${productId} restored by user ${req.user?.email || 'unknown'}`);
+
+      this.sendResponse(res, {
+        product: restoredProduct,
+        message: 'Product and its variants have been restored successfully'
+      }, 'Product restored successfully');
+    });
+  }
+
+
 
   /**
    * GET /api/products/search
