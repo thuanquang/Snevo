@@ -50,7 +50,10 @@ export default async function variantRoutes(req, res, controller, pathname) {
       req.user = authResult.user;
       console.log("✅ Variant route authenticated for user:", req.user.email);
     }
-
+    // ✅ GET /api/variants/deleted-all (Get ALL shoes with deleted variants)
+    if (path === "/deleted-all" && method === "GET") {
+      return controller.getAllDeletedVariants(req, res);
+    }
     // GET /api/variants/find (composite key lookup)
     if (path === "/find" && method === "GET") {
       return controller.findVariantByComposite(req, res);

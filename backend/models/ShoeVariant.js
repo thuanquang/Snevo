@@ -539,61 +539,6 @@ class ShoeVariant extends BaseModel {
     return `${cleanName}-C${colorId}-S${sizeId}`;
   }
 
-  /**
-   *  Soft delete variant (preserve stock)
-   */
-  async softDeleteVariant(variantId) {
-    try {
-      const query = `
-      UPDATE ${this.tableName}
-      SET 
-        is_active = false,
-        deleted_at = NOW(),
-        updated_at = NOW()
-      WHERE variant_id = $1
-      RETURNING *;
-    `;
-
-      const result = await this.db.query(query, [variantId]);
-
-      if (result.rows.length === 0) {
-        throw new Error(`Variant ${variantId} not found`);
-      }
-
-      return result.rows[0];
-    } catch (error) {
-      console.error("Error in softDeleteVariant:", error);
-      throw error;
-    }
-  }
-
-  /**
-   *  Restore deleted variant
-   */
-  async restoreVariant(variantId) {
-    try {
-      const query = `
-      UPDATE ${this.tableName}
-      SET 
-        is_active = true,
-        deleted_at = NULL,
-        updated_at = NOW()
-      WHERE variant_id = $1
-      RETURNING *;
-    `;
-
-      const result = await this.db.query(query, [variantId]);
-
-      if (result.rows.length === 0) {
-        throw new Error(`Variant ${variantId} not found`);
-      }
-
-      return result.rows[0];
-    } catch (error) {
-      console.error("Error in restoreVariant:", error);
-      throw error;
-    }
-  }
 
 /**
  * ✅ Soft delete variant (preserve stock)
@@ -631,7 +576,60 @@ async softDeleteVariant(variantId) {
  */
 async restoreVariant(variantId) {
   try {
-    const { data, error } = await supabaseConfig
+    console.log(`♻️ [RESTORE] Attempting to restore variant ${variantId}...`);
+    
+    // Step 1: Get variant với full info (including shoe info)
+    const { data: variant, error: variantError } = await supabaseConfig
+      .getAdminClient()
+      .from(this.tableName)
+      .select(`
+        *,
+        shoes!inner (
+          shoe_id,
+          shoe_name,
+          is_active,
+          deleted_at
+        )
+      `)
+      .eq('variant_id', variantId)
+      .single();
+    
+    if (variantError || !variant) {
+      throw new Error(`Variant ${variantId} not found`);
+    }
+    
+    // Step 2: Validate - Variant phải đang bị xóa
+    if (variant.is_active) {
+      throw new Error(`Variant ${variantId} is already active`);
+    }
+    
+    // Step 3: CHECK SHOE STATUS - Shoe phải ĐANG ACTIVE
+    const shoe = variant.shoes;
+    if (!shoe.is_active) {
+      throw new Error(
+        `Cannot restore variant: Shoe "${shoe.shoe_name}" (ID: ${shoe.shoe_id}) is deleted. ` +
+        `Please restore the shoe first before restoring its variants.`
+      );
+    }
+    
+    // Step 4: CHECK DELETION TIMESTAMP
+    // Chỉ restore variants bị xóa CÙNG hoặc SAU shoe
+    // Variants xóa TRƯỚC shoe = xóa riêng lẻ = KHÔNG restore
+    if (shoe.deleted_at && variant.deleted_at) {
+      const shoeDeletedTime = new Date(shoe.deleted_at);
+      const variantDeletedTime = new Date(variant.deleted_at);
+      
+      if (variantDeletedTime < shoeDeletedTime) {
+        throw new Error(
+          `Cannot restore variant: This variant was deleted individually BEFORE the shoe was deleted. ` +
+          `Variant deleted at: ${variant.deleted_at}, Shoe deleted at: ${shoe.deleted_at}. ` +
+          `This variant must be restored manually if needed.`
+        );
+      }
+    }
+    
+    // Step 5: All checks passed - Restore variant
+    const { data: restoredVariant, error: updateError } = await supabaseConfig
       .getAdminClient()
       .from(this.tableName)
       .update({
@@ -642,23 +640,21 @@ async restoreVariant(variantId) {
       .eq('variant_id', variantId)
       .select()
       .single();
-
-    if (error) throw error;
     
-    if (!data) {
-      throw new Error(`Variant ${variantId} not found`);
-    }
-
-    console.log(`✅ Variant ${variantId} restored, stock recovered: ${data.stock_quantity}`);
-    return data;
+    if (updateError) throw updateError;
+    
+    console.log(`✅ [RESTORE] Variant ${variantId} restored successfully, stock: ${restoredVariant.stock_quantity}`);
+    
+    return restoredVariant;
+    
   } catch (error) {
-    console.error('Error in restoreVariant:', error);
-    throw new Error(`Failed to restore variant: ${error.message}`);
+    console.error('❌ [RESTORE] Error:', error.message);
+    throw error;
   }
 }
 
 /**
- * ✅ Get deleted variants for a shoe
+ * ✅ Get deleted variants với shoe info
  */
 async getDeletedVariants(shoeId) {
   try {
@@ -668,22 +664,121 @@ async getDeletedVariants(shoeId) {
       .select(`
         *,
         colors (color_id, color_name, hex_code),
-        sizes (size_id, size_value, size_type)
+        sizes (size_id, size_value, size_type),
+        shoes!inner (
+          shoe_id,
+          shoe_name,
+          is_active,
+          deleted_at
+        )
       `)
       .eq('shoe_id', shoeId)
       .eq('is_active', false)
       .not('deleted_at', 'is', null)
       .order('deleted_at', { ascending: false });
-
+    
     if (error) throw error;
     
-    console.log(`✅ Found ${data.length} deleted variants for shoe ${shoeId}`);
-    return data || [];
+    // Thêm metadata về khả năng restore
+    const enrichedData = (data || []).map(variant => {
+      const shoe = variant.shoes;
+      const canRestore = shoe.is_active && 
+        (!shoe.deleted_at || new Date(variant.deleted_at) >= new Date(shoe.deleted_at));
+      
+      return {
+        ...variant,
+        can_restore: canRestore,
+        restore_blocker: !canRestore 
+          ? (!shoe.is_active 
+              ? 'Shoe is deleted' 
+              : 'Deleted before shoe deletion')
+          : null
+      };
+    });
+    
+    console.log(`✅ Found ${enrichedData.length} deleted variants for shoe ${shoeId}`);
+    return enrichedData;
+    
   } catch (error) {
     console.error('Error in getDeletedVariants:', error);
     throw new Error(`Failed to get deleted variants: ${error.message}`);
   }
 }
+/**
+ * ✅ Get ALL shoes with their deleted variants
+ * Trả về danh sách shoes (bao gồm cả deleted) kèm deleted variants
+ */
+async getAllShoesWithDeletedVariants() {
+  try {
+    console.log('🔍 Getting all shoes with deleted variants...');
+    
+    // Step 1: Get all shoes (both active and deleted)
+    const { data: allShoes, error: shoeError } = await supabaseConfig
+      .getAdminClient()
+      .from('shoes')
+      .select('shoe_id, shoe_name, base_price, image_url, is_active, deleted_at')
+      .order('shoe_id', { ascending: false });
+    
+    if (shoeError) throw shoeError;
+    
+    // Step 2: Get ALL deleted variants for these shoes
+    const shoeIds = allShoes.map(s => s.shoe_id);
+    
+    const { data: deletedVariants, error: variantError } = await supabaseConfig
+      .getAdminClient()
+      .from(this.tableName)
+      .select(`
+        *,
+        colors (color_id, color_name, hex_code),
+        sizes (size_id, size_value, size_type),
+        shoes!inner (shoe_id, shoe_name, is_active, deleted_at)
+      `)
+      .in('shoe_id', shoeIds)
+      .eq('is_active', false)
+      .not('deleted_at', 'is', null)
+      .order('deleted_at', { ascending: false });
+    
+    if (variantError) throw variantError;
+    
+    // Step 3: Group variants by shoe
+    const result = allShoes
+      .map(shoe => {
+        // Get deleted variants for this shoe
+        const shoeDeletedVariants = (deletedVariants || [])
+          .filter(v => v.shoe_id === shoe.shoe_id)
+          .map(variant => {
+            // Add restore metadata
+            const canRestore = shoe.is_active && 
+              (!shoe.deleted_at || new Date(variant.deleted_at) >= new Date(shoe.deleted_at));
+            
+            return {
+              ...variant,
+              can_restore: canRestore,
+              restore_blocker: !canRestore
+                ? (!shoe.is_active
+                    ? 'Shoe is deleted'
+                    : 'Deleted before shoe deletion')
+                : null
+            };
+          });
+        
+        return {
+          shoe,
+          deleted_variants: shoeDeletedVariants,
+          deleted_count: shoeDeletedVariants.length
+        };
+      })
+      .filter(item => item.deleted_count > 0);  // CHỈ trả về shoes có deleted variants
+    
+    console.log(`✅ Found ${result.length} shoes with deleted variants`);
+    return result;
+    
+  } catch (error) {
+    console.error('Error in getAllShoesWithDeletedVariants:', error);
+    throw new Error(`Failed to get shoes with deleted variants: ${error.message}`);
+  }
+}
+
 
 }
 // Export CLASS - OOP standard

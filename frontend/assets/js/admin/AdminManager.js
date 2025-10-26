@@ -27,6 +27,7 @@ class AdminManager {
     );
     this.productManager = new AdminProduct(this.core, this.productRenderer);
     this.historyManager = new AdminHistory(this.core, this.productRenderer);
+    window.adminHistory = this.historyManager;
     this.actions = new AdminActions(this.core);
 
     this.actions.productManager = this.productManager; // Wire connection
@@ -85,6 +86,7 @@ class AdminManager {
     this.variantGenerator.setupVariantGeneratorListeners();
     this.productManager.setupProductFormListeners();
     this.historyManager.setupGlobalImportHistoryListener();
+    this.historyManager.setupHistoryTabListeners();
 
     // Setup sort handler
     const sortSelect = document.getElementById("sortSelect");
