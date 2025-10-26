@@ -725,66 +725,122 @@ async restoreVariant(req, res) {
   return this.handleRequest(req, res, async () => {
     try {
       this.requireRole(req, ["seller", "admin"]);
-      
       const { variantId } = req.params;
-
-      // Get variant (including inactive ones)
-      const variant = await this.ShoeVariant.findById(parseInt(variantId));
       
-      if (!variant) {
-        return this.sendError(
-          res,
-          "Variant not found",
-          constants.HTTP_STATUS.NOT_FOUND
-        );
+      // Validate ID
+      if (!variantId || isNaN(parseInt(variantId))) {
+        return this.sendError(res, "Invalid variant ID", 400);
       }
-
-      if (variant.is_active) {
-        return this.sendError(
-          res,
-          "Variant is already active",
-          constants.HTTP_STATUS.BAD_REQUEST
-        );
-      }
-
-      // Restore by calling model method
-      await this.ShoeVariant.restoreVariant(parseInt(variantId));
-
+      
+      // Attempt to restore with all validations
+      const restoredVariant = await this.ShoeVariant.restoreVariant(parseInt(variantId));
+      
       this.sendResponse(res, {
-        variant_id: variant.variant_id,
-        sku: variant.sku,
-        stock_quantity: variant.stock_quantity,
-        is_active: true
-      }, `Variant restored successfully. Stock recovered: ${variant.stock_quantity} units`);
+        variant_id: restoredVariant.variant_id,
+        sku: restoredVariant.sku,
+        stock_quantity: restoredVariant.stock_quantity,
+        is_active: true,
+        shoe_id: restoredVariant.shoe_id
+      }, `Variant restored successfully. Stock recovered: ${restoredVariant.stock_quantity} units`);
+      
     } catch (error) {
+      // Provide detailed error messages to user
+      if (error.message.includes('Cannot restore variant')) {
+        return this.sendError(res, error.message, 400);
+      }
+      if (error.message.includes('not found')) {
+        return this.sendError(res, error.message, 404);
+      }
+      if (error.message.includes('already active')) {
+        return this.sendError(res, error.message, 400);
+      }
       throw error;
     }
   });
 }
 
 /**
- * ✅ Get deleted variants for a shoe
- * GET /api/variants/deleted/:shoeId
+ * ✅ GET /api/variants/deleted/:shoeId
+ * Get deleted variants với restore status
  */
 async getDeletedVariants(req, res) {
   return this.handleRequest(req, res, async () => {
     try {
       this.requireRole(req, ["seller", "admin"]);
-      
       const { shoeId } = req.params;
-
-      // Get deleted variants from model
+      
+      // Validate ID
+      if (!shoeId || isNaN(parseInt(shoeId))) {
+        return this.sendError(res, "Invalid shoe ID", 400);
+      }
+      
+      // Get deleted variants with restore metadata
       const deletedVariants = await this.ShoeVariant.getDeletedVariants(parseInt(shoeId));
-
+      
+      // Group by restore status
+      const canRestore = deletedVariants.filter(v => v.can_restore);
+      const cannotRestore = deletedVariants.filter(v => !v.can_restore);
+      
       this.sendResponse(res, {
+        total: deletedVariants.length,
+        can_restore_count: canRestore.length,
+        cannot_restore_count: cannotRestore.length,
         variants: deletedVariants,
-        count: deletedVariants.length
+        summary: {
+          restorable: canRestore.map(v => ({ 
+            variant_id: v.variant_id, 
+            sku: v.sku,
+            deleted_at: v.deleted_at
+          })),
+          blocked: cannotRestore.map(v => ({ 
+            variant_id: v.variant_id, 
+            sku: v.sku,
+            deleted_at: v.deleted_at,
+            reason: v.restore_blocker
+          }))
+        }
       }, "Deleted variants fetched successfully");
+      
     } catch (error) {
       throw error;
     }
   });
 }
+/**
+ * ✅ GET /api/variants/deleted-all
+ * Get ALL shoes that have deleted variants
+ */
+async getAllDeletedVariants(req, res) {
+  return this.handleRequest(req, res, async () => {
+    try {
+      this.requireRole(req, ["seller", "admin"]);
+      
+      // Get all shoes with deleted variants
+      const data = await this.ShoeVariant.getAllShoesWithDeletedVariants();
+      
+      // Calculate statistics
+      const totalShoes = data.length;
+      const totalDeletedVariants = data.reduce((sum, item) => sum + item.deleted_count, 0);
+      const totalRestorable = data.reduce((sum, item) => 
+        sum + item.deleted_variants.filter(v => v.can_restore).length, 0);
+      const totalBlocked = totalDeletedVariants - totalRestorable;
+      
+      this.sendResponse(res, {
+        shoes: data,
+        statistics: {
+          total_shoes_with_deleted_variants: totalShoes,
+          total_deleted_variants: totalDeletedVariants,
+          total_restorable: totalRestorable,
+          total_blocked: totalBlocked
+        }
+      }, "All deleted variants fetched successfully");
+      
+    } catch (error) {
+      throw error;
+    }
+  });
+}
+
 
 } 
 

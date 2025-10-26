@@ -1111,6 +1111,29 @@ async getDeletedVariants(shoeId) {
     throw error;
   }
 }
+/**
+ * Get variants with filters
+ */
+async getVariants(params = {}) {
+  try {
+    const response = await this.client.get('/api/variants', params);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Get variants error:', error);
+    throw error;
+  }
+}
+async getAllDeletedVariants() {
+  try {
+    console.log('📋 Getting all deleted variants...');
+    const response = await this.client.get('/api/variants/deleted-all');
+    console.log('✅ Get all deleted variants response:', response);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Get all deleted variants error:', error);
+    throw error;
+  }
+}
 }
 // Create API instances
 const authAPI = new AuthAPI(apiClient);

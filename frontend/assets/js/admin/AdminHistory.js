@@ -12,7 +12,18 @@ class AdminHistory {
     this.allDeletedProducts = []; // Store unfiltered list
     this.productsAPI = window.productsAPI;
     this.searchDebounceTimer = null;
-
+    this.deletedVariants = [];
+    this.filteredVariants = [];
+    this.groupedByShoe = {};
+    this.colors = [];
+    this.sizes = [];
+    this.variantFilters = {
+      search: '',
+      color: '',
+      size: '',
+      status: '',
+      shoeStatus: ''
+    };
     // ✅ Add global import history data
     this.allGlobalImports = [];
     this.filteredGlobalImports = [];
@@ -47,9 +58,41 @@ class AdminHistory {
         AdminUtils.showError("Failed to load import history");
       }
     });
+    
 
     console.log("✅ Import History tab listener setup complete");
   }
+  /**
+   * Setup tab listeners for History section
+   */
+  setupHistoryTabListeners() {
+    console.log('🔄 Setting up History tab listeners...');
+    
+    // Deleted Products Tab
+    const deletedProductsTab = document.querySelector('[data-bs-target="#deleted-products"]');
+    if (deletedProductsTab) {
+      deletedProductsTab.addEventListener('shown.bs.tab', async () => {
+        console.log('🗑️ Deleted Products tab activated');
+        await this.loadDeletedProducts();
+      });
+      console.log('✅ Deleted Products tab listener setup');
+    }
+
+    // Deleted Variants Tab
+    const deletedVariantsTab = document.querySelector('[data-bs-target="#deleted-variants"]');
+    if (deletedVariantsTab) {
+      deletedVariantsTab.addEventListener('shown.bs.tab', async () => {
+        console.log('📦 Deleted Variants tab activated');
+        await this.loadDeletedVariants();
+      });
+      console.log('✅ Deleted Variants tab listener setup');
+    } else {
+      console.warn('⚠️ Deleted Variants tab button not found!');
+    }
+
+    console.log('✅ History tab listeners setup complete');
+  }
+  
 
   /**
    * 🔄 Load deleted products (including products without variants)
@@ -1029,4 +1072,511 @@ class AdminHistory {
         return true;
     }
   }
+  /**
+ * ========================================
+ * DELETED VARIANTS MANAGEMENT (NEW)
+ * ========================================
+ */
+
+/**
+ * Load deleted variants grouped by shoe
+ */
+async loadDeletedVariants() {
+  try {
+    console.log('🔄 Loading deleted variants...');
+    
+    const loadingEl = document.getElementById('deleted-variants-loading');
+    const listEl = document.getElementById('deleted-variants-list');
+    const emptyEl = document.getElementById('deleted-variants-empty');
+
+    if (!listEl) {
+      console.error('❌ deleted-variants-list not found');
+      return;
+    }
+
+    // ✅ SHOW LOADING - Hide everything else
+    if (loadingEl) loadingEl.classList.remove('d-none');
+    if (emptyEl) emptyEl.classList.add('d-none');
+    listEl.innerHTML = '';
+
+    // Check API availability
+    if (!window.variantsAPI) {
+      console.error('❌ variantsAPI not available');
+      if (loadingEl) loadingEl.classList.add('d-none');
+      AdminUtils.showError('API not initialized');
+      return;
+    }
+
+    // Fetch data
+    const response = await window.variantsAPI.getAllDeletedVariants();
+    console.log('✅ Response:', response);
+    
+    const shoesData = response.data.shoes || [];
+    const stats = response.data.statistics || {};
+
+    // Group by shoe
+    this.groupedByShoe = shoesData.reduce((acc, item) => {
+      acc[item.shoe.shoe_id] = {
+        shoe: item.shoe,
+        variants: item.deleted_variants
+      };
+      return acc;
+    }, {});
+
+    // Flatten for filtering
+    this.deletedVariants = shoesData.flatMap(item => 
+      item.deleted_variants.map(v => ({
+        ...v,
+        shoe: item.shoe
+      }))
+    );
+
+    this.filteredVariants = [...this.deletedVariants];
+
+    console.log(`✅ Loaded ${this.deletedVariants.length} deleted variants from ${shoesData.length} shoes`);
+
+    // Load filters
+    await this.loadVariantFilterOptions();
+    this.setupVariantFilterListeners();
+
+    // ✅ HIDE LOADING
+    if (loadingEl) loadingEl.classList.add('d-none');
+
+    // ✅ CHECK IF EMPTY
+    if (this.deletedVariants.length === 0) {
+      // Show empty state
+      if (emptyEl) emptyEl.classList.remove('d-none');
+      listEl.innerHTML = '';
+    } else {
+      // Show data
+      if (emptyEl) emptyEl.classList.add('d-none');
+      this.renderDeletedVariants();
+    }
+
+    this.updateVariantStats();
+
+  } catch (error) {
+    console.error('❌ Failed to load deleted variants:', error);
+    
+    // ✅ HIDE LOADING on error
+    const loadingEl = document.getElementById('deleted-variants-loading');
+    if (loadingEl) loadingEl.classList.add('d-none');
+    
+    AdminUtils.showError('Failed to load deleted variants: ' + error.message);
+  }
+}
+
+
+/**
+ * Load colors and sizes for filters
+ */
+async loadVariantFilterOptions() {
+  try {
+    const [colorsRes, sizesRes] = await Promise.all([
+      window.productsAPI.getColors(),
+      window.productsAPI.getSizes()
+    ]);
+
+    this.colors = colorsRes.data || [];
+    this.sizes = sizesRes.data || [];
+
+    // Populate dropdowns
+    const colorSelect = document.getElementById('deleted-color-filter');
+    if (colorSelect) {
+      colorSelect.innerHTML = '<option value="">All Colors</option>' +
+        this.colors.map(c => `<option value="${c.color_id}">${c.color_name}</option>`).join('');
+    }
+
+    const sizeSelect = document.getElementById('deleted-size-filter');
+    if (sizeSelect) {
+      sizeSelect.innerHTML = '<option value="">All Sizes</option>' +
+        this.sizes.map(s => `<option value="${s.size_id}">${s.size_value}</option>`).join('');
+    }
+  } catch (error) {
+    console.error('Failed to load filter options:', error);
+  }
+}
+
+/**
+ * Setup filter event listeners
+ */
+setupVariantFilterListeners() {
+  document.getElementById('deleted-search-input')?.addEventListener('input', (e) => {
+    this.variantFilters.search = e.target.value;
+    this.applyVariantFilters();
+  });
+
+  document.getElementById('deleted-color-filter')?.addEventListener('change', (e) => {
+    this.variantFilters.color = e.target.value;
+    this.applyVariantFilters();
+  });
+
+  document.getElementById('deleted-size-filter')?.addEventListener('change', (e) => {
+    this.variantFilters.size = e.target.value;
+    this.applyVariantFilters();
+  });
+
+  document.getElementById('deleted-status-filter')?.addEventListener('change', (e) => {
+    this.variantFilters.status = e.target.value;
+    this.applyVariantFilters();
+  });
+
+  document.getElementById('deleted-shoe-status-filter')?.addEventListener('change', (e) => {
+    this.variantFilters.shoeStatus = e.target.value;
+    this.applyVariantFilters();
+  });
+}
+
+/**
+ * Apply filters
+ */
+applyVariantFilters() {
+  this.filteredVariants = this.deletedVariants.filter(variant => {
+    // Search
+    if (this.variantFilters.search) {
+      const search = this.variantFilters.search.toLowerCase();
+      const matchShoe = variant.shoe.shoe_name?.toLowerCase().includes(search);
+      const matchSku = variant.sku?.toLowerCase().includes(search);
+      if (!matchShoe && !matchSku) return false;
+    }
+
+    // Color
+    if (this.variantFilters.color && variant.color_id != this.variantFilters.color) {
+      return false;
+    }
+
+    // Size
+    if (this.variantFilters.size && variant.size_id != this.variantFilters.size) {
+      return false;
+    }
+
+    // Status
+    if (this.variantFilters.status) {
+      const canRestore = variant.shoe.is_active;
+      if (this.variantFilters.status === 'restorable' && !canRestore) return false;
+      if (this.variantFilters.status === 'blocked' && canRestore) return false;
+    }
+
+    // Shoe Status
+    if (this.variantFilters.shoeStatus) {
+      if (this.variantFilters.shoeStatus === 'active' && !variant.shoe.is_active) return false;
+      if (this.variantFilters.shoeStatus === 'deleted' && variant.shoe.is_active) return false;
+    }
+
+    return true;
+  });
+
+  this.renderDeletedVariants();
+  this.renderVariantActiveFilters();
+  this.updateVariantStats();
+}
+
+/**
+ * Render active filters
+ */
+renderVariantActiveFilters() {
+  const container = document.getElementById('deleted-active-filters');
+  if (!container) return;
+
+  const badges = [];
+  
+  if (this.variantFilters.search) {
+    badges.push({ key: 'search', label: `Search: "${this.variantFilters.search}"` });
+  }
+  if (this.variantFilters.color) {
+    const color = this.colors.find(c => c.color_id == this.variantFilters.color);
+    badges.push({ key: 'color', label: `Color: ${color?.color_name}` });
+  }
+  if (this.variantFilters.size) {
+    const size = this.sizes.find(s => s.size_id == this.variantFilters.size);
+    badges.push({ key: 'size', label: `Size: ${size?.size_value}` });
+  }
+  if (this.variantFilters.status) {
+    const label = this.variantFilters.status === 'restorable' ? '✅ Restorable' : '❌ Blocked';
+    badges.push({ key: 'status', label });
+  }
+  if (this.variantFilters.shoeStatus) {
+    const label = this.variantFilters.shoeStatus === 'active' ? 'Active Shoes' : 'Deleted Shoes';
+    badges.push({ key: 'shoeStatus', label });
+  }
+
+  if (badges.length === 0) {
+    container.innerHTML = '';
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <small class="text-muted">Active Filters:</small>
+      ${badges.map(b => `
+        <span class="badge bg-primary">
+          ${b.label}
+          <button 
+            type="button" 
+            class="btn-close btn-close-white btn-sm ms-1" 
+            style="font-size: 0.6rem;"
+            onclick="window.adminHistory.clearVariantFilter('${b.key}')"
+          ></button>
+        </span>
+      `).join('')}
+      <button 
+        class="btn btn-sm btn-outline-secondary"
+        onclick="window.adminHistory.clearAllVariantFilters()"
+      >
+        Clear All
+      </button>
+    </div>
+  `;
+}
+
+/**
+ * Clear specific filter
+ */
+clearVariantFilter(key) {
+  this.variantFilters[key] = '';
+  
+  const elementMap = {
+    search: 'deleted-search-input',
+    color: 'deleted-color-filter',
+    size: 'deleted-size-filter',
+    status: 'deleted-status-filter',
+    shoeStatus: 'deleted-shoe-status-filter'
+  };
+
+  const el = document.getElementById(elementMap[key]);
+  if (el) el.value = '';
+
+  this.applyVariantFilters();
+}
+
+/**
+ * Clear all filters
+ */
+clearAllVariantFilters() {
+  this.variantFilters = { search: '', color: '', size: '', status: '', shoeStatus: '' };
+  
+  document.getElementById('deleted-search-input').value = '';
+  document.getElementById('deleted-color-filter').value = '';
+  document.getElementById('deleted-size-filter').value = '';
+  document.getElementById('deleted-status-filter').value = '';
+  document.getElementById('deleted-shoe-status-filter').value = '';
+
+  this.applyVariantFilters();
+}
+
+/**
+ * Update statistics
+ */
+updateVariantStats() {
+  const total = this.filteredVariants.length;
+  const restorable = this.filteredVariants.filter(v => v.shoe.is_active).length;
+  const blocked = total - restorable;
+
+  document.getElementById('deleted-total-count').textContent = total;
+  document.getElementById('deleted-restorable-count').textContent = restorable;
+  document.getElementById('deleted-blocked-count').textContent = blocked;
+}
+
+/**
+ * Render variants grouped by shoe
+ */
+renderDeletedVariants() {
+  const container = document.getElementById('deleted-variants-list');
+  const emptyState = document.getElementById('deleted-variants-empty');
+  
+  if (!container) return;
+
+  // Group filtered variants
+  const grouped = this.filteredVariants.reduce((acc, v) => {
+    const shoeId = v.shoe.shoe_id;
+    if (!acc[shoeId]) {
+      acc[shoeId] = { shoe: v.shoe, variants: [] };
+    }
+    acc[shoeId].variants.push(v);
+    return acc;
+  }, {});
+
+  // ✅ CHECK IF EMPTY after filtering
+  if (Object.keys(grouped).length === 0) {
+    container.innerHTML = '';
+    if (emptyState) emptyState.classList.remove('d-none');
+    return;
+  }
+
+  // ✅ SHOW DATA - Hide empty state
+  if (emptyState) emptyState.classList.add('d-none');
+
+  // Render groups
+  container.innerHTML = Object.values(grouped)
+    .map(group => this.renderVariantShoeGroup(group))
+    .join('');
+}
+
+
+/**
+ * Render shoe group
+ */
+renderVariantShoeGroup(group) {
+  const { shoe, variants } = group;
+  const restorableCount = variants.filter(v => shoe.is_active).length;
+  const blockedCount = variants.length - restorableCount;
+
+  return `
+    <div class="card mb-3 border-0 shadow-sm">
+      <div class="card-header bg-white border-bottom">
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center gap-3">
+            <img 
+              src="${shoe.image_url}" 
+              alt="${shoe.shoe_name}"
+              class="rounded"
+              style="width: 60px; height: 60px; object-fit: cover;"
+              
+            />
+            <div>
+              <h5 class="mb-1">
+                ${shoe.shoe_name}
+                ${shoe.is_active 
+                  ? '<span class="badge bg-success ms-2">Active</span>' 
+                  : '<span class="badge bg-danger ms-2">Deleted</span>'}
+              </h5>
+              <div class="text-muted small">
+                <span class="me-3"><i class="bi bi-hash"></i> ${shoe.shoe_id}</span>
+                <span class="me-3"><i class="bi bi-box"></i> ${variants.length} deleted</span>
+                ${restorableCount > 0 ? `<span class="text-success me-3"><i class="bi bi-check-circle"></i> ${restorableCount} restorable</span>` : ''}
+                ${blockedCount > 0 ? `<span class="text-warning"><i class="bi bi-exclamation-circle"></i> ${blockedCount} blocked</span>` : ''}
+              </div>
+            </div>
+          </div>
+          ${!shoe.is_active ? `
+            <button 
+              class="btn btn-sm btn-outline-primary"
+              onclick="window.adminHistory.restoreShoe(${shoe.shoe_id})"
+            >
+              <i class="bi bi-arrow-counterclockwise me-1"></i>
+              Restore Shoe First
+            </button>
+          ` : ''}
+        </div>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>SKU</th>
+                <th>Color</th>
+                <th>Size</th>
+                <th>Stock</th>
+                <th>Deleted At</th>
+                <th>Status</th>
+                <th class="text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${variants.map(v => this.renderVariantRow(v, shoe)).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Render variant row
+ */
+renderVariantRow(variant, shoe) {
+  const canRestore = shoe.is_active;
+  const tooltipMsg = !shoe.is_active 
+    ? '⚠️ Cannot restore: Parent shoe is deleted. Restore the shoe first.' 
+    : '✅ Ready to restore';
+
+  return `
+    <tr>
+      <td><code class="text-dark">${variant.sku}</code></td>
+      <td>
+        <span class="d-flex align-items-center gap-2">
+          <span 
+            class="rounded-circle" 
+            style="width: 16px; height: 16px; background-color: ${variant.colors?.hex_code || '#ccc'}; display: inline-block;"
+          ></span>
+          ${variant.colors?.color_name || 'N/A'}
+        </span>
+      </td>
+      <td><span class="badge bg-secondary">${variant.sizes?.size_value || 'N/A'}</span></td>
+      <td><span class="text-muted">${variant.stock_quantity || 0} units</span></td>
+      <td>
+        <small class="text-muted">
+          ${new Date(variant.deleted_at).toLocaleDateString()}
+        </small>
+      </td>
+      <td>
+        ${canRestore 
+          ? '<span class="badge bg-success">✅ Restorable</span>' 
+          : '<span class="badge bg-warning">❌ Blocked</span>'}
+      </td>
+      <td class="text-center">
+        ${canRestore ? `
+          <button 
+            class="btn btn-sm btn-success"
+            onclick="window.adminHistory.restoreVariant(${variant.variant_id})"
+          >
+            <i class="bi bi-arrow-counterclockwise"></i> Restore
+          </button>
+        ` : `
+          <button 
+            class="btn btn-sm btn-secondary"
+            disabled
+            title="${tooltipMsg}"
+          >
+            <i class="bi bi-lock"></i> Locked
+          </button>
+        `}
+      </td>
+    </tr>
+  `;
+}
+
+/**
+ * Restore shoe
+ */
+async restoreShoe(shoeId) {
+  if (!confirm('Restore this shoe? This will also restore variants deleted with it.')) {
+    return;
+  }
+
+  try {
+    // ✅ FIX: Use productsAPI
+    await window.productsAPI.restoreProduct(shoeId);
+    AdminUtils.showToast('Success', 'Shoe restored successfully!', 'success');
+    
+    // Reload data after 1.5s
+    setTimeout(() => this.loadDeletedVariants(), 1500);
+  } catch (error) {
+    console.error('Failed to restore shoe:', error);
+    AdminUtils.showError(error.message || 'Failed to restore shoe');
+  }
+}
+
+/**
+ * Restore variant
+ */
+async restoreVariant(variantId) {
+  if (!confirm('Restore this variant?')) {
+    return;
+  }
+
+  try {
+    // ✅ FIX: Use variantsAPI
+    await window.variantsAPI.restoreVariant(variantId);
+    AdminUtils.showToast('Success', 'Variant restored successfully!', 'success');
+    
+    // Reload data after 1.5s
+    setTimeout(() => this.loadDeletedVariants(), 1500);
+  } catch (error) {
+    console.error('Failed to restore variant:', error);
+    AdminUtils.showError(error.message || 'Failed to restore variant');
+  }
+}
 }
