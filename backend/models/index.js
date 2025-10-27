@@ -6,7 +6,6 @@ import Profile from './Profile.js';
 import Address from './Address.js';
 import Category from './Category.js';
 import Color from './Color.js';
-import Product from './Product.js';
 import Shoe from './Shoe.js';
 import ShoeVariant from './ShoeVariant.js';
 import Size from './Size.js';
@@ -27,7 +26,6 @@ function initializeModels() {
         Address: new Address(),
         Category: new Category(),
         Color: new Color(),
-        Product: new Product(),
         Shoe: new Shoe(),
         ShoeVariant: new ShoeVariant(),
         Size: new Size(),
@@ -59,7 +57,6 @@ export {
     Address,
     Category,
     Color,
-    Product,
     Shoe,
     ShoeVariant,
     Size,
@@ -78,7 +75,6 @@ export default {
     Address,
     Category,
     Color,
-    Product,
     Shoe,
     ShoeVariant,
     Size,
