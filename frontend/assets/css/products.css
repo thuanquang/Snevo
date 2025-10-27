@@ -17,11 +17,12 @@ html {
   margin: 0px 0px 50px 0px !important;
 }
 .filters-sidebar {
-  padding: 16px !important;
+  border: none !important;
+  padding: 0 16px 0 0 !important;
 }
 
-.filters-header{
-  margin-bottom : 20px !important
+.filters-header {
+  margin-bottom: 20px !important;
 }
 
 .products-grid {
@@ -39,6 +40,7 @@ html {
   background: white;
   height: 100% !important;
   position: relative;
+  border: none !important;
 }
 
 .product-card:hover {
@@ -122,9 +124,9 @@ html {
 
 .size-option {
   display: inline-block;
-  width: 50px; 
-  min-width: 50px; 
-  padding: 8px 0; 
+  width: 50px;
+  min-width: 50px;
+  padding: 8px 0;
   margin: 4px 4px 4px 0;
   border: 2px solid #ddd;
   border-radius: 4px;
@@ -135,7 +137,6 @@ html {
   text-align: center;
   cursor: pointer;
   transition: all 0.2s ease;
-  
 }
 .size-option:hover {
   border-color: #000;

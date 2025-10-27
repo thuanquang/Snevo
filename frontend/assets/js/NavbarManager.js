@@ -361,6 +361,150 @@ class NavbarManager {
   }
 
   /**
+   * Bind new search bar events (with .input and .close classes)
+   */
+  bindNewSearchEvents() {
+    const searchInput = document.getElementById("navbarSearchInput");
+    const closeBtn = document.getElementById("navbarSearchClose");
+    const searchNavItem = document.getElementById("searchNavItem");
+
+    if (!searchInput || !closeBtn) {
+      console.warn("⚠️ New search elements not found");
+      return;
+    }
+
+    console.log("✅ Binding new search bar events");
+
+    // Handle input focus - expand search
+    searchInput.addEventListener("focus", () => {
+      searchNavItem?.classList.add("active");
+      console.log("🔍 Search expanded");
+    });
+
+    // Handle input blur - collapse if empty
+    searchInput.addEventListener("blur", () => {
+      if (!searchInput.value.trim()) {
+        searchNavItem?.classList.remove("active");
+        console.log("🔍 Search collapsed");
+      }
+    });
+
+    // Handle Enter key - perform search
+    searchInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        this.performNavbarSearch();
+      }
+    });
+
+    // Handle close button click
+    closeBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      this.clearNavbarSearch();
+      searchNavItem?.classList.remove("active");
+    });
+
+    // Auto-populate search from URL if on products page
+    this.populateSearchFromURL();
+
+    console.log("✅ New search events bound");
+  }
+
+  /**
+   * Populate search input from URL parameters
+   */
+  populateSearchFromURL() {
+    const searchInput = document.getElementById("navbarSearchInput");
+    if (!searchInput) return;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const searchQuery = urlParams.get("search");
+
+    if (searchQuery && this.currentPage === "products") {
+      searchInput.value = searchQuery;
+      document.getElementById("searchNavItem")?.classList.add("active");
+      console.log("✅ Search input populated from URL:", searchQuery);
+    }
+  }
+
+  /**
+   * Perform navbar search - Navigate to products page with search query
+   */
+  performNavbarSearch() {
+    const searchInput = document.getElementById("navbarSearchInput");
+    const query = searchInput?.value.trim();
+
+    if (!query) {
+      console.warn("⚠️ Empty search query");
+      return;
+    }
+
+    console.log("🔍 Navbar search initiated:", query);
+
+    // Build search URL
+    const searchUrl = this.buildSearchURL(query);
+
+    // Check if already on products page
+    if (this.currentPage === "products" && window.productManager) {
+      console.log("📍 Already on products page, updating search...");
+      this.updateProductsPageSearch(query);
+    } else {
+      console.log("📍 Navigating to products page with search...");
+      window.location.href = searchUrl;
+    }
+  }
+
+  /**
+   * Build search URL for products page
+   */
+  buildSearchURL(query) {
+    const encodedQuery = encodeURIComponent(query);
+    const productsPath = this.getRelativePath("products.html");
+    return `${productsPath}?search=${encodedQuery}`;
+  }
+
+  /**
+   * Update products page with new search (if already on products page)
+   */
+  updateProductsPageSearch(query) {
+    if (!window.productManager) {
+      console.error("❌ ProductManager not available");
+      return;
+    }
+
+    try {
+      // Update ProductManager search filter
+      window.productManager.currentFilters.search = query;
+      window.productManager.currentPage = 1;
+
+      // Update page URL without reload
+      const newUrl = this.buildSearchURL(query);
+      window.history.pushState({}, "", newUrl);
+
+      // Trigger product reload
+      window.productManager.loadProducts();
+
+      console.log("✅ Products page search updated:", query);
+    } catch (error) {
+      console.error("❌ Error updating products search:", error);
+      // Fallback: reload page with new search
+      window.location.href = this.buildSearchURL(query);
+    }
+  }
+
+  /**
+   * Clear navbar search
+   */
+  clearNavbarSearch() {
+    const searchInput = document.getElementById("navbarSearchInput");
+    if (searchInput) {
+      searchInput.value = "";
+      searchInput.blur();
+      console.log("✅ Search cleared");
+    }
+  }
+
+  /**
    * Create navbar directly in DOM
    */
   createNavbarDirectly() {
@@ -395,6 +539,20 @@ class NavbarManager {
                         </ul>
                         
                         <ul class="navbar-nav " style="gap: 30px;">    
+                            <li class="nav-item" id="searchNavItem">
+                                <header class="search-header">
+                                    <input type="text" 
+                                          class="input" 
+                                          id="navbarSearchInput"
+                                          placeholder="Search products..."
+                                          autocomplete="off"
+                                          aria-label="Search products"/>    
+                                    <div class="close" id="navbarSearchClose">
+                                        <span class="front"></span>
+                                        <span class="back"></span>
+                                    </div> 
+                                </header>
+                            </li>
                             <li class="nav-item" id="cartNavItem">
                                 <a class="nav-link position-relative" href="#" data-navbar-link="cart">
                                     <img src="../assets/images/ui/cart.svg" alt="Cart" height="23" width="23">
@@ -418,6 +576,9 @@ class NavbarManager {
 
     navbarRoot.innerHTML = navbarHTML;
     console.log("✅ Navbar created directly");
+
+    // ✅ Bind new search events
+    this.bindNewSearchEvents();
 
     // Update paths
     this.updatePaths();

@@ -93,6 +93,34 @@ class ProductManager {
       console.error("❌ Error loading sizes:", error);
     }
   }
+
+  /**
+   * Sync navbar search input with current search filter
+   */
+  syncNavbarSearch() {
+    const navbarSearchInput = document.getElementById("navbarSearchInput");
+
+    if (navbarSearchInput && this.currentFilters.search) {
+      navbarSearchInput.value = this.currentFilters.search;
+      document.getElementById("searchNavItem")?.classList.add("active");
+      console.log("✅ Navbar search synced:", this.currentFilters.search);
+    }
+  }
+
+  parseUrlParameters() {
+    const urlParams = new URLSearchParams(window.location.search);
+
+    // Search query
+    if (urlParams.has("search")) {
+      this.currentFilters.search = urlParams.get("search");
+
+      // ✅ Sync navbar search
+      this.syncNavbarSearch();
+    }
+
+    // ... rest of the code
+  }
+
   /**
    * Parse URL parameters
    */
@@ -395,19 +423,6 @@ class ProductManager {
       clearFilters.addEventListener("click", () => this.clearAllFilters());
     }
 
-    // Search
-    const searchButton = document.getElementById("searchButton");
-    const searchInput = document.getElementById("searchInput");
-
-    if (searchButton) {
-      searchButton.addEventListener("click", () => this.handleSearch());
-    }
-
-    if (searchInput) {
-      searchInput.addEventListener("keypress", (e) => {
-        if (e.key === "Enter") this.handleSearch();
-      });
-    }
     // Size filter event delegation
     const sizeFiltersContainer = document.getElementById("sizeFilters");
     if (sizeFiltersContainer) {
@@ -514,19 +529,6 @@ class ProductManager {
     this.currentPage = 1;
     await this.loadProducts();
     this.updateUrl();
-  }
-
-  /**
-   * Handle search
-   */
-  async handleSearch() {
-    const searchInput = document.getElementById("searchInput");
-    if (searchInput) {
-      this.currentFilters.search = searchInput.value.trim();
-      this.currentPage = 1;
-      await this.loadProducts();
-      this.updateUrl();
-    }
   }
 
   /**
@@ -648,10 +650,10 @@ class ProductManager {
       })
       .join("");
 
-        container.innerHTML = productsHTML;
-        container.style.display = 'flex';
-        console.log(`✅ Rendered ${products.length} products`);
-    }
+    container.innerHTML = productsHTML;
+    container.style.display = "flex";
+    console.log(`✅ Rendered ${products.length} products`);
+  }
   /**
    * Render pagination
    */
