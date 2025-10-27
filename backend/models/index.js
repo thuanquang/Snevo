@@ -15,6 +15,7 @@ import OrderItem from './OrderItem.js';
 import Payment from './Payment.js';
 import Review from './Review.js';
 import Import from './Import.js';
+import Cart from './Cart.js';
 
 // Initialize models with Supabase client
 let models = {};
@@ -35,7 +36,8 @@ function initializeModels() {
         OrderItem: new OrderItem(),
         Payment: new Payment(),
         Review: new Review(),
-        Import: new Import()
+        Import: new Import(),
+        Cart: new Cart()
     };
 
     console.log('✅ All models initialized with Supabase client');
@@ -67,7 +69,8 @@ export {
     OrderItem,
     Payment,
     Review,
-    Import
+    Import,
+    Cart
 };
 
 // Also export as default for compatibility
@@ -86,6 +89,7 @@ export default {
     OrderItem,
     Payment,
     Review,
-    Import
+    Import,
+    Cart
 };
 

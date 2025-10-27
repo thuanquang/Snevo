@@ -25,6 +25,7 @@ import VariantController from './controllers/VariantController.js';
 import ImportController from './controllers/ImportController.js';
 import PaymentController from './controllers/PaymentController.js';
 import AdminController from './controllers/AdminController.js';
+import CartController from './controllers/CartController.js';
 import authMiddleware from './middleware/auth.js';
 import corsMiddleware from './middleware/cors.js';
 import createSupabaseConfig from '../config/supabase.js';
@@ -63,11 +64,15 @@ class Server {
         this.variantController.setModels(this.models);  
 
         this.orderController = new OrderController(this.models);
+        if (this.orderController.setModels) this.orderController.setModels(this.models);
         this.profileController = new ProfileController(this.models);
         this.addressController = new AddressController(this.models);
         this.importController = new ImportController(this.models);
         this.paymentController = new PaymentController(this.models);
         this.adminController = new AdminController(this.models);
+        this.cartController = new CartController(this.models);
+        // set models for controllers that require setModels (CartController uses models)
+        if (this.cartController.setModels) this.cartController.setModels(this.models);
 
         // Setup routes
         this.setupRoutes();
@@ -196,6 +201,12 @@ class Server {
             return sizeRoutes(req, res, this.sizeController, pathname);
         }
 
+        // Cart routes
+        if (pathname.startsWith('/api/cart')) {
+            await this.handleCartRoutes(req, res, pathname, req.method, body);
+            return;
+        }
+
         // ⭐ BUILT-IN ROUTES (Keep existing handlers)
         // Auth routes for profile management
         if (pathname.startsWith('/api/auth/')) {
@@ -275,6 +286,57 @@ class Server {
         } else {
             this.sendError(res, 'API endpoint not found', 404);
         }
+    }
+
+    // Cart routes handler
+    async handleCartRoutes(req, res, pathname, method, body) {
+        const cartPath = pathname.replace('/api/cart', '');
+
+        // Auth required
+        const authResult = await authMiddleware.authenticate(req, res);
+        if (!authResult || !authResult.success || !authResult.user) {
+            // If not authenticated, auth middleware already wrote response (or we return 401)
+            res.writeHead(401, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: false, message: 'Authentication required' }));
+            return;
+        }
+        req.user = authResult.user;
+
+        if (cartPath === '/' || cartPath === '') {
+            if (method === 'GET') {
+                await this.cartController.getCart(req, res);
+            } else if (method === 'POST') {
+                req.body = body;
+                await this.cartController.addToCart(req, res);
+            } else {
+                this.sendError(res, 'Method not allowed', 405);
+            }
+            return;
+        }
+
+        if (cartPath === '/summary' && method === 'GET') {
+            await this.cartController.getSummary(req, res);
+            return;
+        }
+
+        // /:cart_id
+        if (cartPath.match(/^\/\d+$/)) {
+            const id = cartPath.substring(1);
+            req.params = { cart_id: id };
+            if (method === 'PUT') {
+                req.body = body;
+                await this.cartController.updateCartItem(req, res);
+                return;
+            }
+            if (method === 'DELETE') {
+                await this.cartController.removeCartItem(req, res);
+                return;
+            }
+            this.sendError(res, 'Method not allowed', 405);
+            return;
+        }
+
+        this.sendError(res, 'API endpoint not found', 404);
     }
 
     // Auth routes handler

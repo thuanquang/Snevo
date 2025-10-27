@@ -146,7 +146,8 @@ export const DATABASE_TABLES = {
     ORDER_ITEMS: 'order_items',
     PAYMENTS: 'payments',
     REVIEWS: 'reviews',
-    WISHLISTS: 'wishlists'
+    WISHLISTS: 'wishlists',
+    CARTS: 'carts'
 };
 
 // Table names without schema prefix (for BaseModel constructor)
@@ -164,7 +165,8 @@ export const TABLE_NAMES = {
     ORDER_ITEMS: 'order_items',
     PAYMENTS: 'payments',
     REVIEWS: 'reviews',
-    WISHLISTS: 'wishlists'
+    WISHLISTS: 'wishlists',
+    CARTS: 'carts'
 };
 
 export const ERROR_MESSAGES = {

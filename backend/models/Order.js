@@ -2,6 +2,9 @@
 // Handles order data management
 
 import BaseModel from '../utils/BaseModel.js';
+import createSupabaseConfig from '../../config/supabase.js';
+
+const supabaseConfig = createSupabaseConfig();
 
 class Order extends BaseModel {
     constructor() {
@@ -10,8 +13,13 @@ class Order extends BaseModel {
 
     // Get orders by user ID
     async findByUserId(userId) {
-        // TODO: Implement find by user ID logic
-        throw new Error('Find by user ID method not implemented');
+        const { data, error } = await supabaseConfig.getAdminClient()
+            .from(this.tableName)
+            .select('*')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false });
+        if (error) throw new Error(`Failed to fetch orders: ${error.message}`);
+        return data || [];
     }
 
     // Get orders by status
@@ -22,20 +30,47 @@ class Order extends BaseModel {
 
     // Get order with items
     async findWithItems(orderId) {
-        // TODO: Implement find with items logic
-        throw new Error('Find with items method not implemented');
+        const { data, error } = await supabaseConfig.getAdminClient()
+            .from(this.tableName)
+            .select(`
+                *,
+                order_items (*),
+                addresses (* )
+            `)
+            .eq(this.primaryKey, orderId)
+            .single();
+        if (error) throw new Error(`Failed to fetch order: ${error.message}`);
+        return data;
     }
 
     // Update order status
     async updateStatus(orderId, status) {
-        // TODO: Implement update status logic
-        throw new Error('Update status method not implemented');
+        const { data, error } = await supabaseConfig.getAdminClient()
+            .from(this.tableName)
+            .update({ status, updated_at: new Date().toISOString() })
+            .eq(this.primaryKey, orderId)
+            .select()
+            .single();
+        if (error) throw new Error(`Failed to update order: ${error.message}`);
+        return data;
     }
 
     // Calculate total amount
     async calculateTotal(orderId) {
-        // TODO: Implement calculate total logic
-        throw new Error('Calculate total method not implemented');
+        const order = await this.findWithItems(orderId);
+        const subtotal = (order.order_items || []).reduce((s, it) => s + Number(it.price_per_unit) * it.quantity, 0);
+        return subtotal + Number(order.shipping_cost || 0) + Number(order.tax_amount || 0);
+    }
+
+    // Create order with required fields
+    async createOrder({ user_id, address_id, total_amount, shipping_cost = 0, tax_amount = 0, notes = null }) {
+        const { data, error } = await supabaseConfig.getAdminClient()
+            .from(this.tableName)
+            .insert([{ user_id, address_id, total_amount, shipping_cost, tax_amount, notes }])
+            .select()
+            .single();
+        if (error) throw new Error(`Failed to create order: ${error.message}`);
+        return data;
     }
 }
 

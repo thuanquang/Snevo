@@ -29,6 +29,9 @@ class ApiClient {
             const token = this.getAuthToken();
             if (token) {
                 config.headers['Authorization'] = `Bearer ${token}`;
+                console.log('🔐 Auth token added to request:', token.substring(0, 20) + '...');
+            } else {
+                console.warn('⚠️ No auth token found in localStorage');
             }
             return config;
         });
@@ -39,6 +42,7 @@ class ApiClient {
             (error) => {
                 // Handle common errors
                 if (error.status === 401) {
+                    console.error('❌ 401 Unauthorized - Token invalid or expired');
                     this.handleUnauthorized();
                 } else if (error.status === 403) {
                     this.handleForbidden(error);
@@ -283,7 +287,84 @@ class ApiClient {
      * Get authentication token
      */
     getAuthToken() {
-        return localStorage.getItem('auth_token');
+        // DEBUG: Log all localStorage keys (commented out to reduce spam)
+        // console.log('🔍 DEBUG: All localStorage keys:');
+        // for (let i = 0; i < localStorage.length; i++) {
+        //     const key = localStorage.key(i);
+        //     const value = localStorage.getItem(key);
+        //     console.log(`  - ${key}:`, value?.substring(0, 50) + (value?.length > 50 ? '...' : ''));
+        // }
+        
+        // First try to get token from custom storage (if manually set)
+        let token = localStorage.getItem('auth_token');
+        if (token) {
+            console.log('🔐 Using custom auth_token from localStorage');
+            return token;
+        }
+        
+        // Check for Supabase's dynamic project-specific token key (sb-{projectId}-auth-token)
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key?.startsWith('sb-') && key?.endsWith('-auth-token')) {
+                try {
+                    const sessionData = JSON.parse(localStorage.getItem(key));
+                    if (sessionData?.access_token) {
+                        console.log('🔐 Using Supabase access_token from dynamic key');
+                        return sessionData.access_token;
+                    }
+                    // Also try provider_token if access_token doesn't exist
+                    if (sessionData?.provider_token) {
+                        console.log('🔐 Using Supabase provider_token from dynamic key');
+                        return sessionData.provider_token;
+                    }
+                } catch (e) {
+                    console.warn('⚠️ Could not parse token from', key, ':', e);
+                }
+            }
+        }
+        
+        // Fall back to standard Supabase's auth token
+        const supabaseSession = localStorage.getItem('supabase.auth.token');
+        if (supabaseSession) {
+            try {
+                const sessionData = JSON.parse(supabaseSession);
+                if (sessionData?.access_token) {
+                    console.log('🔐 Using Supabase session token from localStorage');
+                    return sessionData.access_token;
+                }
+            } catch (e) {
+                console.warn('⚠️ Could not parse supabase.auth.token:', e);
+            }
+        }
+        
+        // Try to get from global Supabase client if available
+        if (window.supabase?.auth) {
+            try {
+                const session = window.supabase.auth.session?.();
+                if (session?.access_token) {
+                    console.log('🔐 Using token from window.supabase.auth.session()');
+                    return session.access_token;
+                }
+            } catch (e) {
+                console.warn('⚠️ Could not get token from window.supabase:', e);
+            }
+        }
+        
+        // Also check AuthService if available
+        if (window.authService?.supabase?.auth) {
+            try {
+                const session = window.authService.supabase.auth.session?.();
+                if (session?.access_token) {
+                    console.log('🔐 Using Supabase client session token');
+                    return session.access_token;
+                }
+            } catch (e) {
+                console.warn('⚠️ Could not get token from authService:', e);
+            }
+        }
+        
+        console.warn('⚠️ No auth token found in any storage location');
+        return null;
     }
 
     /**
@@ -643,6 +724,38 @@ class OrdersAPI {
     }
 }
 
+// Cart API
+class CartAPI {
+    constructor(client) {
+        this.client = client;
+    }
+
+    async getCart() {
+        const response = await this.client.get('/api/cart');
+        return response.data;
+    }
+
+    async getSummary() {
+        const response = await this.client.get('/api/cart/summary');
+        return response.data;
+    }
+
+    async addItem({ variant_id, quantity = 1 }) {
+        const response = await this.client.post('/api/cart', { variant_id, quantity });
+        return response.data;
+    }
+
+    async updateItem(cart_id, payload) {
+        const response = await this.client.put(`/api/cart/${cart_id}`, payload);
+        return response.data;
+    }
+
+    async removeItem(cart_id) {
+        const response = await this.client.delete(`/api/cart/${cart_id}`);
+        return response.data;
+    }
+}
+
 // Users API
 class UsersAPI {
     constructor(client) {
@@ -675,6 +788,7 @@ const authAPI = new AuthAPI(apiClient);
 const productsAPI = new ProductsAPI(apiClient);
 const ordersAPI = new OrdersAPI(apiClient);
 const usersAPI = new UsersAPI(apiClient);
+const cartAPI = new CartAPI(apiClient);
 
 // Export for global use
 window.ApiClient = ApiClient;
@@ -683,6 +797,7 @@ window.authAPI = authAPI;
 window.productsAPI = productsAPI;
 window.ordersAPI = ordersAPI;
 window.usersAPI = usersAPI;
+window.cartAPI = cartAPI;
 
 
 
