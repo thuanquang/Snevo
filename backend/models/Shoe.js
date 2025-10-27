@@ -340,6 +340,25 @@ class Shoe extends BaseModel {
       pagination
     );
   }
+
+  // Get total count of active products
+  async countAll() {
+    try {
+      const { count, error } = await supabaseConfig
+        .getAdminClient()
+        .from(this.tableName)
+        .select('*', { count: 'exact', head: true });
+
+      if (error) {
+        console.error("Error counting products:", error);
+        return 0;
+      }
+      return count || 0;
+    } catch (err) {
+      console.error("Error counting products:", err);
+      return 0;
+    }
+  }
 }
 
 export default Shoe;
