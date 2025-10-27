@@ -779,7 +779,44 @@ async getAllShoesWithDeletedVariants() {
   }
 }
 
+  // Get total count of variants (admin helper)
+  async countAll() {
+    try {
+      const { count, error } = await supabaseConfig
+        .getAdminClient()
+        .from(this.tableName)
+        .select('*', { count: 'exact', head: true });
 
+      if (error) {
+        console.error("Error counting variants:", error);
+        return 0;
+      }
+      return count || 0;
+    } catch (err) {
+      console.error("Error counting variants:", err);
+      return 0;
+    }
+  }
+
+  // Get count of low stock variants (admin helper)
+  async getLowStockCount(threshold = 10) {
+    try {
+      const { count, error } = await supabaseConfig
+        .getAdminClient()
+        .from(this.tableName)
+        .select('*', { count: 'exact', head: true })
+        .lt('stock_quantity', threshold);
+
+      if (error) {
+        console.error("Error counting low stock:", error);
+        return 0;
+      }
+      return count || 0;
+    } catch (err) {
+      console.error("Error counting low stock:", err);
+      return 0;
+    }
+  }
 }
 // Export CLASS - OOP standard
 export default ShoeVariant;

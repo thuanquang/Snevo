@@ -38,6 +38,7 @@ import categoryRoutes from './routes/categories.js';
 import colorRoutes from './routes/colors.js';
 import sizeRoutes from './routes/sizes.js';
 import importRoutes from './routes/imports.js';
+import adminRoutes from './routes/admin.js';
 
 class Server {
     constructor() {
@@ -230,7 +231,7 @@ class Server {
             await this.handlePaymentRoutes(req, res, pathname, req.method, body);
         } else if (pathname.startsWith('/api/reviews/')) {
             await this.handleReviewRoutes(req, res, pathname, req.method, body);
-        } else if (pathname.startsWith('/api/admin/')) {
+        } else if (pathname === '/api/admin' || pathname.startsWith('/api/admin/')) {
             await this.handleAdminRoutes(req, res, pathname, req.method, body);
         } else {
             this.sendError(res, 'API endpoint not found', 404);
@@ -472,24 +473,7 @@ class Server {
 
     // Admin routes handler
     async handleAdminRoutes(req, res, pathname, method, body) {
-        const adminPath = pathname.replace('/api/admin', '');
-
-        // Check authentication for protected routes
-        const authResult = await authMiddleware.authenticate(req, res);
-        if (!authResult || !authResult.success) {
-            return;
-        }
-        req.user = authResult.user;
-
-        if (adminPath === '/' || adminPath === '') {
-            if (method === 'GET') {
-                await this.adminController.getDashboard(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else {
-            this.sendError(res, 'API endpoint not found', 404);
-        }
+        return adminRoutes(req, res, this.adminController, pathname, this.sendError.bind(this));
     }
 
     // Start the server

@@ -133,6 +133,44 @@ class AdminCore {
     }
     
     /**
+     * Load dashboard data from admin API
+     */
+    async loadDashboardData() {
+        try {
+            console.log("📊 Loading dashboard data...");
+
+            // Wait for AdminAPI to be available
+            if (!window.AdminAPI) {
+                console.warn("⚠️ AdminAPI not available yet");
+                return null;
+            }
+
+            // Create instance if not exists
+            if (!this.adminAPI) {
+                this.adminAPI = new window.AdminAPI(this.api.client);
+            }
+
+            // Fetch dashboard data
+            const dashboardData = await this.adminAPI.getDashboard();
+
+            console.log("✅ Dashboard data loaded:", dashboardData);
+            return dashboardData;
+
+        } catch (error) {
+            console.error("❌ Error loading dashboard:", error);
+            return null;
+        }
+    }
+
+    /**
+     * Store dashboard data in state
+     */
+    updateDashboardState(data) {
+        this.dashboardData = data;
+        console.log("✅ Dashboard state updated");
+    }
+    
+    /**
      * Update statistics display
      */
     updateStats() {
