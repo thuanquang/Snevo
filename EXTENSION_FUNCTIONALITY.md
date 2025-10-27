@@ -763,3 +763,173 @@ DELETE /api/reviews/:id
 - **Environment**: Separate dev/staging/production configs via .env files
 - **Build Process**: `npm run build` creates production-ready files
 
+## ADMIN DASHBOARD ENDPOINTS (Oct 2025 - Complete Implementation)
+✅ IMPLEMENTED: Full admin dashboard with data aggregation and joins
+
+**Implementation Overview:**
+
+The admin dashboard (`/api/admin/`) provides aggregated statistics and recent activity data with joined information from related tables.
+
+**Backend Endpoints** (`backend/controllers/AdminController.js`):
+
+1. **GET /api/admin/** - Dashboard Overview
+   - Returns aggregated data in single request
+   - Combines: summary (totals), stats (counts), recentActivity (orders + products)
+   - Joins profiles table to get username and avatar_url for recent orders
+   - Joins shoes table to get shoe details for top-selling products
+
+2. **GET /api/admin/statistics** - Detailed Statistics (Stub - Coming Soon)
+
+3. **GET /api/admin/users** - User Management (Stub - Coming Soon)
+
+4. **GET /api/admin/inventory** - Inventory Stats (Stub - Coming Soon)
+
+5. **GET /api/admin/orders** - Order Management (Stub - Coming Soon)
+
+**Key Database Joins:**
+
+1. **Recent Orders Query** (lines 120-149):
+   ```sql
+   SELECT orders.*, profiles.username, profiles.avatar_url
+   FROM orders
+   LEFT JOIN profiles ON orders.user_id = profiles.user_id
+   ORDER BY orders.created_at DESC
+   LIMIT 5
+   ```
+   - Gets order info WITH customer username and avatar
+   - Displays customer profile picture in dashboard
+
+2. **Top Selling Products Query** (lines 151-200):
+   ```sql
+   SELECT order_items.quantity, 
+          shoes.shoe_id, shoes.shoe_name, shoes.image_url
+   FROM order_items
+   INNER JOIN shoe_variants ON order_items.variant_id = shoe_variants.variant_id
+   INNER JOIN shoes ON shoe_variants.shoe_id = shoes.shoe_id
+   ORDER BY order_items.quantity DESC
+   LIMIT 5
+   ```
+   - Joins order_items → shoe_variants → shoes
+   - Aggregates sales by product
+   - Returns shoe picture, name, and sales count
+
+**Dashboard Response Structure:**
+
+```javascript
+{
+  success: true,
+  data: {
+    summary: {
+      totalProducts: 45,
+      totalOrders: 128,
+      lowStockItems: 5,
+      totalRevenue: "15234.50"
+    },
+    stats: {
+      activeCategories: 8,
+      totalVariants: 342,
+      pendingOrders: 12
+    },
+    recentActivity: {
+      recentOrders: [
+        {
+          order_id: "ORD001",
+          user_id: "uuid",
+          total_amount: 129.99,
+          order_status: "delivered",
+          created_at: "2025-01-15T10:30:00Z",
+          username: "john_doe",
+          avatar_url: "https://..."
+        }
+      ],
+      topSellingProducts: [
+        {
+          shoe_id: 1,
+          shoe_name: "Nike Air Force 1",
+          image_url: "https://...",
+          salesCount: 45
+        }
+      ]
+    }
+  }
+}
+```
+
+**Frontend Integration:**
+
+1. **AdminAPI.js** - API wrapper class
+   - `getDashboard()` - Fetches dashboard data
+   - `getStatistics()` - Gets stats data
+   - Error handling and fallback defaults
+
+2. **AdminCore.js** - Data management
+   - `loadDashboardData()` - Calls AdminAPI
+   - Stores data in state
+
+3. **AdminManager.js** - UI rendering
+   - `loadDashboard()` - Fetches and triggers render
+   - `renderDashboard()` - Generates HTML with data
+   - `renderRecentOrders()` - Displays orders with avatars
+   - `renderTopSellingProducts()` - Shows product cards with images
+   - `getStatusBadgeClass()` - Color-codes order statuses
+
+4. **admin.html** - Dashboard display
+   - Summary cards (4 columns)
+   - Statistics list (3 items)
+   - Recent orders table with customer avatars
+   - Top selling products gallery (3 columns)
+
+**Files Modified:**
+- `backend/controllers/AdminController.js`: Implemented all dashboard methods with joins
+- `frontend/assets/js/admin/AdminAPI.js`: Created new API wrapper
+- `frontend/assets/js/admin/AdminCore.js`: Added loadDashboardData()
+- `frontend/assets/js/admin/AdminManager.js`: Added loadDashboard(), renderDashboard(), helper methods
+- `frontend/pages/admin.html`: Added AdminAPI script, updated dashboard HTML
+- `backend/server.js`: Already has handleAdminRoutes() wired correctly
+
+**Key Learning Concepts:**
+
+1. **Database Joins**: Using Supabase `.select()` with nested relations
+   - `profiles:user_id ()` - Left join to get customer info
+   - `shoe_variants!inner () → shoes!inner ()` - Inner joins for product data
+
+2. **Data Aggregation**: Map/reduce pattern to combine sales by product
+   ```javascript
+   const productMap = new Map();
+   data.forEach(item => {
+     // Aggregate by shoe_id
+   });
+   Array.from(productMap.values()).sort(...);
+   ```
+
+3. **API Wrapper Pattern**: Single class handles all admin API calls
+   - Consistent error handling
+   - Centralized endpoint management
+   - Easy to extend with new methods
+
+4. **Async/Await Flow**: Parallel data loading
+   ```javascript
+   await Promise.all([
+     this.core.loadShoes(),
+     this.core.loadCategories(),
+     this.loadDashboard()
+   ]);
+   ```
+
+5. **Template Literals**: Dynamic HTML generation
+   - Embed data directly in strings
+   - Map arrays to HTML rows/cards
+   - Conditional rendering (avatar vs icon)
+
+**Testing:**
+- Backend: Verify `/api/admin/` returns proper data
+- Frontend: Check browser console for successful API calls
+- Dashboard: Verify cards, tables, and product cards render correctly
+- Avatar display: Check if user avatars show in recent orders table
+
+**Performance Notes:**
+- All queries use `count: 'exact'` with `head: true` for efficiency
+- Limits set on queries to reduce data transfer
+- No N+1 queries due to proper joins
+- Avatar images lazy-loaded with fallback icons
+

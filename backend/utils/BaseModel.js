@@ -31,6 +31,13 @@ export default class BaseModel {
     }
 
     /**
+     * Get Supabase admin client
+     */
+    get supabase() {
+        return this.supabaseConfig.getAdminClient();
+    }
+
+    /**
      * Validate data against defined rules
      */
     validate(data, rules = null) {

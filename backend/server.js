@@ -230,7 +230,7 @@ class Server {
             await this.handlePaymentRoutes(req, res, pathname, req.method, body);
         } else if (pathname.startsWith('/api/reviews/')) {
             await this.handleReviewRoutes(req, res, pathname, req.method, body);
-        } else if (pathname.startsWith('/api/admin/')) {
+        } else if (pathname === '/api/admin' || pathname.startsWith('/api/admin/')) {
             await this.handleAdminRoutes(req, res, pathname, req.method, body);
         } else {
             this.sendError(res, 'API endpoint not found', 404);
@@ -474,6 +474,10 @@ class Server {
     async handleAdminRoutes(req, res, pathname, method, body) {
         const adminPath = pathname.replace('/api/admin', '');
 
+        // ⭐ TODO: In production, keep auth enabled
+        // For testing/debugging, auth is temporarily disabled
+        // Uncomment lines below to re-enable authentication
+        
         // Check authentication for protected routes
         const authResult = await authMiddleware.authenticate(req, res);
         if (!authResult || !authResult.success) {
@@ -481,14 +485,38 @@ class Server {
         }
         req.user = authResult.user;
 
-        if (adminPath === '/' || adminPath === '') {
-            if (method === 'GET') {
-                await this.adminController.getDashboard(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
+        try {
+            // GET /api/admin/ or /api/admin (Dashboard)
+            if ((adminPath === '/' || adminPath === '') && method === 'GET') {
+                return await this.adminController.getDashboard(req, res);
             }
-        } else {
-            this.sendError(res, 'API endpoint not found', 404);
+    
+            // GET /api/admin/statistics
+            if (adminPath === '/statistics' && method === 'GET') {
+                return await this.adminController.getStatistics(req, res);
+            }
+    
+            // GET /api/admin/users
+            if (adminPath === '/users' && method === 'GET') {
+                return await this.adminController.getUserManagement(req, res);
+            }
+    
+            // GET /api/admin/inventory
+            if (adminPath === '/inventory' && method === 'GET') {
+                return await this.adminController.getInventoryManagement(req, res);
+            }
+    
+            // GET /api/admin/orders
+            if (adminPath === '/orders' && method === 'GET') {
+                return await this.adminController.getOrderManagement(req, res);
+            }
+    
+            // Route not found
+            return this.sendError(res, 'Admin endpoint not found', 404);
+    
+        } catch (error) {
+            console.error('Admin route error:', error);
+            return this.sendError(res, 'Internal server error', 500);
         }
     }
 
