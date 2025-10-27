@@ -58,6 +58,7 @@
 #navbarRoot.navbar-scrolled .navbar {
   background-color: rgba(255, 255, 255, 0.35) !important;
   backdrop-filter: blur(5px) !important;
+  transition: 0.3s ease-in-out !important;
 }
 
 #navbarRoot.navbar-scrolled .navbar-brand,
@@ -114,12 +115,12 @@ header {
 
 .input:focus {
   width: 200px;
-  height: 20px;
+  height: 23px;
   border-radius: 40px;
   padding: 0 20px;
   line-height: 2em;
   font-weight: 100;
-  font-size: 10px;
+  font-size: 13px;
   cursor: auto;
 }
 
@@ -141,7 +142,6 @@ header {
 
 .close span {
   width: 3px;
-  height: 20px;
   border-radius: 2px;
   background: black;
   display: inline-block;
@@ -149,8 +149,8 @@ header {
 
 .front {
   position: absolute;
-  right: 16px;
-  top: 7px;
+  right: 16px !important;
+  top: 8px !important;
   transform: rotate(-45deg);
   opacity: 0;
   animation-delay: 2s;
@@ -173,8 +173,8 @@ header {
 
 input:focus + div .front {
   opacity: 1;
-  height: 8px;
-  width: 1.5px;
+  height: 8px !important;
+  width: 1.5px !important;
   -webkit-transition-delay: 0.2s;
   -moz-transition-delay: 0.2s;
   transition-delay: 0.2s;
@@ -184,7 +184,6 @@ input:focus + div .front {
 }
 
 input:focus + div .back {
-  right: 16px;
-  top: 7px;
+  right: 16px !important;
+  top: 8px !important;
 }
-
