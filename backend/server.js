@@ -38,6 +38,7 @@ import categoryRoutes from './routes/categories.js';
 import colorRoutes from './routes/colors.js';
 import sizeRoutes from './routes/sizes.js';
 import importRoutes from './routes/imports.js';
+import adminRoutes from './routes/admin.js';
 
 class Server {
     constructor() {
@@ -472,52 +473,7 @@ class Server {
 
     // Admin routes handler
     async handleAdminRoutes(req, res, pathname, method, body) {
-        const adminPath = pathname.replace('/api/admin', '');
-
-        // ⭐ TODO: In production, keep auth enabled
-        // For testing/debugging, auth is temporarily disabled
-        // Uncomment lines below to re-enable authentication
-        
-        // Check authentication for protected routes
-        const authResult = await authMiddleware.authenticate(req, res);
-        if (!authResult || !authResult.success) {
-            return;
-        }
-        req.user = authResult.user;
-
-        try {
-            // GET /api/admin/ or /api/admin (Dashboard)
-            if ((adminPath === '/' || adminPath === '') && method === 'GET') {
-                return await this.adminController.getDashboard(req, res);
-            }
-    
-            // GET /api/admin/statistics
-            if (adminPath === '/statistics' && method === 'GET') {
-                return await this.adminController.getStatistics(req, res);
-            }
-    
-            // GET /api/admin/users
-            if (adminPath === '/users' && method === 'GET') {
-                return await this.adminController.getUserManagement(req, res);
-            }
-    
-            // GET /api/admin/inventory
-            if (adminPath === '/inventory' && method === 'GET') {
-                return await this.adminController.getInventoryManagement(req, res);
-            }
-    
-            // GET /api/admin/orders
-            if (adminPath === '/orders' && method === 'GET') {
-                return await this.adminController.getOrderManagement(req, res);
-            }
-    
-            // Route not found
-            return this.sendError(res, 'Admin endpoint not found', 404);
-    
-        } catch (error) {
-            console.error('Admin route error:', error);
-            return this.sendError(res, 'Internal server error', 500);
-        }
+        return adminRoutes(req, res, this.adminController, pathname, this.sendError.bind(this));
     }
 
     // Start the server

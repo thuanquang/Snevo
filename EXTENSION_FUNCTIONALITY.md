@@ -933,3 +933,51 @@ The admin dashboard (`/api/admin/`) provides aggregated statistics and recent ac
 - No N+1 queries due to proper joins
 - Avatar images lazy-loaded with fallback icons
 
+Admin Routes Refactoring (Oct 2025)
+-----------------------------------
+✅ COMPLETED: Extracted admin route handlers from server.js into dedicated routes/admin.js file
+
+**Objectives:**
+- Better code organization and maintainability
+- Follow modular routes pattern consistent with other routes (products, variants, categories, etc.)
+- Reduce server.js file complexity
+- Prepare for future admin endpoint expansion
+
+**Implementation Details:**
+
+1. **New File** (`backend/routes/admin.js`):
+   - Exported default function `handleAdminRoutes(req, res, adminController, pathname, sendError)`
+   - Handles all `/api/admin/*` endpoints
+   - Includes authentication middleware check
+   - Manages 5 endpoints:
+     - GET /api/admin/ → adminController.getDashboard()
+     - GET /api/admin/statistics → adminController.getStatistics()
+     - GET /api/admin/users → adminController.getUserManagement()
+     - GET /api/admin/inventory → adminController.getInventoryManagement()
+     - GET /api/admin/orders → adminController.getOrderManagement()
+   - Centralized error handling for admin routes
+
+2. **Updated** (`backend/server.js`):
+   - Added import statement: `import adminRoutes from './routes/admin.js'`
+   - Simplified handleAdminRoutes() method to delegate to new module
+   - Maintains same calling convention for backward compatibility
+   - Binds sendError method to preserve this context
+
+3. **Benefits:**
+   - ✅ Follows established modular routes pattern
+   - ✅ Reduces server.js by ~50 lines (473-521)
+   - ✅ Easier to extend admin endpoints in future
+   - ✅ Better code organization and readability
+   - ✅ Clearer separation of concerns
+   - ✅ All admin logic now in dedicated file
+
+**Files Modified:**
+- `backend/routes/admin.js`: NEW - Contains all admin route handlers
+- `backend/server.js`: Updated import and handleAdminRoutes delegation
+
+**Backward Compatibility:**
+- ✅ No API changes - all endpoints work identically
+- ✅ No frontend changes needed
+- ✅ No database changes
+- ✅ All admin controller methods remain unchanged
+
