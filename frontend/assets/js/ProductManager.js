@@ -368,7 +368,7 @@ class ProductManager {
   setupEventListeners() {
     console.log("🎯 Setting up event listeners...");
 
-    // ✅ COLOR FILTER - Event Delegation (NEW)
+    // COLOR FILTER - Event Delegation
     const colorContainer = document.getElementById("colorFilters");
     if (colorContainer) {
       colorContainer.addEventListener("click", (e) => {
@@ -383,72 +383,86 @@ class ProductManager {
       console.log("✅ Color filter event listener attached");
     }
 
-    // ✅ SIZE FILTER - Event Delegation (EXISTING - KEEP)
-    const sizeContainer = document.getElementById("sizeFilters");
-    if (sizeContainer) {
-      sizeContainer.addEventListener("click", (e) => {
-        const sizeOption = e.target.closest(".size-option");
-        if (sizeOption) {
-          const sizeId = parseInt(sizeOption.dataset.sizeId);
-          if (!isNaN(sizeId)) {
-            this.toggleSizeFilter(sizeId);
+    document
+      .querySelectorAll('#categoryFilters input[type="checkbox"]')
+      .forEach((checkbox) => {
+        checkbox.addEventListener("change", () => this.handleFilterChange());
+      });
+
+    document
+      .querySelectorAll('#brandFilters input[type="checkbox"]')
+      .forEach((checkbox) => {
+        checkbox.addEventListener("change", () => this.handleFilterChange());
+      });
+
+    document.querySelectorAll(".size-btn input").forEach((checkbox) => {
+      checkbox.addEventListener("change", () => this.handleFilterChange());
+    });
+
+    document.querySelectorAll(".color-option").forEach((option) => {
+      option.addEventListener("click", (e) => this.handleColorFilter(e));
+    });
+
+    // Price range
+    const priceRange = document.getElementById("priceRange");
+    if (priceRange) {
+      priceRange.addEventListener("input", (e) =>
+        this.handlePriceRangeChange(e)
+      );
+    }
+
+    const minPrice = document.getElementById("minPrice");
+    const maxPrice = document.getElementById("maxPrice");
+    if (minPrice)
+      minPrice.addEventListener("change", () => this.handlePriceInputChange());
+    if (maxPrice)
+      maxPrice.addEventListener("change", () => this.handlePriceInputChange());
+
+    // Sort change
+    const sortSelect = document.getElementById("sortSelect");
+    if (sortSelect) {
+      sortSelect.addEventListener("change", (e) => this.handleSortChange(e));
+    }
+
+    // View toggle
+    const gridView = document.getElementById("gridView");
+    const listView = document.getElementById("listView");
+    if (gridView)
+      gridView.addEventListener("click", () => this.setView("grid"));
+    if (listView)
+      listView.addEventListener("click", () => this.setView("list"));
+
+    // Clear filters
+    const clearFilters = document.getElementById("clearFilters");
+    if (clearFilters) {
+      clearFilters.addEventListener("click", () => this.clearAllFilters());
+    }
+
+    // Size filter event delegation
+    const sizeFiltersContainer = document.getElementById("sizeFilters");
+    if (sizeFiltersContainer) {
+      sizeFiltersContainer.addEventListener("click", (e) => {
+        const sizeBtn = e.target.closest(".size-option");
+        if (sizeBtn) {
+          const sizeId = parseInt(sizeBtn.dataset.sizeId);
+          this.toggleSizeFilter(sizeId);
+        }
+      });
+    }
+    // ⭐ Product card click handler
+    const productsGrid = document.getElementById("productsGrid");
+    if (productsGrid) {
+      productsGrid.addEventListener("click", (e) => {
+        const productCard = e.target.closest(".product-card");
+        if (productCard) {
+          const productId = productCard.dataset.productId;
+          if (productId) {
+            window.location.href = `product-detail.html?id=${productId}`;
           }
         }
       });
-      console.log("✅ Size filter event listener attached");
-    }
-
-    // EXISTING: Category filter
-    document.querySelectorAll(".category-filter").forEach((filter) => {
-      filter.addEventListener("click", (e) => {
-        e.preventDefault();
-        const categoryId = parseInt(filter.dataset.category);
-        this.toggleCategoryFilter(categoryId);
-      });
-    });
-
-    // EXISTING: Sort dropdown
-    const sortSelect = document.getElementById("sortSelect");
-    if (sortSelect) {
-      sortSelect.addEventListener("change", (e) => {
-        this.currentSort = e.target.value;
-        this.currentPage = 1;
-        this.loadProducts();
-      });
-    }
-
-    // EXISTING: Clear filters
-    const clearFilters = document.getElementById("clearFilters");
-    if (clearFilters) {
-      clearFilters.addEventListener("click", () => this.clearFilters());
-    }
-
-    // EXISTING: Search
-    const searchInput = document.getElementById("searchInput");
-    const searchBtn = document.getElementById("searchBtn");
-    if (searchInput && searchBtn) {
-      searchBtn.addEventListener("click", () => {
-        this.currentFilters.search = searchInput.value.trim() || null;
-        this.currentPage = 1;
-        this.loadProducts();
-      });
-
-      searchInput.addEventListener("keypress", (e) => {
-        if (e.key === "Enter") {
-          this.currentFilters.search = searchInput.value.trim() || null;
-          this.currentPage = 1;
-          this.loadProducts();
-        }
-      });
-    }
-
-    // EXISTING: Price filter
-    const applyPriceBtn = document.getElementById("applyPriceFilter");
-    if (applyPriceBtn) {
-      applyPriceBtn.addEventListener("click", () => this.applyPriceFilter());
     }
   }
-
 
   /**
    * Handle filter change
