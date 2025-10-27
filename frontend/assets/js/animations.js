@@ -142,11 +142,6 @@ class AnimationController {
      * Setup hover animations
      */
     setupHoverAnimations() {
-        // Product cards hover effects
-        const productCards = document.querySelectorAll('.product-card');
-        productCards.forEach(card => {
-            this.setupProductCardAnimation(card);
-        });
 
         // Category cards hover effects
         const categoryCards = document.querySelectorAll('.category-card');
