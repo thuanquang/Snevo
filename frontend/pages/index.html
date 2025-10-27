@@ -1,313 +1,412 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Home - Snevo</title>
-    
+
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
     <!-- Custom CSS -->
-    <link href="../assets/css/main.css" rel="stylesheet">
-    <link href="../assets/css/animations.css" rel="stylesheet">
-    <link href="../assets/css/carousel.css" rel="stylesheet">
-    <link href="../assets/css/responsive.css" rel="stylesheet">
-    
+    <link href="../assets/css/main.css" rel="stylesheet" />
+    <link href="../assets/css/navbar.css" rel="stylesheet" />
+    <link href="../assets/css/footer.css" rel="stylesheet" />
+    <link href="../assets/css/animations.css" rel="stylesheet" />
+    <link href="../assets/css/carousel.css" rel="stylesheet" />
+    <link href="../assets/css/responsive.css" rel="stylesheet" />
+
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@400;700&display=swap" rel="stylesheet">
-    
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="../assets/images/favicon.ico">
-</head>
-<body>
+    <link rel="icon" type="image/x-icon" href="../assets/images/favicon.ico" />
+  </head>
+  <body>
     <!-- Unified Navbar Root -->
     <div id="navbarRoot" data-navbar-page="home"></div>
 
     <!-- Hero Section -->
     <section class="hero-section">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-lg-6">
-                    <div class="hero-content">
-                        <h1>Find Your Soul Mate With Us</h1>
-                        <p>Everything you want, we all have at Snevo</p>
-                        <div class="hero-actions">
-                            <a href="products.html" class="btn">Shop Now</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-6 hero-image-wrapper">
-                    <div class="hero-image text-end ">
-                        <div class="hero-vertical-text">ULTIMATE</div>
-                        <img src="../assets/images/ui/hero_image.svg" alt="Hero Image" class="w-100 h-auto">
-                    </div>
-                </div>
+      <div class="container">
+        <div class="row align-items-center">
+          <div class="col-lg-6">
+            <div class="hero-content">
+              <h1>Find Your Soul Mate With Us</h1>
+              <p>Everything you want, we all have at Snevo</p>
+              <div class="hero-actions">
+                <a href="products.html" class="btn">Shop Now</a>
+              </div>
             </div>
+          </div>
+          <div class="col-lg-6 hero-image-wrapper">
+            <div class="hero-image text-end">
+              <div class="hero-vertical-text">ULTIMATE</div>
+              <img
+                src="../assets/images/ui/hero_image.svg"
+                alt="Hero Image"
+                class="w-100 h-auto"
+              />
+            </div>
+          </div>
         </div>
+      </div>
     </section>
 
     <!-- Brand Carousel -->
     <section class="brand-carousel">
-        <div class="container">
-            <div class="brands-slider">
-                <div class="brand-item">
-                    <img src="../assets/images/ui/amazon.svg" alt="Amazon" class="height-200">
-                </div>
-                <div class="brand-item">
-                    <img src="../assets/images/ui/ajio.svg" alt="Ajio" class="height-40">
-                </div>
-                <div class="brand-item">
-                    <img src="../assets/images/ui/ebay.svg" alt="Ebay" class="height-150">
-                </div>
-                <div class="brand-item">
-                    <img src="../assets/images/ui/amazon_new.svg" alt="Puma" class="height-200">
-                </div>
-                <div class="brand-item">
-                    <img src="../assets/images/ui/ajio_new.svg" alt="Reebok" class="height-40">
-                </div>
-                <div class="brand-item">
-                    <img src="../assets/images/ui/ebay.svg" alt="New Balance" class="height-150">
-                </div>
-            </div>
+      <div class="container">
+        <div class="brands-slider">
+          <div class="brand-item">
+            <img
+              src="../assets/images/ui/amazon.svg"
+              alt="Amazon"
+              class="height-200"
+            />
+          </div>
+          <div class="brand-item">
+            <img
+              src="../assets/images/ui/ajio.svg"
+              alt="Ajio"
+              class="height-40"
+            />
+          </div>
+          <div class="brand-item">
+            <img
+              src="../assets/images/ui/ebay.svg"
+              alt="Ebay"
+              class="height-150"
+            />
+          </div>
+          <div class="brand-item">
+            <img
+              src="../assets/images/ui/amazon_new.svg"
+              alt="Puma"
+              class="height-200"
+            />
+          </div>
+          <div class="brand-item">
+            <img
+              src="../assets/images/ui/ajio_new.svg"
+              alt="Reebok"
+              class="height-40"
+            />
+          </div>
+          <div class="brand-item">
+            <img
+              src="../assets/images/ui/ebay.svg"
+              alt="New Balance"
+              class="height-150"
+            />
+          </div>
         </div>
+      </div>
     </section>
 
-        </main>
-
     <!-- Shop by Sport Section -->
-    <!-- Carousel Slider Example (radio + label logic only) -->
-    <section id="slider" class="sport-carousel">
-        <h2 class="sport-carousel-heading">- Shop By Sports -</h2>
-        <input type="radio" name="slider" id="s1">
-        <input type="radio" name="slider" id="s2">
-        <input type="radio" name="slider" id="s3" checked>
-        <input type="radio" name="slider" id="s4">
-        <input type="radio" name="slider" id="s5">
+    <section id="slider" class="sport-carousel container">
+      <h2 class="sport-carousel-heading">- Shop By Sports -</h2>
+      <input type="radio" name="slider" id="s1" />
+      <input type="radio" name="slider" id="s2" />
+      <input type="radio" name="slider" id="s3" checked />
+      <input type="radio" name="slider" id="s4" />
+      <input type="radio" name="slider" id="s5" />
 
-        <label for="s1" id="slide1" class="slide-content">
-            <div class="sport-name">Running</div>
-            <div class="sport-desc">Ace your performance with our collection</div>
-            <div class="sport-cta">Shop Now</div>
-        </label>
-        <label for="s2" id="slide2" class="slide-content">
-            <div class="sport-name">Football</div>
-            <div class="sport-desc">Elevate your game with the right gear</div>
-            <div class="sport-cta">Shop Now</div>
-        </label>
-        <label for="s3" id="slide3" class="slide-content">
-            <div class="sport-name">Basketball</div>
-            <div class="sport-desc">Improve your game with our top picks</div>
-            <div class="sport-cta">Shop Now</div>
-        </label>
-        <label for="s4" id="slide4" class="slide-content">
-            <div class="sport-name">Training</div>
-            <div class="sport-desc">Gear up for peak performance</div>
-            <div class="sport-cta">Shop Now</div>
-        </label>
-        <label for="s5" id="slide5" class="slide-content">
-            <div class="sport-name">Lifestyle</div>
-            <div class="sport-desc">Get the perfect blend of style and comfort</div>
-            <div class="sport-cta">Shop Now</div>
-        </label>
+      <label for="s1" id="slide1" class="slide-content">
+        <div class="sport-name">Running</div>
+        <div class="sport-desc">Ace your performance with our collection</div>
+        <div class="sport-cta">Shop Now</div>
+      </label>
+      <label for="s2" id="slide2" class="slide-content">
+        <div class="sport-name">Football</div>
+        <div class="sport-desc">Elevate your game with the right gear</div>
+        <div class="sport-cta">Shop Now</div>
+      </label>
+      <label for="s3" id="slide3" class="slide-content">
+        <div class="sport-name">Basketball</div>
+        <div class="sport-desc">Improve your game with our top picks</div>
+        <div class="sport-cta">Shop Now</div>
+      </label>
+      <label for="s4" id="slide4" class="slide-content">
+        <div class="sport-name">Training</div>
+        <div class="sport-desc">Gear up for peak performance</div>
+        <div class="sport-cta">Shop Now</div>
+      </label>
+      <label for="s5" id="slide5" class="slide-content">
+        <div class="sport-name">Lifestyle</div>
+        <div class="sport-desc">Get the perfect blend of style and comfort</div>
+        <div class="sport-cta">Shop Now</div>
+      </label>
     </section>
 
     <!-- Products Section -->
     <main>
-        <div class="container">
-            <h2 class="products-heading">- Our Best Selling -</h2>
-            <div class="product-grid">
-                <!-- Product Card Template -->
-                <div class="product-card">
-                    <img src="../assets/images/products/shoes_1.svg" alt="Product 1">
-                    <div class="product-card-content">
-                        <div>
-                            <h3 class="product-card-title">Air Max 270</h3>
-                            <p class="product-card-price">$199.99</p>
-                        </div>
-                        <a href="#" class="view-more">
-                            <img src="../assets/images/ui/arrow.svg" alt="View">
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Product 2 -->
-                <div class="product-card">
-                    <img src="../assets/images/products/shoes_2.svg" alt="Product 2">
-                    <div class="product-card-content">
-                        <div>
-                            <h3 class="product-card-title">ZoomX Vaporfly</h3>
-                            <p class="product-card-price">$249.99</p>
-                        </div>
-                        <a href="#" class="view-more">
-                            <img src="../assets/images/ui/arrow.svg" alt="View">
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Product 3 -->
-                <div class="product-card">
-                    <img src="../assets/images/products/shoes_3.svg" alt="Product 3">
-                    <div class="product-card-content">
-                        <div>
-                            <h3 class="product-card-title">Air Jordan 1</h3>
-                            <p class="product-card-price">$179.99</p>
-                        </div>
-                        <a href="#" class="view-more">
-                            <img src="../assets/images/ui/arrow.svg" alt="View">
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Product 4 -->
-                <div class="product-card">
-                    <img src="../assets/images/products/shoes_4.svg" alt="Product 4">
-                    <div class="product-card-content">
-                        <div>
-                            <h3 class="product-card-title">React Infinity</h3>
-                            <p class="product-card-price">$159.99</p>
-                        </div>
-                        <a href="#" class="view-more">
-                            <img src="../assets/images/ui/arrow.svg" alt="View">
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Product 5 -->
-                <div class="product-card">
-                    <img src="../assets/images/products/shoes_5.svg" alt="Product 5">
-                    <div class="product-card-content">
-                        <div>
-                            <h3 class="product-card-title">Metcon 7</h3>
-                            <p class="product-card-price">$139.99</p>
-                        </div>
-                        <a href="#" class="view-more">
-                            <img src="../assets/images/ui/arrow.svg" alt="View">
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Product 6 -->
-                <div class="product-card">
-                    <img src="../assets/images/products/shoes_1.svg" alt="Product 6">
-                    <div class="product-card-content">
-                        <div>
-                            <h3 class="product-card-title">Free Run 5.0</h3>
-                            <p class="product-card-price">$129.99</p>
-                        </div>
-                        <a href="#" class="view-more">
-                            <img src="../assets/images/ui/arrow.svg" alt="View">
-                        </a>
-                    </div>
-                </div>
+      <div class="container">
+        <h2 class="products-heading">- Our Best Selling -</h2>
+        <div class="product-grid">
+          <!-- Product Card Template -->
+          <div class="product-card">
+            <img src="../assets/images/products/shoes_1.svg" alt="Product 1" />
+            <div class="product-card-content">
+              <div>
+                <h3 class="product-card-title">Air Max 270</h3>
+                <p class="product-card-price">$199.99</p>
+              </div>
+              <a href="#" class="view-more">
+                <img src="../assets/images/ui/arrow.svg" alt="View" />
+              </a>
             </div>
+          </div>
+
+          <!-- Product 2 -->
+          <div class="product-card">
+            <img src="../assets/images/products/shoes_2.svg" alt="Product 2" />
+            <div class="product-card-content">
+              <div>
+                <h3 class="product-card-title">ZoomX Vaporfly</h3>
+                <p class="product-card-price">$249.99</p>
+              </div>
+              <a href="#" class="view-more">
+                <img src="../assets/images/ui/arrow.svg" alt="View" />
+              </a>
+            </div>
+          </div>
+
+          <!-- Product 3 -->
+          <div class="product-card">
+            <img src="../assets/images/products/shoes_3.svg" alt="Product 3" />
+            <div class="product-card-content">
+              <div>
+                <h3 class="product-card-title">Air Jordan 1</h3>
+                <p class="product-card-price">$179.99</p>
+              </div>
+              <a href="#" class="view-more">
+                <img src="../assets/images/ui/arrow.svg" alt="View" />
+              </a>
+            </div>
+          </div>
+
+          <!-- Product 4 -->
+          <div class="product-card">
+            <img src="../assets/images/products/shoes_4.svg" alt="Product 4" />
+            <div class="product-card-content">
+              <div>
+                <h3 class="product-card-title">React Infinity</h3>
+                <p class="product-card-price">$159.99</p>
+              </div>
+              <a href="#" class="view-more">
+                <img src="../assets/images/ui/arrow.svg" alt="View" />
+              </a>
+            </div>
+          </div>
+
+          <!-- Product 5 -->
+          <div class="product-card">
+            <img src="../assets/images/products/shoes_5.svg" alt="Product 5" />
+            <div class="product-card-content">
+              <div>
+                <h3 class="product-card-title">Metcon 7</h3>
+                <p class="product-card-price">$139.99</p>
+              </div>
+              <a href="#" class="view-more">
+                <img src="../assets/images/ui/arrow.svg" alt="View" />
+              </a>
+            </div>
+          </div>
+
+          <!-- Product 6 -->
+          <div class="product-card">
+            <img src="../assets/images/products/shoes_1.svg" alt="Product 6" />
+            <div class="product-card-content">
+              <div>
+                <h3 class="product-card-title">Free Run 5.0</h3>
+                <p class="product-card-price">$129.99</p>
+              </div>
+              <a href="#" class="view-more">
+                <img src="../assets/images/ui/arrow.svg" alt="View" />
+              </a>
+            </div>
+          </div>
         </div>
+      </div>
     </main>
+
+    <section class="banner-section container">
+      <div
+        class="banner-bg position-relative rounded-4 d-flex align-items-center"
+        style="height: 578px"
+      >
+        <span class="banner-word position-absolute">Snevo</span>
+        <div class="row w-100">
+          <div class="col-lg-7 d-flex align-items-center">
+            <img
+              src="../assets/images/ui/banner.svg"
+              alt="Snevo Banner"
+              class="banner-img"
+              style="width: 140%"
+            />
+          </div>
+          <div
+            class="col-lg-5 d-flex align-items-center justify-content-center"
+            style="z-index: 2"
+          >
+            <div class="banner-content text-white ms-lg-5">
+              <h1 class="banner-title mb-3">
+                Are you ready to<br /><span class="fw-bold">lead the way</span>
+              </h1>
+              <p class="banner-desc mb-4">
+                Sign up and view all exclusive products of Snevo and add them to
+                your cart
+              </p>
+              <button
+                class="banner-cta btn btn-white text-black px-5 py-2 fw-bold rounded-3 shadow-sm"
+              >
+                Explore
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <!-- Testimonials Section -->
     <section class="testimonials-section">
-        <div class="container">
-            <h2 class="testimonials-heading">- What Our Customers Say -</h2>
-            
-            <!-- Testimonial Slider -->
-            <div id="testimonialCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="5000">
-                <div class="carousel-inner">
-                    <!-- Slide 1 -->
-                    <div class="carousel-item active">
-                        <div class="row justify-content-center g-4">
-                            <!-- Testimonial 1 -->
-                            <div class="col-lg-5">
-                                <div class="testimonial-card">
-                                    <div class="testimonial-content">
-                                        <div class="testimonial-image">
-                                            <img src="../assets/images/ui/nhan.jpg" alt="Nhan">
-                                        </div>
-                                        <div class="testimonial-text">
-                                            <h4 class="testimonial-name">Nhan Pham</h4>
-                                            <div class="testimonial-rating">★★★★★</div>
-                                            <p class="testimonial-quote">"The attention to detail in these shoes is remarkable. They're not just comfortable, they're also incredibly stylish!"</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Testimonial 2 -->
-                            <div class="col-lg-5">
-                                <div class="testimonial-card">
-                                    <div class="testimonial-content">
-                                        <div class="testimonial-image">
-                                            <img src="../assets/images/ui/thian.jpg" alt="Thian">
-                                        </div>
-                                        <div class="testimonial-text">
-                                            <h4 class="testimonial-name">Thian Le</h4>
-                                            <div class="testimonial-rating">★★★★★</div>
-                                            <p class="testimonial-quote">"Best purchase I've made this year! The quality is outstanding, and the customer support team was incredibly helpful!"</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+      <div class="container">
+        <h2 class="testimonials-heading">- What Our Customers Say -</h2>
+
+        <!-- Testimonial Slider -->
+        <div
+          id="testimonialCarousel"
+          class="carousel slide"
+          data-bs-ride="carousel"
+          data-bs-interval="5000"
+        >
+          <div class="carousel-inner">
+            <!-- Slide 1 -->
+            <div class="carousel-item active">
+              <div class="row justify-content-center g-4">
+                <!-- Testimonial 1 -->
+                <div class="col-lg-5">
+                  <div class="testimonial-card">
+                    <div class="testimonial-content">
+                      <div class="testimonial-image">
+                        <img src="../assets/images/ui/nhan.jpg" alt="Nhan" />
+                      </div>
+                      <div class="testimonial-text">
+                        <h4 class="testimonial-name">Nhan Pham</h4>
+                        <div class="testimonial-rating">★★★★★</div>
+                        <p class="testimonial-quote">
+                          "The attention to detail in these shoes is remarkable.
+                          They're not just comfortable, they're also incredibly
+                          stylish!"
+                        </p>
+                      </div>
                     </div>
-                    <!-- Slide 2 -->
-                    <div class="carousel-item">
-                        <div class="row justify-content-center g-4">
-                            <!-- Testimonial 3 -->
-                            <div class="col-lg-5">
-                                <div class="testimonial-card">
-                                    <div class="testimonial-content">
-                                        <div class="testimonial-image">
-                                            <img src="../assets/images/ui/duong.jpg" alt="Duong">
-                                        </div>
-                                        <div class="testimonial-text">
-                                            <h4 class="testimonial-name">Duong Tran</h4>
-                                            <div class="testimonial-rating">★★★★★</div>
-                                            <p class="testimonial-quote">"The most comfortable sneakers I've ever worn. The customer service was exceptional, and delivery was super fast!"</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Testimonial 4 -->
-                            <div class="col-lg-5">
-                                <div class="testimonial-card">
-                                    <div class="testimonial-content">
-                                        <div class="testimonial-image">
-                                            <img src="../assets/images/ui/nhan.jpg" alt="Nhan">
-                                        </div>
-                                        <div class="testimonial-text">
-                                            <h4 class="testimonial-name">Nhan Nguyen</h4>
-                                            <div class="testimonial-rating">★★★★★</div>
-                                            <p class="testimonial-quote">"Amazing quality and style. These shoes have become my go-to for both casual wear and workouts!"</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                  </div>
+                </div>
+                <!-- Testimonial 2 -->
+                <div class="col-lg-5">
+                  <div class="testimonial-card">
+                    <div class="testimonial-content">
+                      <div class="testimonial-image">
+                        <img src="../assets/images/ui/thian.jpg" alt="Thian" />
+                      </div>
+                      <div class="testimonial-text">
+                        <h4 class="testimonial-name">Thian Le</h4>
+                        <div class="testimonial-rating">★★★★★</div>
+                        <p class="testimonial-quote">
+                          "Best purchase I've made this year! The quality is
+                          outstanding, and the customer support team was
+                          incredibly helpful!"
+                        </p>
+                      </div>
                     </div>
+                  </div>
                 </div>
-                <!-- Carousel Indicators -->
-                <div class="carousel-indicators">
-                    <button type="button" data-bs-target="#testimonialCarousel" data-bs-slide-to="0" class="active"></button>
-                    <button type="button" data-bs-target="#testimonialCarousel" data-bs-slide-to="1"></button>
-                </div>
+              </div>
             </div>
+            <!-- Slide 2 -->
+            <div class="carousel-item">
+              <div class="row justify-content-center g-4">
+                <!-- Testimonial 3 -->
+                <div class="col-lg-5">
+                  <div class="testimonial-card">
+                    <div class="testimonial-content">
+                      <div class="testimonial-image">
+                        <img src="../assets/images/ui/duong.jpg" alt="Duong" />
+                      </div>
+                      <div class="testimonial-text">
+                        <h4 class="testimonial-name">Duong Tran</h4>
+                        <div class="testimonial-rating">★★★★★</div>
+                        <p class="testimonial-quote">
+                          "The most comfortable sneakers I've ever worn. The
+                          customer service was exceptional, and delivery was
+                          super fast!"
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- Testimonial 4 -->
+                <div class="col-lg-5">
+                  <div class="testimonial-card">
+                    <div class="testimonial-content">
+                      <div class="testimonial-image">
+                        <img src="../assets/images/ui/nhan.jpg" alt="Nhan" />
+                      </div>
+                      <div class="testimonial-text">
+                        <h4 class="testimonial-name">Nhan Nguyen</h4>
+                        <div class="testimonial-rating">★★★★★</div>
+                        <p class="testimonial-quote">
+                          "Amazing quality and style. These shoes have become my
+                          go-to for both casual wear and workouts!"
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Carousel Indicators -->
+          <div class="carousel-indicators">
+            <button
+              type="button"
+              data-bs-target="#testimonialCarousel"
+              data-bs-slide-to="0"
+              class="active"
+            ></button>
+            <button
+              type="button"
+              data-bs-target="#testimonialCarousel"
+              data-bs-slide-to="1"
+            ></button>
+          </div>
         </div>
+      </div>
     </section>
-   
+
+    <div id="footerRoot"></div>
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
+
     <!-- Configuration -->
     <script src="../assets/js/config.js"></script>
-    
+
     <!-- Custom Scripts -->
     <script type="module" src="../assets/js/ApiClient.js"></script>
     <script type="module" src="../assets/js/AuthManager.js"></script>
     <script type="module" src="../assets/js/NavbarManager.js"></script>
     <script type="module" src="../assets/js/FooterManager.js"></script>
-    <script type="module" src="../assets/js/EmailVerificationNotice.js"></script>
     <script type="module" src="../assets/js/Application.js"></script>
     <script type="module" src="../assets/js/auth-persistence.js"></script>
     <script src="../assets/js/carousel.js"></script>
-    <script src="../assets/js/animations.js"></script>
-</body>
+  </body>
 </html>

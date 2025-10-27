@@ -2,6 +2,9 @@
 // Handles payment data management
 
 import BaseModel from '../utils/BaseModel.js';
+import createSupabaseConfig from '../../config/supabase.js';
+
+const supabaseConfig = createSupabaseConfig();
 
 class Payment extends BaseModel {
     constructor() {
@@ -30,6 +33,26 @@ class Payment extends BaseModel {
     async updateStatus(paymentId, status) {
         // TODO: Implement update status logic
         throw new Error('Update status method not implemented');
+    }
+
+    // Calculate total revenue from completed payments (admin helper)
+    async calculateTotalRevenue() {
+        try {
+            const { data, error } = await supabaseConfig
+                .getAdminClient()
+                .from(this.tableName)
+                .select('amount')
+                .eq('payment_status', 'completed');
+
+            if (error) {
+                console.error("Error calculating revenue:", error);
+                return 0;
+            }
+            return (data || []).reduce((sum, payment) => sum + (payment.amount || 0), 0);
+        } catch (err) {
+            console.error("Error calculating revenue:", err);
+            return 0;
+        }
     }
 }
 

@@ -763,3 +763,341 @@ DELETE /api/reviews/:id
 - **Environment**: Separate dev/staging/production configs via .env files
 - **Build Process**: `npm run build` creates production-ready files
 
+## ADMIN DASHBOARD ENDPOINTS (Oct 2025 - Complete Implementation)
+✅ IMPLEMENTED: Full admin dashboard with data aggregation and joins
+
+**Implementation Overview:**
+
+The admin dashboard (`/api/admin/`) provides aggregated statistics and recent activity data with joined information from related tables.
+
+**Backend Endpoints** (`backend/controllers/AdminController.js`):
+
+1. **GET /api/admin/** - Dashboard Overview
+   - Returns aggregated data in single request
+   - Combines: summary (totals), stats (counts), recentActivity (orders + products)
+   - Joins profiles table to get username and avatar_url for recent orders
+   - Joins shoes table to get shoe details for top-selling products
+
+2. **GET /api/admin/statistics** - Detailed Statistics (Stub - Coming Soon)
+
+3. **GET /api/admin/users** - User Management (Stub - Coming Soon)
+
+4. **GET /api/admin/inventory** - Inventory Stats (Stub - Coming Soon)
+
+5. **GET /api/admin/orders** - Order Management (Stub - Coming Soon)
+
+**Key Database Joins:**
+
+1. **Recent Orders Query** (lines 120-149):
+   ```sql
+   SELECT orders.*, profiles.username, profiles.avatar_url
+   FROM orders
+   LEFT JOIN profiles ON orders.user_id = profiles.user_id
+   ORDER BY orders.created_at DESC
+   LIMIT 5
+   ```
+   - Gets order info WITH customer username and avatar
+   - Displays customer profile picture in dashboard
+
+2. **Top Selling Products Query** (lines 151-200):
+   ```sql
+   SELECT order_items.quantity, 
+          shoes.shoe_id, shoes.shoe_name, shoes.image_url
+   FROM order_items
+   INNER JOIN shoe_variants ON order_items.variant_id = shoe_variants.variant_id
+   INNER JOIN shoes ON shoe_variants.shoe_id = shoes.shoe_id
+   ORDER BY order_items.quantity DESC
+   LIMIT 5
+   ```
+   - Joins order_items → shoe_variants → shoes
+   - Aggregates sales by product
+   - Returns shoe picture, name, and sales count
+
+**Dashboard Response Structure:**
+
+```javascript
+{
+  success: true,
+  data: {
+    summary: {
+      totalProducts: 45,
+      totalOrders: 128,
+      lowStockItems: 5,
+      totalRevenue: "15234.50"
+    },
+    stats: {
+      activeCategories: 8,
+      totalVariants: 342,
+      pendingOrders: 12
+    },
+    recentActivity: {
+      recentOrders: [
+        {
+          order_id: "ORD001",
+          user_id: "uuid",
+          total_amount: 129.99,
+          order_status: "delivered",
+          created_at: "2025-01-15T10:30:00Z",
+          username: "john_doe",
+          avatar_url: "https://..."
+        }
+      ],
+      topSellingProducts: [
+        {
+          shoe_id: 1,
+          shoe_name: "Nike Air Force 1",
+          image_url: "https://...",
+          salesCount: 45
+        }
+      ]
+    }
+  }
+}
+```
+
+**Frontend Integration:**
+
+1. **AdminAPI.js** - API wrapper class
+   - `getDashboard()` - Fetches dashboard data
+   - `getStatistics()` - Gets stats data
+   - Error handling and fallback defaults
+
+2. **AdminCore.js** - Data management
+   - `loadDashboardData()` - Calls AdminAPI
+   - Stores data in state
+
+3. **AdminManager.js** - UI rendering
+   - `loadDashboard()` - Fetches and triggers render
+   - `renderDashboard()` - Generates HTML with data
+   - `renderRecentOrders()` - Displays orders with avatars
+   - `renderTopSellingProducts()` - Shows product cards with images
+   - `getStatusBadgeClass()` - Color-codes order statuses
+
+4. **admin.html** - Dashboard display
+   - Summary cards (4 columns)
+   - Statistics list (3 items)
+   - Recent orders table with customer avatars
+   - Top selling products gallery (3 columns)
+
+**Files Modified:**
+- `backend/controllers/AdminController.js`: Implemented all dashboard methods with joins
+- `frontend/assets/js/admin/AdminAPI.js`: Created new API wrapper
+- `frontend/assets/js/admin/AdminCore.js`: Added loadDashboardData()
+- `frontend/assets/js/admin/AdminManager.js`: Added loadDashboard(), renderDashboard(), helper methods
+- `frontend/pages/admin.html`: Added AdminAPI script, updated dashboard HTML
+- `backend/server.js`: Already has handleAdminRoutes() wired correctly
+
+**Key Learning Concepts:**
+
+1. **Database Joins**: Using Supabase `.select()` with nested relations
+   - `profiles:user_id ()` - Left join to get customer info
+   - `shoe_variants!inner () → shoes!inner ()` - Inner joins for product data
+
+2. **Data Aggregation**: Map/reduce pattern to combine sales by product
+   ```javascript
+   const productMap = new Map();
+   data.forEach(item => {
+     // Aggregate by shoe_id
+   });
+   Array.from(productMap.values()).sort(...);
+   ```
+
+3. **API Wrapper Pattern**: Single class handles all admin API calls
+   - Consistent error handling
+   - Centralized endpoint management
+   - Easy to extend with new methods
+
+4. **Async/Await Flow**: Parallel data loading
+   ```javascript
+   await Promise.all([
+     this.core.loadShoes(),
+     this.core.loadCategories(),
+     this.loadDashboard()
+   ]);
+   ```
+
+5. **Template Literals**: Dynamic HTML generation
+   - Embed data directly in strings
+   - Map arrays to HTML rows/cards
+   - Conditional rendering (avatar vs icon)
+
+**Testing:**
+- Backend: Verify `/api/admin/` returns proper data
+- Frontend: Check browser console for successful API calls
+- Dashboard: Verify cards, tables, and product cards render correctly
+- Avatar display: Check if user avatars show in recent orders table
+
+**Performance Notes:**
+- All queries use `count: 'exact'` with `head: true` for efficiency
+- Limits set on queries to reduce data transfer
+- No N+1 queries due to proper joins
+- Avatar images lazy-loaded with fallback icons
+
+Admin Routes Refactoring (Oct 2025)
+-----------------------------------
+✅ COMPLETED: Extracted admin route handlers from server.js into dedicated routes/admin.js file
+
+**Objectives:**
+- Better code organization and maintainability
+- Follow modular routes pattern consistent with other routes (products, variants, categories, etc.)
+- Reduce server.js file complexity
+- Prepare for future admin endpoint expansion
+
+**Implementation Details:**
+
+1. **New File** (`backend/routes/admin.js`):
+   - Exported default function `handleAdminRoutes(req, res, adminController, pathname, sendError)`
+   - Handles all `/api/admin/*` endpoints
+   - Includes authentication middleware check
+   - Manages 5 endpoints:
+     - GET /api/admin/ → adminController.getDashboard()
+     - GET /api/admin/statistics → adminController.getStatistics()
+     - GET /api/admin/users → adminController.getUserManagement()
+     - GET /api/admin/inventory → adminController.getInventoryManagement()
+     - GET /api/admin/orders → adminController.getOrderManagement()
+   - Centralized error handling for admin routes
+
+2. **Updated** (`backend/server.js`):
+   - Added import statement: `import adminRoutes from './routes/admin.js'`
+   - Simplified handleAdminRoutes() method to delegate to new module
+   - Maintains same calling convention for backward compatibility
+   - Binds sendError method to preserve this context
+
+3. **Benefits:**
+   - ✅ Follows established modular routes pattern
+   - ✅ Reduces server.js by ~50 lines (473-521)
+   - ✅ Easier to extend admin endpoints in future
+   - ✅ Better code organization and readability
+   - ✅ Clearer separation of concerns
+   - ✅ All admin logic now in dedicated file
+
+**Files Modified:**
+- `backend/routes/admin.js`: NEW - Contains all admin route handlers
+- `backend/server.js`: Updated import and handleAdminRoutes delegation
+
+**Backward Compatibility:**
+- ✅ No API changes - all endpoints work identically
+- ✅ No frontend changes needed
+- ✅ No database changes
+- ✅ All admin controller methods remain unchanged
+
+Admin Controller Refactoring - Supabase Queries to Models (Oct 2025)
+--------------------------------------------------------------------
+✅ COMPLETED: Moved all Supabase query logic from AdminController to corresponding model files
+
+**Objectives:**
+- Follow proper MVC pattern separation of concerns
+- Move database logic from controller to models (where it belongs)
+- Reduce AdminController complexity and responsibility
+- Improve code reusability and testability
+- Cleaner controller code focused on request/response handling
+
+**Implementation Details:**
+
+1. **Shoe Model** (`backend/models/Shoe.js`):
+   - Added `countAll()` - Count all products
+   - Replaces: `AdminController.countActiveProducts()`
+
+2. **Order Model** (`backend/models/Order.js`):
+   - Added `countAll()` - Count all orders
+   - Added `countPending()` - Count pending/processing orders
+   - Added `getRecent(limit)` - Get recent orders with user profile info
+   - Replaces: `AdminController.countOrders()`, `countPendingOrders()`, `getRecentOrders()`
+
+3. **Payment Model** (`backend/models/Payment.js`):
+   - Added `calculateTotalRevenue()` - Sum all completed payments
+   - Replaces: `AdminController.calculateRevenue()`
+
+4. **ShoeVariant Model** (`backend/models/ShoeVariant.js`):
+   - Added `countAll()` - Count all variants
+   - Added `getLowStockCount(threshold)` - Count variants below threshold (default 10)
+   - Replaces: `AdminController.countVariants()`, `getLowStockCount()`
+
+5. **Category Model** (`backend/models/Category.js`):
+   - Added `countAll()` - Count all categories
+   - Replaces: `AdminController.countCategories()`
+
+6. **OrderItem Model** (`backend/models/OrderItem.js`):
+   - Added `getTopSellingProducts(limit)` - Get top products with aggregated sales counts
+   - Replaces: `AdminController.getTopSellingProducts()`
+
+7. **AdminController** (`backend/controllers/AdminController.js`):
+   - Refactored `getDashboard()` to call model methods instead of local helpers
+   - Removed 9 helper methods (~230 lines):
+     - ~~countActiveProducts()~~
+     - ~~countOrders()~~
+     - ~~getLowStockCount()~~
+     - ~~calculateRevenue()~~
+     - ~~countCategories()~~
+     - ~~countVariants()~~
+     - ~~countPendingOrders()~~
+     - ~~getRecentOrders()~~
+     - ~~getTopSellingProducts()~~
+   - Controller reduced from 378 lines to 149 lines (60% reduction)
+   - Now focused on HTTP request/response handling only
+
+**Code Quality Improvements:**
+- ✅ Better separation of concerns (models handle DB, controller handles HTTP)
+- ✅ DRY principle - no duplicate code across controllers
+- ✅ Easier testing - can test model queries independently
+- ✅ Better reusability - other controllers can use same model methods
+- ✅ Consistent error handling across all models
+- ✅ Clear method naming and documentation
+
+**Example Usage:**
+
+```javascript
+// Before (in controller):
+async countActiveProducts() {
+    const { count, error } = await this.models.Shoe.supabase
+        .from('shoes')
+        .select('*', { count: 'exact', head: true });
+    if (error) return 0;
+    return count || 0;
+}
+
+// After (in model):
+async countAll() {
+    try {
+        const { count, error } = await supabaseConfig
+            .getAdminClient()
+            .from(this.tableName)
+            .select('*', { count: 'exact', head: true });
+        if (error) {
+            console.error("Error counting products:", error);
+            return 0;
+        }
+        return count || 0;
+    } catch (err) {
+        console.error("Error counting products:", err);
+        return 0;
+    }
+}
+
+// Controller now simply calls:
+const totalProducts = await this.models.Shoe.countAll();
+```
+
+**Files Modified:**
+- `backend/models/Shoe.js`: Added countAll()
+- `backend/models/Order.js`: Added countAll(), countPending(), getRecent()
+- `backend/models/Payment.js`: Added calculateTotalRevenue()
+- `backend/models/ShoeVariant.js`: Added countAll(), getLowStockCount()
+- `backend/models/Category.js`: Added countAll()
+- `backend/models/OrderItem.js`: Added getTopSellingProducts()
+- `backend/controllers/AdminController.js`: Refactored getDashboard(), removed 9 helper methods
+
+**Backward Compatibility:**
+- ✅ No API changes - dashboard response identical
+- ✅ No frontend changes needed
+- ✅ No database changes
+- ✅ Internal refactoring only
+- ✅ All error handling preserved
+
+**Benefits Summary:**
+- 60% reduction in AdminController code
+- Proper MVC pattern implementation
+- Reusable model methods
+- Better code organization
+- Easier maintenance and testing
+

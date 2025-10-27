@@ -134,6 +134,25 @@ class Category extends BaseModel {
             throw new Error(`Failed to fetch categories with count: ${error.message}`);
         }
     }
+
+    // Get total count of categories (admin helper)
+    async countAll() {
+        try {
+            const { count, error } = await supabaseConfig
+                .getAdminClient()
+                .from(this.tableName)
+                .select('*', { count: 'exact', head: true });
+
+            if (error) {
+                console.error("Error counting categories:", error);
+                return 0;
+            }
+            return count || 0;
+        } catch (err) {
+            console.error("Error counting categories:", err);
+            return 0;
+        }
+    }
 }
 
 export default Category;

@@ -27,6 +27,7 @@ import PaymentController from './controllers/PaymentController.js';
 import AdminController from './controllers/AdminController.js';
 import CartController from './controllers/CartController.js';
 import authMiddleware from './middleware/auth.js';
+import uploadMiddleware from './middleware/upload.js';
 import corsMiddleware from './middleware/cors.js';
 import createSupabaseConfig from '../config/supabase.js';
 import { initializeModels } from './models/index.js';
@@ -37,6 +38,8 @@ import variantRoutes from './routes/variants.js';
 import categoryRoutes from './routes/categories.js';
 import colorRoutes from './routes/colors.js';
 import sizeRoutes from './routes/sizes.js';
+import importRoutes from './routes/imports.js';
+import adminRoutes from './routes/admin.js';
 
 class Server {
     constructor() {
@@ -63,11 +66,13 @@ class Server {
         this.variantController = new VariantController();
         this.variantController.setModels(this.models);  
 
+        this.importController = new ImportController();
+        this.importController.setModels(this.models);
+
         this.orderController = new OrderController(this.models);
         if (this.orderController.setModels) this.orderController.setModels(this.models);
         this.profileController = new ProfileController(this.models);
-        this.addressController = new AddressController(this.models);
-        this.importController = new ImportController(this.models);
+        this.addressController = new AddressController(this.models);     
         this.paymentController = new PaymentController(this.models);
         this.adminController = new AdminController(this.models);
         this.cartController = new CartController(this.models);
@@ -168,12 +173,24 @@ class Server {
             res.end();
             return;
         }
+        // SKIP body parsing for upload routes
+        const isUploadRoute = (
+        (req.method === 'POST' && pathname === '/api/products') ||
+        (req.method === 'PUT' && pathname.match(/^\/api\/products\/\d+$/))
+        );
 
         // Parse body for POST/PUT/PATCH requests
         let body = {};
         if (['POST', 'PUT', 'PATCH'].includes(req.method)) {
+        if (isUploadRoute) {
+            // ✅ SKIP parsing for upload routes - middleware will handle it
+            console.log('⏭️ Skipping JSON body parse for upload route');
+            // Upload middleware will populate req.body
+        } else {
+            // ✅ Parse JSON body for normal routes
             body = await this.parseBody(req);
             req.body = body;
+        }
         }
 
         // Parse query parameters
@@ -200,8 +217,9 @@ class Server {
         if (pathname.startsWith('/api/sizes')) {
             return sizeRoutes(req, res, this.sizeController, pathname);
         }
-
-        // Cart routes
+        if (pathname.startsWith('/api/imports')) {
+            return importRoutes(req, res, this.importController, pathname);
+        }
         if (pathname.startsWith('/api/cart')) {
             await this.handleCartRoutes(req, res, pathname, req.method, body);
             return;
@@ -219,13 +237,11 @@ class Server {
             await this.handleProfileRoutes(req, res, pathname, req.method, body);
         } else if (pathname.startsWith('/api/addresses/')) {
             await this.handleAddressRoutes(req, res, pathname, req.method, body);
-        } else if (pathname.startsWith('/api/imports/')) {
-            await this.handleImportRoutes(req, res, pathname, req.method, body);
         } else if (pathname.startsWith('/api/payments/')) {
             await this.handlePaymentRoutes(req, res, pathname, req.method, body);
         } else if (pathname.startsWith('/api/reviews/')) {
             await this.handleReviewRoutes(req, res, pathname, req.method, body);
-        } else if (pathname.startsWith('/api/admin/')) {
+        } else if (pathname === '/api/admin' || pathname.startsWith('/api/admin/')) {
             await this.handleAdminRoutes(req, res, pathname, req.method, body);
         } else {
             this.sendError(res, 'API endpoint not found', 404);
@@ -446,45 +462,7 @@ class Server {
         } else {
             this.sendError(res, 'API endpoint not found', 404);
         }
-    }
-    // Import routes handler
-    async handleImportRoutes(req, res, pathname, method, body) {
-        const importPath = pathname.replace('/api/imports', '');
-
-        // Check authentication for protected routes
-        const authResult = await authMiddleware.authenticate(req, res);
-        if (!authResult || !authResult.success) {
-            return;
-        }
-        req.user = authResult.user;
-
-        if (importPath === '/' || importPath === '') {
-            if (method === 'GET') {
-                await this.importController.getImports(req, res);
-            } else if (method === 'POST') {
-                req.body = body;
-                await this.importController.createImport(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else if (importPath.match(/^\/\d+$/)) {
-            const id = importPath.substring(1);
-            req.params = { id };
-            if (method === 'GET') {
-                await this.importController.getImport(req, res);
-            } else if (method === 'PUT') {
-                req.body = body;
-                await this.importController.updateImport(req, res);
-            } else if (method === 'DELETE') {
-                await this.importController.deleteImport(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else {
-            this.sendError(res, 'API endpoint not found', 404);
-        }
-    }
-
+    }   
     // Payment routes handler
     async handlePaymentRoutes(req, res, pathname, method, body) {
         const paymentPath = pathname.replace('/api/payments', '');
@@ -556,24 +534,7 @@ class Server {
 
     // Admin routes handler
     async handleAdminRoutes(req, res, pathname, method, body) {
-        const adminPath = pathname.replace('/api/admin', '');
-
-        // Check authentication for protected routes
-        const authResult = await authMiddleware.authenticate(req, res);
-        if (!authResult || !authResult.success) {
-            return;
-        }
-        req.user = authResult.user;
-
-        if (adminPath === '/' || adminPath === '') {
-            if (method === 'GET') {
-                await this.adminController.getDashboard(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else {
-            this.sendError(res, 'API endpoint not found', 404);
-        }
+        return adminRoutes(req, res, this.adminController, pathname, this.sendError.bind(this));
     }
 
     // Start the server

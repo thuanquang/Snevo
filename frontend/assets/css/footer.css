@@ -1,0 +1,60 @@
+/* Footer Styles - Minimal & Professional */
+.footer {
+  background: #ffffff;
+  border-top: 1px solid #e5e7eb;
+  padding: 3rem 0 2rem;
+  margin-top: auto;
+}
+
+.footer-logo {
+  height: 40px;
+  width: auto;
+  filter: brightness(0);
+}
+
+.footer h6 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1f2937;
+  letter-spacing: 0.02em;
+}
+
+.footer-links {
+  margin: 0;
+  padding: 0;
+}
+
+.footer-links li {
+  margin-bottom: 0.5rem;
+}
+
+.footer-links a {
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.footer-links a:hover {
+  color: #111827;
+}
+
+.footer .social-links a {
+  color: #1f2937;
+  transition: all 0.2s ease;
+}
+
+.footer .social-links a:hover {
+  color: #4b5563;
+  transform: translateY(-2px);
+}
+
+.footer hr {
+  border: none !important;
+}
+
+.footer .text-muted {
+  color: #6b7280 !important;
+}
+
+.footer .small {
+  font-size: 0.875rem;
+}

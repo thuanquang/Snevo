@@ -1,478 +1,287 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Products - Snevo</title>
-    
+
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
     <!-- Custom CSS -->
-    <link href="../assets/css/main.css" rel="stylesheet">
-    <link href="../assets/css/animations.css" rel="stylesheet">
-    <link href="../assets/css/components.css" rel="stylesheet">
-    <link href="../assets/css/responsive.css" rel="stylesheet">
-    <link href="../assets/css/products.css" rel="stylesheet">
-    
+    <link href="../assets/css/navbar.css" rel="stylesheet" />
+    <link href="../assets/css/footer.css" rel="stylesheet" />
+    <link href="../assets/css/products.css" rel="stylesheet" />
+    <link href="../assets/css/components.css" rel="stylesheet" />
+
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="../assets/images/favicon.ico">
-</head>
-<body>
+    <link rel="icon" type="image/x-icon" href="../assets/images/favicon.ico" />
+  </head>
+  <body>
     <!-- Unified Navbar Root -->
     <div id="navbarRoot" data-navbar-page="products"></div>
 
     <!-- Page Header -->
-    <section class="page-header bg-light py-5" style="margin-top: 76px;">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <h1 class="page-title mb-2">Our Products</h1>
-                    <p class="page-subtitle text-muted mb-0">Discover premium athletic footwear designed for champions</p>
-                </div>
-                <div class="col-md-6 text-md-end">
-                </div>
-            </div>
+    <section class="page-header bg-light py-5" style="margin-top: 76px">
+      <div class="container">
+        <div class="row align-items-center">
+          <div class="col-md-6">
+            <h1 class="page-title mb-2">Our Products</h1>
+            <p class="page-subtitle text-muted mb-0">
+              Discover premium athletic footwear designed for champions
+            </p>
+          </div>
+          <div class="col-md-6 text-md-end"></div>
         </div>
+      </div>
     </section>
-
     <!-- Products Section -->
     <section class="products-section py-5">
-        <div class="container">
-            <div class="row">
-                <!-- Sidebar Filters -->
-                <div class="col-lg-3 col-md-4">
-                    <div class="filters-sidebar">
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h5 class="mb-0">Filters</h5>
-                                <button class="btn btn-sm btn-outline-secondary" id="clearFilters">Clear All</button>
-                            </div>
-                            <div class="card-body">
-                                <!-- Category Filter -->
-                                <div class="filter-group mb-4">
-                                    <h6 class="filter-title">Categories</h6>
-                                    <div class="filter-options" id="categoryFilters">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" value="1" id="category1">
-                                            <label class="form-check-label" for="category1">Running Shoes</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" value="2" id="category2">
-                                            <label class="form-check-label" for="category2">Basketball Shoes</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" value="3" id="category3">
-                                            <label class="form-check-label" for="category3">Casual Shoes</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" value="4" id="category4">
-                                            <label class="form-check-label" for="category4">Training Shoes</label>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Price Filter -->
-                                <div class="filter-group mb-4">
-                                    <h6 class="filter-title">Price Range</h6>
-                                    <div class="price-range">
-                                        <div class="row">
-                                            <div class="col-6">
-                                                <input type="number" class="form-control form-control-sm" placeholder="Min" id="minPrice">
-                                            </div>
-                                            <div class="col-6">
-                                                <input type="number" class="form-control form-control-sm" placeholder="Max" id="maxPrice">
-                                            </div>
-                                        </div>
-                                        <div class="mt-2">
-                                            <input type="range" class="form-range" min="0" max="500" value="250" id="priceRange">
-                                            <div class="d-flex justify-content-between small text-muted">
-                                                <span>$0</span>
-                                                <span>$500+</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Size Filter -->
-                                <div class="filter-group mb-4">
-                                    <h6 class="filter-title">Size</h6>
-                                    <div class="size-options" id="sizeFilters">
-                                        <div class="btn-group-toggle" data-toggle="buttons">
-                                            <label class="btn btn-outline-secondary btn-sm size-btn">
-                                                <input type="checkbox" value="6"> 6
-                                            </label>
-                                            <label class="btn btn-outline-secondary btn-sm size-btn">
-                                                <input type="checkbox" value="7"> 7
-                                            </label>
-                                            <label class="btn btn-outline-secondary btn-sm size-btn">
-                                                <input type="checkbox" value="8"> 8
-                                            </label>
-                                            <label class="btn btn-outline-secondary btn-sm size-btn">
-                                                <input type="checkbox" value="9"> 9
-                                            </label>
-                                            <label class="btn btn-outline-secondary btn-sm size-btn">
-                                                <input type="checkbox" value="10"> 10
-                                            </label>
-                                            <label class="btn btn-outline-secondary btn-sm size-btn">
-                                                <input type="checkbox" value="11"> 11
-                                            </label>
-                                            <label class="btn btn-outline-secondary btn-sm size-btn">
-                                                <input type="checkbox" value="12"> 12
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Color Filter -->
-                                <div class="filter-group mb-4">
-                                    <h6 class="filter-title">Colors</h6>
-                                    <div class="color-options" id="colorFilters">
-                                        <div class="color-option" data-color="black" style="background-color: #000000;" title="Black"></div>
-                                        <div class="color-option" data-color="white" style="background-color: #ffffff; border: 1px solid #ddd;" title="White"></div>
-                                        <div class="color-option" data-color="red" style="background-color: #dc3545;" title="Red"></div>
-                                        <div class="color-option" data-color="blue" style="background-color: #0d6efd;" title="Blue"></div>
-                                        <div class="color-option" data-color="green" style="background-color: #198754;" title="Green"></div>
-                                        <div class="color-option" data-color="gray" style="background-color: #6c757d;" title="Gray"></div>
-                                    </div>
-                                </div>
-
-                                <!-- Brand Filter -->
-                                <div class="filter-group mb-4">
-                                    <h6 class="filter-title">Brand</h6>
-                                    <div class="filter-options" id="brandFilters">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" value="nike" id="brandNike">
-                                            <label class="form-check-label" for="brandNike">Nike</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" value="adidas" id="brandAdidas">
-                                            <label class="form-check-label" for="brandAdidas">Adidas</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" value="jordan" id="brandJordan">
-                                            <label class="form-check-label" for="brandJordan">Jordan</label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+      <div class="container">
+        <div class="row">
+          <!-- Sidebar Filters -->
+          <div class="col-lg-3 col-md-4">
+            <div class="filters-sidebar">
+              <div class="filters-header d-flex justify-content-between">
+                <h5 class="mb-0">Filters</h5>
+                <button
+                  class="btn btn-sm btn-outline-secondary"
+                  id="clearFilters"
+                >
+                  Clear All
+                </button>
+              </div>
+              <div class="filters-body">
+                <!-- Category Filter -->
+                <div class="filter-group mb-4">
+                  <h6 class="filter-title">Categories</h6>
+                  <div class="filter-options" id="categoryFilters"></div>
                 </div>
 
-                <!-- Products Grid -->
-                <div class="col-lg-9 col-md-8">
-                    <!-- Toolbar -->
-                    <div class="products-toolbar mb-4">
-                        <div class="row align-items-center">
-                            <div class="col-md-6">
-                                <div class="results-info">
-                                    <span id="resultsCount">Showing 1-12 of 48 products</span>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="d-flex align-items-center justify-content-md-end">
-                                    <!-- Sort Dropdown -->
-                                    <div class="me-3">
-                                        <select class="form-select form-select-sm" id="sortSelect">
-                                            <option value="featured">Sort by: Featured</option>
-                                            <option value="price_low">Price: Low to High</option>
-                                            <option value="price_high">Price: High to Low</option>
-                                            <option value="name_asc">Name: A to Z</option>
-                                            <option value="name_desc">Name: Z to A</option>
-                                            <option value="newest">Newest First</option>
-                                        </select>
-                                    </div>
-                                    
-                                    <!-- View Toggle -->
-                                    <div class="btn-group" role="group">
-                                        <button type="button" class="btn btn-outline-secondary btn-sm active" id="gridView" title="Grid View">
-                                            <i class="fas fa-th"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-outline-secondary btn-sm" id="listView" title="List View">
-                                            <i class="fas fa-list"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                <!-- Price Filter -->
+                <div class="filter-group mb-4">
+                  <h6 class="filter-title">Price Range</h6>
+                  <div class="price-range">
+                    <div class="row">
+                      <div class="col-6">
+                        <input
+                          type="number"
+                          class="form-control form-control-sm"
+                          placeholder="Min"
+                          id="minPrice"
+                        />
+                      </div>
+                      <div class="col-6">
+                        <input
+                          type="number"
+                          class="form-control form-control-sm"
+                          placeholder="Max"
+                          id="maxPrice"
+                        />
+                      </div>
                     </div>
-
-                    <!-- Loading State -->
-                    <div class="loading-container text-center py-5" id="loadingContainer">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                        <p class="mt-3 text-muted">Loading products...</p>
+                    <div class="mt-2">
+                      <input
+                        type="range"
+                        class="form-range"
+                        min="0"
+                        max="10000000"
+                        value="5000000"
+                        id="priceRange"
+                      />
+                      <div
+                        class="d-flex justify-content-between small text-muted"
+                      >
+                        <span>$0</span>
+                        <span>$10000000+</span>
+                      </div>
                     </div>
-
-                    <!-- Products Grid Container -->
-                    <div class="products-grid row" id="productsGrid" style="display: none;">
-                        <!-- Products will be loaded dynamically -->
-                    </div>
-
-                    <!-- No Results -->
-                    <div class="no-results text-center py-5" id="noResults" style="display: none;">
-                        <i class="fas fa-search fa-3x text-muted mb-3"></i>
-                        <h4>No products found</h4>
-                        <p class="text-muted">Try adjusting your filters or search terms</p>
-                        <button class="btn btn-primary" onclick="clearAllFilters()">Clear Filters</button>
-                    </div>
-
-                    <!-- Pagination -->
-                    <nav aria-label="Products pagination" class="mt-5">
-                        <ul class="pagination justify-content-center" id="pagination">
-                            <!-- Pagination will be generated dynamically -->
-                        </ul>
-                    </nav>
+                  </div>
                 </div>
+
+                <!-- Size Filter -->
+                <div class="filter-group mb-4">
+                  <h6 class="filter-title">Size</h6>
+                  <div class="size-options" id="sizeFilters"></div>
+                </div>
+
+                <!-- Color Filter -->
+                <div class="filter-group mb-4">
+                  <h6 class="filter-title">Colors</h6>
+                  <div class="color-options" id="colorFilters"></div>
+                </div>
+
+                <!-- Brand Filter -->
+                <div class="filter-group mb-4">
+                  <h6 class="filter-title">Brand</h6>
+                  <div class="filter-options" id="brandFilters">
+                    <div class="form-check">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        value="nike"
+                        id="brandNike"
+                      />
+                      <label class="form-check-label" for="brandNike"
+                        >Nike</label
+                      >
+                    </div>
+                    <div class="form-check">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        value="adidas"
+                        id="brandAdidas"
+                      />
+                      <label class="form-check-label" for="brandAdidas"
+                        >Adidas</label
+                      >
+                    </div>
+                    <div class="form-check">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        value="jordan"
+                        id="brandJordan"
+                      />
+                      <label class="form-check-label" for="brandJordan"
+                        >Jordan</label
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-        </div>
-    </section>
+          </div>
 
-    <!-- Footer -->
-    <footer class="footer bg-black text-white py-5">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <h5 class="fw-bold mb-3">SNEVO</h5>
-                    <p>Premium athletic footwear for champions. Just Do It.</p>
-                </div>
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <h6 class="fw-bold mb-3">Quick Links</h6>
-                    <ul class="list-unstyled">
-                        <li><a href="../pages/index.html" class="text-white-50">Home</a></li>
-                        <li><a href="../pages/products.html" class="text-white-50">Products</a></li>
-                        <li><a href="#about" class="text-white-50">About</a></li>
-                        <li><a href="#contact" class="text-white-50">Contact</a></li>
-                    </ul>
-                </div>
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <h6 class="fw-bold mb-3">Customer Service</h6>
-                    <ul class="list-unstyled">
-                        <li><a href="#help" class="text-white-50">Help Center</a></li>
-                        <li><a href="#returns" class="text-white-50">Returns</a></li>
-                        <li><a href="#shipping" class="text-white-50">Shipping</a></li>
-                        <li><a href="#size-guide" class="text-white-50">Size Guide</a></li>
-                    </ul>
-                </div>
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <h6 class="fw-bold mb-3">Follow Us</h6>
-                    <div class="social-links">
-                        <a href="#" class="text-white me-3"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#" class="text-white me-3"><i class="fab fa-twitter"></i></a>
-                        <a href="#" class="text-white me-3"><i class="fab fa-instagram"></i></a>
-                        <a href="#" class="text-white me-3"><i class="fab fa-youtube"></i></a>
-                    </div>
-                </div>
-            </div>
-            <hr class="my-4">
-            <div class="row align-items-center">
+          <!-- Products Grid -->
+          <div class="col-lg-9 col-md-8">
+            <!-- Toolbar -->
+            <div class="products-toolbar mb-4">
+              <div class="row align-items-center">
                 <div class="col-md-6">
-                    <p class="mb-0">&copy; 2024 Snevo. All rights reserved.</p>
+                  <div class="results-info">
+                    <span id="resultsCount">Showing 1-12 of 48 products</span>
+                  </div>
                 </div>
-                <div class="col-md-6 text-md-end">
-                    <a href="#privacy" class="text-white-50 me-3">Privacy Policy</a>
-                    <a href="#terms" class="text-white-50">Terms of Service</a>
-                </div>
-            </div>
-        </div>
-    </footer>
+                <div class="col-md-6">
+                  <div class="d-flex align-items-center justify-content-md-end">
+                    <!-- Sort Dropdown -->
+                    <div class="me-3">
+                      <select
+                        class="form-select form-select-sm"
+                        id="sortSelect"
+                      >
+                        <option value="featured">Sort by: Featured</option>
+                        <option value="price_low">Price: Low to High</option>
+                        <option value="price_high">Price: High to Low</option>
+                        <option value="name_asc">Name: A to Z</option>
+                        <option value="name_desc">Name: Z to A</option>
+                        <option value="newest">Newest First</option>
+                      </select>
+                    </div>
 
+                    <!-- View Toggle -->
+                    <div class="btn-group" role="group">
+                      <button
+                        type="button"
+                        class="btn btn-outline-secondary btn-sm active"
+                        id="gridView"
+                        title="Grid View"
+                      >
+                        <i class="fas fa-th"></i>
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-outline-secondary btn-sm"
+                        id="listView"
+                        title="List View"
+                      >
+                        <i class="fas fa-list"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Loading State -->
+            <div
+              class="loading-container text-center py-5"
+              id="loadingContainer"
+            >
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p class="mt-3 text-muted">Loading products...</p>
+            </div>
+
+            <!-- Products Grid Container -->
+            <div
+              class="products-grid row"
+              id="productsGrid"
+              style="display: none"
+            >
+              <!-- Products will be loaded dynamically -->
+            </div>
+
+            <!-- No Results -->
+            <div
+              class="no-results text-center py-5"
+              id="noResults"
+              style="display: none"
+            >
+              <i class="fas fa-search fa-3x text-muted mb-3"></i>
+              <h4>No products found</h4>
+              <p class="text-muted">
+                Try adjusting your filters or search terms
+              </p>
+              <button class="btn btn-primary" onclick="clearAllFilters()">
+                Clear Filters
+              </button>
+            </div>
+
+            <!-- Pagination -->
+            <nav aria-label="Products pagination" class="mt-5">
+              <ul class="pagination justify-content-center" id="pagination">
+                <!-- Pagination will be generated dynamically -->
+              </ul>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- Unified Footer Root -->
+    <div id="footerRoot"></div>
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
+
     <!-- Configuration -->
     <script src="../assets/js/config.js"></script>
-    
+
     <!-- Custom Scripts -->
     <script type="module" src="../assets/js/ApiClient.js"></script>
     <script type="module" src="../assets/js/AuthManager.js"></script>
     <script type="module" src="../assets/js/NavbarManager.js"></script>
+    <script type="module" src="../assets/js/FooterManager.js"></script>
     <script type="module" src="../assets/js/ProductManager.js"></script>
-    <script type="module" src="../assets/js/EmailVerificationNotice.js"></script>
+    <script
+      type="module"
+      src="../assets/js/EmailVerificationNotice.js"
+    ></script>
     <script type="module" src="../assets/js/Application.js"></script>
-    <script src="../assets/js/animations.js"></script>
-       
-    <style>
-        /* Product Card Styles */
-        .product-card {
-            border: 2px solid #DEDEDE;
-            border-radius: 12px;
-            overflow: hidden;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            background: white;
-            height: 100%;
-            position: relative;
-        }
-
-        .product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        }
-
-        .product-image {
-            width: 100%;
-            height: 400px;
-            object-fit: cover;
-            margin-top: 120px;
-        }
-
-        .product-details {
-            padding: 12px 24px;
-            margin-top: -60px;
-            margin-bottom: 40px;
-        }
-
-        .product-title {
-            font-family: 'Poppins', sans-serif;
-            font-weight: 600;
-            font-size: 18px;
-            color: #000;
-            margin-bottom: 8px;
-        }
-
-        .product-price {
-            font-family: 'Inter', sans-serif;
-            font-weight: 600;
-            font-size: 20px;
-            color: #000;
-        }
-
-        /* Filter Styles */
-        .filters-sidebar {
-            background: white;
-            border: 2px solid #DEDEDE;
-            border-radius: 12px;
-            padding: 24px;
-        }
-
-        /* Color Options */
-        .color-option {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: inline-block;
-            cursor: pointer;
-            position: relative;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        
-        .color-option:hover {
-            transform: scale(1.1);
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        
-        .color-option.selected::after {
-            content: '✓';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            font-weight: bold;
-            text-shadow: 0 0 2px rgba(0,0,0,0.5);
-        }
-
-        /* Quick View Button */
-        .view-more {
-            width: 48px;
-            height: 48px;
-            background: #000;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.2s ease, background-color 0.2s ease;
-        }
-
-        .view-more:hover {
-            transform: scale(1.1);
-            background-color: #333;
-        }
-
-        /* Add to Cart Button */
-        .add-to-cart {
-            background-color: #000;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 12px 24px;
-            font-family: 'Inter', sans-serif;
-            font-weight: 500;
-            transition: background-color 0.2s ease;
-            width: 100%;
-            margin-top: 16px;
-        }
-
-        .add-to-cart:hover {
-            background-color: #333;
-        }
-        
-        /* Size filter buttons */
-        .size-option {
-            display: inline-block;
-            padding: 8px 16px;
-            margin: 4px;
-            border: 2px solid #ddd;
-            border-radius: 4px;
-            background: white;
-            color: #333;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .size-option:hover {
-            border-color: #000;
-            background: #f5f5f5;
-        }
-
-        .size-option.active {
-            border-color: #000;
-            background: #000;
-            color: white;
-        }
-
-        .size-option:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        .products-grid.list-view .col-lg-4,
-        .products-grid.list-view .col-md-6 {
-            flex: 0 0 100%;
-            max-width: 100%;
-        }
-        
-        .products-grid.list-view .product-card {
-            flex-direction: row;
-        }
-        
-        .products-grid.list-view .product-image {
-            width: 200px;
-            height: 150px;
-            flex-shrink: 0;
-        }
-        
-        @media (max-width: 768px) {
-            .filters-sidebar {
-                margin-bottom: 2rem;
-            }
-            
-            .products-toolbar {
-                flex-direction: column;
-                gap: 1rem;
-            }
-            
-            .products-toolbar .col-md-6 {
-                text-align: center;
-            }
-        }       
-    </style>
-</body>
+    <script type="module" src="../assets/js/auth-persistence.js"></script>
+    <script type="module" src="../assets/js/animations.js"></script>
+    <style></style>
+  </body>
 </html>

@@ -195,28 +195,6 @@ class Application {
                 navbarManager.updateAuthState(data.user, true);
             }
         });
-
-        // Product events
-        productManager.on('cartUpdated', (data) => {
-            this.updateCartUI(data);
-            // Bridge to navbar manager
-            if (navbarManager.isInitialized) {
-                const cartCount = productManager.getCartItemCount();
-                navbarManager.updateCartCount(cartCount);
-            }
-        });
-        
-        productManager.on('categoriesLoaded', (categories) => {
-            this.renderCategories(categories);
-            // Bridge to navbar manager
-            if (navbarManager.isInitialized) {
-                navbarManager.updateCategories(categories);
-            }
-        });
-        
-        productManager.on('featuredProductsLoaded', (products) => {
-            this.renderFeaturedProducts(products);
-        });
     }
 
     /**
