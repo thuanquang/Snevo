@@ -118,7 +118,10 @@ class CheckoutManager {
     async loadAddresses() {
         try {
             const result = await window.usersAPI.getAddresses();
-            this.addresses = result.data || [];
+            console.log('📍 Loaded addresses:', result);
+            // Handle both {data: [...]} and {addresses: [...], success, count} response formats
+            this.addresses = result.data || result.addresses || [];
+            console.log('📍 Addresses list:', this.addresses);
             this.renderAddresses();
         } catch (err) {
             console.error('❌ Failed to load addresses:', err);
@@ -163,17 +166,28 @@ class CheckoutManager {
             return;
         }
 
+        console.log('🏠 Rendering addresses:', this.addresses);
+        console.log('🏠 First address structure:', this.addresses[0]);
+
         let html = '';
         for (const addr of this.addresses) {
             const checked = this.orderData.address_id === addr.address_id ? 'checked' : '';
+            // Use fallback values for any missing fields
+            const recipientName = addr.recipient_name || 'N/A';
+            const street = addr.street || 'N/A';
+            const ward = addr.ward || '';
+            const district = addr.district || '';
+            const city = addr.city || '';
+            const phoneNumber = addr.phone_number || 'N/A';
+            
             html += `
                 <label class="address-option ${checked ? 'selected' : ''}">
                     <input type="radio" name="address" value="${addr.address_id}" ${checked}>
                     <div>
-                        <p class="mb-1"><strong>${addr.recipient_name}</strong></p>
-                        <p class="mb-1">${addr.street_address}</p>
-                        <p class="mb-1">${addr.ward}, ${addr.district}, ${addr.city}</p>
-                        <p class="mb-0 text-muted">Phone: ${addr.phone_number}</p>
+                        <p class="mb-1"><strong>${recipientName}</strong></p>
+                        <p class="mb-1">${street}</p>
+                        <p class="mb-1">${ward}${ward && district ? ', ' : ''}${district}${(ward || district) && city ? ', ' : ''}${city}</p>
+                        <p class="mb-0 text-muted">Phone: ${phoneNumber}</p>
                     </div>
                 </label>
             `;
@@ -571,13 +585,17 @@ class CheckoutManager {
                 await this.loadAddresses();
                 
                 // Auto-select the new address
-                this.orderData.address_id = result.address.address_id;
-                this.updateAddressSelection();
-                document.getElementById('btnNextStep2').disabled = false;
+                const newAddressId = result.address?.address_id;
+                if (newAddressId) {
+                    this.orderData.address_id = newAddressId;
+                    this.updateAddressSelection();
+                    document.getElementById('btnNextStep2').disabled = false;
+                }
                 
                 // Show success message
                 alert('Address added successfully!');
             } else {
+                console.warn('⚠️ Response not success:', result);
                 alert('Failed to save address: ' + (result.message || 'Unknown error'));
             }
         } catch (err) {
