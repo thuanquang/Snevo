@@ -251,7 +251,7 @@ class ProductManager {
     }
   }
   /**
-   * ⭐ NEW: Render color filters
+   * ⭐ Render color filters - Display only color circles (no names)
    */
   renderColorFilters() {
     const container = document.getElementById("colorFilters");
@@ -260,20 +260,19 @@ class ProductManager {
     const html = this.colors
       .map(
         (color) => `
-      <div class="color-option" 
-           data-color-id="${color.color_id}"
-           style="background-color: ${
-             color.hex_code || "#ccc"
-           }; border: 2px solid #ddd; cursor: pointer;"
-           title="${color.color_name}"
-           onclick="productManager.toggleColorFilter(${color.color_id})">
-      </div>
-    `
+        <div class="color-option ${this.currentFilters.colors.includes(color.color_id) ? 'active' : ''}" 
+            data-color-id="${color.color_id}"
+            title="${color.color_name}">
+          <span class="color-circle" style="background: ${color.hex_code};"></span>
+        </div>
+      `
       )
       .join("");
 
     container.innerHTML = html;
+    console.log(`✅ Rendered ${this.colors.length} color filters`);
   }
+
 
   /**
    * ⭐ NEW: Render size filters
@@ -367,7 +366,23 @@ class ProductManager {
    * Setup event listeners
    */
   setupEventListeners() {
-    // Filter change listeners
+    console.log("🎯 Setting up event listeners...");
+
+    // COLOR FILTER - Event Delegation
+    const colorContainer = document.getElementById("colorFilters");
+    if (colorContainer) {
+      colorContainer.addEventListener("click", (e) => {
+        const colorOption = e.target.closest(".color-option");
+        if (colorOption) {
+          const colorId = parseInt(colorOption.dataset.colorId);
+          if (!isNaN(colorId)) {
+            this.toggleColorFilter(colorId);
+          }
+        }
+      });
+      console.log("✅ Color filter event listener attached");
+    }
+
     document
       .querySelectorAll('#categoryFilters input[type="checkbox"]')
       .forEach((checkbox) => {
