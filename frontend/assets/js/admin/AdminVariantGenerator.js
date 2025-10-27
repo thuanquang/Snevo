@@ -340,6 +340,70 @@ async openVariantGenerator() {
             this.showToast("Error", "Failed to generate variants: " + error.message, "error");
         }
     }
+    /**
+     * ✅ Delete variant (soft delete) - BUSINESS LOGIC
+     */
+    async deleteVariant(variantId, row) {
+    try {
+        // Get variant info from row for confirmation
+        const sku = row.querySelector('.variant-sku')?.textContent || 'Unknown';
+        const stock = row.querySelector('.variant-stock')?.textContent || '0';
+        
+        // Confirmation
+        const confirmMessage = parseInt(stock) > 0
+        ? `Delete variant "${sku}"?\n\nStock will be preserved: ${stock} units\nYou can restore this variant later.`
+        : `Delete variant "${sku}"?\n\nYou can restore this variant later.`;
+        
+        if (!confirm(confirmMessage)) {
+        return null;
+        }
+
+        // Show loading toast
+        const loadingToast = this.showToast('info', 'Deleting variant...', 'info');
+
+        // Call API through variantsAPI
+        const response = await window.variantsAPI.softDeleteVariant(variantId);
+
+        // Remove loading toast
+        if (loadingToast) loadingToast.remove();
+
+        // Check response
+        if (response?.success) {
+        // Remove row from UI
+        row.remove();
+        
+        // Update variant count
+        this.updateVariantCount();
+        
+        // Show success message
+        this.showToast('Success', response.message || 'Variant deleted successfully', 'success');
+        
+        return response;
+        } else {
+        throw new Error(response?.message || 'Failed to delete variant');
+        }
+    } catch (error) {
+        console.error('Error deleting variant:', error);
+        this.showToast('Error', error.message || 'Failed to delete variant', 'error');
+        throw error;
+    }
+    }
+
+    /**
+     * ✅ Update variant count display
+     */
+    updateVariantCount() {
+    const container = document.querySelector('.variants-container');
+    if (!container) return;
+    
+    const variantRows = container.querySelectorAll('.variant-row');
+    const count = variantRows.length;
+    
+    const countElement = container.querySelector('.variant-count');
+    if (countElement) {
+        countElement.textContent = `${count} variant${count !== 1 ? 's' : ''}`;
+    }
+    }
     
     /**
      * Show toast notification

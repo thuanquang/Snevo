@@ -247,61 +247,52 @@ class AdminVariantRenderer {
      * Render a single variant row
      * ✅ Y nguyên giao diện
      */
-    renderVariantRow(variant) {
-        const stock = variant.stock_quantity || 0;
-        const statusClass = stock > 0 ? 'success' : 'danger';
-        const statusText = stock > 0 ? 'Available' : 'Out';
-        
-        // Find color and size
-        const color = this.core.colors.find(c => c.color_id === variant.color_id);
-        const size = this.core.sizes.find(s => s.size_id === variant.size_id);
-        
-        const hexCode = color?.hex_code || color?.color_code || '#ccc';
-        
-        return `
-            <tr>
-                <td>
-                    <code class="text-muted">${variant.sku || 'N/A'}</code>
-                </td>
-                <td>
-                    <span class="d-inline-block rounded-circle me-2" 
-                          style="width: 20px; height: 20px; background: ${hexCode}; border: 1px solid #ddd; vertical-align: middle;">
-                    </span>
-                    ${color?.color_name || 'N/A'}
-                </td>
-                <td>
-                    <strong>${size?.size_value || 'N/A'}</strong>
-                    ${size?.size_type ? `<small class="text-muted">(${size.size_type})</small>` : ''}
-                </td>
-                <td>
-                    <span class="badge ${
-                        stock > 10 ? 'bg-success' :
-                        stock > 0 ? 'bg-warning' : 'bg-danger'
-                    }">
-                        ${stock}
-                    </span>
-                </td>
-                <td>${this.productRenderer.formatPrice(variant.variant_price || variant.price)}</td>
-                <td>
-                    <span class="badge bg-${statusClass}">${statusText}</span>
-                </td>
-                <td>
-                    <div class="btn-group btn-group-sm" role="group">
-                        <button class="btn btn-outline-primary" 
-                                onclick="adminManager.editVariant(${variant.variant_id})"
-                                title="Edit">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                        <button class="btn btn-outline-danger" 
-                                onclick="adminManager.deleteVariant(${variant.variant_id})"
-                                title="Delete">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </div>
-                </td>
-            </tr>
-        `;
-    }
+renderVariantRow(variant) {
+  const stock = variant.stock_quantity || 0;
+  const statusClass = stock > 0 ? 'success' : 'danger';
+  const statusText = stock > 0 ? 'Available' : 'Out';
+  
+  const color = this.core.colors.find(c => c.color_id === variant.color_id);
+  const size = this.core.sizes.find(s => s.size_id === variant.size_id);
+  const hexCode = color?.hex_code || color?.color_code || '#ccc';
+  
+  return `
+    <tr data-variant-id="${variant.variant_id}">
+      <td><code class="text-muted">${variant.sku || 'N/A'}</code></td>
+      <td>
+        <span class="d-inline-block rounded-circle me-2" 
+              style="width: 20px; height: 20px; background: ${hexCode}; border: 1px solid #ddd; vertical-align: middle;"></span>
+        ${color?.color_name || 'N/A'}
+      </td>
+      <td>
+        <strong>${size?.size_value || 'N/A'}</strong>
+        ${size?.size_type ? `<small class="text-muted"> (${size.size_type})</small>` : ''}
+      </td>
+      <td>
+        <span class="badge ${stock > 10 ? 'bg-success' : stock > 0 ? 'bg-warning' : 'bg-danger'}">
+          ${stock}
+        </span>
+      </td>
+      <td>${this.productRenderer.formatPrice(variant.variant_price || variant.price)}</td>
+      <td><span class="badge bg-${statusClass}">${statusText}</span></td>
+      <td>
+        <div class="btn-group btn-group-sm" role="group">
+          <button class="btn btn-outline-primary" 
+                  onclick="adminManager.editVariant(${variant.variant_id})" 
+                  title="Edit">
+            <i class="bi bi-pencil"></i>
+          </button>
+          <!-- ✅ FIX: Pass 'this' to get row element -->
+          <button class="btn btn-outline-danger" 
+                    onclick="adminManager.deleteVariant(${variant.variant_id}, this)" 
+                    title="Delete">
+            <i class="bi bi-trash"></i>
+          </button>
+        </div>
+      </td>
+    </tr>
+  `;
+}
     
     /**
      * Show shoe details modal

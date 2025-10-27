@@ -5,261 +5,286 @@
  * Combines all admin modules
  */
 class AdminManager {
-    constructor() {
-        // Initialize core
-        this.core = new AdminCore();
-        
-        // Initialize modules
-        this.productRenderer = new AdminProductRenderer(this.core);
-        this.variantRenderer = new AdminVariantRenderer(this.core, this.productRenderer);
-        this.categoryManager = new AdminCategory(this.core, this.productRenderer);
-        this.importManager = new AdminImport(this.core, this.productRenderer);
-        this.importHistoryManager = new AdminImportHistory(this.core, this.productRenderer);
-        this.variantGenerator = new AdminVariantGenerator(this.core, this.productRenderer);
-        this.productManager = new AdminProduct(this.core, this.productRenderer);
-        this.actions = new AdminActions(this.core);
-        
-        console.log("✅ AdminManager initialized");
+  constructor() {
+    // Initialize core
+    this.core = new AdminCore();
+
+    // Initialize modules
+    this.productRenderer = new AdminProductRenderer(this.core);
+    this.variantRenderer = new AdminVariantRenderer(
+      this.core,
+      this.productRenderer
+    );
+    this.categoryManager = new AdminCategory(this.core, this.productRenderer);
+    this.importManager = new AdminImport(this.core, this.productRenderer);
+    this.importHistoryManager = new AdminImportHistory(
+      this.core,
+      this.productRenderer
+    );
+    this.variantGenerator = new AdminVariantGenerator(
+      this.core,
+      this.productRenderer
+    );
+    this.productManager = new AdminProduct(this.core, this.productRenderer);
+    this.historyManager = new AdminHistory(this.core, this.productRenderer);
+    window.adminHistory = this.historyManager;
+    this.actions = new AdminActions(this.core);
+
+    this.actions.productManager = this.productManager; // Wire connection
+    window.adminActions = this.actions; // Expose globally
+    window.adminManager = this;
+    console.log("✅ AdminManager initialized");
+  }
+
+  /**
+   * Initialize AdminManager
+   */
+  async init() {
+    try {
+      console.log("🔄 Initializing AdminManager...");
+
+      // Wait for API
+      if (!this.core.api) {
+        await this.core.waitForAPI();
+      }
+      //  Initialize section switching
+      this.initSectionSwitching();
+      // Load all data in parallel
+      await Promise.all([
+        this.core.loadShoes(),
+        this.core.loadCategories(),
+        this.core.loadColors(),
+        this.core.loadSizes(),
+      ]);
+
+      // Render initial data
+      this.productRenderer.applySortByStock();
+      this.categoryManager.renderCategoriesTable();
+      this.core.updateStats();
+
+      // Setup event listeners (ONLY ONCE)
+      this.setupEventListeners();
+
+      console.log("✅ AdminManager initialized successfully");
+      this.setupLogoutButton();
+    } catch (error) {
+      console.error("❌ Init error:", error);
+      AdminUtils.showError("Failed to load admin data");
     }
-    
-    /**
-     * Initialize AdminManager
-     */
-    async init() {
-        try {
-            console.log("🔄 Initializing AdminManager...");
-            
-            // Wait for API
-            if (!this.core.api) {
-                await this.core.waitForAPI();
-            }
-            
-            // Load all data in parallel
-            await Promise.all([
-                this.core.loadShoes(),
-                this.core.loadCategories(),
-                this.core.loadColors(),
-                this.core.loadSizes(),
-            ]);
-            
-            // Render initial data
-            this.productRenderer.applySortByStock();
-            this.categoryManager.renderCategoriesTable();
-            this.core.updateStats();
-            
-            // Setup event listeners (ONLY ONCE)
-            this.setupEventListeners();
-            
-            console.log("✅ AdminManager initialized successfully");
-            this.setupLogoutButton();
-        } catch (error) {
-            console.error("❌ Init error:", error);
-            AdminUtils.showError("Failed to load admin data");
-        }
-    }
-    setupEventListeners() {
-        // ✅ Check if already setup
-        if (this._listenersSetup) {
-            console.log("⚠️ Event listeners already setup, skipping...");
-            return;
-        }
-        
-        // Setup utils
-        AdminUtils.setupLogoutButton();
-        this.importHistoryManager.setupImportHistoryTabListener();
-        this.importManager.setupImportButtonListeners();
-        this.variantGenerator.setupVariantGeneratorListeners();
-        this.productManager.setupProductFormListeners();
-        
-        // Setup sort handler
-        const sortSelect = document.getElementById("sortSelect");
-        if (sortSelect) {
-            sortSelect.addEventListener("change", () => this.productRenderer.handleSort());
-        }
-        
-        // ✅ FIXED: Setup "Select All Variants" checkbox with flag check
-        const selectAllCheckbox = document.getElementById("selectAllVariants");
-        if (selectAllCheckbox) {
-            // Remove old listener if exists
-            selectAllCheckbox.removeEventListener("change", this._selectAllHandler);
-            
-            // Create new handler and store reference
-            this._selectAllHandler = (e) => {
-                this.toggleAllVariants(e.target.checked);
-            };
-            
-            selectAllCheckbox.addEventListener("change", this._selectAllHandler);
-        }
-        
-        // ✅ FIXED: Setup "Submit Import" button with flag check
-        const submitBtn = document.getElementById("submitImportBtn");
-        if (submitBtn) {
-            // Remove old listener if exists
-            submitBtn.removeEventListener("click", this._submitImportHandler);
-            
-            // Create new handler and store reference
-            this._submitImportHandler = () => {
-                this.submitBatchImport();
-            };
-            
-            submitBtn.addEventListener("click", this._submitImportHandler);
-        }
-        
-        // ✅ Mark as setup
-        this._listenersSetup = true;
-        console.log("✅ Event listeners setup complete");
-    }
-    /**
-     * Setup logout button
-     */
-    setupLogoutButton() {
-        const logoutBtn = document.getElementById("logoutBtn");
-        if (!logoutBtn) {
-            console.warn("⚠️ Logout button not found");
-            return;
-        }
-        
-        console.log("🔐 Setting up logout button");
-        logoutBtn.addEventListener("click", (e) => {
-            e.preventDefault();
-            console.log("👋 Logout clicked");
-            this.handleLogout();
-        });
+  }
+  setupEventListeners() {
+    // ✅ Check if already setup
+    if (this._listenersSetup) {
+      console.log("⚠️ Event listeners already setup, skipping...");
+      return;
     }
 
-    /**
-     * Handle logout
-     */
-    async handleLogout() {
-        console.log("🚪 Starting logout...");
-        
-        const logoutBtn = document.getElementById("logoutBtn");
-        if (logoutBtn) {
-            logoutBtn.disabled = true;
-            logoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Logging out...';
-        }
+    // Setup utils
+    AdminUtils.setupLogoutButton();
+    this.importHistoryManager.setupImportHistoryTabListener();
+    this.importManager.setupImportButtonListeners();
+    this.variantGenerator.setupVariantGeneratorListeners();
+    this.productManager.setupProductFormListeners();
+    this.historyManager.setupGlobalImportHistoryListener();
+    this.historyManager.setupHistoryTabListeners();
 
-        try {
-            // Clear session data
-            await this.clearAllSessionData();
-            
-            // Show success
-            this.showLogoutSuccessToast();
-            
-            // Wait a bit
-            await new Promise(resolve => setTimeout(resolve, 800));
-            
-            // Redirect
-            console.log("✅ Logout complete - redirecting");
-            window.location.href = "index.html";
-            
-        } catch (error) {
-            console.error("❌ Logout error:", error);
-            AdminUtils.showToast("Error", "Logout failed. Redirecting...", "error");
-            
-            // Force redirect
-            setTimeout(() => {
-                window.location.href = "index.html";
-            }, 1500);
-        }
+    // Setup sort handler
+    const sortSelect = document.getElementById("sortSelect");
+    if (sortSelect) {
+      sortSelect.addEventListener("change", () =>
+        this.productRenderer.handleSort()
+      );
     }
 
-    /**
-     * Clear all session data
-     */
-    async clearAllSessionData() {
-        console.log("🧹 Clearing session data...");
-        
-        try {
-            // STEP 1: Supabase signout (with safety check)
-            try {
-                if (window.supabaseClient) {
-                    console.log("🔑 Signing out from Supabase...");
-                    const { error } = await window.supabaseClient.auth.signOut();
-                    if (error) {
-                        console.error("⚠️ Supabase signOut error:", error);
-                    } else {
-                        console.log("✅ Supabase signOut successful");
-                    }
-                } else {
-                    console.warn("⚠️ Supabase client not available");
-                }
-            } catch (err) {
-                console.error("⚠️ Supabase signOut failed:", err);
-                // Continue anyway
-            }
+    // ✅ FIXED: Setup "Select All Variants" checkbox with flag check
+    const selectAllCheckbox = document.getElementById("selectAllVariants");
+    if (selectAllCheckbox) {
+      // Remove old listener if exists
+      selectAllCheckbox.removeEventListener("change", this._selectAllHandler);
 
-            // STEP 2: Clear localStorage
-            console.log("🗑️ Clearing localStorage...");
-            const keysToRemove = [
-                "authtoken",
-                "refreshtoken",
-                "user",
-                "supabase.auth.token",
-                "supabase.auth.refreshToken",
-                "supabase.auth.user"
-            ];
-            
-            keysToRemove.forEach(key => {
-                if (localStorage.getItem(key)) {
-                    localStorage.removeItem(key);
-                    console.log(`  ✓ Removed ${key}`);
-                }
-            });
+      // Create new handler and store reference
+      this._selectAllHandler = (e) => {
+        this.toggleAllVariants(e.target.checked);
+      };
 
-            // STEP 3: Clear Supabase keys
-            const allKeys = Object.keys(localStorage);
-            allKeys.forEach(key => {
-                if (key.startsWith("sb-") || key.includes("supabase")) {
-                    localStorage.removeItem(key);
-                    console.log(`  ✓ Removed: ${key}`);
-                }
-            });
-
-            // STEP 4: Clear sessionStorage
-            console.log("🗑️ Clearing sessionStorage...");
-            sessionStorage.clear();
-
-            // STEP 5: Clear cookies
-            console.log("🍪 Clearing cookies...");
-            document.cookie.split(";").forEach(cookie => {
-                const eqPos = cookie.indexOf("=");
-                const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
-                
-                if (name.includes("auth") || name.includes("sb-") || name.includes("supabase") || name.includes("token")) {
-                    document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
-                    document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=${window.location.hostname}`;
-                    console.log(`  ✓ Cleared: ${name}`);
-                }
-            });
-
-            // STEP 6: Update AuthManager (if exists and has method)
-            if (window.authManager) {
-                console.log("🔄 Updating AuthManager...");
-                if (typeof window.authManager.clearAuthData === 'function') {
-                    window.authManager.clearAuthData();
-                }
-                if (typeof window.authManager.updateAuthUI === 'function') {
-                    window.authManager.updateAuthUI();
-                }
-                // Skip emit() - không có trong authManager
-            }
-
-            console.log("✅ All session data cleared");
-        } catch (error) {
-            console.error("❌ Error clearing session:", error);
-            throw error;
-        }
+      selectAllCheckbox.addEventListener("change", this._selectAllHandler);
     }
 
-    /**
-     * Show logout success toast
-     */
-    showLogoutSuccessToast() {
-        const toast = document.createElement("div");
-        toast.className = "toast align-items-center text-white bg-success border-0";
-        toast.setAttribute("role", "alert");
-        toast.innerHTML = `
+    // ✅ FIXED: Setup "Submit Import" button with flag check
+    const submitBtn = document.getElementById("submitImportBtn");
+    if (submitBtn) {
+      // Remove old listener if exists
+      submitBtn.removeEventListener("click", this._submitImportHandler);
+
+      // Create new handler and store reference
+      this._submitImportHandler = () => {
+        this.submitBatchImport();
+      };
+
+      submitBtn.addEventListener("click", this._submitImportHandler);
+    }
+
+    // ✅ Mark as setup
+    this._listenersSetup = true;
+    console.log("✅ Event listeners setup complete");
+  }
+  /**
+   * Setup logout button
+   */
+  setupLogoutButton() {
+    const logoutBtn = document.getElementById("logoutBtn");
+    if (!logoutBtn) {
+      console.warn("⚠️ Logout button not found");
+      return;
+    }
+
+    console.log("🔐 Setting up logout button");
+    logoutBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      console.log("👋 Logout clicked");
+      this.handleLogout();
+    });
+  }
+
+  /**
+   * Handle logout
+   */
+  async handleLogout() {
+    console.log("🚪 Starting logout...");
+
+    const logoutBtn = document.getElementById("logoutBtn");
+    if (logoutBtn) {
+      logoutBtn.disabled = true;
+      logoutBtn.innerHTML =
+        '<i class="fas fa-spinner fa-spin me-2"></i>Logging out...';
+    }
+
+    try {
+      // Clear session data
+      await this.clearAllSessionData();
+
+      // Show success
+      this.showLogoutSuccessToast();
+
+      // Wait a bit
+      await new Promise((resolve) => setTimeout(resolve, 800));
+
+      // Redirect
+      console.log("✅ Logout complete - redirecting");
+      window.location.href = "index.html";
+    } catch (error) {
+      console.error("❌ Logout error:", error);
+      AdminUtils.showToast("Error", "Logout failed. Redirecting...", "error");
+
+      // Force redirect
+      setTimeout(() => {
+        window.location.href = "index.html";
+      }, 1500);
+    }
+  }
+
+  /**
+   * Clear all session data
+   */
+  async clearAllSessionData() {
+    console.log("🧹 Clearing session data...");
+
+    try {
+      // STEP 1: Supabase signout (with safety check)
+      try {
+        if (window.supabaseClient) {
+          console.log("🔑 Signing out from Supabase...");
+          const { error } = await window.supabaseClient.auth.signOut();
+          if (error) {
+            console.error("⚠️ Supabase signOut error:", error);
+          } else {
+            console.log("✅ Supabase signOut successful");
+          }
+        } else {
+          console.warn("⚠️ Supabase client not available");
+        }
+      } catch (err) {
+        console.error("⚠️ Supabase signOut failed:", err);
+        // Continue anyway
+      }
+
+      // STEP 2: Clear localStorage
+      console.log("🗑️ Clearing localStorage...");
+      const keysToRemove = [
+        "authtoken",
+        "refreshtoken",
+        "user",
+        "supabase.auth.token",
+        "supabase.auth.refreshToken",
+        "supabase.auth.user",
+      ];
+
+      keysToRemove.forEach((key) => {
+        if (localStorage.getItem(key)) {
+          localStorage.removeItem(key);
+          console.log(`  ✓ Removed ${key}`);
+        }
+      });
+
+      // STEP 3: Clear Supabase keys
+      const allKeys = Object.keys(localStorage);
+      allKeys.forEach((key) => {
+        if (key.startsWith("sb-") || key.includes("supabase")) {
+          localStorage.removeItem(key);
+          console.log(`  ✓ Removed: ${key}`);
+        }
+      });
+
+      // STEP 4: Clear sessionStorage
+      console.log("🗑️ Clearing sessionStorage...");
+      sessionStorage.clear();
+
+      // STEP 5: Clear cookies
+      console.log("🍪 Clearing cookies...");
+      document.cookie.split(";").forEach((cookie) => {
+        const eqPos = cookie.indexOf("=");
+        const name =
+          eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+
+        if (
+          name.includes("auth") ||
+          name.includes("sb-") ||
+          name.includes("supabase") ||
+          name.includes("token")
+        ) {
+          document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+          document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=${window.location.hostname}`;
+          console.log(`  ✓ Cleared: ${name}`);
+        }
+      });
+
+      // STEP 6: Update AuthManager (if exists and has method)
+      if (window.authManager) {
+        console.log("🔄 Updating AuthManager...");
+        if (typeof window.authManager.clearAuthData === "function") {
+          window.authManager.clearAuthData();
+        }
+        if (typeof window.authManager.updateAuthUI === "function") {
+          window.authManager.updateAuthUI();
+        }
+        // Skip emit() - không có trong authManager
+      }
+
+      console.log("✅ All session data cleared");
+    } catch (error) {
+      console.error("❌ Error clearing session:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Show logout success toast
+   */
+  showLogoutSuccessToast() {
+    const toast = document.createElement("div");
+    toast.className = "toast align-items-center text-white bg-success border-0";
+    toast.setAttribute("role", "alert");
+    toast.innerHTML = `
             <div class="d-flex">
                 <div class="toast-body">
                     <i class="fas fa-check-circle me-2"></i>Logout successful! Redirecting...
@@ -267,134 +292,208 @@ class AdminManager {
             </div>
         `;
 
-        toast.style.position = "fixed";
-        toast.style.top = "50%";
-        toast.style.left = "50%";
-        toast.style.transform = "translate(-50%, -50%)";
-        toast.style.zIndex = "9999";
-        toast.style.minWidth = "300px";
-        document.body.appendChild(toast);
+    toast.style.position = "fixed";
+    toast.style.top = "50%";
+    toast.style.left = "50%";
+    toast.style.transform = "translate(-50%, -50%)";
+    toast.style.zIndex = "9999";
+    toast.style.minWidth = "300px";
+    document.body.appendChild(toast);
 
-        const bsToast = new bootstrap.Toast(toast, { delay: 2000 });
-        bsToast.show();
+    const bsToast = new bootstrap.Toast(toast, { delay: 2000 });
+    bsToast.show();
 
-        toast.addEventListener("hidden.bs.toast", () => {
-            if (document.body.contains(toast)) {
-                document.body.removeChild(toast);
-            }
-        });
+    toast.addEventListener("hidden.bs.toast", () => {
+      if (document.body.contains(toast)) {
+        document.body.removeChild(toast);
+      }
+    });
+  }
+
+  // ==================== DELEGATE METHODS ====================
+  // Product Management
+  addShoe() {
+    return this.productManager.openProductForm();
+  }
+  // Product & Variant Display
+  viewShoeDetails(shoeId) {
+    return this.variantRenderer.viewShoeDetails(shoeId);
+  }
+
+  // Import Management
+  handleImport(shoeId) {
+    return this.importManager.handleImport(shoeId);
+  }
+
+  // ✅ ADDED: Delegate to importManager
+  handleVariantCheckbox(variantId, checked) {
+    return this.importManager.handleVariantCheckbox(variantId, checked);
+  }
+
+  // ✅ ADDED: Delegate to importManager
+  toggleAllVariants(checked) {
+    return this.importManager.toggleAllVariants(checked);
+  }
+
+  // ✅ ADDED: Delegate to importManager
+  updateImportSummary() {
+    return this.importManager.updateImportSummary();
+  }
+
+  // ✅ ADDED: Delegate to importManager
+  submitBatchImport() {
+    return this.importManager.submitBatchImport();
+  }
+
+  // ✅ ADDED: Delegate to variantGenerator
+  updateGeneratorCounts() {
+    return this.variantGenerator.updateGeneratorCounts();
+  }
+
+  // Legacy methods (kept for backward compatibility)
+  toggleVariantSelection(variantId) {
+    console.warn(
+      "⚠️ toggleVariantSelection is deprecated, use handleVariantCheckbox"
+    );
+    const checkbox = document.querySelector(`[data-variant-id="${variantId}"]`);
+    if (checkbox) {
+      return this.handleVariantCheckbox(variantId, checkbox.checked);
     }
-    
-    // ==================== DELEGATE METHODS ====================
-    // Product Management
-    addShoe() {
-        return this.productManager.openProductForm();
+  }
+
+  updateImportQuantity(variantId, quantity) {
+    return this.updateImportSummary();
+  }
+
+  updateImportPrice(variantId, price) {
+    return this.updateImportSummary();
+  }
+
+  submitImport() {
+    console.warn("⚠️ submitImport is deprecated, use submitBatchImport");
+    return this.submitBatchImport();
+  }
+
+  // CRUD Actions
+  editShoe(shoeId) {
+    return this.productManager.openProductForm(shoeId);
+  }
+
+  deleteShoe(shoeId) {
+    return this.actions.deleteShoe(shoeId);
+  }
+
+  editVariant(variantId) {
+    return this.actions.editVariant(variantId);
+  }
+
+  deleteVariant(variantId) {
+    return this.actions.deleteVariant(variantId);
+  }
+
+  editCategory(categoryId) {
+    return this.actions.editCategory(categoryId);
+  }
+
+  deleteCategory(categoryId) {
+    return this.actions.deleteCategory(categoryId);
+  }
+
+  // Variant Generator (if needed in HTML)
+  openVariantGenerator(shoe) {
+    this.core.currentShoe = shoe;
+    return this.variantGenerator.openVariantGenerator(shoe);
+  }
+
+  // ✅ ADDED: Toast notification delegate
+  showToast(title, message, type = "info") {
+    AdminUtils.showToast(title, message, type);
+  }
+
+  // Utility Methods
+  showError(message) {
+    AdminUtils.showError(message);
+  }
+
+  showSuccess(message) {
+    AdminUtils.showSuccess(message);
+  }
+  /**
+   * 🔄 Initialize section switching
+   */
+  initSectionSwitching() {
+    const sidebarLinks = document.querySelectorAll("[data-section]");
+
+    sidebarLinks.forEach((link) => {
+      link.addEventListener("click", (e) => {
+        e.preventDefault();
+        const sectionName = link.dataset.section;
+        this.switchSection(sectionName);
+      });
+    });
+
+    console.log("✅ Section switching initialized");
+  }
+
+  switchSection(sectionName) {
+    console.log("🔄 Switching to section:", sectionName);
+
+    // Hide all sections
+    document.querySelectorAll(".content-section").forEach((section) => {
+      section.style.display = "none";
+    });
+
+    // Show target section
+    const targetSection = document.getElementById(`${sectionName}Section`);
+    if (targetSection) {
+      targetSection.style.display = "block";
+
+      // Load data based on section
+      switch (sectionName) {
+        case "history":
+          if (this.historyManager) {
+            this.historyManager.loadDeletedProducts(); // ✅ Load deleted products
+            this.historyManager.loadGlobalImportHistory(); // ✅ Load global imports
+          }
+          break;
+        case "inventory":
+          // Already loaded
+          break;
+        case "dashboard":
+          // Load dashboard stats (future)
+          break;
+      }
+    } else {
+      console.error("❌ Section not found:", `${sectionName}Section`);
     }
-    // Product & Variant Display
-    viewShoeDetails(shoeId) {
-        return this.variantRenderer.viewShoeDetails(shoeId);
+
+    // Update active link
+    document.querySelectorAll(".sidebar-menu-link").forEach((l) => {
+      l.classList.remove("active");
+    });
+    const activeLink = document.querySelector(
+      `[data-section="${sectionName}"]`
+    );
+    if (activeLink) {
+      activeLink.classList.add("active");
     }
-    
-    // Import Management
-    handleImport(shoeId) {
-        return this.importManager.handleImport(shoeId);
+  }
+    /**
+     * Delete variant wrapper - called from HTML onclick
+     */
+    async deleteVariant(variantId, buttonElement) {
+    try {
+        console.log('🗑️ Delete variant called:', variantId);     
+        // Pass to AdminActions with buttonElement
+        await this.actions.deleteVariant(variantId, buttonElement);
+    } catch (error) {
+        console.error('Delete variant failed in AdminManager:', error);
     }
-    
-    // ✅ ADDED: Delegate to importManager
-    handleVariantCheckbox(variantId, checked) {
-        return this.importManager.handleVariantCheckbox(variantId, checked);
-    }
-    
-    // ✅ ADDED: Delegate to importManager
-    toggleAllVariants(checked) {
-        return this.importManager.toggleAllVariants(checked);
-    }
-    
-    // ✅ ADDED: Delegate to importManager
-    updateImportSummary() {
-        return this.importManager.updateImportSummary();
-    }
-    
-    // ✅ ADDED: Delegate to importManager
-    submitBatchImport() {
-        return this.importManager.submitBatchImport();
-    }
-    
-    // ✅ ADDED: Delegate to variantGenerator
-    updateGeneratorCounts() {
-        return this.variantGenerator.updateGeneratorCounts();
-    }
-    
-    // Legacy methods (kept for backward compatibility)
-    toggleVariantSelection(variantId) {
-        console.warn("⚠️ toggleVariantSelection is deprecated, use handleVariantCheckbox");
-        const checkbox = document.querySelector(`[data-variant-id="${variantId}"]`);
-        if (checkbox) {
-            return this.handleVariantCheckbox(variantId, checkbox.checked);
-        }
-    }
-    
-    updateImportQuantity(variantId, quantity) {
-        return this.updateImportSummary();
-    }
-    
-    updateImportPrice(variantId, price) {
-        return this.updateImportSummary();
-    }
-    
-    submitImport() {
-        console.warn("⚠️ submitImport is deprecated, use submitBatchImport");
-        return this.submitBatchImport();
-    }
-    
-    // CRUD Actions
-    editShoe(shoeId) {
-        return this.productManager.openProductForm(shoeId);
-    }
-    
-    deleteShoe(shoeId) {
-        return this.actions.deleteShoe(shoeId);
-    }
-    
-    editVariant(variantId) {
-        return this.actions.editVariant(variantId);
-    }
-    
-    deleteVariant(variantId) {
-        return this.actions.deleteVariant(variantId);
-    }
-    
-    editCategory(categoryId) {
-        return this.actions.editCategory(categoryId);
-    }
-    
-    deleteCategory(categoryId) {
-        return this.actions.deleteCategory(categoryId);
-    }
-    
-    // Variant Generator (if needed in HTML)
-    openVariantGenerator(shoe) {
-        this.core.currentShoe = shoe;
-        return this.variantGenerator.openVariantGenerator(shoe);
-    }
-    
-    // ✅ ADDED: Toast notification delegate
-    showToast(title, message, type = "info") {
-        AdminUtils.showToast(title, message, type);
-    }
-    
-    // Utility Methods
-    showError(message) {
-        AdminUtils.showError(message);
-    }
-    
-    showSuccess(message) {
-        AdminUtils.showSuccess(message);
     }
 }
 
 // Initialize on page load
 window.addEventListener("DOMContentLoaded", async () => {
-    window.adminManager = new AdminManager();
-    await window.adminManager.init();
+  window.adminManager = new AdminManager();
+  await window.adminManager.init();
 });

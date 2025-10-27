@@ -479,6 +479,22 @@ body {
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
+#deleted-variants-list .card {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+#deleted-variants-list .card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+}
+
+.color-dot {
+  border: 1px solid rgba(0,0,0,0.1);
+}
+
+[data-bs-toggle="tooltip"]:disabled {
+  cursor: not-allowed;
+}
 /* Modal z-index hierarchy */
 #shoeDetailsModal {
   z-index: 1050 !important;

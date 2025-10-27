@@ -327,6 +327,68 @@ export default class BaseModel {
             throw new DatabaseError(`Delete operation failed: ${error.message}`, error);
         }
     }
+    /**
+     * Soft delete a record by setting is_active = false
+     */
+    async softDelete(id) {
+        try {
+            // Check if record exists
+            const existing = await this.findById(id);
+            if (!existing) {
+            throw new DatabaseError('Record not found', { 
+                code: 'NOT_FOUND',
+                details: { [this.primaryKey]: id }
+            });
+            }
+
+            // Soft delete by setting is_active = false
+            const { data, error } = await this.supabaseConfig.getAdminClient()
+            .from(this.getQualifiedTableName())
+            .update({ 
+                is_active: false,
+                deleted_at: new Date().toISOString()
+            })
+            .eq(this.primaryKey, id)
+            .select()
+            .single();
+
+            if (error) {
+            throw new DatabaseError(`Failed to soft delete record: ${error.message}`, error);
+            }
+
+            return this.hideFields(data);
+        } catch (error) {
+            if (error instanceof DatabaseError) throw error;
+            throw new DatabaseError(`Soft delete operation failed: ${error.message}`, error);
+        }
+    }
+
+    /**
+     * Restore a soft-deleted record
+     */
+    async restore(id) {
+        try {
+            const { data, error } = await this.supabaseConfig.getAdminClient()
+            .from(this.getQualifiedTableName())
+            .update({ 
+                is_active: true,
+                deleted_at: null
+            })
+            .eq(this.primaryKey, id)
+            .select()
+            .single();
+
+            if (error) {
+            throw new DatabaseError(`Failed to restore record: ${error.message}`, error);
+            }
+
+            return this.hideFields(data);
+        } catch (error) {
+            if (error instanceof DatabaseError) throw error;
+            throw new DatabaseError(`Restore operation failed: ${error.message}`, error);
+        }
+    }
+
 
     /**
      * Count records with filters
