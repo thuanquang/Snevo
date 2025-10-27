@@ -80,18 +80,32 @@ html {
 
 /* Color Options */
 .color-option {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin: 5px;
+  padding: 0;
   cursor: pointer;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  transition: all 0.3s ease;
   position: relative;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .color-option:hover {
   transform: scale(1.1);
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.color-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  display: block;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .color-option.selected::after {
@@ -168,6 +182,8 @@ html {
   height: 150px;
   flex-shrink: 0;
 }
+
+
 
 @media (max-width: 768px) {
   .filters-sidebar {

@@ -251,7 +251,7 @@ class ProductManager {
     }
   }
   /**
-   * ⭐ NEW: Render color filters
+   * ⭐ Render color filters - Display only color circles (no names)
    */
   renderColorFilters() {
     const container = document.getElementById("colorFilters");
@@ -260,20 +260,19 @@ class ProductManager {
     const html = this.colors
       .map(
         (color) => `
-      <div class="color-option" 
-           data-color-id="${color.color_id}"
-           style="background-color: ${
-             color.hex_code || "#ccc"
-           }; border: 2px solid #ddd; cursor: pointer;"
-           title="${color.color_name}"
-           onclick="productManager.toggleColorFilter(${color.color_id})">
-      </div>
-    `
+        <div class="color-option ${this.currentFilters.colors.includes(color.color_id) ? 'active' : ''}" 
+            data-color-id="${color.color_id}"
+            title="${color.color_name}">
+          <span class="color-circle" style="background: ${color.hex_code};"></span>
+        </div>
+      `
       )
       .join("");
 
     container.innerHTML = html;
+    console.log(`✅ Rendered ${this.colors.length} color filters`);
   }
+
 
   /**
    * ⭐ NEW: Render size filters
@@ -367,87 +366,89 @@ class ProductManager {
    * Setup event listeners
    */
   setupEventListeners() {
-    // Filter change listeners
-    document
-      .querySelectorAll('#categoryFilters input[type="checkbox"]')
-      .forEach((checkbox) => {
-        checkbox.addEventListener("change", () => this.handleFilterChange());
-      });
+    console.log("🎯 Setting up event listeners...");
 
-    document
-      .querySelectorAll('#brandFilters input[type="checkbox"]')
-      .forEach((checkbox) => {
-        checkbox.addEventListener("change", () => this.handleFilterChange());
-      });
-
-    document.querySelectorAll(".size-btn input").forEach((checkbox) => {
-      checkbox.addEventListener("change", () => this.handleFilterChange());
-    });
-
-    document.querySelectorAll(".color-option").forEach((option) => {
-      option.addEventListener("click", (e) => this.handleColorFilter(e));
-    });
-
-    // Price range
-    const priceRange = document.getElementById("priceRange");
-    if (priceRange) {
-      priceRange.addEventListener("input", (e) =>
-        this.handlePriceRangeChange(e)
-      );
-    }
-
-    const minPrice = document.getElementById("minPrice");
-    const maxPrice = document.getElementById("maxPrice");
-    if (minPrice)
-      minPrice.addEventListener("change", () => this.handlePriceInputChange());
-    if (maxPrice)
-      maxPrice.addEventListener("change", () => this.handlePriceInputChange());
-
-    // Sort change
-    const sortSelect = document.getElementById("sortSelect");
-    if (sortSelect) {
-      sortSelect.addEventListener("change", (e) => this.handleSortChange(e));
-    }
-
-    // View toggle
-    const gridView = document.getElementById("gridView");
-    const listView = document.getElementById("listView");
-    if (gridView)
-      gridView.addEventListener("click", () => this.setView("grid"));
-    if (listView)
-      listView.addEventListener("click", () => this.setView("list"));
-
-    // Clear filters
-    const clearFilters = document.getElementById("clearFilters");
-    if (clearFilters) {
-      clearFilters.addEventListener("click", () => this.clearAllFilters());
-    }
-
-    // Size filter event delegation
-    const sizeFiltersContainer = document.getElementById("sizeFilters");
-    if (sizeFiltersContainer) {
-      sizeFiltersContainer.addEventListener("click", (e) => {
-        const sizeBtn = e.target.closest(".size-option");
-        if (sizeBtn) {
-          const sizeId = parseInt(sizeBtn.dataset.sizeId);
-          this.toggleSizeFilter(sizeId);
-        }
-      });
-    }
-    // ⭐ Product card click handler
-    const productsGrid = document.getElementById("productsGrid");
-    if (productsGrid) {
-      productsGrid.addEventListener("click", (e) => {
-        const productCard = e.target.closest(".product-card");
-        if (productCard) {
-          const productId = productCard.dataset.productId;
-          if (productId) {
-            window.location.href = `product-detail.html?id=${productId}`;
+    // ✅ COLOR FILTER - Event Delegation (NEW)
+    const colorContainer = document.getElementById("colorFilters");
+    if (colorContainer) {
+      colorContainer.addEventListener("click", (e) => {
+        const colorOption = e.target.closest(".color-option");
+        if (colorOption) {
+          const colorId = parseInt(colorOption.dataset.colorId);
+          if (!isNaN(colorId)) {
+            this.toggleColorFilter(colorId);
           }
         }
       });
+      console.log("✅ Color filter event listener attached");
+    }
+
+    // ✅ SIZE FILTER - Event Delegation (EXISTING - KEEP)
+    const sizeContainer = document.getElementById("sizeFilters");
+    if (sizeContainer) {
+      sizeContainer.addEventListener("click", (e) => {
+        const sizeOption = e.target.closest(".size-option");
+        if (sizeOption) {
+          const sizeId = parseInt(sizeOption.dataset.sizeId);
+          if (!isNaN(sizeId)) {
+            this.toggleSizeFilter(sizeId);
+          }
+        }
+      });
+      console.log("✅ Size filter event listener attached");
+    }
+
+    // EXISTING: Category filter
+    document.querySelectorAll(".category-filter").forEach((filter) => {
+      filter.addEventListener("click", (e) => {
+        e.preventDefault();
+        const categoryId = parseInt(filter.dataset.category);
+        this.toggleCategoryFilter(categoryId);
+      });
+    });
+
+    // EXISTING: Sort dropdown
+    const sortSelect = document.getElementById("sortSelect");
+    if (sortSelect) {
+      sortSelect.addEventListener("change", (e) => {
+        this.currentSort = e.target.value;
+        this.currentPage = 1;
+        this.loadProducts();
+      });
+    }
+
+    // EXISTING: Clear filters
+    const clearFilters = document.getElementById("clearFilters");
+    if (clearFilters) {
+      clearFilters.addEventListener("click", () => this.clearFilters());
+    }
+
+    // EXISTING: Search
+    const searchInput = document.getElementById("searchInput");
+    const searchBtn = document.getElementById("searchBtn");
+    if (searchInput && searchBtn) {
+      searchBtn.addEventListener("click", () => {
+        this.currentFilters.search = searchInput.value.trim() || null;
+        this.currentPage = 1;
+        this.loadProducts();
+      });
+
+      searchInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+          this.currentFilters.search = searchInput.value.trim() || null;
+          this.currentPage = 1;
+          this.loadProducts();
+        }
+      });
+    }
+
+    // EXISTING: Price filter
+    const applyPriceBtn = document.getElementById("applyPriceFilter");
+    if (applyPriceBtn) {
+      applyPriceBtn.addEventListener("click", () => this.applyPriceFilter());
     }
   }
+
 
   /**
    * Handle filter change
