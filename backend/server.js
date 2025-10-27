@@ -74,6 +74,7 @@ class Server {
         this.profileController = new ProfileController(this.models);
         this.addressController = new AddressController(this.models);     
         this.paymentController = new PaymentController(this.models);
+        if (this.paymentController.setModels) this.paymentController.setModels(this.models);
         this.adminController = new AdminController(this.models);
         this.cartController = new CartController(this.models);
         // set models for controllers that require setModels (CartController uses models)
@@ -273,6 +274,12 @@ class Server {
             } else {
                 this.sendError(res, 'Method not allowed', 405);
             }
+        } else if (orderPath === '/preview') {
+            if (method === 'GET') {
+                await this.orderController.previewOrder(req, res);
+            } else {
+                this.sendError(res, 'Method not allowed', 405);
+            }
         } else if (orderPath.match(/^\/\d+$/)) {
             const id = orderPath.substring(1);
             req.params = { id };
@@ -404,7 +411,39 @@ class Server {
 
     // User routes handler (placeholder implementation)
     async handleUserRoutes(req, res, pathname, method, body) {
-        this.sendError(res, 'User routes not implemented yet', 501);
+        // Check authentication
+        const authResult = await authMiddleware.authenticate(req, res);
+        if (!authResult || !authResult.success) {
+            return;
+        }
+        req.user = authResult.user;
+
+        // Handle /api/users/addresses
+        if (pathname === '/api/users/addresses') {
+            if (method === 'GET') {
+                await this.addressController.getAddresses(req, res);
+            } else if (method === 'POST') {
+                req.body = body;
+                await this.addressController.createAddress(req, res);
+            } else {
+                this.sendError(res, 'Method not allowed', 405);
+            }
+        } else if (pathname.match(/^\/api\/users\/addresses\/\d+$/)) {
+            const id = pathname.replace('/api/users/addresses/', '');
+            req.params = { id };
+            if (method === 'GET') {
+                await this.addressController.getAddress(req, res);
+            } else if (method === 'PUT') {
+                req.body = body;
+                await this.addressController.updateAddress(req, res);
+            } else if (method === 'DELETE') {
+                await this.addressController.deleteAddress(req, res);
+            } else {
+                this.sendError(res, 'Method not allowed', 405);
+            }
+        } else {
+            this.sendError(res, 'API endpoint not found', 404);
+        }
     }
 
     // Profile routes handler
@@ -483,16 +522,27 @@ class Server {
             } else {
                 this.sendError(res, 'Method not allowed', 405);
             }
+        } else if (paymentPath === '/process') {
+            if (method === 'POST') {
+                req.body = body;
+                await this.paymentController.processPayment(req, res);
+            } else {
+                this.sendError(res, 'Method not allowed', 405);
+            }
         } else if (paymentPath.match(/^\/\d+$/)) {
             const id = paymentPath.substring(1);
             req.params = { id };
             if (method === 'GET') {
                 await this.paymentController.getPayment(req, res);
-            } else if (method === 'PUT') {
+            } else {
+                this.sendError(res, 'Method not allowed', 405);
+            }
+        } else if (paymentPath.match(/^\/\d+\/status$/)) {
+            const id = paymentPath.split('/')[1];
+            req.params = { id };
+            if (method === 'PUT') {
                 req.body = body;
-                await this.paymentController.updatePayment(req, res);
-            } else if (method === 'DELETE') {
-                await this.paymentController.deletePayment(req, res);
+                await this.paymentController.updatePaymentStatus(req, res);
             } else {
                 this.sendError(res, 'Method not allowed', 405);
             }

@@ -41,6 +41,48 @@ class OrderController extends BaseController {
     });
   }
 
+  // GET /api/orders/preview - Get cart for checkout review
+  async previewOrder(req, res) {
+    return this.handleRequest(req, res, async () => {
+      this.requireAuth(req);
+      
+      // Load cart items with variant details
+      const items = await this.Cart.listByUser(req.user.id);
+      if (!items || items.length === 0) {
+        this.sendError(res, 'Cart is empty', constants.HTTP_STATUS.BAD_REQUEST);
+        return;
+      }
+
+      // Transform items to flatten nested data for frontend
+      const transformedItems = items.map(item => ({
+        cart_id: item.cart_id,
+        variant_id: item.variant_id,
+        quantity: item.quantity,
+        price_at_add: item.price_at_add,
+        // Flatten variant data
+        shoe_name: item.shoe_variants?.shoes?.shoe_name || 'Product',
+        shoe_id: item.shoe_variants?.shoes?.shoe_id,
+        image_url: item.shoe_variants?.shoes?.image_url,
+        color_name: item.shoe_variants?.colors?.color_name || 'N/A',
+        color_id: item.shoe_variants?.colors?.color_id,
+        size_label: item.shoe_variants?.sizes?.size_value || 'N/A',
+        size_id: item.shoe_variants?.sizes?.size_id,
+        variant_image: item.shoe_variants?.shoes?.image_url // for checkout display
+      }));
+
+      // Get cart summary for totals
+      const summary = await this.Cart.summary(req.user.id);
+      
+      this.sendResponse(res, {
+        items: transformedItems,
+        subtotal: summary.subtotal,
+        shipping_cost: summary.shipping_cost || 0,
+        tax_amount: summary.tax_amount || 0,
+        total: summary.total_amount
+      }, 'Order preview fetched');
+    });
+  }
+
   // POST /api/orders { address_id, notes }
   async createOrder(req, res) {
     return this.handleRequest(req, res, async () => {

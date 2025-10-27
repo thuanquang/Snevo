@@ -4,289 +4,289 @@
  */
 
 class ApiClient {
-  constructor(baseURL = window.location.origin, options = {}) {
-    this.baseURL = baseURL;
-    this.timeout = options.timeout || 10000;
-    this.defaultHeaders = {
+    constructor(baseURL = window.location.origin, options = {}) {
+        this.baseURL = baseURL;
+        this.timeout = options.timeout || 10000;
+        this.defaultHeaders = {
       "Content-Type": "application/json",
       ...options.headers,
-    };
-    this.interceptors = {
-      request: [],
+        };
+        this.interceptors = {
+            request: [],
       response: [],
-    };
+        };
+        
+        // Setup default interceptors
+        this.setupDefaultInterceptors();
+    }
 
-    // Setup default interceptors
-    this.setupDefaultInterceptors();
-  }
-
-  /**
-   * Setup default request/response interceptors
-   */
-  setupDefaultInterceptors() {
-    // Request interceptor for authentication
-    this.addRequestInterceptor((config) => {
-      const token = this.getAuthToken();
-      if (token) {
+    /**
+     * Setup default request/response interceptors
+     */
+    setupDefaultInterceptors() {
+        // Request interceptor for authentication
+        this.addRequestInterceptor((config) => {
+            const token = this.getAuthToken();
+            if (token) {
         config.headers["Authorization"] = `Bearer ${token}`;
-      }
-      return config;
-    });
+            }
+            return config;
+        });
 
-    // Response interceptor for error handling
-    this.addResponseInterceptor(
-      (response) => response,
-      (error) => {
-        // Handle common errors
-        if (error.status === 401) {
-          this.handleUnauthorized();
-        } else if (error.status === 403) {
-          this.handleForbidden(error);
-        } else if (error.status >= 500) {
-          this.handleServerError(error);
-        }
-        throw error;
-      }
-    );
-  }
-
-  /**
-   * Add request interceptor
-   */
-  addRequestInterceptor(fulfilled, rejected = null) {
-    this.interceptors.request.push({ fulfilled, rejected });
-  }
-
-  /**
-   * Add response interceptor
-   */
-  addResponseInterceptor(fulfilled, rejected = null) {
-    this.interceptors.response.push({ fulfilled, rejected });
-  }
-
-  /**
-   * Apply request interceptors
-   */
-  async applyRequestInterceptors(config) {
-    let currentConfig = config;
-
-    for (const interceptor of this.interceptors.request) {
-      try {
-        if (interceptor.fulfilled) {
-          currentConfig = await interceptor.fulfilled(currentConfig);
-        }
-      } catch (error) {
-        if (interceptor.rejected) {
-          currentConfig = await interceptor.rejected(error);
-        } else {
-          throw error;
-        }
-      }
+        // Response interceptor for error handling
+        this.addResponseInterceptor(
+            (response) => response,
+            (error) => {
+                // Handle common errors
+                if (error.status === 401) {
+                    this.handleUnauthorized();
+                } else if (error.status === 403) {
+                    this.handleForbidden(error);
+                } else if (error.status >= 500) {
+                    this.handleServerError(error);
+                }
+                throw error;
+            }
+        );
     }
 
-    return currentConfig;
-  }
-
-  /**
-   * Apply response interceptors
-   */
-  async applyResponseInterceptors(response) {
-    let currentResponse = response;
-
-    for (const interceptor of this.interceptors.response) {
-      try {
-        if (interceptor.fulfilled) {
-          currentResponse = await interceptor.fulfilled(currentResponse);
-        }
-      } catch (error) {
-        if (interceptor.rejected) {
-          currentResponse = await interceptor.rejected(error);
-        } else {
-          throw error;
-        }
-      }
+    /**
+     * Add request interceptor
+     */
+    addRequestInterceptor(fulfilled, rejected = null) {
+        this.interceptors.request.push({ fulfilled, rejected });
     }
 
-    return currentResponse;
-  }
+    /**
+     * Add response interceptor
+     */
+    addResponseInterceptor(fulfilled, rejected = null) {
+        this.interceptors.response.push({ fulfilled, rejected });
+    }
 
-  /**
-   * Make HTTP request
-   */
-  async request(endpoint, options = {}) {
-    const url = `${this.baseURL}${endpoint}`;
-    const config = {
-      headers: { ...this.defaultHeaders, ...options.headers },
+    /**
+     * Apply request interceptors
+     */
+    async applyRequestInterceptors(config) {
+        let currentConfig = config;
+        
+        for (const interceptor of this.interceptors.request) {
+            try {
+                if (interceptor.fulfilled) {
+                    currentConfig = await interceptor.fulfilled(currentConfig);
+                }
+            } catch (error) {
+                if (interceptor.rejected) {
+                    currentConfig = await interceptor.rejected(error);
+                } else {
+                    throw error;
+                }
+            }
+        }
+        
+        return currentConfig;
+    }
+
+    /**
+     * Apply response interceptors
+     */
+    async applyResponseInterceptors(response) {
+        let currentResponse = response;
+        
+        for (const interceptor of this.interceptors.response) {
+            try {
+                if (interceptor.fulfilled) {
+                    currentResponse = await interceptor.fulfilled(currentResponse);
+                }
+            } catch (error) {
+                if (interceptor.rejected) {
+                    currentResponse = await interceptor.rejected(error);
+                } else {
+                    throw error;
+                }
+            }
+        }
+        
+        return currentResponse;
+    }
+
+    /**
+     * Make HTTP request
+     */
+    async request(endpoint, options = {}) {
+        const url = `${this.baseURL}${endpoint}`;
+        const config = {
+            headers: { ...this.defaultHeaders, ...options.headers },
       ...options,
-    };
+        };
 
-    // Apply request interceptors
-    const finalConfig = await this.applyRequestInterceptors(config);
+        // Apply request interceptors
+        const finalConfig = await this.applyRequestInterceptors(config);
 
-    // Add timeout
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), this.timeout);
-    finalConfig.signal = controller.signal;
+        // Add timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+        finalConfig.signal = controller.signal;
 
-    try {
-      const response = await fetch(url, finalConfig);
-      clearTimeout(timeoutId);
+        try {
+            const response = await fetch(url, finalConfig);
+            clearTimeout(timeoutId);
 
-      // Parse response
-      let data;
+            // Parse response
+            let data;
       const contentType = response.headers.get("content-type");
       if (contentType && contentType.includes("application/json")) {
-        data = await response.json();
-      } else {
-        data = { success: response.ok, data: await response.text() };
-      }
+                data = await response.json();
+            } else {
+                data = { success: response.ok, data: await response.text() };
+            }
 
-      const responseObj = {
-        data,
-        status: response.status,
-        statusText: response.statusText,
-        headers: response.headers,
+            const responseObj = {
+                data,
+                status: response.status,
+                statusText: response.statusText,
+                headers: response.headers,
         config: finalConfig,
-      };
+            };
 
-      // Handle non-2xx responses
-      if (!response.ok) {
+            // Handle non-2xx responses
+            if (!response.ok) {
         const error = new Error(
           data.error || `HTTP ${response.status}: ${response.statusText}`
         );
-        error.response = responseObj;
-        error.status = response.status;
-        throw error;
-      }
+                error.response = responseObj;
+                error.status = response.status;
+                throw error;
+            }
 
-      // Apply response interceptors
-      return await this.applyResponseInterceptors(responseObj);
-    } catch (error) {
-      clearTimeout(timeoutId);
-
+            // Apply response interceptors
+            return await this.applyResponseInterceptors(responseObj);
+        } catch (error) {
+            clearTimeout(timeoutId);
+            
       if (error.name === "AbortError") {
         const timeoutError = new Error("Request timeout");
         timeoutError.code = "TIMEOUT";
-        throw timeoutError;
-      }
-
+                throw timeoutError;
+            }
+            
       console.error("API request failed:", error);
-      throw error;
+            throw error;
+        }
     }
-  }
 
-  /**
-   * GET request
-   */
-  async get(endpoint, params = {}, options = {}) {
-    const queryString = new URLSearchParams(params).toString();
-    const url = queryString ? `${endpoint}?${queryString}` : endpoint;
-
-    return this.request(url, {
+    /**
+     * GET request
+     */
+    async get(endpoint, params = {}, options = {}) {
+        const queryString = new URLSearchParams(params).toString();
+        const url = queryString ? `${endpoint}?${queryString}` : endpoint;
+        
+        return this.request(url, {
       method: "GET",
       ...options,
-    });
-  }
-
-  /**
-   * POST request
-   */
-  async post(endpoint, data = {}, options = {}) {
-    return this.request(endpoint, {
-      method: "POST",
-      body: JSON.stringify(data),
-      ...options,
-    });
-  }
-
-  /**
-   * PUT request
-   */
-  async put(endpoint, data = {}, options = {}) {
-    return this.request(endpoint, {
-      method: "PUT",
-      body: JSON.stringify(data),
-      ...options,
-    });
-  }
-
-  /**
-   * PATCH request
-   */
-  async patch(endpoint, data = {}, options = {}) {
-    return this.request(endpoint, {
-      method: "PATCH",
-      body: JSON.stringify(data),
-      ...options,
-    });
-  }
-
-  /**
-   * DELETE request
-   */
-  async delete(endpoint, options = {}) {
-    return this.request(endpoint, {
-      method: "DELETE",
-      ...options,
-    });
-  }
-
-  /**
-   * Upload file
-   */
-  async upload(endpoint, file, options = {}) {
-    const formData = new FormData();
-    formData.append("file", file);
-
-    // Add additional form data
-    if (options.data) {
-      for (const [key, value] of Object.entries(options.data)) {
-        formData.append(key, value);
-      }
+        });
     }
 
-    return this.request(endpoint, {
+    /**
+     * POST request
+     */
+    async post(endpoint, data = {}, options = {}) {
+        return this.request(endpoint, {
       method: "POST",
-      body: formData,
-      headers: {
-        // Don't set Content-Type, let browser set it with boundary
-        ...options.headers,
-      },
-    });
-  }
-
-  /**
-   * Download file
-   */
-  async download(endpoint, filename, options = {}) {
-    const response = await this.request(endpoint, {
+            body: JSON.stringify(data),
       ...options,
-      headers: {
+        });
+    }
+
+    /**
+     * PUT request
+     */
+    async put(endpoint, data = {}, options = {}) {
+        return this.request(endpoint, {
+      method: "PUT",
+            body: JSON.stringify(data),
+      ...options,
+        });
+    }
+
+    /**
+     * PATCH request
+     */
+    async patch(endpoint, data = {}, options = {}) {
+        return this.request(endpoint, {
+      method: "PATCH",
+            body: JSON.stringify(data),
+      ...options,
+        });
+    }
+
+    /**
+     * DELETE request
+     */
+    async delete(endpoint, options = {}) {
+        return this.request(endpoint, {
+      method: "DELETE",
+      ...options,
+        });
+    }
+
+    /**
+     * Upload file
+     */
+    async upload(endpoint, file, options = {}) {
+        const formData = new FormData();
+    formData.append("file", file);
+        
+        // Add additional form data
+        if (options.data) {
+            for (const [key, value] of Object.entries(options.data)) {
+                formData.append(key, value);
+            }
+        }
+
+        return this.request(endpoint, {
+      method: "POST",
+            body: formData,
+            headers: {
+                // Don't set Content-Type, let browser set it with boundary
         ...options.headers,
       },
-    });
+        });
+    }
 
-    // Create blob and download
-    const blob = new Blob([response.data]);
-    const url = window.URL.createObjectURL(blob);
+    /**
+     * Download file
+     */
+    async download(endpoint, filename, options = {}) {
+        const response = await this.request(endpoint, {
+            ...options,
+            headers: {
+        ...options.headers,
+      },
+        });
+
+        // Create blob and download
+        const blob = new Blob([response.data]);
+        const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(a);
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
 
-    return response;
-  }
+        return response;
+    }
 
-  /**
-   * Get authentication token
-   */
+    /**
+     * Get authentication token
+     */
   /**
    * Get authentication token from Supabase localStorage
    */
-  getAuthToken() {
+    getAuthToken() {
     try {
       // ⭐ Try to find Supabase auth token key
       const keys = Object.keys(localStorage);
@@ -318,146 +318,146 @@ class ApiClient {
       console.error("❌ Error getting auth token:", error);
       return null;
     }
-  }
+    }
 
-  /**
-   * Set authentication token
-   */
-  setAuthToken(token) {
-    if (token) {
+    /**
+     * Set authentication token
+     */
+    setAuthToken(token) {
+        if (token) {
       localStorage.setItem("auth_token", token);
-    } else {
+        } else {
       localStorage.removeItem("auth_token");
+        }
     }
-  }
 
-  /**
-   * Get refresh token
-   */
-  getRefreshToken() {
+    /**
+     * Get refresh token
+     */
+    getRefreshToken() {
     return localStorage.getItem("refresh_token");
-  }
+    }
 
-  /**
-   * Set refresh token
-   */
-  setRefreshToken(token) {
-    if (token) {
+    /**
+     * Set refresh token
+     */
+    setRefreshToken(token) {
+        if (token) {
       localStorage.setItem("refresh_token", token);
-    } else {
+        } else {
       localStorage.removeItem("refresh_token");
+        }
     }
-  }
 
-  /**
-   * Handle unauthorized response
-   */
-  handleUnauthorized() {
+    /**
+     * Handle unauthorized response
+     */
+    handleUnauthorized() {
     console.warn("Unauthorized access - redirecting to login");
-    // Clear tokens
-    this.setAuthToken(null);
-    this.setRefreshToken(null);
-
-    // Show login modal
-    if (window.showLoginModal) {
-      window.showLoginModal();
-    } else {
+        // Clear tokens
+        this.setAuthToken(null);
+        this.setRefreshToken(null);
+        
+        // Show login modal
+        if (window.showLoginModal) {
+            window.showLoginModal();
+        } else {
       console.error("Login modal not available");
+        }
     }
-  }
 
-  /**
-   * Handle forbidden response
-   */
-  handleForbidden(error) {
-    // Check if it's an email verification error
+    /**
+     * Handle forbidden response
+     */
+    handleForbidden(error) {
+        // Check if it's an email verification error
     if (error?.response?.data?.code === "EMAIL_VERIFICATION_REQUIRED") {
       console.warn("Email verification required");
-
-      // Emit event for AuthManager to handle
+            
+            // Emit event for AuthManager to handle
       if (typeof authManager !== "undefined") {
         authManager.emit("emailVerificationRequired", {
-          message: error.response.data.message,
+                    message: error.response.data.message,
           email: error.response.data.details?.email,
-        });
-      }
-
-      // Show notification
-      if (window.showToast) {
+                });
+            }
+            
+            // Show notification
+            if (window.showToast) {
         window.showToast(
           "Please verify your email to access this feature",
           "warning"
         );
-      }
-
-      // Redirect to verification page if not already there
+            }
+            
+            // Redirect to verification page if not already there
       if (!window.location.pathname.includes("verify-email")) {
-        setTimeout(() => {
+                setTimeout(() => {
           window.location.href = "verify-email.html";
-        }, 2000);
-      }
-    } else {
+                }, 2000);
+            }
+        } else {
       console.warn("Access forbidden");
-      // Could show a toast or modal
-      if (window.showToast) {
+            // Could show a toast or modal
+            if (window.showToast) {
         window.showToast("Access denied - insufficient permissions", "error");
-      }
+            }
+        }
     }
-  }
 
-  /**
-   * Handle server error
-   */
-  handleServerError(error) {
+    /**
+     * Handle server error
+     */
+    handleServerError(error) {
     console.error("Server error:", error);
-    // Could show a toast or modal
-    if (window.showToast) {
+        // Could show a toast or modal
+        if (window.showToast) {
       window.showToast("Server error - please try again later", "error");
-    }
-  }
-
-  /**
-   * Retry request with exponential backoff
-   */
-  async retryRequest(requestFn, maxRetries = 3, baseDelay = 1000) {
-    let lastError;
-
-    for (let attempt = 0; attempt <= maxRetries; attempt++) {
-      try {
-        return await requestFn();
-      } catch (error) {
-        lastError = error;
-
-        // Don't retry on client errors (4xx)
-        if (error.status >= 400 && error.status < 500) {
-          throw error;
         }
+    }
 
-        if (attempt < maxRetries) {
-          const delay = baseDelay * Math.pow(2, attempt);
+    /**
+     * Retry request with exponential backoff
+     */
+    async retryRequest(requestFn, maxRetries = 3, baseDelay = 1000) {
+        let lastError;
+        
+        for (let attempt = 0; attempt <= maxRetries; attempt++) {
+            try {
+                return await requestFn();
+            } catch (error) {
+                lastError = error;
+                
+                // Don't retry on client errors (4xx)
+                if (error.status >= 400 && error.status < 500) {
+                    throw error;
+                }
+                
+                if (attempt < maxRetries) {
+                    const delay = baseDelay * Math.pow(2, attempt);
           await new Promise((resolve) => setTimeout(resolve, delay));
+                }
+            }
         }
-      }
+        
+        throw lastError;
     }
 
-    throw lastError;
-  }
-
-  /**
-   * Create request with retry
-   */
-  createRetryRequest(method, endpoint, data = null, options = {}) {
-    const requestFn = () => {
-      if (data) {
-        return this[method](endpoint, data, options);
-      } else {
-        return this[method](endpoint, options);
-      }
-    };
-
+    /**
+     * Create request with retry
+     */
+    createRetryRequest(method, endpoint, data = null, options = {}) {
+        const requestFn = () => {
+            if (data) {
+                return this[method](endpoint, data, options);
+            } else {
+                return this[method](endpoint, options);
+            }
+        };
+        
     return () =>
       this.retryRequest(requestFn, options.maxRetries, options.baseDelay);
-  }
+    }
 }
 
 // Create default instance
@@ -465,55 +465,55 @@ const apiClient = new ApiClient();
 
 // Authentication API
 class AuthAPI {
-  constructor(client) {
-    this.client = client;
-  }
+    constructor(client) {
+        this.client = client;
+    }
 
-  async login(email, password) {
+    async login(email, password) {
     const response = await this.client.post("/api/auth/login", {
       email,
       password,
     });
-    return response.data;
-  }
+        return response.data;
+    }
 
-  async register(userData) {
+    async register(userData) {
     const response = await this.client.post("/api/auth/register", userData);
-    return response.data;
-  }
+        return response.data;
+    }
 
-  async logout() {
+    async logout() {
     const response = await this.client.post("/api/auth/logout");
-    return response.data;
-  }
+        return response.data;
+    }
 
-  async getProfile() {
+    async getProfile() {
     const response = await this.client.get("/api/auth/profile");
-    return response.data;
-  }
+        return response.data;
+    }
 
-  async updateProfile(updates) {
+    async updateProfile(updates) {
     const response = await this.client.put("/api/auth/profile", updates);
-    return response.data;
-  }
+        return response.data;
+    }
 
-  async refreshToken(refreshToken) {
+    async refreshToken(refreshToken) {
     const response = await this.client.post("/api/auth/refresh", {
       refresh_token: refreshToken,
     });
-    return response.data;
-  }
+        return response.data;
+    }
 
-  async forgotPassword(email) {
+    async forgotPassword(email) {
     const response = await this.client.post("/api/auth/forgot-password", {
       email,
     });
-    return response.data;
-  }
+        return response.data;
+    }
 
-  async resetPassword(token, password) {
-    // Note: Password reset is handled client-side with Supabase
-    // This method is kept for compatibility but should not be used
+    async resetPassword(token, password) {
+        // Note: Password reset is handled client-side with Supabase
+        // This method is kept for compatibility but should not be used
     console.warn(
       "Password reset should be handled client-side with Supabase auth"
     );
@@ -521,15 +521,15 @@ class AuthAPI {
       token,
       password,
     });
-    return response.data;
-  }
+        return response.data;
+    }
 
-  async resendVerification(email) {
+    async resendVerification(email) {
     const response = await this.client.post("/api/auth/resend-verification", {
       email,
     });
-    return response.data;
-  }
+        return response.data;
+    }
 }
 
 // Products API - UPDATED to match your backend routes
@@ -542,36 +542,36 @@ class ProductsAPI {
    * Get all products with filters
    */
   async getProducts(params = {}) {
-    try {
+        try {
       console.log("📞 API: Getting products", params);
-
+            
       const response = await this.client.get("/api/products", params);
-
+            
       console.log("✅ Products response:", response);
-      return response.data;
-    } catch (error) {
+            return response.data;
+        } catch (error) {
       console.error("❌ Get products error:", error);
-      return { success: false, data: [], message: error.message };
+            return { success: false, data: [], message: error.message };
+        }
     }
-  }
-  /**
-   * Get all colors
-   */
-  async getColors() {
+    /**
+     * Get all colors
+     */
+    async getColors() {
     const response = await this.client.get("/api/colors", {
       active_only: true,
     });
     return response.data;
-  }
+    }
 
-  /**
-   * Get all sizes
-   */
-  async getSizes(sizeType = null) {
+    /**
+     * Get all sizes
+     */
+    async getSizes(sizeType = null) {
     const params = sizeType ? { size_type: sizeType } : { active_only: true };
     const response = await this.client.get("/api/sizes", params);
     return response.data;
-  }
+    }
   /**
    * Get single product by ID
    */
@@ -596,7 +596,7 @@ class ProductsAPI {
    */
   async getProductsByCategory(categoryId, params = {}) {
     const response = await this.client.get("/api/products", {
-      category_id: categoryId,
+      category_id: categoryId, 
       ...params,
     });
     return response.data;
@@ -606,22 +606,22 @@ class ProductsAPI {
    * Get all categories
    */
   async getCategories(params = {}) {
-    try {
+        try {
       console.log("📞 API: Getting categories");
-
-      // ⭐ Force include_count for admin
+            
+            // ⭐ Force include_count for admin
       const response = await this.client.get("/api/categories", {
-        ...params,
+                ...params,
         include_count: "true",
-      });
-
+            });
+            
       console.log("✅ Categories with count:", response);
-      return response.data;
-    } catch (error) {
+            return response.data;
+        } catch (error) {
       console.error("❌ Get categories error:", error);
-      return { success: false, data: [], message: error.message };
+            return { success: false, data: [], message: error.message };
+        }
     }
-  }
 
   /**
    * Get category by ID
@@ -636,13 +636,13 @@ class ProductsAPI {
    */
   async getProductVariants(shoeId) {
     try {
-      const params = shoeId ? { shoe_id: shoeId } : {};
+            const params = shoeId ? { shoe_id: shoeId } : {};
       const response = await this.client.get("/api/variants", params);
-      return response.data;
-    } catch (error) {
+            return response.data;
+        } catch (error) {
       console.error("❌ Get variants error:", error);
-      return { success: false, data: [], message: error.message };
-    }
+            return { success: false, data: [], message: error.message };
+        }
   }
 
   /**
@@ -652,7 +652,7 @@ class ProductsAPI {
     const response = await this.client.get(`/api/variants/${variantId}`);
     return response.data;
   }
-
+  
   /**
    * Get all colors
    */
@@ -996,64 +996,157 @@ class CartAPI {
 // ============================================================
 
 class OrdersAPI {
+    constructor(client) {
+        this.client = client;
+    }
+
+    async getOrders(params = {}) {
+    const response = await this.client.get("/api/orders", params);
+        return response.data;
+    }
+
+    async getOrder(id) {
+        const response = await this.client.get(`/api/orders/${id}`);
+        return response.data;
+    }
+
+    async createOrder(orderData) {
+    const response = await this.client.post("/api/orders", orderData);
+        return response.data;
+    }
+
+    async updateOrderStatus(id, status) {
+    const response = await this.client.put(`/api/orders/${id}/status`, {
+      status,
+    });
+        return response.data;
+    }
+
+  async previewOrder() {
+    const response = await this.client.get("/api/orders/preview");
+    return response.data;
+  }
+}
+
+// ============================================================
+// 💳 PAYMENTS API
+// ============================================================
+
+class PaymentsAPI {
   constructor(client) {
     this.client = client;
   }
 
-  async getOrders(params = {}) {
-    const response = await this.client.get("/api/orders", params);
-    return response.data;
+  /**
+   * GET payments for an order
+   */
+  async getPayments(orderId) {
+    try {
+      const response = await this.client.get("/api/payments", {
+        order_id: orderId
+      });
+      return response.data;
+    } catch (error) {
+      console.error("❌ Get payments error:", error);
+      throw error;
+    }
   }
 
-  async getOrder(id) {
-    const response = await this.client.get(`/api/orders/${id}`);
-    return response.data;
+  /**
+   * GET single payment
+   */
+  async getPayment(id) {
+    try {
+      const response = await this.client.get(`/api/payments/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error("❌ Get payment error:", error);
+      throw error;
+    }
   }
 
-  async createOrder(orderData) {
-    const response = await this.client.post("/api/orders", orderData);
-    return response.data;
+  /**
+   * POST create payment
+   */
+  async createPayment({ order_id, payment_method, payment_amount }) {
+    try {
+      const response = await this.client.post("/api/payments", {
+        order_id,
+        payment_method,
+        payment_amount
+      });
+      return response.data;
+    } catch (error) {
+      console.error("❌ Create payment error:", error);
+      throw error;
+    }
   }
 
-  async updateOrderStatus(id, status) {
-    const response = await this.client.put(`/api/orders/${id}/status`, {
-      status,
-    });
-    return response.data;
+  /**
+   * POST process payment
+   */
+  async processPayment({ payment_id, provider, payload }) {
+    try {
+      const response = await this.client.post("/api/payments/process", {
+        payment_id,
+        provider,
+        payload
+      });
+      return response.data;
+    } catch (error) {
+      console.error("❌ Process payment error:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * PUT update payment status
+   */
+  async updatePaymentStatus(id, status, transactionId = null) {
+    try {
+      const response = await this.client.put(`/api/payments/${id}/status`, {
+        status,
+        transaction_id: transactionId
+      });
+      return response.data;
+    } catch (error) {
+      console.error("❌ Update payment status error:", error);
+      throw error;
+    }
   }
 }
 
 // Users API
 class UsersAPI {
-  constructor(client) {
-    this.client = client;
-  }
+    constructor(client) {
+        this.client = client;
+    }
 
-  async getAddresses() {
+    async getAddresses() {
     const response = await this.client.get("/api/users/addresses");
-    return response.data;
-  }
+        return response.data;
+    }
 
-  async addAddress(addressData) {
+    async addAddress(addressData) {
     const response = await this.client.post(
       "/api/users/addresses",
       addressData
     );
-    return response.data;
-  }
+        return response.data;
+    }
 
-  async updateAddress(id, updates) {
+    async updateAddress(id, updates) {
     const response = await this.client.put(
       `/api/users/addresses/${id}`,
       updates
     );
-    return response.data;
-  }
+        return response.data;
+    }
 
-  async deleteAddress(id) {
-    const response = await this.client.delete(`/api/users/addresses/${id}`);
-    return response.data;
-  }
+    async deleteAddress(id) {
+        const response = await this.client.delete(`/api/users/addresses/${id}`);
+        return response.data;
+    }
 }
 // ============================================================
 // 🔹 VARIANTS API - GENERATION METHODS
@@ -1221,6 +1314,7 @@ const usersAPI = new UsersAPI(apiClient);
 const importsAPI = new ImportsAPI(apiClient);
 const variantsAPI = new VariantsAPI(apiClient);
 const cartAPI = new CartAPI(apiClient);
+const paymentsAPI = new PaymentsAPI(apiClient);
 
 // Export for global use
 window.ApiClient = ApiClient;
@@ -1232,3 +1326,4 @@ window.usersAPI = usersAPI;
 window.importsAPI = importsAPI;
 window.variantsAPI = variantsAPI;
 window.cartAPI = cartAPI;
+window.paymentsAPI = paymentsAPI;

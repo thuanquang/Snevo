@@ -8,6 +8,8 @@ import OrderController from '../controllers/orderController.js';
 const orderController = new OrderController();
 
 // Order routes
+// Preview must come before /:id to avoid route collision
+router.get('/preview', orderController.previewOrder.bind(orderController));
 router.get('/', orderController.getOrders.bind(orderController));
 router.get('/:id', orderController.getOrder.bind(orderController));
 router.post('/', orderController.createOrder.bind(orderController));
