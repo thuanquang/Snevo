@@ -502,15 +502,25 @@ class ProductManager {
    */
   async handlePriceRangeChange(e) {
     const value = parseInt(e.target.value);
-    this.currentFilters.maxPrice = value < 500 ? value : null;
-
+    
+    // Update UI immediately
+    this.currentFilters.maxPrice = value < 10000000 ? value : null;
     const maxPriceInput = document.getElementById("maxPrice");
     if (maxPriceInput) {
       maxPriceInput.value = this.currentFilters.maxPrice || "";
     }
 
-    this.currentPage = 1;
-    await this.loadProducts();
+    // ✅ Clear previous timer
+    if (this.priceDebounceTimer) {
+      clearTimeout(this.priceDebounceTimer);
+    }
+
+    // ✅ Set new timer - wait 500ms before API call
+    this.priceDebounceTimer = setTimeout(async () => {
+      this.currentPage = 1;
+      await this.loadProducts();
+      console.log("💰 Price filter applied after debounce");
+    }, 500); // Wait 500ms
   }
 
   /**
@@ -621,10 +631,11 @@ class ProductManager {
       console.error("❌ Products grid container not found");
       return;
     }
-
-    if (products.length === 0) {
-      this.showNoResults();
-      return;
+    container.innerHTML = "";
+    if (!products || products.length === 0) {
+        this.showNoResults();
+        container.style.display = "none"; 
+        return; 
     }
 
     const productsHTML = products
