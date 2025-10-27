@@ -981,3 +981,123 @@ Admin Routes Refactoring (Oct 2025)
 - ✅ No database changes
 - ✅ All admin controller methods remain unchanged
 
+Admin Controller Refactoring - Supabase Queries to Models (Oct 2025)
+--------------------------------------------------------------------
+✅ COMPLETED: Moved all Supabase query logic from AdminController to corresponding model files
+
+**Objectives:**
+- Follow proper MVC pattern separation of concerns
+- Move database logic from controller to models (where it belongs)
+- Reduce AdminController complexity and responsibility
+- Improve code reusability and testability
+- Cleaner controller code focused on request/response handling
+
+**Implementation Details:**
+
+1. **Shoe Model** (`backend/models/Shoe.js`):
+   - Added `countAll()` - Count all products
+   - Replaces: `AdminController.countActiveProducts()`
+
+2. **Order Model** (`backend/models/Order.js`):
+   - Added `countAll()` - Count all orders
+   - Added `countPending()` - Count pending/processing orders
+   - Added `getRecent(limit)` - Get recent orders with user profile info
+   - Replaces: `AdminController.countOrders()`, `countPendingOrders()`, `getRecentOrders()`
+
+3. **Payment Model** (`backend/models/Payment.js`):
+   - Added `calculateTotalRevenue()` - Sum all completed payments
+   - Replaces: `AdminController.calculateRevenue()`
+
+4. **ShoeVariant Model** (`backend/models/ShoeVariant.js`):
+   - Added `countAll()` - Count all variants
+   - Added `getLowStockCount(threshold)` - Count variants below threshold (default 10)
+   - Replaces: `AdminController.countVariants()`, `getLowStockCount()`
+
+5. **Category Model** (`backend/models/Category.js`):
+   - Added `countAll()` - Count all categories
+   - Replaces: `AdminController.countCategories()`
+
+6. **OrderItem Model** (`backend/models/OrderItem.js`):
+   - Added `getTopSellingProducts(limit)` - Get top products with aggregated sales counts
+   - Replaces: `AdminController.getTopSellingProducts()`
+
+7. **AdminController** (`backend/controllers/AdminController.js`):
+   - Refactored `getDashboard()` to call model methods instead of local helpers
+   - Removed 9 helper methods (~230 lines):
+     - ~~countActiveProducts()~~
+     - ~~countOrders()~~
+     - ~~getLowStockCount()~~
+     - ~~calculateRevenue()~~
+     - ~~countCategories()~~
+     - ~~countVariants()~~
+     - ~~countPendingOrders()~~
+     - ~~getRecentOrders()~~
+     - ~~getTopSellingProducts()~~
+   - Controller reduced from 378 lines to 149 lines (60% reduction)
+   - Now focused on HTTP request/response handling only
+
+**Code Quality Improvements:**
+- ✅ Better separation of concerns (models handle DB, controller handles HTTP)
+- ✅ DRY principle - no duplicate code across controllers
+- ✅ Easier testing - can test model queries independently
+- ✅ Better reusability - other controllers can use same model methods
+- ✅ Consistent error handling across all models
+- ✅ Clear method naming and documentation
+
+**Example Usage:**
+
+```javascript
+// Before (in controller):
+async countActiveProducts() {
+    const { count, error } = await this.models.Shoe.supabase
+        .from('shoes')
+        .select('*', { count: 'exact', head: true });
+    if (error) return 0;
+    return count || 0;
+}
+
+// After (in model):
+async countAll() {
+    try {
+        const { count, error } = await supabaseConfig
+            .getAdminClient()
+            .from(this.tableName)
+            .select('*', { count: 'exact', head: true });
+        if (error) {
+            console.error("Error counting products:", error);
+            return 0;
+        }
+        return count || 0;
+    } catch (err) {
+        console.error("Error counting products:", err);
+        return 0;
+    }
+}
+
+// Controller now simply calls:
+const totalProducts = await this.models.Shoe.countAll();
+```
+
+**Files Modified:**
+- `backend/models/Shoe.js`: Added countAll()
+- `backend/models/Order.js`: Added countAll(), countPending(), getRecent()
+- `backend/models/Payment.js`: Added calculateTotalRevenue()
+- `backend/models/ShoeVariant.js`: Added countAll(), getLowStockCount()
+- `backend/models/Category.js`: Added countAll()
+- `backend/models/OrderItem.js`: Added getTopSellingProducts()
+- `backend/controllers/AdminController.js`: Refactored getDashboard(), removed 9 helper methods
+
+**Backward Compatibility:**
+- ✅ No API changes - dashboard response identical
+- ✅ No frontend changes needed
+- ✅ No database changes
+- ✅ Internal refactoring only
+- ✅ All error handling preserved
+
+**Benefits Summary:**
+- 60% reduction in AdminController code
+- Proper MVC pattern implementation
+- Reusable model methods
+- Better code organization
+- Easier maintenance and testing
+
