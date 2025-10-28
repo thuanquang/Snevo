@@ -1253,3 +1253,9 @@ window.initNavbar = () => {
   }
   navbarManager.initialize();
 };
+
+// Export for module imports
+export default NavbarManager;
+export { navbarManager };
+
+

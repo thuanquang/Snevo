@@ -957,9 +957,27 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (window.authManager) {
     window.authManager.updateAuthUI();
   }
+  
+  // Sync cart count from API and update navbar
+  if (window.authManager && window.authManager.isAuthenticated() && window.cartAPI && window.navbarManager) {
+    try {
+      console.log('🛒 Syncing cart count from API...');
+      const cartRes = await window.cartAPI.getCart();
+      const cartItems = Array.isArray(cartRes?.data) ? cartRes.data : (Array.isArray(cartRes) ? cartRes : []);
+      const cartCount = cartItems.length;
+      console.log('🛒 Cart count from API:', cartCount);
+      window.navbarManager.updateCartCount(cartCount);
+    } catch (err) {
+      console.error('Failed to sync cart count:', err);
+    }
+  }
 });
 
 // Export for modules
 if (typeof module !== "undefined" && module.exports) {
   module.exports = ProductManager;
 }
+
+// ES6 exports
+export default ProductManager;
+export { productManager };
