@@ -916,7 +916,85 @@ class ImportsAPI {
   }
 }
 
-// Orders API
+// ============================================================
+// 🛒 CART API
+// ============================================================
+
+class CartAPI {
+  constructor(client) {
+    this.client = client;
+  }
+
+  /**
+   * GET current user's cart
+   */
+  async getCart() {
+    try {
+      const response = await this.client.get("/api/cart");
+      return response.data;
+    } catch (error) {
+      console.error("❌ Get cart error:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * GET cart summary (totals)
+   */
+  async getSummary() {
+    try {
+      const response = await this.client.get("/api/cart/summary");
+      return response.data;
+    } catch (error) {
+      console.error("❌ Get cart summary error:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * POST add item to cart
+   */
+  async addItem(itemData) {
+    try {
+      const response = await this.client.post("/api/cart", itemData);
+      return response.data;
+    } catch (error) {
+      console.error("❌ Add to cart error:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * PUT update cart item quantity or variant
+   */
+  async updateItem(cartId, updates) {
+    try {
+      const response = await this.client.put(`/api/cart/${cartId}`, updates);
+      return response.data;
+    } catch (error) {
+      console.error("❌ Update cart item error:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * DELETE remove item from cart
+   */
+  async removeItem(cartId) {
+    try {
+      const response = await this.client.delete(`/api/cart/${cartId}`);
+      return response.data;
+    } catch (error) {
+      console.error("❌ Remove from cart error:", error);
+      throw error;
+    }
+  }
+}
+
+// ============================================================
+// 🛒 ORDERS API
+// ============================================================
+
 class OrdersAPI {
   constructor(client) {
     this.client = client;
@@ -1142,6 +1220,7 @@ const ordersAPI = new OrdersAPI(apiClient);
 const usersAPI = new UsersAPI(apiClient);
 const importsAPI = new ImportsAPI(apiClient);
 const variantsAPI = new VariantsAPI(apiClient);
+const cartAPI = new CartAPI(apiClient);
 
 // Export for global use
 window.ApiClient = ApiClient;
@@ -1152,3 +1231,4 @@ window.ordersAPI = ordersAPI;
 window.usersAPI = usersAPI;
 window.importsAPI = importsAPI;
 window.variantsAPI = variantsAPI;
+window.cartAPI = cartAPI;

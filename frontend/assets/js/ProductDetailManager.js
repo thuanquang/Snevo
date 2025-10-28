@@ -29,6 +29,10 @@ class ProductDetailManager {
         document.getElementById('loading').style.display = 'flex';
         document.getElementById('productDetail').style.display = 'none';
 
+        // ⭐ Ensure API is available
+        await this.waitForApi();
+        this.api = window.productsAPI;
+
         // ⭐ FIX: Load product data FIRST, then get variants from it
         await this.loadProductData(); // Load product with variants
         
@@ -101,6 +105,21 @@ class ProductDetailManager {
                 `;
             }
         }
+    }
+
+    /**
+     * Wait until productsAPI is available
+     */
+    async waitForApi() {
+        let attempts = 0;
+        while (attempts < 100) { // up to ~5s
+            if (window.productsAPI && typeof window.productsAPI.getProduct === 'function') {
+                return true;
+            }
+            await new Promise(r => setTimeout(r, 50));
+            attempts++;
+        }
+        throw new Error('API client not initialized. Check if ApiClient.js is loaded correctly.');
     }
 
     /**
@@ -357,9 +376,9 @@ renderSizes() {
             warningEl.style.display = 'none';
         }
 
-        const addToCartBtn = document.getElementById('addToCartBtn');
-        if (addToCartBtn) {
-            addToCartBtn.disabled = true;
+        const addToBagBtn = document.getElementById('addToBagBtn');
+        if (addToBagBtn) {
+            addToBagBtn.disabled = true;
         }
     }
 
@@ -400,9 +419,9 @@ renderSizes() {
             }
         }
 
-        const addToCartBtn = document.getElementById('addToCartBtn');
-        if (addToCartBtn) {
-            addToCartBtn.disabled = false;
+        const addToBagBtn = document.getElementById('addToBagBtn');
+        if (addToBagBtn) {
+            addToBagBtn.disabled = false;
         }
     }
 
@@ -536,12 +555,40 @@ renderSizes() {
 
 // Add to Bag button functionality
 document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('addToBagBtn')?.addEventListener('click', function() {
-        if (!this.disabled) {
-            showAlert('Product added to bag!', 'success');
+    // Use event delegation to handle the add to bag button across re-renders
+    document.addEventListener('click', async (e) => {
+        if (e.target.id !== 'addToBagBtn') return;
+        
+        try {
+            if (e.target.disabled) return;
+
+            // Require auth
+            if (window.authManager && !window.authManager.isAuthenticated()) {
+                if (window.showLoginModal) window.showLoginModal();
+                return;
+            }
+
+            const mgr = window.productDetailManager;
+            if (!mgr || !mgr.currentVariant) {
+                alert('Please select color and size');
+                return;
+            }
+
+            const variantId = mgr.currentVariant.variant_id;
+            const res = await window.cartAPI.addItem({ variant_id: variantId, quantity: 1 });
+            if (res && res.success !== false) {
+                // Navigate to cart page
+                window.location.href = 'cart.html';
+            } else {
+                const msg = res?.error || 'Failed to add to cart';
+                if (window.showToast) window.showToast(msg, 'error');
+            }
+        } catch (err) {
+            if (window.showToast) window.showToast(err.message || 'Failed to add to cart', 'error');
         }
     });
 });
 
 // Make it globally accessible
 window.ProductDetailManager = ProductDetailManager;
+window.productDetailManager = new ProductDetailManager();

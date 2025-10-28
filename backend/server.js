@@ -25,6 +25,7 @@ import VariantController from './controllers/VariantController.js';
 import ImportController from './controllers/ImportController.js';
 import PaymentController from './controllers/PaymentController.js';
 import AdminController from './controllers/AdminController.js';
+import CartController from './controllers/CartController.js';
 import authMiddleware from './middleware/auth.js';
 import uploadMiddleware from './middleware/upload.js';
 import corsMiddleware from './middleware/cors.js';
@@ -39,6 +40,7 @@ import colorRoutes from './routes/colors.js';
 import sizeRoutes from './routes/sizes.js';
 import importRoutes from './routes/imports.js';
 import adminRoutes from './routes/admin.js';
+import cartRoutes from './routes/cart.js';
 
 class Server {
     constructor() {
@@ -69,10 +71,14 @@ class Server {
         this.importController.setModels(this.models);
 
         this.orderController = new OrderController(this.models);
+        if (this.orderController.setModels) this.orderController.setModels(this.models);
         this.profileController = new ProfileController(this.models);
         this.addressController = new AddressController(this.models);     
         this.paymentController = new PaymentController(this.models);
         this.adminController = new AdminController(this.models);
+        this.cartController = new CartController(this.models);
+        // set models for controllers that require setModels (CartController uses models)
+        if (this.cartController.setModels) this.cartController.setModels(this.models);
 
         // Setup routes
         this.setupRoutes();
@@ -215,6 +221,11 @@ class Server {
         if (pathname.startsWith('/api/imports')) {
             return importRoutes(req, res, this.importController, pathname);
         }
+        if (pathname.startsWith('/api/cart')) {
+            await cartRoutes(req, res, this.cartController, pathname);
+            return;
+        }       
+
         // ⭐ BUILT-IN ROUTES (Keep existing handlers)
         // Auth routes for profile management
         if (pathname.startsWith('/api/auth/')) {
