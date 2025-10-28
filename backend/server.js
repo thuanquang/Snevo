@@ -27,6 +27,7 @@ import PaymentController from './controllers/PaymentController.js';
 import AdminController from './controllers/AdminController.js';
 import authMiddleware from './middleware/auth.js';
 import uploadMiddleware from './middleware/upload.js';
+import { createAvatarUploadMiddleware } from './middleware/upload.js';
 import corsMiddleware from './middleware/cors.js';
 import createSupabaseConfig from '../config/supabase.js';
 import { initializeModels } from './models/index.js';
@@ -171,21 +172,24 @@ class Server {
         // SKIP body parsing for upload routes
         const isUploadRoute = (
         (req.method === 'POST' && pathname === '/api/products') ||
-        (req.method === 'PUT' && pathname.match(/^\/api\/products\/\d+$/))
+        (req.method === 'PUT' && pathname.match(/^\/api\/products\/\d+$/)) ||
+        (req.method === 'PUT' && pathname === '/api/auth/profile')
         );
 
         // Parse body for POST/PUT/PATCH requests
         let body = {};
         if (['POST', 'PUT', 'PATCH'].includes(req.method)) {
-        if (isUploadRoute) {
-            // ✅ SKIP parsing for upload routes - middleware will handle it
-            console.log('⏭️ Skipping JSON body parse for upload route');
-            // Upload middleware will populate req.body
-        } else {
-            // ✅ Parse JSON body for normal routes
-            body = await this.parseBody(req);
-            req.body = body;
-        }
+            const isMultipart = (req.headers['content-type'] || '').includes('multipart/form-data');
+            
+            if (isUploadRoute || isMultipart) {
+                // SKIP parsing for upload routes or multipart requests - middleware will handle it
+                console.log('Skipping JSON body parse for upload/multipart request');
+                // Upload middleware will populate req.body
+            } else {
+                // Parse JSON body for normal routes
+                body = await this.parseBody(req);
+                req.body = body;
+            }
         }
 
         // Parse query parameters
@@ -309,8 +313,36 @@ class Server {
             if (method === 'GET') {
                 await this.profileController.getProfile(req, res);
             } else if (method === 'PUT') {
-                req.body = body;
-                await this.profileController.updateProfile(req, res);
+                // ⭐ UPDATED: Apply avatar upload middleware for multipart requests
+                const contentType = req.headers['content-type'] || '';
+                if (contentType.includes('multipart/form-data')) {
+                    console.log('📤 Processing avatar upload for profile');
+                    const avatarMiddleware = createAvatarUploadMiddleware(req.user.id);
+                    
+                    try {
+                        // Use middleware to handle upload - wrap in promise for proper async handling
+                        await new Promise((resolve, reject) => {
+                            avatarMiddleware.handleUpload(req, res, async () => {
+                                try {
+                                    req.body = req.body || {};
+                                    await this.profileController.updateProfile(req, res);
+                                    resolve();
+                                } catch (err) {
+                                    reject(err);
+                                }
+                            });
+                        });
+                    } catch (error) {
+                        console.error('Avatar upload error:', error);
+                        if (!res.headersSent) {
+                            this.sendError(res, error.message || 'Avatar upload failed', 400);
+                        }
+                    }
+                } else {
+                    // Regular JSON request
+                    req.body = body;
+                    await this.profileController.updateProfile(req, res);
+                }
             } else if (method === 'DELETE') {
                 await this.profileController.deleteProfile(req, res);
             } else {

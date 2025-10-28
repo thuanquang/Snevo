@@ -13,17 +13,26 @@ import { ValidationError } from '../utils/ErrorClasses.js';
 const supabaseConfig = createSupabaseConfig();
 
 class UploadMiddleware {
-  constructor() {
-    // Cấu hình upload
-    this.config = {
+  constructor(options = {}) {
+    // ⭐ UPDATED: Accept configurable options
+    const defaultOptions = {
       maxFileSize: 5 * 1024 * 1024, // 5MB
       allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'],
       allowedExtensions: ['.jpg', '.jpeg', '.png', '.webp'],
       storageBucket: 'product-images',
+      storagePath: 'products', // 📌 NEW: configurable path prefix
       imageQuality: 90,
       maxWidth: 2048,
       maxHeight: 2048
     };
+
+    // Merge options with defaults
+    this.config = { ...defaultOptions, ...options };
+    console.log('📦 UploadMiddleware initialized with config:', {
+      bucket: this.config.storageBucket,
+      path: this.config.storagePath,
+      maxSize: this.config.maxFileSize
+    });
   }
 
   /**
@@ -48,62 +57,62 @@ class UploadMiddleware {
     });
   }
 
- /**
- * ⭐ Parse multipart/form-data from buffer
- */
-async parseMultipartData(buffer, headers) {
-  return new Promise((resolve, reject) => {
-    const bb = busboy({ headers });
-    const files = [];
-    const fields = {};
+  /**
+   * ⭐ Parse multipart/form-data from buffer
+   */
+  async parseMultipartData(buffer, headers) {
+    return new Promise((resolve, reject) => {
+      const bb = busboy({ headers });
+      const files = [];
+      const fields = {};
 
-    bb.on('file', (fieldname, file, info) => {
-      const { filename, encoding, mimeType } = info;
-      console.log(`📎 Receiving file: ${filename} (${mimeType})`);
+      bb.on('file', (fieldname, file, info) => {
+        const { filename, encoding, mimeType } = info;
+        console.log(`📎 Receiving file: ${filename} (${mimeType})`);
 
-      const chunks = [];
-      file.on('data', (chunk) => {
-        chunks.push(chunk);
-      });
+        const chunks = [];
+        file.on('data', (chunk) => {
+          chunks.push(chunk);
+        });
 
-      file.on('end', () => {
-        const fileBuffer = Buffer.concat(chunks);
-        files.push({
-          fieldname,
-          filename,
-          encoding,
-          mimeType,
-          buffer: fileBuffer,
-          size: fileBuffer.length
+        file.on('end', () => {
+          const fileBuffer = Buffer.concat(chunks);
+          files.push({
+            fieldname,
+            filename,
+            encoding,
+            mimeType,
+            buffer: fileBuffer,
+            size: fileBuffer.length
+          });
         });
       });
-    });
 
-    bb.on('field', (fieldname, value) => {
-      console.log(`📝 Field: ${fieldname} = ${value}`);
-      fields[fieldname] = value;
-    });
+      bb.on('field', (fieldname, value) => {
+        console.log(`📝 Field: ${fieldname} = ${value}`);
+        fields[fieldname] = value;
+      });
 
-    bb.on('finish', () => {
-      console.log('✅ Busboy finished parsing');
-      
-      // ⭐ Convert field types BEFORE resolving
-      const convertedFields = this.convertFieldTypes(fields);
-      console.log('🔄 Converted fields:', convertedFields);
-      
-      resolve({ files, fields: convertedFields });
-    });
+      bb.on('finish', () => {
+        console.log('✅ Busboy finished parsing');
+        
+        // ⭐ Convert field types BEFORE resolving
+        const convertedFields = this.convertFieldTypes(fields);
+        console.log('🔄 Converted fields:', convertedFields);
+        
+        resolve({ files, fields: convertedFields });
+      });
 
-    bb.on('error', (err) => {
-      console.error('❌ Busboy error:', err);
-      reject(err);
-    });
+      bb.on('error', (err) => {
+        console.error('❌ Busboy error:', err);
+        reject(err);
+      });
 
-    // ✅ Create readable stream from buffer
-    const stream = Readable.from(buffer);
-    stream.pipe(bb);
-  });
-}
+      // ✅ Create readable stream from buffer
+      const stream = Readable.from(buffer);
+      stream.pipe(bb);
+    });
+  }
 
   /**
    * Validate file trước khi upload
@@ -162,11 +171,7 @@ async parseMultipartData(buffer, headers) {
       this.validateFile(file);
 
       // Generate unique filename
-      const timestamp = Date.now();
-      const randomStr = Math.random().toString(36).substring(2, 8);
-      const ext = file.filename.split('.').pop();
-      const fileName = `${timestamp}_${randomStr}.${ext}`;
-      const filePath = `products/${fileName}`;
+      const filePath = this.generateStoragePath(file.filename);
 
       // Optimize image before upload
       const optimizedBuffer = await this.optimizeImage(file.buffer);
@@ -243,7 +248,7 @@ async parseMultipartData(buffer, headers) {
       
       if (!contentType.includes('multipart/form-data')) {
         console.log('⏭️ Not multipart, skipping upload middleware');
-        return next();
+        return await next();  // ⭐ AWAIT next()
       }
 
       // ✅ Buffer stream FIRST before parsing
@@ -272,7 +277,7 @@ async parseMultipartData(buffer, headers) {
         console.log('✅ File uploaded successfully:', imageUrl);
       }
 
-      next();
+      await next();  // ⭐ AWAIT next()
 
     } catch (error) {
       console.error('❌ Upload middleware error:', error);
@@ -284,31 +289,72 @@ async parseMultipartData(buffer, headers) {
     }
   }
   /**
- * ⭐ Convert string fields to proper types
- */
-convertFieldTypes(fields) {
-  const converted = { ...fields };
+   * ⭐ Convert string fields to proper types
+   */
+  convertFieldTypes(fields) {
+    const converted = { ...fields };
 
-  // Convert numeric fields
-  const integerFields = ['category_id', 'stock', 'quantity', 'variant_id'];
-  const floatFields = ['base_price', 'price'];
+    // Convert numeric fields
+    const integerFields = ['category_id', 'stock', 'quantity', 'variant_id'];
+    const floatFields = ['base_price', 'price'];
 
-  integerFields.forEach(field => {
-    if (converted[field] !== undefined && converted[field] !== '') {
-      converted[field] = parseInt(converted[field], 10);
+    integerFields.forEach(field => {
+      if (converted[field] !== undefined && converted[field] !== '') {
+        converted[field] = parseInt(converted[field], 10);
+      }
+    });
+
+    floatFields.forEach(field => {
+      if (converted[field] !== undefined && converted[field] !== '') {
+        converted[field] = parseFloat(converted[field]);
+      }
+    });
+
+    return converted;
+  }
+
+  /**
+   * ⭐ Generate storage file path - now uses configurable path
+   */
+  generateStoragePath(filename) {
+    const timestamp = Date.now();
+    const randomStr = Math.random().toString(36).substring(2, 8);
+    const ext = filename.split('.').pop();
+    const fileName = `${timestamp}_${randomStr}.${ext}`;
+    
+    // If config has userId (for avatars), include it in path
+    if (this.config.userId) {
+      return `${this.config.storagePath}/${this.config.userId}/${fileName}`;
     }
-  });
-
-  floatFields.forEach(field => {
-    if (converted[field] !== undefined && converted[field] !== '') {
-      converted[field] = parseFloat(converted[field]);
-    }
-  });
-
-  return converted;
-}
+    
+    return `${this.config.storagePath}/${fileName}`;
+  }
 }
 
 // ✅ Export middleware instance
 const uploadMiddleware = new UploadMiddleware();
 export default uploadMiddleware;
+
+// ✅ UPDATED: Export factory functions for different upload types
+/**
+ * 📌 Create product upload middleware
+ */
+export function createProductUploadMiddleware() {
+  return new UploadMiddleware({
+    storageBucket: 'product-images',
+    storagePath: 'products',
+    maxFileSize: 5 * 1024 * 1024 // 5MB
+  });
+}
+
+/**
+ * 📌 Create avatar upload middleware
+ */
+export function createAvatarUploadMiddleware(userId) {
+  return new UploadMiddleware({
+    storageBucket: 'avatars',
+    storagePath: 'avatars',
+    userId: userId, // Include user ID in path
+    maxFileSize: 5 * 1024 * 1024 // 5MB (matching bucket limit)
+  });
+}

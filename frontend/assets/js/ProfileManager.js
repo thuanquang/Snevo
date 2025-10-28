@@ -700,6 +700,33 @@ class ProfileManager {
         if (personalInfoForm) {
             personalInfoForm.addEventListener('submit', (e) => this.handlePersonalInfoSubmit(e));
         }
+        this.setupAvatarUploadHandlers();
+    }
+
+    /**
+     * Setup avatar upload handlers
+     */
+    setupAvatarUploadHandlers() {
+        const avatarFileInput = document.getElementById('avatarFile');
+        const avatarPreview = document.getElementById('avatarPreview');
+        const avatarError = document.getElementById('avatarError');
+
+        if (avatarFileInput && avatarPreview) {
+            avatarFileInput.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        avatarPreview.innerHTML = '<div style="width: 120px; height: 120px; margin: 0 auto; border-radius: 50%; overflow: hidden; border: 2px solid #0d6efd;"><img src="' + e.target.result + '" style="width: 100%; height: 100%; object-fit: cover;"></div>';
+                        avatarPreview.classList.remove('d-none');
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    avatarPreview.innerHTML = '<div style="width: 120px; height: 120px; margin: 0 auto; background: #e9ecef; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px dashed #dee2e6;"><i class="fas fa-user fa-3x" style="color: #999;"></i></div>';
+                    avatarPreview.classList.add('d-none');
+                }
+            });
+        }
     }
 
     /**
@@ -939,34 +966,91 @@ class ProfileManager {
         messageDiv.className = 'd-none';
 
         try {
-            const formData = new FormData(form);
-            const data = Object.fromEntries(formData);
+            // ⭐ UPDATED: Check for avatar file - auto-detect and use FormData
+            const avatarFileInput = document.getElementById('avatarFile');
+            const avatarFile = avatarFileInput && avatarFileInput.files ? avatarFileInput.files[0] : null;
 
-            // Remove empty fields and convert date to ISO string if present
-            Object.keys(data).forEach(key => {
-                if (data[key] === '' || data[key] === null || data[key] === undefined) {
-                    delete data[key];
-                } else if (key === 'date_of_birth' && data[key]) {
-                    data[key] = new Date(data[key]).toISOString().split('T')[0];
+            let response;
+
+            if (avatarFile) {
+                // ⭐ NEW: File selected - use FormData with multipart
+                console.log('📤 Avatar file detected, using FormData for multipart upload');
+                
+                // Validate file
+                const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+                if (!validTypes.includes(avatarFile.type)) {
+                    throw new Error('Invalid image format. Please use JPG, PNG, or WEBP.');
                 }
-            });
 
-            console.log('📝 Submitting profile update:', data);
+                const maxSize = 5 * 1024 * 1024; // 5MB
+                if (avatarFile.size > maxSize) {
+                    throw new Error('Image size must be less than 5MB');
+                }
 
-            // Get the current session token
-            const { data: { session } } = await window.authService.supabase.auth.getSession();
-            if (!session) {
-                throw new Error('Please log in to update your profile');
+                // Create FormData with file + other fields
+                const formData = new FormData(form);
+                formData.append('avatar_file', avatarFile);
+
+                // Remove avatar_url if we're uploading a file
+                formData.delete('avatar_url');
+
+                // ⭐ CRITICAL FIX: Remove empty fields (same as JSON path does)
+                const keys = Array.from(formData.keys());
+                keys.forEach(key => {
+                    const value = formData.get(key);
+                    if (value === '' || value === null || value === undefined) {
+                        formData.delete(key);
+                    }
+                });
+
+                // Get the current session token
+                const { data: { session } } = await window.authService.supabase.auth.getSession();
+                if (!session) {
+                    throw new Error('Please log in to update your profile');
+                }
+
+                response = await fetch('/api/auth/profile', {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${session.access_token}`
+                        // Note: Don't set Content-Type - browser will set it with boundary
+                    },
+                    body: formData
+                });
+
+            } else {
+                // ⭐ EXISTING: No file - use JSON as before
+                console.log('📝 No avatar file, using JSON for update');
+                
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData);
+
+                // Remove empty fields and convert date to ISO string if present
+                Object.keys(data).forEach(key => {
+                    if (data[key] === '' || data[key] === null || data[key] === undefined) {
+                        delete data[key];
+                    } else if (key === 'date_of_birth' && data[key]) {
+                        data[key] = new Date(data[key]).toISOString().split('T')[0];
+                    }
+                });
+
+                console.log('📝 Submitting profile update:', data);
+
+                // Get the current session token
+                const { data: { session } } = await window.authService.supabase.auth.getSession();
+                if (!session) {
+                    throw new Error('Please log in to update your profile');
+                }
+
+                response = await fetch('/api/auth/profile', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${session.access_token}`
+                    },
+                    body: JSON.stringify(data)
+                });
             }
-
-            const response = await fetch('/api/auth/profile', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${session.access_token}`
-                },
-                body: JSON.stringify(data)
-            });
 
             if (response.ok) {
                 const result = await response.json();
@@ -976,6 +1060,11 @@ class ProfileManager {
                 messageDiv.className = 'alert alert-success';
                 messageDiv.innerHTML = '<i class="fas fa-check-circle me-2"></i>Profile updated successfully!';
                 messageDiv.classList.remove('d-none');
+
+                // Clear avatar file input after successful upload
+                if (avatarFileInput) {
+                    avatarFileInput.value = '';
+                }
 
                 // Reload profile data to get updated values
                 await this.loadUserProfile();

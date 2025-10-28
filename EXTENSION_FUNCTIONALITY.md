@@ -1101,3 +1101,122 @@ const totalProducts = await this.models.Shoe.countAll();
 - Better code organization
 - Easier maintenance and testing
 
+## AVATAR UPLOAD FUNCTIONALITY (Oct 2025)
+✅ COMPLETED: Implemented avatar upload functionality for user profiles
+
+**Implementation Details**:
+
+1. **Backend ProfileController** (`backend/controllers/ProfileController.js`):
+   - Added `uploadAvatar(req, res)` - POST /api/auth/upload-avatar
+   - Handles file upload to Supabase storage
+   - Updates `avatar_url` in the user's profile
+   - Returns success/error response
+
+2. **Frontend Profile Page** (`frontend/pages/profile.html`):
+   - Added file input for avatar selection
+   - Updated `updateProfile()` to include `avatar_url` in the payload
+   - Displays success/error messages for avatar upload
+   - Uses `window.authService.supabase.storage.from('avatars').upload`
+   - Gets signed URL for direct upload
+
+**Features**:
+- ✅ User can select a new avatar from their device
+- ✅ Avatar is uploaded to Supabase storage
+- ✅ Signed URL is generated for direct upload
+- ✅ Profile is updated with the new avatar URL
+- ✅ Error handling for file size, type, and upload failures
+- ✅ Success/error messages displayed to user
+- ✅ No page reload required for avatar update
+
+**Files Modified**:
+- `backend/controllers/ProfileController.js`: Added uploadAvatar()
+- `frontend/pages/profile.html`: Added file input and updated updateProfile()
+
+**Database Schema**:
+- Table: `db_nike.profiles`
+- Key fields: user_id (PK, UUID), username, full_name, phone, date_of_birth, gender, avatar_url, role, created_at, updated_at
+
+**Benefits**:
+- ✅ Improved user profile customization
+- ✅ Consistent avatar across all pages
+- ✅ No backend file system dependencies
+- ✅ Secure and scalable storage
+
+## AVATAR UPLOAD BUG FIX (Oct 2025)
+✅ FIXED: Avatar upload 500 error caused by missing class method indentation
+
+**Root Cause**:
+
+The `parseMultipartData()` and `convertFieldTypes()` methods in `backend/middleware/upload.js` were defined with incorrect indentation and were NOT part of the `UploadMiddleware` class. This caused the methods to be undefined at runtime, resulting in a 500 Internal Server Error when trying to process multipart form-data requests.
+
+**Error Flow**:
+1. User uploads avatar in profile.html and clicks "Save Changes"
+2. Frontend sends FormData with `avatar_file` as multipart/form-data to PUT /api/auth/profile
+3. Server detects multipart request and calls `createAvatarUploadMiddleware(req.user.id)`
+4. Middleware's `handleUpload()` method calls `await this.parseMultipartData(buffer, req.headers)` (line 260)
+5. **BUG**: `parseMultipartData` was not a class method (bad indentation)
+6. Runtime error: "this.parseMultipartData is not a function" → 500 error
+
+**The Fix**:
+
+Fixed indentation of two methods in `backend/middleware/upload.js`:
+
+1. **`parseMultipartData(buffer, headers)` (lines 60-115)**:
+   - **Before**: Method body indented at wrong level (column 0 instead of column 2)
+   - **After**: Properly indented as part of `UploadMiddleware` class (column 2)
+   - This method parses multipart form-data using busboy library
+   - Extracts files and form fields from request buffer
+   - Converts field types (strings to numbers/floats) before resolving
+
+2. **`convertFieldTypes(fields)` (lines 291-314)**:
+   - **Before**: Method body indented at wrong level (column 0 instead of column 2)
+   - **After**: Properly indented as part of `UploadMiddleware` class (column 2)
+   - This method converts string form fields to proper types
+   - Handles integer fields (category_id, stock, quantity, variant_id)
+   - Handles float fields (base_price, price)
+
+**Files Modified**:
+- `backend/middleware/upload.js`: Fixed indentation of parseMultipartData() and convertFieldTypes() methods
+
+**How It Works Now**:
+
+1. User selects avatar file and saves profile
+2. Frontend sends FormData with `avatar_file` to PUT /api/auth/profile
+3. Server.js detects multipart/form-data and applies avatar upload middleware
+4. Middleware's handleUpload() correctly calls parseMultipartData() (now a proper class method)
+5. parseMultipartData() buffers request and uses busboy to parse multipart data
+6. Calls convertFieldTypes() to convert string fields to proper types
+7. Uploads file to Supabase Storage bucket "avatars"
+8. Returns image URL and sets req.body.image_url
+9. ProfileController.updateProfile() receives req.body with image_url
+10. Maps image_url to avatar_url and updates profile in database
+11. Returns success response to frontend
+12. Frontend shows success message and reloads profile
+
+**Testing Steps**:
+
+1. Start the server: `npm start`
+2. Navigate to Profile page (must be logged in)
+3. Click on Personal Info tab
+4. Select an avatar image (JPG/PNG/WEBP)
+5. Click "Save Changes" button
+6. **Expected Result**: Success message appears, avatar updates without 500 error
+7. **Verify**: Check browser console for no errors
+8. **Verify**: Check Supabase Storage "avatars" bucket for uploaded file
+9. **Verify**: Refresh page - avatar should persist from database
+
+**Error Handling**:
+
+The fix also ensures proper error handling in the upload flow:
+- File validation errors → 400 Bad Request
+- Upload failures → 400 Bad Request with error message
+- Database errors → 500 Internal Server Error with details
+- All errors properly logged to console with 🔴 error indicators
+
+**Related Features**:
+- Avatar upload uses existing multipart upload middleware
+- Same bucket and path configuration as product uploads
+- File optimization (resizing, quality) via Sharp library
+- Support for JPG, PNG, WEBP formats (max 5MB)
+- Supabase Storage integration with signed URLs
+

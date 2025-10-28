@@ -88,6 +88,13 @@ class ProfileController {
             console.log('📝 Updating profile for user:', userId);
             console.log('📝 Update data:', updates);
 
+             // Handle multipart avatar upload - map image_url to avatar_url
+             if (updates.image_url) {
+                updates.avatar_url = updates.image_url;
+                delete updates.image_url;
+                console.log('📤 Avatar uploaded from multipart, URL:', updates.avatar_url);
+            }
+
             // Validate update data
             if (!updates || Object.keys(updates).length === 0) {
                 return this.sendJson(res, {
@@ -141,12 +148,19 @@ class ProfileController {
                 }, 400);
             }
 
-            // Validate avatar URL format if provided
-            if (filteredUpdates.avatar_url && filteredUpdates.avatar_url !== '' && !/^https?:\/\/.*\.(jpg|jpeg|png|gif|webp|webp\?.*|googleusercontent\.com.*|gravatar\.com.*|github\.com.*|facebook\.com.*)$/i.test(filteredUpdates.avatar_url)) {
-                return this.sendJson(res, {
-                    success: false,
-                    message: 'Invalid avatar URL format (supports jpg, png, gif, webp, Google, Gravatar, GitHub, Facebook)'
-                }, 400);
+             // Validate avatar URL - support Supabase Storage URLs + external URLs
+             if (filteredUpdates.avatar_url && filteredUpdates.avatar_url !== '') {
+                const isSupabaseUrl = filteredUpdates.avatar_url.includes('supabase.co') || 
+                                    filteredUpdates.avatar_url.includes('storage');
+                const isExternalUrl = /^https?:\/\/.*\.(jpg|jpeg|png|gif|webp|webp\?.*|googleusercontent\.com.*|gravatar\.com.*|github\.com.*|facebook\.com.*)$/i
+                                    .test(filteredUpdates.avatar_url);
+                
+                if (!isSupabaseUrl && !isExternalUrl) {
+                    return this.sendJson(res, {
+                        success: false,
+                        message: 'Invalid avatar URL format'
+                    }, 400);
+                }
             }
 
             // Update profile in database
