@@ -40,6 +40,7 @@ import colorRoutes from './routes/colors.js';
 import sizeRoutes from './routes/sizes.js';
 import importRoutes from './routes/imports.js';
 import adminRoutes from './routes/admin.js';
+import cartRoutes from './routes/cart.js';
 
 class Server {
     constructor() {
@@ -221,9 +222,9 @@ class Server {
             return importRoutes(req, res, this.importController, pathname);
         }
         if (pathname.startsWith('/api/cart')) {
-            await this.handleCartRoutes(req, res, pathname, req.method, body);
+            await cartRoutes(req, res, this.cartController, pathname);
             return;
-        }
+        }       
 
         // ⭐ BUILT-IN ROUTES (Keep existing handlers)
         // Auth routes for profile management
@@ -302,57 +303,6 @@ class Server {
         } else {
             this.sendError(res, 'API endpoint not found', 404);
         }
-    }
-
-    // Cart routes handler
-    async handleCartRoutes(req, res, pathname, method, body) {
-        const cartPath = pathname.replace('/api/cart', '');
-
-        // Auth required
-        const authResult = await authMiddleware.authenticate(req, res);
-        if (!authResult || !authResult.success || !authResult.user) {
-            // If not authenticated, auth middleware already wrote response (or we return 401)
-            res.writeHead(401, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ success: false, message: 'Authentication required' }));
-            return;
-        }
-        req.user = authResult.user;
-
-        if (cartPath === '/' || cartPath === '') {
-            if (method === 'GET') {
-                await this.cartController.getCart(req, res);
-            } else if (method === 'POST') {
-                req.body = body;
-                await this.cartController.addToCart(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-            return;
-        }
-
-        if (cartPath === '/summary' && method === 'GET') {
-            await this.cartController.getSummary(req, res);
-            return;
-        }
-
-        // /:cart_id
-        if (cartPath.match(/^\/\d+$/)) {
-            const id = cartPath.substring(1);
-            req.params = { cart_id: id };
-            if (method === 'PUT') {
-                req.body = body;
-                await this.cartController.updateCartItem(req, res);
-                return;
-            }
-            if (method === 'DELETE') {
-                await this.cartController.removeCartItem(req, res);
-                return;
-            }
-            this.sendError(res, 'Method not allowed', 405);
-            return;
-        }
-
-        this.sendError(res, 'API endpoint not found', 404);
     }
 
     // Auth routes handler
