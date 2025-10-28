@@ -41,7 +41,7 @@ class Payment extends BaseModel {
             const { data, error } = await supabaseConfig
                 .getAdminClient()
                 .from(this.tableName)
-                .select('amount')
+                .select('payment_amount')
                 .eq('payment_status', 'completed');
 
             if (error) {
