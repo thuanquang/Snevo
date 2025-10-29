@@ -159,6 +159,59 @@ class OrderController extends BaseController {
       this.sendResponse(res, updated, 'Order cancelled');
     });
   }
+
+  // PUT /api/orders/:id/address { address_id }
+  async updateOrderAddress(req, res) {
+    return this.handleRequest(req, res, async () => {
+      this.requireAuth(req);
+      const { id } = req.params;
+      const { address_id } = req.body || {};
+
+      this.validateRequest({ address_id: parseInt(address_id) }, {
+        address_id: { required: true, type: 'integer', min: 1 }
+      });
+
+      // Get order and verify ownership and status
+      const order = await this.Order.findWithItems(parseInt(id));
+      if (!order || order.user_id !== req.user.id) {
+        this.sendError(res, 'Order not found', constants.HTTP_STATUS.NOT_FOUND);
+        return;
+      }
+
+      // Only allow address updates for pending orders
+      if (order.status !== constants.ORDER_STATUS.PENDING) {
+        this.sendError(res, 'Can only update address for pending orders', constants.HTTP_STATUS.UNPROCESSABLE_ENTITY);
+        return;
+      }
+
+      // Calculate totals based on order items
+      const itemsSubtotal = (order.order_items || []).reduce((sum, item) => sum + Number(item.price_per_unit) * item.quantity, 0);
+      const shippingCost = 0; // TODO: Calculate based on address if needed
+      const taxAmount = 0; // TODO: Calculate if needed
+      const totalAmount = itemsSubtotal + shippingCost + taxAmount;
+
+      // Create update data (we'll use a direct query since Order model doesn't have an updateAddressAndTotals method)
+      const supabaseConfig = require('../../config/supabase.js').default;
+      const { data, error } = await supabaseConfig.getAdminClient()
+        .from('orders')
+        .update({
+          address_id: parseInt(address_id),
+          shipping_cost: shippingCost,
+          tax_amount: taxAmount,
+          total_amount: totalAmount,
+          updated_at: new Date().toISOString()
+        })
+        .eq('order_id', parseInt(id))
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(`Failed to update order address: ${error.message}`);
+      }
+
+      this.sendResponse(res, data, 'Order address updated');
+    });
+  }
 }
 
 export default OrderController;

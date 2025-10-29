@@ -13,6 +13,7 @@ router.get('/preview', orderController.previewOrder.bind(orderController));
 router.get('/', orderController.getOrders.bind(orderController));
 router.get('/:id', orderController.getOrder.bind(orderController));
 router.post('/', orderController.createOrder.bind(orderController));
+router.put('/:id/address', orderController.updateOrderAddress.bind(orderController));
 router.put('/:id/status', orderController.updateOrderStatus.bind(orderController));
 router.put('/:id/cancel', orderController.cancelOrder.bind(orderController));
 

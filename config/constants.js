@@ -24,9 +24,7 @@ export const USER_ROLES = {
 
 export const ORDER_STATUS = {
     PENDING: 'pending',
-    PROCESSING: 'processing',
-    SHIPPED: 'shipped',
-    DELIVERED: 'delivered',
+    SUCCESS: 'processing',  // Map to 'processing' for DB constraint compatibility
     CANCELLED: 'cancelled'
 };
 

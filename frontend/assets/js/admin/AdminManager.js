@@ -662,7 +662,7 @@ class AdminManager {
         <td>$${parseFloat(order.total_amount || 0).toFixed(2)}</td>
         <td>
           <span class="badge ${this.getStatusBadgeClass(order.order_status)}">
-            ${order.order_status}
+            ${this.getStatusLabel(order.order_status)}
           </span>
         </td>
         <td>${new Date(order.created_at).toLocaleDateString()}</td>
@@ -729,13 +729,23 @@ class AdminManager {
   getStatusBadgeClass(status) {
     const statusMap = {
       'pending': 'bg-warning',
-      'processing': 'bg-info',
-      'shipped': 'bg-primary',
-      'delivered': 'bg-success',
+      'processing': 'bg-success',  // Approved/Success state
       'cancelled': 'bg-danger',
       'refunded': 'bg-secondary'
     };
     return statusMap[status?.toLowerCase()] || 'bg-secondary';
+  }
+  
+  /**
+   * Get display label for order status
+   */
+  getStatusLabel(status) {
+    const labelMap = {
+      'pending': 'Pending',
+      'processing': 'Approved',
+      'cancelled': 'Cancelled'
+    };
+    return labelMap[status?.toLowerCase()] || status;
   }
 }
 
