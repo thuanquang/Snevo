@@ -209,80 +209,85 @@ class Shoe extends BaseModel {
   /**
    * Deduplicate shoes and aggregate variant data
    */
-  _deduplicateShoes(shoes) {
+_deduplicateShoes(shoes) {
     const shoeMap = new Map();
-
+    
     shoes.forEach(shoe => {
-      const shoeId = shoe.shoe_id;
+        const shoeId = shoe.shoe_id;
+        if (!shoeMap.has(shoeId)) {
+            shoeMap.set(shoeId, {
+                shoe_id: shoe.shoe_id,
+                category_id: shoe.category_id,
+                shoe_name: shoe.shoe_name,
+                description: shoe.description,
+                base_price: shoe.base_price,
+                brand: shoe.brand,
+                image_url: shoe.image_url,
+                images: shoe.images,
+                specifications: shoe.specifications,
+                is_featured: shoe.is_featured,
+                is_active: shoe.is_active,
+                created_at: shoe.created_at,
+                updated_at: shoe.updated_at,
+                deleted_at: shoe.deleted_at,
+                categories: shoe.categories,
+                shoe_variants: []
+            });
+        }
 
-      if (!shoeMap.has(shoeId)) {
-        shoeMap.set(shoeId, {
-          shoe_id: shoe.shoe_id,
-          category_id: shoe.category_id,
-          shoe_name: shoe.shoe_name,
-          description: shoe.description,
-          base_price: shoe.base_price,
-          brand: shoe.brand,
-          image_url: shoe.image_url,
-          images: shoe.images,
-          specifications: shoe.specifications,
-          is_featured: shoe.is_featured,
-          is_active: shoe.is_active,
-          created_at: shoe.created_at,
-          updated_at: shoe.updated_at,
-          deleted_at: shoe.deleted_at,
-          categories: shoe.categories,
-          shoe_variants: []
-        });
-      }
-
-      const existingShoe = shoeMap.get(shoeId);
-      if (shoe.shoe_variants && Array.isArray(shoe.shoe_variants) && shoe.shoe_variants.length > 0) {
-        existingShoe.shoe_variants.push(...shoe.shoe_variants);
-      }
+        const existingShoe = shoeMap.get(shoeId);
+        if (shoe.shoe_variants && Array.isArray(shoe.shoe_variants) && shoe.shoe_variants.length > 0) {
+            existingShoe.shoe_variants.push(...shoe.shoe_variants);
+        }
     });
 
     return Array.from(shoeMap.values()).map(shoe => {
-      const variants = shoe.shoe_variants || [];
-      
-      // Remove duplicate variants
-      const uniqueVariants = Array.from(
-        new Map(variants.map(v => [v.variant_id, v])).values()
-      );
+        const variants = shoe.shoe_variants || [];
+        
+        // Remove duplicate variants
+        const uniqueVariants = Array.from(
+            new Map(variants.map(v => [v.variant_id, v])).values()
+        );
 
-      // Calculate stock info
-      const totalStock = uniqueVariants.reduce((sum, v) => sum + (v.stock_quantity || 0), 0);
+        // ✅ FIX: Only count ACTIVE variants
+        const activeVariants = uniqueVariants.filter(v => v.is_active === true);
+        
+        // ✅ FIX: Calculate stock from ACTIVE variants only
+        const totalStock = activeVariants.reduce(
+            (sum, v) => sum + (v.stock_quantity || 0), 
+            0
+        );
 
-      // Extract unique colors and sizes
-      const availableColors = [
-        ...new Map(
-          uniqueVariants
-            .filter(v => v.colors)
-            .map(v => [v.colors.color_id, v.colors])
-        ).values()
-      ];
+        // ✅ FIX: Extract colors/sizes from ACTIVE variants only
+        const availableColors = [
+            ...new Map(
+                activeVariants
+                    .filter(v => v.colors)
+                    .map(v => [v.colors.color_id, v.colors])
+            ).values()
+        ];
 
-      const availableSizes = [
-        ...new Map(
-          uniqueVariants
-            .filter(v => v.sizes)
-            .map(v => [v.sizes.size_id, v.sizes])
-        ).values()
-      ].sort((a, b) => parseFloat(a.size_value) - parseFloat(b.size_value));
+        const availableSizes = [
+            ...new Map(
+                activeVariants
+                    .filter(v => v.sizes)
+                    .map(v => [v.sizes.size_id, v.sizes])
+            ).values()
+        ].sort((a, b) => parseFloat(a.size_value) - parseFloat(b.size_value));
 
-      return {
-        ...shoe,
-        shoe_variants: uniqueVariants,
-        stock_info: {
-          total_stock: totalStock,
-          has_stock: totalStock > 0,
-          variant_count: uniqueVariants.length,
-          available_colors: availableColors,
-          available_sizes: availableSizes
-        }
-      };
+        return {
+            ...shoe,
+            shoe_variants: uniqueVariants,  // Keep all variants (for admin view)
+            stock_info: {
+                total_stock: totalStock,  // ✅ FIXED: Only active variants
+                has_stock: totalStock > 0,
+                variant_count: activeVariants.length,  // ✅ FIXED: Only active variants
+                available_colors: availableColors,
+                available_sizes: availableSizes
+            }
+        };
     });
-  }
+}
 
   /**
    * Map frontend sort field to database column

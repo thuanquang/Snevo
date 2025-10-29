@@ -1,76 +1,76 @@
 // frontend/assets/js/ProductDetailManager.js
 
 class ProductDetailManager {
-    constructor() {
-        this.api = window.productsAPI;
-        
-        this.productId = null;
-        this.productData = null;
-        this.variants = [];
-        this.allColors = [];
-        this.allSizes = [];
-        
-        this.selectedColor = null;
-        this.selectedSize = null;
-        this.currentVariant = null;
-        
-        console.log('✅ ProductDetailManager initialized');
-    }
+  constructor() {
+    this.api = window.productsAPI;
 
-    /**
-     * Initialize product detail page
-     */
-    async init(productId) {
+    this.productId = null;
+    this.productData = null;
+    this.variants = [];
+    this.allColors = [];
+    this.allSizes = [];
+
+    this.selectedColor = null;
+    this.selectedSize = null;
+    this.currentVariant = null;
+
+    console.log("✅ ProductDetailManager initialized");
+  }
+
+  /**
+   * Initialize product detail page
+   */
+  async init(productId) {
     try {
-        this.productId = productId;
-        console.log(`🔄 Loading product ${productId}...`);
+      this.productId = productId;
+      console.log(`🔄 Loading product ${productId}...`);
 
-        // ⭐ SHOW LOADING
-        document.getElementById('loading').style.display = 'flex';
-        document.getElementById('productDetail').style.display = 'none';
+      // ⭐ SHOW LOADING
+      document.getElementById("loading").style.display = "flex";
+      document.getElementById("productDetail").style.display = "none";
 
-        // ⭐ Ensure API is available
-        await this.waitForApi();
-        this.api = window.productsAPI;
+      // ⭐ Ensure API is available
+      await this.waitForApi();
+      this.api = window.productsAPI;
 
-        // ⭐ FIX: Load product data FIRST, then get variants from it
-        await this.loadProductData(); // Load product with variants
-        
-        // ⭐ Extract variants from productData
-        this.variants = this.productData?.shoe_variants || [];
-        console.log(`✅ Loaded ${this.variants.length} variants from product`);
-        
-        // Load other reference data
+      // ⭐ FIX: Load product data FIRST, then get variants from it
+      await this.loadProductData(); // Load product with variants
 
-        this.extractColorsAndSizes();
+      // ⭐ Extract variants from productData
+      this.variants = this.productData?.shoe_variants || [];
+      console.log(`✅ Loaded ${this.variants.length} variants from product`);
 
-        // Render UI
-        this.renderProduct();
-        this.renderColors();
-        this.renderSizes();
+      // Load other reference data
 
-        // Hide loading, show content
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('productDetail').style.display = 'block';
+      this.extractColorsAndSizes();
 
-        console.log('✅ Product detail loaded successfully');
+      // Render UI
+      this.renderProduct();
+      this.renderColors();
+      this.renderSizes();
 
+      // Hide loading, show content
+      document.getElementById("loading").style.display = "none";
+      document.getElementById("productDetail").style.display = "block";
 
-        } catch (error) {
-            console.error('❌ Failed to load product:', error);
-            
-            // ⭐ FIX: GIỮ TRANG, CHỈ SHOW ERROR MESSAGE
-            document.getElementById('loading').style.display = 'none';
-            
-            // Show error UI on the page
-            const productDetail = document.getElementById('productDetail');
-            if (productDetail) {
-                productDetail.style.display = 'block';
-                productDetail.innerHTML = `
+      console.log("✅ Product detail loaded successfully");
+    } catch (error) {
+      console.error("❌ Failed to load product:", error);
+
+      // ⭐ FIX: GIỮ TRANG, CHỈ SHOW ERROR MESSAGE
+      document.getElementById("loading").style.display = "none";
+
+      // Show error UI on the page
+      const productDetail = document.getElementById("productDetail");
+      if (productDetail) {
+        productDetail.style.display = "block";
+        productDetail.innerHTML = `
                     <div class="container py-5">
                         <div class="alert alert-danger" role="alert">
                             <h4 class="alert-heading">⚠️ Failed to Load Product</h4>
-                            <p><strong>Error:</strong> ${error.message || 'Unknown error'}</p>
+                            <p><strong>Error:</strong> ${
+                              error.message || "Unknown error"
+                            }</p>
                             <hr>
                             <p class="mb-0">
                                 <strong>Debug Info:</strong><br>
@@ -92,501 +92,623 @@ class ProductDetailManager {
                                 <h5>🐛 Debug Information</h5>
                             </div>
                             <div class="card-body">
-                                <pre class="mb-0" style="max-height: 400px; overflow-y: auto;"><code>${JSON.stringify({
+                                <pre class="mb-0" style="max-height: 400px; overflow-y: auto;"><code>${JSON.stringify(
+                                  {
                                     productId: this.productId,
                                     error: error.message,
                                     stack: error.stack,
                                     api: typeof this.api,
-                                    productsAPI: typeof window.productsAPI
-                                }, null, 2)}</code></pre>
+                                    productsAPI: typeof window.productsAPI,
+                                  },
+                                  null,
+                                  2
+                                )}</code></pre>
                             </div>
                         </div>
                     </div>
                 `;
-            }
+      }
+    }
+  }
+
+  /**
+   * Wait until productsAPI is available
+   */
+  async waitForApi() {
+    let attempts = 0;
+    while (attempts < 100) {
+      // up to ~5s
+      if (
+        window.productsAPI &&
+        typeof window.productsAPI.getProduct === "function"
+      ) {
+        return true;
+      }
+      await new Promise((r) => setTimeout(r, 50));
+      attempts++;
+    }
+    throw new Error(
+      "API client not initialized. Check if ApiClient.js is loaded correctly."
+    );
+  }
+
+  /**
+   * Load product data from API
+   */
+  async loadProductData() {
+    try {
+      console.log(`📡 API call: getProduct(${this.productId})`);
+
+      // ⭐ DEBUG: Log API object
+      console.log("API object:", this.api);
+      console.log("window.productsAPI:", window.productsAPI);
+
+      if (!this.api || !this.api.getProduct) {
+        throw new Error(
+          "API client not initialized. Check if ApiClient.js is loaded correctly."
+        );
+      }
+
+      const response = await this.api.getProduct(this.productId);
+
+      console.log("API response:", response);
+
+      if (!response.success) {
+        throw new Error(response.error || "Product not found");
+      }
+
+      this.productData = response.data;
+      console.log("✅ Product data loaded:", this.productData);
+    } catch (error) {
+      console.error("❌ Error loading product:", error);
+      throw new Error(`Failed to load product data: ${error.message}`);
+    }
+  }
+
+  /**
+   * Load all variants for this product
+   */
+  async loadVariants() {
+    try {
+      console.log(`📡 API call: getVariants({shoe_id: ${this.productId}})`);
+
+      const response = await this.api.getVariants({ shoe_id: this.productId });
+
+      console.log("Variants response:", response);
+
+      this.variants = response.data || [];
+      console.log(`✅ Loaded ${this.variants.length} variants`);
+    } catch (error) {
+      console.error("❌ Error loading variants:", error);
+      // Don't throw - variants are optional
+    }
+  }
+  /**
+   * ⭐ NEW: Extract ALL unique colors and sizes from variants
+   */
+  extractColorsAndSizes() {
+    const colorsMap = new Map();
+    const sizesMap = new Map();
+
+    this.variants.forEach((variant) => {
+      if (variant.is_active) {
+        if (variant.colors) {
+          colorsMap.set(variant.colors.color_id, variant.colors);
         }
-    }
-
-    /**
-     * Wait until productsAPI is available
-     */
-    async waitForApi() {
-        let attempts = 0;
-        while (attempts < 100) { // up to ~5s
-            if (window.productsAPI && typeof window.productsAPI.getProduct === 'function') {
-                return true;
-            }
-            await new Promise(r => setTimeout(r, 50));
-            attempts++;
+        if (variant.sizes) {
+          sizesMap.set(variant.sizes.size_id, variant.sizes);
         }
-        throw new Error('API client not initialized. Check if ApiClient.js is loaded correctly.');
+      }
+    });
+
+    this.allColors = Array.from(colorsMap.values());
+    this.allSizes = Array.from(sizesMap.values()).sort(
+      (a, b) => parseFloat(a.size_value) - parseFloat(b.size_value)
+    );
+
+    console.log(
+      `🎨 Extracted ${this.allColors.length} colors, 👟 ${this.allSizes.length} sizes`
+    );
+  }
+
+  /**
+   * Render product information
+   */
+  renderProduct() {
+    const product = this.productData;
+
+    // Set title and subtitle
+    document.getElementById("productTitle").textContent = product.shoe_name;
+    document.getElementById("productSubtitle").textContent =
+      product.category_name || "Men's Shoes";
+
+    // Set price
+    const currentPrice = parseFloat(product.base_price);
+    const originalPrice = currentPrice * 1.25; // Assume 20% discount
+    const discount = 20;
+
+    document.getElementById(
+      "currentPrice"
+    ).textContent = `₫${currentPrice.toLocaleString("vi-VN")}`;
+    document.getElementById(
+      "originalPrice"
+    ).textContent = `₫${originalPrice.toLocaleString("vi-VN")}`;
+    document.getElementById("originalPrice").style.display = "inline";
+    document.getElementById("discount").textContent = `${discount}% off`;
+    document.getElementById("discount").style.display = "inline";
+
+    // Set description
+    document.getElementById("productDescription").textContent =
+      product.description ||
+      "Premium quality shoes designed for performance and style.";
+
+    // Set main image
+    const mainImage = document.querySelector("#mainImage img");
+    mainImage.src = product.image_url || "/assets/images/placeholder-shoe.png";
+    mainImage.alt = product.shoe_name;
+
+    // Render thumbnails (use same image for demo)
+    const thumbnailList = document.getElementById("thumbnailList");
+    for (let i = 0; i < 4; i++) {
+      const thumb = document.createElement("div");
+      thumb.className = `thumbnail ${i === 0 ? "active" : ""}`;
+      thumb.innerHTML = `<img src="${product.image_url}" alt="Thumbnail ${
+        i + 1
+      }">`;
+      thumb.addEventListener("click", () => {
+        document
+          .querySelectorAll(".thumbnail")
+          .forEach((t) => t.classList.remove("active"));
+        thumb.classList.add("active");
+        mainImage.src = product.image_url;
+      });
+      thumbnailList.appendChild(thumb);
+    }
+  }
+  /**
+   * ⭐ NEW: Update price when variant is selected
+   * @param {number} variantPrice - Price from selected variant
+   */
+  updatePrice(variantPrice) {
+    const currentPrice = parseFloat(variantPrice);
+    const originalPrice = currentPrice * 1.25; // Keep same discount logic
+    const discount = 20;
+
+    // Update price display
+    const currentPriceEl = document.getElementById("currentPrice");
+    const originalPriceEl = document.getElementById("originalPrice");
+    const discountBadgeEl = document.getElementById("discountBadge");
+
+    if (currentPriceEl) {
+      currentPriceEl.textContent = currentPrice.toLocaleString("vi-VN");
+    }
+    if (originalPriceEl) {
+      originalPriceEl.textContent = originalPrice.toLocaleString("vi-VN");
+    }
+    if (discountBadgeEl) {
+      discountBadgeEl.textContent = `-${discount}%`;
     }
 
-    /**
-     * Load product data from API
-     */
-    async loadProductData() {
-        try {
-            console.log(`📡 API call: getProduct(${this.productId})`);
-            
-            // ⭐ DEBUG: Log API object
-            console.log('API object:', this.api);
-            console.log('window.productsAPI:', window.productsAPI);
-            
-            if (!this.api || !this.api.getProduct) {
-                throw new Error('API client not initialized. Check if ApiClient.js is loaded correctly.');
-            }
-            
-            const response = await this.api.getProduct(this.productId);
-            
-            console.log('API response:', response);
-            
-            if (!response.success) {
-                throw new Error(response.error || 'Product not found');
-            }
-            
-            this.productData = response.data;
-            console.log('✅ Product data loaded:', this.productData);
-            
-        } catch (error) {
-            console.error('❌ Error loading product:', error);
-            throw new Error(`Failed to load product data: ${error.message}`);
-        }
-    }
-
-    /**
-     * Load all variants for this product
-     */
-    async loadVariants() {
-        try {
-            console.log(`📡 API call: getVariants({shoe_id: ${this.productId}})`);
-            
-            const response = await this.api.getVariants({ shoe_id: this.productId });
-            
-            console.log('Variants response:', response);
-            
-            this.variants = response.data || [];
-            console.log(`✅ Loaded ${this.variants.length} variants`);
-            
-        } catch (error) {
-            console.error('❌ Error loading variants:', error);
-            // Don't throw - variants are optional
-        }
-    }
-    /**
-     * ⭐ NEW: Extract ALL unique colors and sizes from variants
-     */
-    extractColorsAndSizes() {
-        const colorsMap = new Map();
-        const sizesMap = new Map();
-
-        this.variants.forEach(variant => {
-            if (variant.is_active) {
-                if (variant.colors) {
-                    colorsMap.set(variant.colors.color_id, variant.colors);
-                }
-                if (variant.sizes) {
-                    sizesMap.set(variant.sizes.size_id, variant.sizes);
-                }
-            }
-        });
-
-        this.allColors = Array.from(colorsMap.values());
-        this.allSizes = Array.from(sizesMap.values())
-            .sort((a, b) => parseFloat(a.size_value) - parseFloat(b.size_value));
-
-        console.log(`🎨 Extracted ${this.allColors.length} colors, 👟 ${this.allSizes.length} sizes`);
-    }
-
-    /**
-     * Render product information
-     */
-    renderProduct() {
-        const product = this.productData;
-
-        // Set title and subtitle
-        document.getElementById('productTitle').textContent = product.shoe_name;
-        document.getElementById('productSubtitle').textContent = product.category_name || 'Men\'s Shoes';
-
-        // Set price
-        const currentPrice = parseFloat(product.base_price);
-        const originalPrice = currentPrice * 1.25; // Assume 20% discount
-        const discount = 20;
-
-        document.getElementById('currentPrice').textContent = `₫${currentPrice.toLocaleString('vi-VN')}`;
-        document.getElementById('originalPrice').textContent = `₫${originalPrice.toLocaleString('vi-VN')}`;
-        document.getElementById('originalPrice').style.display = 'inline';
-        document.getElementById('discount').textContent = `${discount}% off`;
-        document.getElementById('discount').style.display = 'inline';
-
-        // Set description
-        document.getElementById('productDescription').textContent = product.description || 'Premium quality shoes designed for performance and style.';
-
-        // Set main image
-        const mainImage = document.querySelector('#mainImage img');
-        mainImage.src = product.image_url || '/assets/images/placeholder-shoe.png';
-        mainImage.alt = product.shoe_name;
-
-        // Render thumbnails (use same image for demo)
-        const thumbnailList = document.getElementById('thumbnailList');
-        for (let i = 0; i < 4; i++) {
-            const thumb = document.createElement('div');
-            thumb.className = `thumbnail ${i === 0 ? 'active' : ''}`;
-            thumb.innerHTML = `<img src="${product.image_url}" alt="Thumbnail ${i + 1}">`;
-            thumb.addEventListener('click', () => {
-                document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
-                thumb.classList.add('active');
-                mainImage.src = product.image_url;
-            });
-            thumbnailList.appendChild(thumb);
-        }
-    }
-
-/**
- * ⭐ FIXED: Render ALL colors from variants
- */
-renderColors() {
-    const colorOptions = document.getElementById('colorOptions');
+    console.log("💰 Price updated to variant price:", currentPrice);
+  }
+  /**
+   * ⭐ FIXED: Render ALL colors from variants
+   */
+  renderColors() {
+    const colorOptions = document.getElementById("colorOptions");
     if (!colorOptions) return;
 
     if (!this.allColors || this.allColors.length === 0) {
-        colorOptions.innerHTML = '<p class="text-muted">No colors available</p>';
-        return;
+      colorOptions.innerHTML = '<p class="text-muted">No colors available</p>';
+      return;
     }
 
     colorOptions.innerHTML = this.allColors
-        .map(color => {
-            const hasStock = this.variants.some(v =>
-                v.is_active &&
-                v.color_id === color.color_id &&
-                v.stock_quantity > 0
-            );
+      .map((color) => {
+        const hasStock = this.variants.some(
+          (v) =>
+            v.is_active && v.color_id === color.color_id && v.stock_quantity > 0
+        );
 
-            return `
+        return `
                 <button 
-                    class="color-option ${this.selectedColor === color.color_id ? 'selected' : ''} ${!hasStock ? 'unavailable' : ''}"
+                    class="color-option ${
+                      this.selectedColor === color.color_id ? "selected" : ""
+                    } ${!hasStock ? "unavailable" : ""}"
                     data-color-id="${color.color_id}"
                     data-color-name="${color.color_name}"
-                    style="background-color: ${color.hex_code || '#ccc'}; border: 2px solid #ddd;"
-                    title="${color.color_name}${!hasStock ? ' (Out of stock)' : ''}"
-                    ${!hasStock ? 'disabled' : ''}
-                    onclick="productDetailManager.selectColor(${color.color_id}, '${color.color_name}')">
-                    ${!hasStock ? '<span class="unavailable-mark">✕</span>' : ''}
+                    style="background-color: ${
+                      color.hex_code || "#ccc"
+                    }; border: 2px solid #ddd;"
+                    title="${color.color_name}${
+          !hasStock ? " (Out of stock)" : ""
+        }"
+                    ${!hasStock ? "disabled" : ""}
+                    onclick="productDetailManager.selectColor(${
+                      color.color_id
+                    }, '${color.color_name}')">
+                    ${
+                      !hasStock ? '<span class="unavailable-mark">✕</span>' : ""
+                    }
                 </button>
             `;
-        })
-        .join('');
+      })
+      .join("");
 
     console.log(`🎨 Rendered ${this.allColors.length} colors`);
-}
+  }
 
-/**
- * ⭐ FIXED: Render ALL sizes from variants
- */
-renderSizes() {
-    const sizeOptions = document.getElementById('sizeOptions');
+  /**
+   * ⭐ FIXED: Render ALL sizes from variants
+   */
+  renderSizes() {
+    const sizeOptions = document.getElementById("sizeOptions");
     if (!sizeOptions) return;
 
     if (!this.allSizes || this.allSizes.length === 0) {
-        sizeOptions.innerHTML = '<p class="text-muted">No sizes available</p>';
-        return;
+      sizeOptions.innerHTML = '<p class="text-muted">No sizes available</p>';
+      return;
     }
 
     sizeOptions.innerHTML = this.allSizes
-        .map(size => {
-            let isAvailable = false;
-            let stockQty = 0;
-            let variantId = null;
-            let isLowStock = false;
+      .map((size) => {
+        let isAvailable = false;
+        let stockQty = 0;
+        let variantId = null;
+        let isLowStock = false;
 
-            if (this.selectedColor) {
-                const variant = this.variants.find(v =>
-                    v.is_active &&
-                    v.color_id === this.selectedColor &&
-                    v.size_id === size.size_id
-                );
+        if (this.selectedColor) {
+          const variant = this.variants.find(
+            (v) =>
+              v.is_active &&
+              v.color_id === this.selectedColor &&
+              v.size_id === size.size_id
+          );
 
-                if (variant) {
-                    stockQty = variant.stock_quantity || 0;
-                    variantId = variant.variant_id;
-                    isAvailable = stockQty > 0;
-                    isLowStock = stockQty > 0 && stockQty < 5;
-                }
-            } else {
-                isAvailable = this.variants.some(v =>
-                    v.is_active &&
-                    v.size_id === size.size_id &&
-                    v.stock_quantity > 0
-                );
-            }
+          if (variant) {
+            stockQty = variant.stock_quantity || 0;
+            variantId = variant.variant_id;
+            isAvailable = stockQty > 0;
+            isLowStock = stockQty > 0 && stockQty < 5;
+          }
+        } else {
+          isAvailable = this.variants.some(
+            (v) =>
+              v.is_active && v.size_id === size.size_id && v.stock_quantity > 0
+          );
+        }
 
-            return `
+        return `
                 <button 
                     class="size-option 
-                           ${this.selectedSize === size.size_id ? 'selected' : ''} 
-                           ${!isAvailable && this.selectedColor ? 'unavailable' : ''} 
-                           ${isLowStock ? 'low-stock' : ''}"
+                           ${
+                             this.selectedSize === size.size_id
+                               ? "selected"
+                               : ""
+                           } 
+                           ${
+                             !isAvailable && this.selectedColor
+                               ? "unavailable"
+                               : ""
+                           } 
+                           ${isLowStock ? "low-stock" : ""}"
                     data-size-id="${size.size_id}"
-                    data-variant-id="${variantId || ''}"
+                    data-variant-id="${variantId || ""}"
                     data-stock="${stockQty}"
-                    ${!this.selectedColor || (!isAvailable && this.selectedColor) ? 'disabled' : ''}
-                    onclick="${isAvailable && this.selectedColor ? `productDetailManager.selectSize(${size.size_id}, '${size.size_value}', ${variantId}, ${stockQty})` : 'void(0)'}">
-                    <span class="${!isAvailable && this.selectedColor ? 'strikethrough' : ''}">
+                    ${
+                      !this.selectedColor ||
+                      (!isAvailable && this.selectedColor)
+                        ? "disabled"
+                        : ""
+                    }
+                    onclick="${
+                      isAvailable && this.selectedColor
+                        ? `productDetailManager.selectSize(${size.size_id}, '${size.size_value}', ${variantId}, ${stockQty})`
+                        : "void(0)"
+                    }">
+                    <span class="${
+                      !isAvailable && this.selectedColor ? "strikethrough" : ""
+                    }">
                         ${size.size_value}
                     </span>
-                    ${!this.selectedColor ? '<small class="d-block text-muted" style="font-size: 9px;">Choose color</small>' : ''}
-                    ${isAvailable && this.selectedColor && isLowStock ? '<span class="badge bg-warning text-dark ms-1">Only ' + stockQty + ' left!</span>' : ''}
-                    ${!isAvailable && this.selectedColor ? '<span class="unavailable-mark-size">✕</span>' : ''}
+                    ${
+                      !this.selectedColor
+                        ? '<small class="d-block text-muted" style="font-size: 9px;">Choose color</small>'
+                        : ""
+                    }
+                    ${
+                      isAvailable && this.selectedColor && isLowStock
+                        ? '<span class="badge bg-warning text-dark ms-1">Only ' +
+                          stockQty +
+                          " left!</span>"
+                        : ""
+                    }
+                    ${
+                      !isAvailable && this.selectedColor
+                        ? '<span class="unavailable-mark-size">✕</span>'
+                        : ""
+                    }
                 </button>
             `;
-        })
-        .join('');
+      })
+      .join("");
 
     console.log(`👟 Rendered ${this.allSizes.length} sizes`);
-}
+  }
 
+  /**
+   * ⭐ FIXED: Select color and re-render sizes with availability
+   */
+  selectColor(colorId, colorName) {
+    this.selectedColor = colorId;
+    this.selectedSize = null;
+    this.currentVariant = null;
 
-    /**
-     * ⭐ FIXED: Select color and re-render sizes with availability
-     */
-     selectColor(colorId, colorName) {
-        this.selectedColor = colorId;
-        this.selectedSize = null;
-        this.currentVariant = null;
+    console.log(`🎨 Selected color: ${colorName} (${colorId})`);
 
-        console.log(`🎨 Selected color: ${colorName} (${colorId})`);
-
-        this.renderColors();
-        this.renderSizes();
-
-        const selectedColorEl = document.getElementById('selectedColor');
-        if (selectedColorEl) {
-            selectedColorEl.textContent = colorName;
-            selectedColorEl.parentElement.style.display = 'block';
-        }
-
-        const selectedSizeEl = document.getElementById('selectedSize');
-        if (selectedSizeEl) {
-            selectedSizeEl.textContent = '';
-            selectedSizeEl.parentElement.style.display = 'none';
-        }
-
-        const warningEl = document.getElementById('stockWarning');
-        if (warningEl) {
-            warningEl.style.display = 'none';
-        }
-
-        const addToBagBtn = document.getElementById('addToBagBtn');
-        if (addToBagBtn) {
-            addToBagBtn.disabled = true;
-        }
+    // ✅ ADD: Reset price to base_price when changing color
+    if (this.productData && this.productData.baseprice) {
+      this.updatePrice(this.productData.baseprice);
+      console.log("💰 Price reset to base_price (no size selected yet)");
     }
 
+    // Re-render UI
+    this.renderColors();
+    this.renderSizes();
 
-    /**
-     * ⭐ FIXED: Select size with stock validation
-     */
-    selectSize(sizeId, sizeValue, variantId, stock) {
-        if (!this.selectedColor) {
-            alert('Vui lòng chọn màu trước!');
-            return;
-        }
-
-        if (stock <= 0) {
-            alert('Size này đã hết hàng!');
-            return;
-        }
-
-        this.selectedSize = sizeId;
-        this.currentVariant = this.variants.find(v => v.variant_id === variantId);
-
-        console.log(`👟 Selected size: ${sizeValue} (${sizeId}), Stock: ${stock}`);
-
-        this.renderSizes();
-
-        const selectedSizeEl = document.getElementById('selectedSize');
-        if (selectedSizeEl) {
-            selectedSizeEl.textContent = sizeValue;
-            selectedSizeEl.parentElement.style.display = 'block';
-        }
-
-        if (stock > 0 && stock < 5) {
-            this.showStockWarning(stock);
-        } else {
-            const warningEl = document.getElementById('stockWarning');
-            if (warningEl) {
-                warningEl.style.display = 'none';
-            }
-        }
-
-        const addToBagBtn = document.getElementById('addToBagBtn');
-        if (addToBagBtn) {
-            addToBagBtn.disabled = false;
-        }
+    // Update selected display
+    const selectedColorEl = document.getElementById("selectedColor");
+    if (selectedColorEl) {
+      selectedColorEl.textContent = colorName;
+      selectedColorEl.parentElement.style.display = "block";
     }
 
-    /**
-     * ⭐ Show stock warning with animation
-     */
-     showStockWarning(stock) {
-        const warningEl = document.getElementById('stockWarning');
-        if (warningEl) {
-            warningEl.innerHTML = `
+    // Clear size selection
+    const selectedSizeEl = document.getElementById("selectedSize");
+    if (selectedSizeEl) {
+      selectedSizeEl.textContent = "";
+      selectedSizeEl.parentElement.style.display = "none";
+    }
+
+    // Hide warning
+    const warningEl = document.getElementById("stockWarning");
+    if (warningEl) {
+      warningEl.style.display = "none";
+    }
+
+    // Disable add to bag button
+    const addToBagBtn = document.getElementById("addToBagBtn");
+    if (addToBagBtn) {
+      addToBagBtn.disabled = true;
+    }
+  }
+
+  selectSize(sizeId, sizeValue, variantId, stock) {
+    if (!this.selectedColor) {
+      alert("Vui lòng chọn màu trước!");
+      return;
+    }
+
+    if (stock <= 0) {
+      alert("Size này đã hết hàng!");
+      return;
+    }
+
+    this.selectedSize = sizeId;
+    this.currentVariant = this.variants.find((v) => v.variant_id === variantId);
+
+    console.log(`👟 Selected size: ${sizeValue} (${sizeId}), Stock: ${stock}`);
+    console.log("🎯 Current variant:", this.currentVariant);
+
+    // ✅ ADD: Update price to variant price
+    if (this.currentVariant && this.currentVariant.variantprice) {
+      this.updatePrice(this.currentVariant.variantprice);
+      console.log(
+        "💰 Price updated to variant price:",
+        this.currentVariant.variantprice
+      );
+    } else if (this.currentVariant && this.currentVariant.variant_price) {
+      // Handle both snake_case and camelCase
+      this.updatePrice(this.currentVariant.variant_price);
+      console.log(
+        "💰 Price updated to variant_price:",
+        this.currentVariant.variant_price
+      );
+    } else {
+      console.warn("⚠️ No variant price found, keeping current price");
+    }
+
+    // Re-render sizes
+    this.renderSizes();
+
+    // Update selected display
+    const selectedSizeEl = document.getElementById("selectedSize");
+    if (selectedSizeEl) {
+      selectedSizeEl.textContent = sizeValue;
+      selectedSizeEl.parentElement.style.display = "block";
+    }
+
+    // Show stock warning if low
+    if (stock > 0 && stock < 5) {
+      this.showStockWarning(stock);
+    } else {
+      const warningEl = document.getElementById("stockWarning");
+      if (warningEl) {
+        warningEl.style.display = "none";
+      }
+    }
+
+    // Enable add to bag button
+    const addToBagBtn = document.getElementById("addToBagBtn");
+    if (addToBagBtn) {
+      addToBagBtn.disabled = false;
+    }
+  }
+
+  /**
+   * ⭐ Show stock warning with animation
+   */
+  showStockWarning(stock) {
+    const warningEl = document.getElementById("stockWarning");
+    if (warningEl) {
+      warningEl.innerHTML = `
                 <div class="alert alert-warning mt-2 py-2 px-3" role="alert">
                     <i class="fas fa-exclamation-triangle me-1"></i>
                     <strong>Nhanh tay!</strong> Chỉ còn <strong>${stock}</strong> sản phẩm!
                 </div>
             `;
-            warningEl.style.display = 'block';
-        }
+      warningEl.style.display = "block";
     }
+  }
 
+  /**
+   * Update size availability based on selected color
+   */
+  updateSizeAvailability() {
+    document.querySelectorAll(".size-option").forEach((sizeEl) => {
+      const sizeId = parseInt(sizeEl.dataset.sizeId);
 
-    /**
-     * Update size availability based on selected color
-     */
-    updateSizeAvailability() {
-        document.querySelectorAll('.size-option').forEach(sizeEl => {
-            const sizeId = parseInt(sizeEl.dataset.sizeId);
+      // If no color selected, check if size has any stock in any color
+      if (!this.selectedColor) {
+        const hasStock = this.variants.some(
+          (v) => v.size_id === sizeId && v.stock_quantity > 0
+        );
 
-            // If no color selected, check if size has any stock in any color
-            if (!this.selectedColor) {
-                const hasStock = this.variants.some(v => 
-                    v.size_id === sizeId && v.stock_quantity > 0
-                );
-                
-                if (!hasStock) {
-                    sizeEl.classList.add('unavailable');
-                } else {
-                    sizeEl.classList.remove('unavailable');
-                }
-            } else {
-                // Check if this size + color combination has stock
-                const variant = this.variants.find(v => 
-                    v.color_id === this.selectedColor && 
-                    v.size_id === sizeId
-                );
-
-                if (!variant || variant.stock_quantity === 0) {
-                    sizeEl.classList.add('unavailable');
-                } else {
-                    sizeEl.classList.remove('unavailable');
-                }
-            }
-        });
-    }
-
-    /**
-     * Check if selected variant is available
-     */
-    checkVariantAvailability() {
-        if (!this.selectedColor || !this.selectedSize) {
-            document.getElementById('addToBagBtn').disabled = true;
-            document.getElementById('stockInfo').style.display = 'none';
-            return;
+        if (!hasStock) {
+          sizeEl.classList.add("unavailable");
+        } else {
+          sizeEl.classList.remove("unavailable");
         }
-
-        // Find the variant
-        const variant = this.variants.find(v => 
-            v.color_id === this.selectedColor && 
-            v.size_id === this.selectedSize
+      } else {
+        // Check if this size + color combination has stock
+        const variant = this.variants.find(
+          (v) => v.color_id === this.selectedColor && v.size_id === sizeId
         );
 
         if (!variant || variant.stock_quantity === 0) {
-            this.showStockStatus('out', 0);
-            document.getElementById('addToBagBtn').disabled = true;
-            this.currentVariant = null;
+          sizeEl.classList.add("unavailable");
         } else {
-            this.showStockStatus('in', variant.stock_quantity);
-            document.getElementById('addToBagBtn').disabled = false;
-            this.currentVariant = variant;
+          sizeEl.classList.remove("unavailable");
         }
+      }
+    });
+  }
+
+  /**
+   * Check if selected variant is available
+   */
+  checkVariantAvailability() {
+    if (!this.selectedColor || !this.selectedSize) {
+      document.getElementById("addToBagBtn").disabled = true;
+      document.getElementById("stockInfo").style.display = "none";
+      return;
     }
 
-    /**
-     * Show stock status
-     */
-    showStockStatus(status, quantity) {
-        const stockInfo = document.getElementById('stockInfo');
-        const stockMessage = document.getElementById('stockMessage');
+    // Find the variant
+    const variant = this.variants.find(
+      (v) =>
+        v.color_id === this.selectedColor && v.size_id === this.selectedSize
+    );
 
-        stockInfo.style.display = 'block';
-        stockInfo.className = 'stock-info';
-
-        if (status === 'out') {
-            stockInfo.classList.add('out-of-stock');
-            stockMessage.textContent = 'This combination is currently out of stock';
-        } else if (quantity < 5) {
-            stockInfo.classList.add('low-stock');
-            stockMessage.textContent = `Only ${quantity} left in stock`;
-        } else {
-            stockInfo.classList.add('in-stock');
-            stockMessage.textContent = 'In stock and ready to ship';
-        }
+    if (!variant || variant.stock_quantity === 0) {
+      this.showStockStatus("out", 0);
+      document.getElementById("addToBagBtn").disabled = true;
+      this.currentVariant = null;
+    } else {
+      this.showStockStatus("in", variant.stock_quantity);
+      document.getElementById("addToBagBtn").disabled = false;
+      this.currentVariant = variant;
     }
+  }
 
-    /**
-     * Show error message
-     */
-    showError(message) {
-        document.getElementById('loading').style.display = 'none';
-        alert(message);
-        window.location.href = 'products.html';
+  /**
+   * Show stock status
+   */
+  showStockStatus(status, quantity) {
+    const stockInfo = document.getElementById("stockInfo");
+    const stockMessage = document.getElementById("stockMessage");
+
+    stockInfo.style.display = "block";
+    stockInfo.className = "stock-info";
+
+    if (status === "out") {
+      stockInfo.classList.add("out-of-stock");
+      stockMessage.textContent = "This combination is currently out of stock";
+    } else if (quantity < 5) {
+      stockInfo.classList.add("low-stock");
+      stockMessage.textContent = `Only ${quantity} left in stock`;
+    } else {
+      stockInfo.classList.add("in-stock");
+      stockMessage.textContent = "In stock and ready to ship";
     }
+  }
 
-    /**
-     * Show alert
-     */
-    showAlert(message, type = 'info') {
-        const alertContainer = document.getElementById('alertContainer');
-        const alert = document.createElement('div');
-        alert.className = `alert alert-${type} alert-dismissible fade show alert-custom`;
-        alert.innerHTML = `
+  /**
+   * Show error message
+   */
+  showError(message) {
+    document.getElementById("loading").style.display = "none";
+    alert(message);
+    window.location.href = "products.html";
+  }
+
+  /**
+   * Show alert
+   */
+  showAlert(message, type = "info") {
+    const alertContainer = document.getElementById("alertContainer");
+    const alert = document.createElement("div");
+    alert.className = `alert alert-${type} alert-dismissible fade show alert-custom`;
+    alert.innerHTML = `
             ${message}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         `;
-        alertContainer.appendChild(alert);
+    alertContainer.appendChild(alert);
 
-        setTimeout(() => {
-            alert.remove();
-        }, 3000);
-    }
+    setTimeout(() => {
+      alert.remove();
+    }, 3000);
+  }
 }
 
 // Add to Bag button functionality
-document.addEventListener('DOMContentLoaded', () => {
-    // Use event delegation to handle the add to bag button across re-renders
-    document.addEventListener('click', async (e) => {
-        if (e.target.id !== 'addToBagBtn') return;
-        
-        try {
-            if (e.target.disabled) return;
+document.addEventListener("DOMContentLoaded", () => {
+  // Use event delegation to handle the add to bag button across re-renders
+  document.addEventListener("click", async (e) => {
+    if (e.target.id !== "addToBagBtn") return;
 
-            // Require auth
-            if (window.authManager && !window.authManager.isAuthenticated()) {
-                if (window.showLoginModal) window.showLoginModal();
-                return;
-            }
+    try {
+      if (e.target.disabled) return;
 
-            const mgr = window.productDetailManager;
-            if (!mgr || !mgr.currentVariant) {
-                alert('Please select color and size');
-                return;
-            }
+      // Require auth
+      if (window.authManager && !window.authManager.isAuthenticated()) {
+        if (window.showLoginModal) window.showLoginModal();
+        return;
+      }
 
-            const variantId = mgr.currentVariant.variant_id;
-            const res = await window.cartAPI.addItem({ variant_id: variantId, quantity: 1 });
-            if (res && res.success !== false) {
-                // Navigate to cart page
-                window.location.href = 'cart.html';
-            } else {
-                const msg = res?.error || 'Failed to add to cart';
-                if (window.showToast) window.showToast(msg, 'error');
-            }
-        } catch (err) {
-            if (window.showToast) window.showToast(err.message || 'Failed to add to cart', 'error');
-        }
-    });
+      const mgr = window.productDetailManager;
+      if (!mgr || !mgr.currentVariant) {
+        alert("Please select color and size");
+        return;
+      }
+
+      const variantId = mgr.currentVariant.variant_id;
+      const res = await window.cartAPI.addItem({
+        variant_id: variantId,
+        quantity: 1,
+      });
+      if (res && res.success !== false) {
+        // Navigate to cart page
+        window.location.href = "cart.html";
+      } else {
+        const msg = res?.error || "Failed to add to cart";
+        if (window.showToast) window.showToast(msg, "error");
+      }
+    } catch (err) {
+      if (window.showToast)
+        window.showToast(err.message || "Failed to add to cart", "error");
+    }
+  });
 });
 
 // Make it globally accessible

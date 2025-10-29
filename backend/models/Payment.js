@@ -84,7 +84,7 @@ class Payment extends BaseModel {
                 .getAdminClient()
                 .from(this.tableName)
                 .select('payment_amount')
-                .eq('status', 'completed');
+                .eq('payment_status', 'completed');
 
             if (error) {
                 console.error("Error calculating revenue:", error);

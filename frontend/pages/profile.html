@@ -233,23 +233,24 @@
                     </div>
                   </div>
 
+                  <!-- ⭐ Avatar Upload with File Picker -->
                   <div class="mb-4">
-                    <label for="avatarUrl" class="form-label">Avatar URL</label>
-                    <input
-                      type="url"
-                      class="form-control"
-                      id="avatarUrl"
-                      name="avatar_url"
-                      placeholder="https://example.com/avatar.jpg"
-                      pattern="^https?://.*\.(jpg|jpeg|png|gif|webp|webp\?.*|googleusercontent\.com.*|gravatar\.com.*|github\.com.*|facebook\.com.*)$"
-                      title="Please enter a valid image URL (supports jpg, png, gif, webp, Google, Gravatar, GitHub, Facebook)"
-                    />
-                    <div
-                      class="form-text"
-                      style="font-size: 12px; color: #999; margin-top: 4px"
-                    >
-                      Enter a URL to your profile picture
+                    <label class="form-label">Profile Picture</label>
+                    <div class="card border-light bg-light">
+                      <div class="card-body text-center py-4">
+                        <div id="avatarPreview" class="mb-3">
+                          <div style="width: 120px; height: 120px; margin: 0 auto; background: #e9ecef; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px dashed #dee2e6;">
+                            <i class="fas fa-user fa-3x" style="color: #999;"></i>
+                          </div>
+                        </div>
+                        <input type="file" class="form-control d-none" id="avatarFile" name="avatar_file" accept="image/jpeg,image/png,image/webp,image/jpg" />
+                        <label for="avatarFile" class="btn btn-primary mb-2" style="cursor: pointer;">
+                          <i class="fas fa-upload me-2"></i>Choose Photo
+                        </label>
+                        <p class="text-muted small mb-0">JPG, PNG, or WEBP • Max 5MB</p>
+                      </div>
                     </div>
+                    <div id="avatarUploadFeedback" class="d-none mt-2"></div>
                   </div>
 
                   <!-- Loading indicator -->

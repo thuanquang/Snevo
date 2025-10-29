@@ -28,6 +28,7 @@ import AdminController from './controllers/AdminController.js';
 import CartController from './controllers/CartController.js';
 import authMiddleware from './middleware/auth.js';
 import uploadMiddleware from './middleware/upload.js';
+import { createAvatarUploadMiddleware } from './middleware/upload.js';
 import corsMiddleware from './middleware/cors.js';
 import createSupabaseConfig from '../config/supabase.js';
 import { initializeModels } from './models/index.js';
@@ -40,6 +41,7 @@ import colorRoutes from './routes/colors.js';
 import sizeRoutes from './routes/sizes.js';
 import importRoutes from './routes/imports.js';
 import adminRoutes from './routes/admin.js';
+import cartRoutes from './routes/cart.js';
 
 class Server {
     constructor() {
@@ -177,21 +179,24 @@ class Server {
         // SKIP body parsing for upload routes
         const isUploadRoute = (
         (req.method === 'POST' && pathname === '/api/products') ||
-        (req.method === 'PUT' && pathname.match(/^\/api\/products\/\d+$/))
+        (req.method === 'PUT' && pathname.match(/^\/api\/products\/\d+$/)) ||
+        (req.method === 'PUT' && pathname === '/api/auth/profile')
         );
 
         // Parse body for POST/PUT/PATCH requests
         let body = {};
         if (['POST', 'PUT', 'PATCH'].includes(req.method)) {
-        if (isUploadRoute) {
-            // ✅ SKIP parsing for upload routes - middleware will handle it
-            console.log('⏭️ Skipping JSON body parse for upload route');
-            // Upload middleware will populate req.body
-        } else {
-            // ✅ Parse JSON body for normal routes
-            body = await this.parseBody(req);
-            req.body = body;
-        }
+            const isMultipart = (req.headers['content-type'] || '').includes('multipart/form-data');
+            
+            if (isUploadRoute || isMultipart) {
+                // SKIP parsing for upload routes or multipart requests - middleware will handle it
+                console.log('Skipping JSON body parse for upload/multipart request');
+                // Upload middleware will populate req.body
+            } else {
+                // Parse JSON body for normal routes
+                body = await this.parseBody(req);
+                req.body = body;
+            }
         }
 
         // Parse query parameters
@@ -221,10 +226,10 @@ class Server {
         if (pathname.startsWith('/api/imports')) {
             return importRoutes(req, res, this.importController, pathname);
         }
-        if (pathname.startsWith('/api/cart') && (pathname === '/api/cart' || pathname.startsWith('/api/cart/'))) {
-            await this.handleCartRoutes(req, res, pathname, req.method, body);
+        if (pathname.startsWith('/api/cart')) {
+            await cartRoutes(req, res, this.cartController, pathname);
             return;
-        }
+        }       
 
         // ⭐ BUILT-IN ROUTES (Keep existing handlers)
         // Auth routes for profile management
@@ -318,57 +323,6 @@ class Server {
         }
     }
 
-    // Cart routes handler
-    async handleCartRoutes(req, res, pathname, method, body) {
-        const cartPath = pathname.replace('/api/cart', '');
-
-        // Auth required
-        const authResult = await authMiddleware.authenticate(req, res);
-        if (!authResult || !authResult.success || !authResult.user) {
-            // If not authenticated, auth middleware already wrote response (or we return 401)
-            res.writeHead(401, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ success: false, message: 'Authentication required' }));
-            return;
-        }
-        req.user = authResult.user;
-
-        if (cartPath === '/' || cartPath === '') {
-            if (method === 'GET') {
-                await this.cartController.getCart(req, res);
-            } else if (method === 'POST') {
-                req.body = body;
-                await this.cartController.addToCart(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-            return;
-        }
-
-        if (cartPath === '/summary' && method === 'GET') {
-            await this.cartController.getSummary(req, res);
-            return;
-        }
-
-        // /:cart_id
-        if (cartPath.match(/^\/\d+$/)) {
-            const id = cartPath.substring(1);
-            req.params = { cart_id: id };
-            if (method === 'PUT') {
-                req.body = body;
-                await this.cartController.updateCartItem(req, res);
-                return;
-            }
-            if (method === 'DELETE') {
-                await this.cartController.removeCartItem(req, res);
-                return;
-            }
-            this.sendError(res, 'Method not allowed', 405);
-            return;
-        }
-
-        this.sendError(res, 'API endpoint not found', 404);
-    }
-
     // Auth routes handler
     async handleAuthRoutes(req, res, pathname, method, body) {
         const authPath = pathname.replace('/api/auth', '');
@@ -384,8 +338,36 @@ class Server {
             if (method === 'GET') {
                 await this.profileController.getProfile(req, res);
             } else if (method === 'PUT') {
-                req.body = body;
-                await this.profileController.updateProfile(req, res);
+                // ⭐ UPDATED: Apply avatar upload middleware for multipart requests
+                const contentType = req.headers['content-type'] || '';
+                if (contentType.includes('multipart/form-data')) {
+                    console.log('📤 Processing avatar upload for profile');
+                    const avatarMiddleware = createAvatarUploadMiddleware(req.user.id);
+                    
+                    try {
+                        // Use middleware to handle upload - wrap in promise for proper async handling
+                        await new Promise((resolve, reject) => {
+                            avatarMiddleware.handleUpload(req, res, async () => {
+                                try {
+                                    req.body = req.body || {};
+                                    await this.profileController.updateProfile(req, res);
+                                    resolve();
+                                } catch (err) {
+                                    reject(err);
+                                }
+                            });
+                        });
+                    } catch (error) {
+                        console.error('Avatar upload error:', error);
+                        if (!res.headersSent) {
+                            this.sendError(res, error.message || 'Avatar upload failed', 400);
+                        }
+                    }
+                } else {
+                    // Regular JSON request
+                    req.body = body;
+                    await this.profileController.updateProfile(req, res);
+                }
             } else if (method === 'DELETE') {
                 await this.profileController.deleteProfile(req, res);
             } else {
