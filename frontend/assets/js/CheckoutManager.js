@@ -10,7 +10,7 @@ class CheckoutManager {
             total: 0,
             address_id: null,
             delivery_option: 'standard',
-            payment_method: 'cash_on_delivery',
+            payment_method: 'cash',
             notes: ''
         };
         this.addresses = [];
@@ -19,10 +19,10 @@ class CheckoutManager {
             { id: 'express', name: 'Express (1-2 days)', cost: 50000 }
         ];
         this.paymentMethods = [
-            { id: 'cash_on_delivery', name: 'Cash on Delivery', icon: 'fas fa-money-bill' },
+            { id: 'cash', name: 'Cash on Delivery', icon: 'fas fa-money-bill' },
             { id: 'credit_card', name: 'Credit/Debit Card', icon: 'fas fa-credit-card' },
             { id: 'bank_transfer', name: 'Bank Transfer', icon: 'fas fa-university' },
-            { id: 'vnpay', name: 'VNPAY', icon: 'fas fa-wallet' }
+            { id: 'stripe', name: 'Stripe', icon: 'fas fa-credit-card' }
         ];
         this.paymentData = {
             cardNumber: '',
@@ -335,7 +335,7 @@ class CheckoutManager {
         console.log('🎨 Rendering payment form for method:', this.orderData.payment_method);
 
         // Hide form for cash on delivery
-        if (this.orderData.payment_method === 'cash_on_delivery') {
+        if (this.orderData.payment_method === 'cash') {
             formContainer.innerHTML = `
                 <div class="alert alert-info">
                     <i class="fas fa-info-circle"></i>
@@ -392,12 +392,12 @@ class CheckoutManager {
                     A payment link will be provided after review.
                 </div>
             `;
-        } else if (this.orderData.payment_method === 'vnpay') {
+        } else if (this.orderData.payment_method === 'stripe') {
             html += `
-                <h6 class="mb-3">VNPAY Payment</h6>
+                <h6 class="mb-3">Stripe Payment</h6>
                 <div class="alert alert-info">
                     <i class="fas fa-info-circle"></i>
-                    You will be redirected to VNPAY payment gateway after review.
+                    You will be redirected to Stripe payment gateway after review.
                 </div>
             `;
         }
@@ -485,7 +485,7 @@ class CheckoutManager {
 
         // ⭐ Update button text based on payment method
         const btn = document.getElementById('btnConfirmOrder');
-        if (this.orderData.payment_method === 'cash_on_delivery') {
+        if (this.orderData.payment_method === 'cash') {
             btn.innerHTML = '<i class="fas fa-check"></i> Confirm Order';
             btn.classList.remove('btn-success');
             btn.classList.add('btn-success');
@@ -590,12 +590,39 @@ class CheckoutManager {
             const orderRes = await window.ordersAPI.createOrder(orderPayload);
             console.log('✅ Order created:', orderRes);
 
-            const orderId = orderRes.order_id;
-            console.log('📦 Order ID:', orderId);
+            // Extract order ID from nested response: { success, data: { order_id }, message }
+            const orderId = orderRes?.data?.order_id || orderRes?.order_id;
+            console.log('📦 Order ID:', orderId, 'Type:', typeof orderId);
 
-            // ⭐ Handle Cash on Delivery separately - no payment needed
-            if (this.orderData.payment_method === 'cash_on_delivery') {
-                console.log('💵 Cash on Delivery selected - skipping payment processing');
+            if (!orderId) {
+                throw new Error('Order created but no order_id in response');
+            }
+
+            // ⭐ Handle Cash on Delivery separately - create pending payment row
+            if (this.orderData.payment_method === 'cash') {
+                console.log('💵 Cash selected - creating pending payment row');
+
+                try {
+                    // Create a pending payment record for cash
+                    const cashPaymentPayload = {
+                        order_id: orderId,
+                        payment_method: 'cash',
+                        payment_amount: this.orderData.total
+                    };
+                    console.log('💳 Creating cash payment record:', cashPaymentPayload);
+                    console.log('  - order_id type:', typeof orderId, 'value:', orderId);
+                    console.log('  - payment_method type:', typeof 'cash', 'value:', 'cash');
+                    console.log('  - payment_amount type:', typeof this.orderData.total, 'value:', this.orderData.total);
+                    
+                    const cashPaymentRes = await window.paymentsAPI.createPayment(cashPaymentPayload);
+                    console.log('✅ Cash payment record created:', cashPaymentRes);
+                } catch (e) {
+                    console.error('❌ Failed to create cash payment row:', e);
+                    console.error('  Error message:', e.message);
+                    console.error('  Error response:', e.response?.data);
+                    // Non-blocking: continue even if payment record creation fails
+                    console.log('⚠️ Proceeding to order completion despite payment creation failure');
+                }
                 
                 // Update navbar cart count
                 if (window.navbarManager && window.navbarManager.updateCartCount) {
@@ -618,13 +645,13 @@ class CheckoutManager {
             const paymentRes = await window.paymentsAPI.createPayment(paymentPayload);
             console.log('✅ Payment created:', paymentRes);
 
-            const paymentId = paymentRes.payment_id;
+            const paymentId = paymentRes?.data?.payment_id || paymentRes?.payment_id;
             console.log('💳 Payment ID:', paymentId);
 
             // Process payment (mock)
             const processPayload = {
                 payment_id: paymentId,
-                provider: this.orderData.payment_method === 'vnpay' ? 'vnpay' : null,
+                provider: this.orderData.payment_method === 'stripe' ? 'stripe' : null,
                 payload: {}
             };
             console.log('🔄 Processing payment with payload:', processPayload);
@@ -637,7 +664,8 @@ class CheckoutManager {
             }
 
             // Redirect to order confirmation
-            if (processRes.status === 'completed') {
+            const finalStatus = processRes?.data?.status || processRes?.status;
+            if (finalStatus === 'completed') {
                 console.log('✅ Payment completed, redirecting to orders page');
                 alert('Payment successful! Order has been placed.');
                 window.location.href = `orders.html?order_id=${orderId}`;

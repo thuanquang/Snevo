@@ -60,22 +60,85 @@
     <script src="../assets/js/animations.js"></script>
     
     <script>
-        // Wait for auth to be ready before loading orders
+        // Wait for auth and API to be ready, then load orders
         (async function() {
-            while (!window.authService) {
-                await new Promise(resolve => setTimeout(resolve, 50));
-            }
-            await window.authService.initialize();
+            const container = document.getElementById('ordersContainer');
             
-            if (!window.authService.isAuthenticated()) {
+            // Wait for auth and APIs
+            let attempts = 0;
+            while (!(window.authService?.initialized && window.ordersAPI) && attempts < 50) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+                attempts++;
+            }
+
+            // Check authentication
+            if (!window.authService?.isAuthenticated()) {
                 if (window.showLoginModal) {
                     window.showLoginModal();
                 }
                 return;
             }
-            
-            // Load orders here
-            console.log('Loading orders for authenticated user');
+
+            try {
+                console.log('📦 Loading orders...');
+                const response = await window.ordersAPI.getOrders();
+                
+                // API returns { success, data: [orders], message }
+                const orders = response?.data || response || [];
+                console.log('✅ Orders loaded:', orders);
+                
+                if (!orders || orders.length === 0) {
+                    container.innerHTML = '<p class="text-muted text-center py-5">You have no orders yet.</p>';
+                    return;
+                }
+
+                // Render orders
+                const html = orders.map(order => {
+                    const totalAmount = order.total_amount || 0;
+                    const status = order.status || 'pending';
+                    const orderDate = new Date(order.created_at || order.order_date);
+                    const formattedDate = orderDate.toLocaleString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+
+                    return `
+                        <div class="card mb-3 shadow-sm">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <div class="fw-bold fs-5">Order #${order.order_id}</div>
+                                        <div class="text-muted small mt-2">
+                                            <i class="fas fa-calendar"></i> ${formattedDate}
+                                        </div>
+                                        <div class="mt-2">
+                                            <span class="badge bg-${status === 'pending' ? 'warning' : status === 'processing' ? 'info' : status === 'delivered' ? 'success' : 'secondary'}">
+                                                ${status.charAt(0).toUpperCase() + status.slice(1)}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 text-end">
+                                        <div class="fw-bold fs-5">
+                                            ₫${new Intl.NumberFormat('vi-VN').format(Math.round(totalAmount))}
+                                        </div>
+                                        <button class="btn btn-sm btn-outline-primary mt-3" onclick="window.location.href='orders.html?order_id=${order.order_id}'">
+                                            View Details
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                container.innerHTML = html;
+            } catch (err) {
+                console.error('❌ Failed to load orders:', err);
+                container.innerHTML = `<p class="text-danger text-center py-5">Failed to load orders. ${err.message}</p>`;
+            }
         })();
     </script>
 </body>

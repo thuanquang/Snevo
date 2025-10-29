@@ -146,14 +146,6 @@ class PaymentController extends BaseController {
             if (mockSuccess) {
                 // Update order status to processing if payment successful
                 await this.Order.updateStatus(payment.order_id, constants.ORDER_STATUS.PROCESSING);
-
-                // ⭐ Clear the user's cart ONLY after successful payment
-                try {
-                    await this.Cart.clearUserCart(order.user_id);
-                    console.log('✅ Cart cleared after successful payment');
-                } catch (e) {
-                    console.warn('⚠️ Failed to clear cart after payment success:', e?.message || e);
-                }
             }
 
             this.sendResponse(res, updatedPayment, 'Payment processed');

@@ -8,7 +8,7 @@ const supabaseConfig = createSupabaseConfig();
 
 class Payment extends BaseModel {
     constructor() {
-        super('payments');
+        super('payments', 'payment_id');
     }
 
     // Get payments by order ID
@@ -46,7 +46,7 @@ class Payment extends BaseModel {
 
     // Update payment status
     async updateStatus(paymentId, status, transactionId = null) {
-        const updateData = { status, updated_at: new Date().toISOString() };
+        const updateData = { status };
         if (transactionId) updateData.transaction_id = transactionId;
         
         const { data, error } = await supabaseConfig.getAdminClient()

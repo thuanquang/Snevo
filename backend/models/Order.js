@@ -8,7 +8,7 @@ const supabaseConfig = createSupabaseConfig();
 
 class Order extends BaseModel {
     constructor() {
-        super('orders');
+        super('orders', 'order_id');
     }
 
     // Get orders by user ID
