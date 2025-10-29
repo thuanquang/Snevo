@@ -221,7 +221,7 @@ class Server {
         if (pathname.startsWith('/api/imports')) {
             return importRoutes(req, res, this.importController, pathname);
         }
-        if (pathname.startsWith('/api/cart')) {
+        if (pathname.startsWith('/api/cart') && (pathname === '/api/cart' || pathname.startsWith('/api/cart/'))) {
             await this.handleCartRoutes(req, res, pathname, req.method, body);
             return;
         }
@@ -230,15 +230,15 @@ class Server {
         // Auth routes for profile management
         if (pathname.startsWith('/api/auth/')) {
             await this.handleAuthRoutes(req, res, pathname, req.method, body);
-        } else if (pathname.startsWith('/api/orders/')) {
+        } else if (pathname.startsWith('/api/orders') && (pathname === '/api/orders' || pathname.startsWith('/api/orders/'))) {
             await this.handleOrderRoutes(req, res, pathname, req.method, body);
-        } else if (pathname.startsWith('/api/users/')) {
+        } else if (pathname.startsWith('/api/users') && (pathname === '/api/users' || pathname.startsWith('/api/users/'))) {
             await this.handleUserRoutes(req, res, pathname, req.method, body);
-        } else if (pathname.startsWith('/api/profiles/')) {
+        } else if (pathname.startsWith('/api/profiles') && (pathname === '/api/profiles' || pathname.startsWith('/api/profiles/'))) {
             await this.handleProfileRoutes(req, res, pathname, req.method, body);
-        } else if (pathname.startsWith('/api/addresses/')) {
+        } else if (pathname.startsWith('/api/addresses') && (pathname === '/api/addresses' || pathname.startsWith('/api/addresses/'))) {
             await this.handleAddressRoutes(req, res, pathname, req.method, body);
-        } else if (pathname.startsWith('/api/payments/')) {
+        } else if (pathname.startsWith('/api/payments') && (pathname === '/api/payments' || pathname.startsWith('/api/payments/'))) {
             await this.handlePaymentRoutes(req, res, pathname, req.method, body);
         } else if (pathname.startsWith('/api/reviews/')) {
             await this.handleReviewRoutes(req, res, pathname, req.method, body);
@@ -257,24 +257,30 @@ class Server {
     // Order routes handler
     async handleOrderRoutes(req, res, pathname, method, body) {
         const orderPath = pathname.replace('/api/orders', '');
+        console.log('📦 Order Route:', { pathname, orderPath, method });
 
         // Check authentication for protected routes
         const authResult = await authMiddleware.authenticate(req, res);
         if (!authResult || !authResult.success) {
+            console.warn('⚠️ Auth failed for order route');
             return;
         }
         req.user = authResult.user;
+        console.log('✅ Auth OK, user:', req.user.id);
 
         if (orderPath === '/' || orderPath === '') {
+            console.log('📦 Order root path, method:', method);
             if (method === 'GET') {
                 await this.orderController.getOrders(req, res);
             } else if (method === 'POST') {
+                console.log('📦 Creating order, body:', body);
                 req.body = body;
                 await this.orderController.createOrder(req, res);
             } else {
                 this.sendError(res, 'Method not allowed', 405);
             }
         } else if (orderPath === '/preview') {
+            console.log('📦 Preview path');
             if (method === 'GET') {
                 await this.orderController.previewOrder(req, res);
             } else {
@@ -307,6 +313,7 @@ class Server {
                 this.sendError(res, 'API endpoint not found', 404);
             }
         } else {
+            console.warn('⚠️ Order route not found:', { orderPath, method });
             this.sendError(res, 'API endpoint not found', 404);
         }
     }

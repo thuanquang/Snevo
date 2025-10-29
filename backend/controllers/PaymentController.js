@@ -9,11 +9,13 @@ class PaymentController extends BaseController {
         super();
         this.Payment = null;
         this.Order = null;
+        this.Cart = null;
     }
 
     setModels(models) {
         this.Payment = models.Payment;
         this.Order = models.Order;
+        this.Cart = models.Cart;
     }
 
     // GET /api/payments?order_id=
@@ -68,6 +70,13 @@ class PaymentController extends BaseController {
             this.requireAuth(req);
             const { order_id, payment_method, payment_amount } = req.body || {};
 
+            console.log('💳 Create payment request:', { order_id, payment_method, payment_amount });
+            console.log('💳 Parsed values:', { 
+                order_id: parseInt(order_id), 
+                payment_method, 
+                payment_amount: Number(payment_amount) 
+            });
+
             this.validateRequest(
                 { order_id: parseInt(order_id), payment_method, payment_amount: Number(payment_amount) },
                 {
@@ -77,12 +86,16 @@ class PaymentController extends BaseController {
                 }
             );
 
+            console.log('✅ Validation passed');
+
             // Verify order belongs to user
             const order = await this.Order.findWithItems(parseInt(order_id));
             if (!order || order.user_id !== req.user.id) {
                 this.sendError(res, 'Order not found', constants.HTTP_STATUS.NOT_FOUND);
                 return;
             }
+
+            console.log('✅ Order verified, creating payment');
 
             // Create payment record
             const payment = await this.Payment.createPayment({
@@ -91,6 +104,8 @@ class PaymentController extends BaseController {
                 payment_amount: Number(payment_amount),
                 status: constants.PAYMENT_STATUS.PENDING
             });
+
+            console.log('✅ Payment created:', payment);
 
             this.sendResponse(res, payment, 'Payment created', constants.HTTP_STATUS.CREATED);
         });
@@ -123,7 +138,7 @@ class PaymentController extends BaseController {
             // Mock payment processing
             // In real implementation, integrate with payment gateway (VNPAY, Stripe, etc)
             const mockSuccess = Math.random() > 0.1; // 90% success rate for mock
-            const newStatus = mockSuccess ? constants.PAYMENT_STATUS.COMPLETED : constants.PAYMENT_STATUS.FAILED;
+            const newStatus = mockSuccess ? constants.PAYMENT_STATUS.COMPLETED : constants.PAYMENT_STATUS.PENDING;
             const transactionId = mockSuccess ? `TXN_${Date.now()}_${Math.random().toString(36).substr(2, 9)}` : null;
 
             const updatedPayment = await this.Payment.updateStatus(parseInt(payment_id), newStatus, transactionId);
@@ -131,6 +146,14 @@ class PaymentController extends BaseController {
             if (mockSuccess) {
                 // Update order status to processing if payment successful
                 await this.Order.updateStatus(payment.order_id, constants.ORDER_STATUS.PROCESSING);
+
+                // ⭐ Clear the user's cart ONLY after successful payment
+                try {
+                    await this.Cart.clearUserCart(order.user_id);
+                    console.log('✅ Cart cleared after successful payment');
+                } catch (e) {
+                    console.warn('⚠️ Failed to clear cart after payment success:', e?.message || e);
+                }
             }
 
             this.sendResponse(res, updatedPayment, 'Payment processed');

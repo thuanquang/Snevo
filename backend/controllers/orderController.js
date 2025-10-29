@@ -120,8 +120,9 @@ class OrderController extends BaseController {
           price_per_unit: it.price_at_add
         })));
 
-        // Clear cart
-        await this.Cart.clearUserCart(req.user.id);
+        // NOTE: Cart is NOT cleared here anymore!
+        // It will be cleared after successful payment (in PaymentController.processPayment)
+        // This ensures cart persists if payment fails
 
         this.sendResponse(res, { order_id: orderRow.order_id }, 'Order placed', constants.HTTP_STATUS.CREATED);
       } catch (err) {

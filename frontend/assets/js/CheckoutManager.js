@@ -1,4 +1,4 @@
-// Checkout Manager - Multi-step checkout flow
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    // Checkout Manager - Multi-step checkout flow
 class CheckoutManager {
     constructor() {
         this.currentStep = 1;
@@ -24,6 +24,14 @@ class CheckoutManager {
             { id: 'bank_transfer', name: 'Bank Transfer', icon: 'fas fa-university' },
             { id: 'vnpay', name: 'VNPAY', icon: 'fas fa-wallet' }
         ];
+        this.paymentData = {
+            cardNumber: '',
+            cardHolder: '',
+            expiryDate: '',
+            cvv: '',
+            bankAccount: '',
+            bankCode: ''
+        };
     }
 
     async init() {
@@ -259,6 +267,7 @@ class CheckoutManager {
 
     renderPaymentMethods() {
         const container = document.getElementById('paymentMethodsContainer');
+        console.log('🔧 renderPaymentMethods called, container:', container);
         if (!container) return;
 
         let html = '';
@@ -274,15 +283,36 @@ class CheckoutManager {
             `;
         }
         container.innerHTML = html;
+        console.log('✅ Payment methods HTML rendered');
 
         // Add event listeners
-        container.querySelectorAll('input[name="payment"]').forEach(radio => {
+        const radios = container.querySelectorAll('input[name="payment"]');
+        console.log('📻 Found radios:', radios.length);
+        
+        radios.forEach(radio => {
             radio.addEventListener('change', (e) => {
+                console.log('🔄 Payment method changed to:', e.target.value);
                 this.orderData.payment_method = e.target.value;
                 this.updatePaymentSelection();
-                document.getElementById('btnNextStep4').disabled = false;
+                this.renderPaymentForm(); // ⭐ Show payment form if needed
+                const btn = document.getElementById('btnNextStep4');
+                console.log('🔘 Setting button disabled=false, btn:', btn);
+                if (btn) btn.disabled = false;
             });
         });
+
+        // Render payment form if non-cash method selected
+        this.renderPaymentForm();
+
+        // ⭐ Enable button immediately after rendering (initial default selected)
+        const btn = document.getElementById('btnNextStep4');
+        console.log('🎯 Final button check - btnNextStep4:', btn);
+        if (btn) {
+            btn.disabled = false;
+            console.log('✅ Button enabled successfully');
+        } else {
+            console.error('❌ btnNextStep4 button NOT FOUND');
+        }
     }
 
     updatePaymentSelection() {
@@ -293,6 +323,88 @@ class CheckoutManager {
         if (selected) {
             selected.closest('.payment-option').classList.add('selected');
         }
+    }
+
+    renderPaymentForm() {
+        const formContainer = document.getElementById('paymentFormContainer');
+        if (!formContainer) {
+            console.warn('⚠️ paymentFormContainer not found');
+            return;
+        }
+
+        console.log('🎨 Rendering payment form for method:', this.orderData.payment_method);
+
+        // Hide form for cash on delivery
+        if (this.orderData.payment_method === 'cash_on_delivery') {
+            formContainer.innerHTML = `
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    You will pay cash on delivery. No advance payment required.
+                </div>
+            `;
+            return;
+        }
+
+        let html = '<div class="payment-form mt-3">';
+
+        if (this.orderData.payment_method === 'credit_card') {
+            html += `
+                <h6 class="mb-3">Credit/Debit Card Details</h6>
+                <div class="mb-3">
+                    <label for="cardNumber" class="form-label">Card Number</label>
+                    <input type="text" class="form-control" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19">
+                </div>
+                <div class="mb-3">
+                    <label for="cardHolder" class="form-label">Card Holder Name</label>
+                    <input type="text" class="form-control" id="cardHolder" placeholder="JOHN DOE">
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="expiryDate" class="form-label">Expiry Date (MM/YY)</label>
+                        <input type="text" class="form-control" id="expiryDate" placeholder="12/25" maxlength="5">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="cvv" class="form-label">CVV</label>
+                        <input type="text" class="form-control" id="cvv" placeholder="123" maxlength="4">
+                    </div>
+                </div>
+            `;
+        } else if (this.orderData.payment_method === 'bank_transfer') {
+            html += `
+                <h6 class="mb-3">Bank Transfer Details</h6>
+                <div class="mb-3">
+                    <label for="bankCode" class="form-label">Select Bank</label>
+                    <select class="form-control" id="bankCode">
+                        <option value="">Choose a bank</option>
+                        <option value="VIETCOMBANK">Vietcombank</option>
+                        <option value="TECHCOMBANK">Techcombank</option>
+                        <option value="BIDV">BIDV</option>
+                        <option value="ACB">ACB</option>
+                        <option value="MB">MB Bank</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="bankAccount" class="form-label">Account Number</label>
+                    <input type="text" class="form-control" id="bankAccount" placeholder="Your account number">
+                </div>
+                <div class="alert alert-info small">
+                    <i class="fas fa-info-circle"></i>
+                    A payment link will be provided after review.
+                </div>
+            `;
+        } else if (this.orderData.payment_method === 'vnpay') {
+            html += `
+                <h6 class="mb-3">VNPAY Payment</h6>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    You will be redirected to VNPAY payment gateway after review.
+                </div>
+            `;
+        }
+
+        html += '</div>';
+        formContainer.innerHTML = html;
+        console.log('✅ Payment form rendered');
     }
 
     renderReview() {
@@ -370,6 +482,18 @@ class CheckoutManager {
         `;
 
         container.innerHTML = html;
+
+        // ⭐ Update button text based on payment method
+        const btn = document.getElementById('btnConfirmOrder');
+        if (this.orderData.payment_method === 'cash_on_delivery') {
+            btn.innerHTML = '<i class="fas fa-check"></i> Confirm Order';
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-success');
+        } else {
+            btn.innerHTML = '<i class="fas fa-credit-card"></i> Confirm & Pay';
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-success');
+        }
     }
 
     async goToStep(step) {
@@ -458,45 +582,84 @@ class CheckoutManager {
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
 
             // Create order
-            const orderRes = await window.ordersAPI.createOrder({
+            const orderPayload = {
                 address_id: this.orderData.address_id,
                 notes: this.orderData.notes || null
-            });
+            };
+            console.log('📝 Creating order with payload:', orderPayload);
+            const orderRes = await window.ordersAPI.createOrder(orderPayload);
+            console.log('✅ Order created:', orderRes);
 
             const orderId = orderRes.order_id;
+            console.log('📦 Order ID:', orderId);
 
-            // Create payment record
-            const paymentRes = await window.paymentsAPI.createPayment({
+            // ⭐ Handle Cash on Delivery separately - no payment needed
+            if (this.orderData.payment_method === 'cash_on_delivery') {
+                console.log('💵 Cash on Delivery selected - skipping payment processing');
+                
+                // Update navbar cart count
+                if (window.navbarManager && window.navbarManager.updateCartCount) {
+                    window.navbarManager.updateCartCount(0);
+                }
+
+                // Redirect to order confirmation
+                alert('Order placed successfully! You will pay cash on delivery.');
+                window.location.href = `orders.html?order_id=${orderId}`;
+                return;
+            }
+
+            // ⭐ For other payment methods: create payment record
+            const paymentPayload = {
                 order_id: orderId,
                 payment_method: this.orderData.payment_method,
                 payment_amount: this.orderData.total
-            });
+            };
+            console.log('💳 Creating payment with payload:', paymentPayload);
+            const paymentRes = await window.paymentsAPI.createPayment(paymentPayload);
+            console.log('✅ Payment created:', paymentRes);
 
             const paymentId = paymentRes.payment_id;
+            console.log('💳 Payment ID:', paymentId);
 
-            // Process payment (mock or provider)
-            const processRes = await window.paymentsAPI.processPayment({
+            // Process payment (mock)
+            const processPayload = {
                 payment_id: paymentId,
                 provider: this.orderData.payment_method === 'vnpay' ? 'vnpay' : null,
                 payload: {}
-            });
+            };
+            console.log('🔄 Processing payment with payload:', processPayload);
+            const processRes = await window.paymentsAPI.processPayment(processPayload);
+            console.log('✅ Payment processed:', processRes);
 
             // Update navbar cart count
             if (window.navbarManager && window.navbarManager.updateCartCount) {
                 window.navbarManager.updateCartCount(0);
             }
 
-            // Redirect to order confirmation or orders page
+            // Redirect to order confirmation
             if (processRes.status === 'completed') {
+                console.log('✅ Payment completed, redirecting to orders page');
+                alert('Payment successful! Order has been placed.');
                 window.location.href = `orders.html?order_id=${orderId}`;
             } else {
-                alert('Payment processing failed. Please try again.');
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-check"></i> Confirm & Pay';
+                console.warn('⚠️ Payment status not completed:', processRes.status);
+                alert('Payment processing failed. Your order is pending payment.');
+                window.location.href = `orders.html?order_id=${orderId}`;
             }
         } catch (err) {
-            console.error('❌ Order confirmation failed:', err);
-            alert('Failed to confirm order: ' + (err.message || 'Unknown error'));
+            console.error('❌ Order confirmation failed');
+            console.error('Error object:', err);
+            console.error('Error message:', err.message);
+            console.error('Error response:', err.response);
+            
+            // Extract validation errors if available
+            const serverDetails = err?.response?.data?.details;
+            let errorMsg = err.message || 'Unknown error';
+            if (serverDetails?.errors && Array.isArray(serverDetails.errors)) {
+                errorMsg = serverDetails.errors.map(e => e.message).join(', ');
+            }
+            
+            alert('Failed to confirm order: ' + errorMsg);
             const btn = document.getElementById('btnConfirmOrder');
             btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-check"></i> Confirm & Pay';
