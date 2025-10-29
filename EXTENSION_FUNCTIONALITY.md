@@ -1220,3 +1220,39 @@ The fix also ensures proper error handling in the upload flow:
 - Support for JPG, PNG, WEBP formats (max 5MB)
 - Supabase Storage integration with signed URLs
 
+Unnecessary File Cleanup (Oct 2025)
+-----------------------------------
+✅ COMPLETED: Removed 4 unnecessary files from project root using OpenSpec change proposal
+
+**Files Removed:**
+1. ✂️ `AGENTS.md` - Duplicate of `openspec/AGENTS.md` (was already in .gitignore)
+2. ✂️ `test_auth.html` - Development test artifact for AuthService testing
+3. ✂️ `test_schema.js` - Empty unused test file (2 blank lines only)
+4. ✂️ `git reset --hard HEAD` - Accidental file created from shell command execution
+
+**Changes Made:**
+- Updated `.gitignore` to prevent similar issues:
+  - Added `/test_*.js` pattern to exclude root-level test files
+  - Added `/test_*.html` pattern to exclude root-level test HTML files
+  - Added patterns to prevent accidental shell command files (`/git reset --hard*`, etc.)
+
+**Impact:**
+- ✅ Cleaner project root directory
+- ✅ Reduced deployment artifact size
+- ✅ Improved developer clarity (less confusion about production vs. test files)
+- ✅ Prevented accidental distribution of test artifacts
+- ✅ No impact on functionality, API, or database
+
+**Verification:**
+- ✅ npm install: No broken dependencies (116 packages up to date)
+- ✅ npm run build: Successful compilation
+- ✅ Project root clean: Only essential files remain (.env, .gitignore, package.json, README.md, STRUCTURE.md, EXTENSION_FUNCTIONALITY.md, schema.sql)
+- ✅ All pages load correctly
+- ✅ No missing resources or broken links
+
+**OpenSpec Reference:**
+- Change ID: `remove-unnecessary-files`
+- Status: ✅ Implemented
+- Proposal: `openspec/changes/remove-unnecessary-files/proposal.md`
+- Tasks: `openspec/changes/remove-unnecessary-files/tasks.md`
+

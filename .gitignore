@@ -145,3 +145,18 @@ docs/_build/
 config/local.js
 config/local.json
 
+.cursor/
+
+openspec/
+
+AGENTS.md
+
+# Root-level test files (prevent accidental commits)
+# Note: /tests/ directory is allowed; only root-level test_*.js/test_*.html are excluded
+/test_*.js
+/test_*.html
+
+# Accidental shell command files
+/git reset --hard*
+/git commit*
+/git push*
