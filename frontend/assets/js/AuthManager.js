@@ -107,7 +107,7 @@ class AuthManager {
   /**
    * Update authentication UI
    */
-  updateAuthUI() {
+  async updateAuthUI() {
     const authButtons = document.getElementById("authButtons");
     if (!authButtons) {
       console.log("No authButtons element found, retrying in 100ms...");
@@ -127,14 +127,15 @@ class AuthManager {
 
     if (isAuthenticated && user) {
       // Get user avatar URL with fallback
+      const profileAvatar = await this.authService.getProfileAvatar(user.id);
+      // ✅ Avatar priority: profiles.avatar_url > auth metadata > generated
       const avatarUrl =
-        user.user_metadata?.avatar_url ||
-        user.user_metadata?.picture ||
-        user.avatar_url ||
+        profileAvatar || // ← From profiles table (Primary)
+        user.user_metadata?.avatar_url || // ← From auth metadata (Fallback)
+        user.user_metadata?.picture || // ← From auth picture (Fallback)
         `https://ui-avatars.com/api/?name=${encodeURIComponent(
           user.user_metadata?.username || user.email?.split("@")[0] || "User"
         )}&background=111827&color=fff&size=128`;
-
       // Better fallback chain for display name
       const userName =
         user.username ||

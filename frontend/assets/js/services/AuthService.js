@@ -429,6 +429,106 @@ class AuthService {
             detail: data
         }));
     }
+ /**
+ * ✅ Update profile avatar via API 
+ */
+async updateProfileAvatar(avatarUrl) {
+    try {
+        if (!this.currentUser) {
+            console.error('❌ No user logged in');
+            return false;
+        }
+
+        // ✅ Get access token
+        const { data: { session } } = await this.supabase.auth.getSession();
+        if (!session) {
+            console.error('❌ No session found');
+            return false;
+        }
+
+        const token = session.access_token;
+
+        // ✅ Update via API endpoint
+        const response = await fetch('/api/auth/profile', {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                avatar_url: avatarUrl
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            console.error('❌ Update avatar error:', errorData);
+            return false;
+        }
+
+        const data = await response.json();
+        console.log('✅ Avatar updated via API');
+
+        // ✅ Update currentUser locally
+        if (data.user) {
+            this.currentUser = data.user;
+            this.emit('userUpdated', { avatar_url: avatarUrl });
+            return true;
+        }
+
+        return false;
+
+    } catch (error) {
+        console.error('❌ Update avatar error:', error);
+        return false;
+    }
+}
+
+
+/**
+ * ✅ Fetch avatar from profiles table via API 
+ */
+async getProfileAvatar(userId) {
+    try {
+        // ✅ Get access token from current session
+        const { data: { session } } = await this.supabase.auth.getSession();
+        
+        if (!session) {
+            console.warn('⚠️ No session found for avatar fetch');
+            return null;
+        }
+
+        const token = session.access_token;
+
+        // ✅ Fetch từ API endpoint (chuẩn như ProfileManager)
+        const response = await fetch('/api/auth/profile', {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            if (response.status === 404) {
+                console.log('⚠️ Profile not found (new user)');
+                return null;
+            }
+            console.error(`❌ Failed to fetch profile: ${response.status}`);
+            return null;
+        }
+
+        const data = await response.json();
+        console.log('✅ Avatar fetched from API:', data.user?.avatar_url);
+        
+        return data.user?.avatar_url || null;
+
+    } catch (error) {
+        console.error('❌ Error fetching avatar:', error);
+        return null;
+    }
+}
+
+
 }
 
 // Create and export singleton instance
