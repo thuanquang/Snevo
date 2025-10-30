@@ -109,10 +109,8 @@ class AuthManager {
    */
   updateAuthUI() {
     const authButtons = document.getElementById("authButtons");
-
     if (!authButtons) {
       console.log("No authButtons element found, retrying in 100ms...");
-      // Retry after a short delay
       setTimeout(() => this.updateAuthUI(), 100);
       return;
     }
@@ -147,10 +145,11 @@ class AuthManager {
         user.email?.split("@")[0] ||
         "User";
 
-      // Determine target page based on role (default to customer)
+      // ✅ FIX: Add email variable
+      const email = user.email || user.user_metadata?.email || "";
+
+      // Determine target page based on role
       const userRole = role || "customer";
-      const targetPage = userRole === "seller" ? "admin.html" : "profile.html";
-      const linkId = userRole === "seller" ? "adminLink" : "profileLink";
 
       // Determine relative path
       const getRelativePath = (page) => {
@@ -162,26 +161,91 @@ class AuthManager {
         }
       };
 
-      authButtons.innerHTML = `
-            <a href="${getRelativePath(targetPage)}" 
-               class="user-avatar-link" 
-               title="${userName}">
-                <img src="${avatarUrl}" 
-                     alt="${userName}" 
-                     class="user-avatar rounded-circle"
-                     onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(
-                       userName
-                     )}&background=111827&color=fff&size=128'">
-            </a>
-        `;
-    } else {
-      // User is not logged in - show login button
-      authButtons.innerHTML = `
-                <li class="nav-item">
-                    <a class="nav-link text-black px-4" href="#" id="globalLoginLink">Login</a>
-                </li>
+      // ✅ SELLER: Keep direct link to admin.html
+      if (userRole === "seller" || userRole === "admin") {
+        authButtons.innerHTML = `
+                <a href="${getRelativePath(
+                  "admin.html"
+                )}" class="user-avatar-link" title="${userName} (Admin)">
+                    <img src="${avatarUrl}" 
+                         alt="${userName}" 
+                         class="user-avatar rounded-circle"
+                         onerror="this.src='https://ui-avatars.com/api?name=${encodeURIComponent(
+                           userName
+                         )}&background=111827&color=fff&size=128'">
+                </a>
             `;
+        return;
+      }
 
+      // ✅ CUSTOMER: Show dropdown menu
+      authButtons.innerHTML = `
+    <div class="dropdown" id="userDropdownContainer">
+        <button class="btn btn-link p-0 border-0" 
+                type="button" 
+                id="userDropdown" 
+                aria-expanded="false"
+                title="${userName}">
+            <img src="${avatarUrl}" 
+                 alt="${userName}" 
+                 class="user-avatar rounded-circle"
+                 onerror="this.src='https://ui-avatars.com/api?name=${encodeURIComponent(
+                   userName
+                 )}&background=111827&color=fff&size=128'">
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+            <li class="dropdown-header">
+                <div class="d-flex align-items-center">
+                    <img src="${avatarUrl}" 
+                         alt="${userName}" 
+                         class="rounded-circle me-2"
+                         style="width: 32px; height: 32px; object-fit: cover;"
+                         onerror="this.src='https://ui-avatars.com/api?name=${encodeURIComponent(
+                           userName
+                         )}&background=111827&color=fff&size=128'">
+                    <div>
+                        <div class="fw-bold">${userName}</div>
+                        <small class="text-muted">${email}</small>
+                    </div>
+                </div>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <a class="dropdown-item" href="${getRelativePath(
+                  "profile.html"
+                )}">
+                    <i class="bi bi-person me-2"></i>Profile
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-item" href="${getRelativePath(
+                  "orders.html"
+                )}">
+                    <i class="bi bi-bag-check me-2"></i>My Orders
+                </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <a class="dropdown-item text-danger" href="#" id="navbar-logout-btn">
+                    <i class="bi bi-box-arrow-right me-2"></i>Logout
+                </a>
+            </li>
+        </ul>
+    </div>
+`;
+
+      // ✅ Setup logout handler
+      this.setupDropdownLogout();
+
+      // ✅ Setup hover behavior (NEW)
+      this.setupDropdownHover();
+    } else {
+      // Not authenticated - show login/signup buttons
+      authButtons.innerHTML = `
+        <li class="nav-item">
+            <a class="nav-link text-black px-4" href="#" id="globalLoginLink">Login</a>
+        </li>
+        `;
       // Wire up login button
       setTimeout(() => {
         const loginLink = document.getElementById("globalLoginLink");
@@ -197,6 +261,146 @@ class AuthManager {
         }
       }, 0);
     }
+  }
+  /**
+   * Setup logout handler for dropdown menu
+   */
+  setupDropdownLogout() {
+    const logoutBtn = document.getElementById("navbar-logout-btn");
+    if (logoutBtn) {
+      logoutBtn.addEventListener("click", async (e) => {
+        e.preventDefault();
+
+        if (confirm("Are you sure you want to logout?")) {
+          try {
+            console.log("🚪 Logging out from navbar...");
+
+            // ✅ Use AuthService to logout (same as ProfileManager)
+            if (window.authService) {
+              await window.authService.logout();
+              console.log("✅ Logout successful");
+
+              // ✅ Determine correct redirect path
+              const currentPath = window.location.pathname;
+              const redirectPath = currentPath.includes("/pages/")
+                ? "../index.html"
+                : "index.html";
+
+              // ✅ Redirect after short delay (same as ProfileManager)
+              setTimeout(() => {
+                window.location.href = redirectPath;
+              }, 500);
+            } else {
+              console.error("AuthService not available");
+              // Fallback redirect
+              const redirectPath = window.location.pathname.includes("/pages/")
+                ? "../index.html"
+                : "index.html";
+              window.location.href = redirectPath;
+            }
+          } catch (error) {
+            console.error("❌ Logout error:", error);
+            alert("Failed to logout. Redirecting to home page...");
+
+            // Error fallback redirect
+            const redirectPath = window.location.pathname.includes("/pages/")
+              ? "../index.html"
+              : "index.html";
+            window.location.href = redirectPath;
+          }
+        }
+      });
+    } else {
+      console.warn(
+        "⚠️ navbar-logout-btn not found, will retry on next updateAuthUI call"
+      );
+    }
+  }
+  /**
+   * ✅ Setup hover behavior - Only trigger on AVATAR hover
+   */
+  setupDropdownHover() {
+    const dropdownContainer = document.getElementById("userDropdownContainer");
+    const userDropdown = document.getElementById("userDropdown");
+    const dropdownMenu = dropdownContainer?.querySelector(".dropdown-menu");
+    const avatar = dropdownContainer?.querySelector(".user-avatar"); // ← THÊM
+
+    if (!dropdownContainer || !userDropdown || !dropdownMenu || !avatar) {
+      console.warn("⚠️ Dropdown elements not found");
+      return;
+    }
+
+    let hoverTimeout;
+    let closeTimeout;
+    let isDropdownOpen = false;
+
+    // ✅ AVATAR HOVER: Show dropdown only when hovering over AVATAR
+    avatar.addEventListener("mouseenter", () => {
+      clearTimeout(hoverTimeout);
+      clearTimeout(closeTimeout);
+
+      isDropdownOpen = true;
+      dropdownMenu.classList.remove("hiding");
+
+      let dropdown = bootstrap.Dropdown.getInstance(userDropdown);
+      if (!dropdown) {
+        dropdown = new bootstrap.Dropdown(userDropdown, {
+          autoClose: "outside",
+        });
+      }
+
+      dropdown.show();
+      console.log("👆 Dropdown opened on avatar hover");
+    });
+
+    // DROPDOWN MENU HOVER
+    dropdownMenu.addEventListener("mouseenter", () => {
+      clearTimeout(closeTimeout);
+      isDropdownOpen = true;
+    });
+
+    // AVATAR LEAVE
+    avatar.addEventListener("mouseleave", (e) => {
+      const rect = dropdownMenu.getBoundingClientRect();
+      if (
+        e.clientX >= rect.left &&
+        e.clientX <= rect.right &&
+        e.clientY >= rect.top &&
+        e.clientY <= rect.bottom
+      ) {
+        return; // Không đóng nếu đang vào menu
+      }
+
+      scheduleClose();
+    });
+
+    // DROPDOWN MENU LEAVE: Đóng dropdown
+    dropdownMenu.addEventListener("mouseleave", () => {
+      scheduleClose();
+    });
+
+    // Helper function: Schedule close với animation
+    function scheduleClose() {
+      clearTimeout(closeTimeout);
+
+      closeTimeout = setTimeout(() => {
+        isDropdownOpen = false;
+        dropdownMenu.classList.add("hiding");
+
+        setTimeout(() => {
+          const dropdown = bootstrap.Dropdown.getInstance(userDropdown);
+          if (dropdown && !isDropdownOpen) {
+            dropdown.hide();
+          }
+
+          setTimeout(() => {
+            dropdownMenu.classList.remove("hiding");
+          }, 50);
+        }, 250);
+      }, 150); // 150ms delay trước khi đóng
+    }
+
+    console.log("✅ Dropdown hover (avatar-only) initialized");
   }
 
   /**
