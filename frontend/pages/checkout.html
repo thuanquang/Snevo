@@ -234,11 +234,16 @@
                             </div>
                             <div class="card-body" id="orderSummaryReview"></div>
                         </div>
-                        <div class="d-flex justify-content-between btn-step">
+                        <div class="d-flex justify-content-between btn-step gap-3">
                             <button class="btn btn-outline-secondary" id="btnPrevStep5">Back</button>
-                            <button class="btn btn-success btn-lg" id="btnConfirmOrder">
-                                <i class="fas fa-check"></i> Confirm & Pay
-                            </button>
+                            <div class="flex-grow-1 d-flex gap-2 justify-content-end">
+                                <button class="btn btn-outline-danger" id="btnCancelCheckout">
+                                    <i class="fas fa-times"></i> Cancel Checkout
+                                </button>
+                                <button class="btn btn-success btn-lg" id="btnConfirmOrder">
+                                    <i class="fas fa-check"></i> Confirm & Pay
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

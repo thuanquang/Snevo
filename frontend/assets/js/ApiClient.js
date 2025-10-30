@@ -1022,6 +1022,11 @@ class OrdersAPI {
         return response.data;
     }
 
+    async cancelOrder(id) {
+        const response = await this.client.put(`/api/orders/${id}/cancel`);
+        return response.data;
+    }
+
   async previewOrder() {
     const response = await this.client.get("/api/orders/preview");
     return response.data;

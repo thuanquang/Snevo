@@ -155,8 +155,23 @@ class OrderController extends BaseController {
     return this.handleRequest(req, res, async () => {
       this.requireAuth(req);
       const { id } = req.params;
+      
+      // Get order and verify ownership
+      const order = await this.Order.findWithItems(parseInt(id));
+      if (!order || order.user_id !== req.user.id) {
+        this.sendError(res, 'Order not found', constants.HTTP_STATUS.NOT_FOUND);
+        return;
+      }
+
+      // Only allow cancelling pending orders
+      if (order.status !== constants.ORDER_STATUS.PENDING) {
+        this.sendError(res, `Cannot cancel order with status '${order.status}'. Only pending orders can be cancelled.`, constants.HTTP_STATUS.UNPROCESSABLE_ENTITY);
+        return;
+      }
+
+      // Cancel the order (trigger will restore stock automatically)
       const updated = await this.Order.updateStatus(parseInt(id), constants.ORDER_STATUS.CANCELLED);
-      this.sendResponse(res, updated, 'Order cancelled');
+      this.sendResponse(res, updated, 'Order cancelled successfully. Stock has been released.');
     });
   }
 

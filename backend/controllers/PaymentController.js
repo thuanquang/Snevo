@@ -135,17 +135,36 @@ class PaymentController extends BaseController {
                 return;
             }
 
+            // ⭐ IDEMPOTENCY: If payment is already completed, return current state
+            if (payment.status === constants.PAYMENT_STATUS.COMPLETED) {
+                console.log('💳 Payment already completed (idempotent call):', payment_id);
+                this.sendResponse(res, payment, 'Payment already completed');
+                return;
+            }
+
+            // ⭐ If payment failed, allow retry
+            if (payment.status === constants.PAYMENT_STATUS.FAILED) {
+                console.log('🔄 Retrying failed payment:', payment_id);
+            }
+
             // Mock payment processing
             // In real implementation, integrate with payment gateway (VNPAY, Stripe, etc)
             const mockSuccess = Math.random() > 0.1; // 90% success rate for mock
-            const newStatus = mockSuccess ? constants.PAYMENT_STATUS.COMPLETED : constants.PAYMENT_STATUS.PENDING;
+            const newStatus = mockSuccess ? constants.PAYMENT_STATUS.COMPLETED : constants.PAYMENT_STATUS.FAILED;
             const transactionId = mockSuccess ? `TXN_${Date.now()}_${Math.random().toString(36).substr(2, 9)}` : null;
 
+            console.log('💳 Processing payment:', { payment_id, newStatus, transactionId });
             const updatedPayment = await this.Payment.updateStatus(parseInt(payment_id), newStatus, transactionId);
 
             if (mockSuccess) {
-                // Update order status to processing if payment successful
-                await this.Order.updateStatus(payment.order_id, constants.ORDER_STATUS.PROCESSING);
+                // Clear user's cart after successful payment (order remains pending for admin approval)
+                try {
+                    await this.Cart.clearUserCart(req.user.id);
+                    console.log('✅ Cart cleared after successful payment');
+                } catch (e) {
+                    console.warn('⚠️ Failed to clear cart after payment success:', e?.message || e);
+                    // Non-blocking: don't fail payment if cart clear fails
+                }
             }
 
             this.sendResponse(res, updatedPayment, 'Payment processed');

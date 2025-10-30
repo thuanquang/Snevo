@@ -2,6 +2,7 @@
 class CheckoutManager {
     constructor() {
         this.currentStep = 1;
+        this.currentOrderId = null;  // Track order ID for cancellation
         this.orderData = {
             items: [],
             subtotal: 0,
@@ -47,6 +48,9 @@ class CheckoutManager {
 
         console.log('✅ CheckoutManager initialized');
         
+        // Check for pending order to resume
+        await this.checkForPendingOrder();
+        
         // Load initial data
         await this.loadCartPreview();
         
@@ -75,6 +79,44 @@ class CheckoutManager {
         
         console.warn('⚠️ Timeout waiting for auth and APIs');
         return false;
+    }
+
+    async checkForPendingOrder() {
+        try {
+            // Fetch user's orders
+            const orders = await window.ordersAPI.getOrders();
+            
+            // Find most recent pending order
+            const pendingOrder = orders.find(o => o.status === 'pending');
+            
+            if (pendingOrder) {
+                console.log('⏳ Found pending order:', pendingOrder.order_id);
+                
+                // Show modal with options
+                const message = `You have an incomplete checkout from ${new Date(pendingOrder.created_at).toLocaleString()}. Would you like to resume or start fresh?`;
+                
+                if (confirm(message + '\n\nClick OK to Resume, Cancel to start fresh.')) {
+                    // Resume: load order data
+                    this.currentOrderId = pendingOrder.order_id;
+                    console.log('▶️ Resuming pending order:', this.currentOrderId);
+                    // Skip to step 5 (review) to allow payment retry
+                    // Optionally load order details
+                } else {
+                    // Start fresh: offer to cancel pending order
+                    if (confirm('Cancel the pending order to release stock?')) {
+                        try {
+                            await window.ordersAPI.cancelOrder(pendingOrder.order_id);
+                            console.log('✅ Pending order cancelled');
+                        } catch (e) {
+                            console.warn('⚠️ Failed to cancel pending order:', e);
+                        }
+                    }
+                }
+            }
+        } catch (err) {
+            // Silent fail - just continue with checkout
+            console.warn('⚠️ Could not check for pending orders:', err);
+        }
     }
 
     async loadCartPreview() {
@@ -598,6 +640,8 @@ class CheckoutManager {
                 throw new Error('Order created but no order_id in response');
             }
 
+            this.currentOrderId = orderId; // Store order ID for cancellation
+
             // ⭐ Handle Cash on Delivery separately - create pending payment row
             if (this.orderData.payment_method === 'cash') {
                 console.log('💵 Cash selected - creating pending payment row');
@@ -694,6 +738,37 @@ class CheckoutManager {
         }
     }
 
+    async cancelCheckout() {
+        if (!confirm('Are you sure you want to cancel this checkout? Stock will be released and you can shop again.')) {
+            return;
+        }
+
+        try {
+            const btn = document.getElementById('btnCancelCheckout');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cancelling...';
+
+            // If an order was created, cancel it (which will trigger stock release via database trigger)
+            if (this.currentOrderId) {
+                console.log('❌ Cancelling order:', this.currentOrderId);
+                await window.ordersAPI.cancelOrder(this.currentOrderId);
+                console.log('✅ Order cancelled, stock released');
+            }
+
+            // Show success message
+            alert('Checkout cancelled. Stock has been released.');
+            
+            // Redirect to products page
+            window.location.href = 'products.html';
+        } catch (err) {
+            console.error('❌ Error cancelling checkout:', err);
+            alert('Failed to cancel checkout: ' + (err.message || 'Unknown error'));
+            const btn = document.getElementById('btnCancelCheckout');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-times"></i> Cancel Checkout';
+        }
+    }
+
     setupEventListeners() {
         // Step buttons
         document.getElementById('btnNextStep1')?.addEventListener('click', () => this.goToStep(2));
@@ -707,6 +782,8 @@ class CheckoutManager {
         document.getElementById('btnPrevStep5')?.addEventListener('click', () => this.goToStep(4));
 
         document.getElementById('btnConfirmOrder')?.addEventListener('click', () => this.confirmOrder());
+
+        document.getElementById('btnCancelCheckout')?.addEventListener('click', () => this.cancelCheckout());
 
         // Address add new button
         document.getElementById('btnAddNewAddress')?.addEventListener('click', (e) => {
