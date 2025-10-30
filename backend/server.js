@@ -299,23 +299,32 @@ class Server {
             } else {
                 this.sendError(res, 'Method not allowed', 405);
             }
-        } else if (orderPath.startsWith('/status')) {
+        } else if (orderPath.match(/^\/\d+\/status$/)) {
             const id = orderPath.replace('/status', '').replace('/', '');
-            if (id && method === 'PUT') {
+            if (method === 'PUT') {
                 req.params = { id };
                 req.body = body;
                 await this.orderController.updateOrderStatus(req, res);
             } else {
-                this.sendError(res, 'API endpoint not found', 404);
+                this.sendError(res, 'Method not allowed', 405);
             }
-        } else if (orderPath.startsWith('/cancel')) {
+        } else if (orderPath.match(/^\/\d+\/cancel$/)) {
             const id = orderPath.replace('/cancel', '').replace('/', '');
-            if (id && method === 'PUT') {
+            if (method === 'PUT') {
                 req.params = { id };
                 req.body = body;
                 await this.orderController.cancelOrder(req, res);
             } else {
-                this.sendError(res, 'API endpoint not found', 404);
+                this.sendError(res, 'Method not allowed', 405);
+            }
+        } else if (orderPath.match(/^\/\d+\/address$/)) {
+            const id = orderPath.replace('/address', '').replace('/', '');
+            if (method === 'PUT') {
+                req.params = { id };
+                req.body = body;
+                await this.orderController.updateOrderAddress(req, res);
+            } else {
+                this.sendError(res, 'Method not allowed', 405);
             }
         } else {
             console.warn('⚠️ Order route not found:', { orderPath, method });

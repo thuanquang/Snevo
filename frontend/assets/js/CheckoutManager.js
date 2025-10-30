@@ -626,7 +626,9 @@ class CheckoutManager {
             // Create order
             const orderPayload = {
                 address_id: this.orderData.address_id,
-                notes: this.orderData.notes || null
+                notes: this.orderData.notes || null,
+                shipping_cost: this.orderData.shipping_cost || 0,
+                tax_amount: this.orderData.tax_amount || 0
             };
             console.log('📝 Creating order with payload:', orderPayload);
             const orderRes = await window.ordersAPI.createOrder(orderPayload);

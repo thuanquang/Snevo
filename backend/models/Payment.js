@@ -77,6 +77,46 @@ class Payment extends BaseModel {
         return data;
     }
 
+    // Refund a payment (idempotent)
+    async refundPayment(paymentId, refundNote = null) {
+        try {
+            // Check if already refunded
+            const existing = await this.findById(paymentId);
+            if (!existing) {
+                throw new Error(`Payment ${paymentId} not found`);
+            }
+
+            // If already refunded, return current state (idempotent)
+            if (existing.status === 'refunded') {
+                console.log('💳 Payment already refunded (idempotent call):', paymentId);
+                return existing;
+            }
+
+            // Generate refund transaction ID
+            const refundTxnId = `REFUND_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+            // Update payment to refunded with transaction ID and timestamp
+            const { data, error } = await supabaseConfig.getAdminClient()
+                .from(this.tableName)
+                .update({
+                    status: 'refunded',
+                    transaction_id: refundTxnId,
+                    payment_date: new Date().toISOString()
+                })
+                .eq('payment_id', paymentId)
+                .select()
+                .single();
+
+            if (error) throw new Error(`Failed to refund payment: ${error.message}`);
+
+            console.log(`✅ Payment ${paymentId} refunded:`, refundTxnId);
+            return data;
+        } catch (error) {
+            console.error('Error refunding payment:', error);
+            throw error;
+        }
+    }
+
     // Calculate total revenue from completed payments (admin helper)
     async calculateTotalRevenue() {
         try {

@@ -1022,8 +1022,12 @@ class OrdersAPI {
         return response.data;
     }
 
-    async cancelOrder(id) {
-        const response = await this.client.put(`/api/orders/${id}/cancel`);
+    async cancelOrder(id, options = {}) {
+        const payload = {};
+        if (options.reason) {
+            payload.reason = options.reason;
+        }
+        const response = await this.client.put(`/api/orders/${id}/cancel`, payload);
         return response.data;
     }
 

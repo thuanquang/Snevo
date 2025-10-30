@@ -105,6 +105,11 @@
                         minute: '2-digit'
                     });
 
+                    // Check if order can be cancelled (pending or processing)
+                    const canCancel = status === 'pending' || status === 'processing';
+                    const statusColor = status === 'pending' ? 'warning' : status === 'processing' ? 'info' : status === 'cancelled' ? 'danger' : status === 'delivered' ? 'success' : 'secondary';
+                    const statusLabel = status === 'processing' ? 'Approved' : status.charAt(0).toUpperCase() + status.slice(1);
+
                     return `
                         <div class="card mb-3 shadow-sm">
                             <div class="card-body">
@@ -115,8 +120,8 @@
                                             <i class="fas fa-calendar"></i> ${formattedDate}
                                         </div>
                                         <div class="mt-2">
-                                            <span class="badge bg-${status === 'pending' ? 'warning' : status === 'processing' ? 'info' : status === 'delivered' ? 'success' : 'secondary'}">
-                                                ${status.charAt(0).toUpperCase() + status.slice(1)}
+                                            <span class="badge bg-${statusColor}">
+                                                ${statusLabel}
                                             </span>
                                         </div>
                                     </div>
@@ -127,6 +132,11 @@
                                         <button class="btn btn-sm btn-outline-primary mt-3" onclick="window.location.href='orders.html?order_id=${order.order_id}'">
                                             View Details
                                         </button>
+                                        ${canCancel ? `
+                                            <button class="btn btn-sm btn-outline-danger mt-3" onclick="window.requestCancelOrder(${order.order_id}, this)">
+                                                Cancel Order
+                                            </button>
+                                        ` : ''}
                                     </div>
                                 </div>
                             </div>
@@ -140,6 +150,50 @@
                 container.innerHTML = `<p class="text-danger text-center py-5">Failed to load orders. ${err.message}</p>`;
             }
         })();
+
+        // Function to request order cancellation
+        window.requestCancelOrder = async function(orderId, buttonElement) {
+            // Prompt for reason
+            const reason = prompt('Why are you cancelling this order? (optional)', '');
+            
+            if (reason === null) {
+                // User clicked Cancel
+                return;
+            }
+
+            // Confirm cancellation
+            if (!confirm('Are you sure you want to cancel this order? Payment will be refunded if applicable.')) {
+                return;
+            }
+
+            try {
+                // Disable button to prevent double-click
+                if (buttonElement) {
+                    buttonElement.disabled = true;
+                    buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cancelling...';
+                }
+
+                // Call cancel API
+                const response = await window.ordersAPI.cancelOrder(orderId, { reason: reason || undefined });
+                
+                console.log('✅ Order cancelled:', response);
+                
+                // Show success message
+                alert('Order cancelled successfully. If payment was made, it will be refunded within 3-5 business days.');
+                
+                // Reload orders
+                location.reload();
+            } catch (err) {
+                console.error('❌ Failed to cancel order:', err);
+                alert('Failed to cancel order: ' + (err.message || 'Unknown error'));
+                
+                // Re-enable button
+                if (buttonElement) {
+                    buttonElement.disabled = false;
+                    buttonElement.innerHTML = '<i class="fas fa-times"></i> Cancel Order';
+                }
+            }
+        };
     </script>
 </body>
 </html>

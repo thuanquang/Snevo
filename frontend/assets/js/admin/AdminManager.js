@@ -55,7 +55,8 @@ class AdminManager {
         this.core.loadCategories(),
         this.core.loadColors(),
         this.core.loadSizes(),
-        this.loadDashboard()
+        // Dashboard data is now loaded via window.loadDashboardStats() when switching to dashboard section
+        // this.loadDashboard()
       ]);
 
       // Render initial data
@@ -461,7 +462,16 @@ class AdminManager {
           // Already loaded
           break;
         case "dashboard":
-          // Load dashboard stats (future)
+          // ✅ Load dashboard stats
+          if (window.loadDashboardStats) {
+            window.loadDashboardStats();
+          }
+          break;
+        case "orders":
+          // ✅ Load orders when section is switched to
+          if (window.adminLoadOrders) {
+            window.adminLoadOrders();
+          }
           break;
       }
     } else {
@@ -652,22 +662,32 @@ class AdminManager {
       `;
     }
 
-    const rows = orders.map(order => `
-      <tr>
-        <td>
-          ${order.avatar_url ? `<img src="${order.avatar_url}" alt="${order.username}" style="width: 30px; height: 30px; border-radius: 50%; margin-right: 8px;">` : '<i class="fas fa-user-circle" style="margin-right: 8px;"></i>'}
-          <strong>${order.username}</strong>
-        </td>
-        <td>#${order.order_id}</td>
-        <td>$${parseFloat(order.total_amount || 0).toFixed(2)}</td>
-        <td>
-          <span class="badge ${this.getStatusBadgeClass(order.order_status)}">
-            ${this.getStatusLabel(order.order_status)}
-          </span>
-        </td>
-        <td>${new Date(order.created_at).toLocaleDateString()}</td>
-      </tr>
-    `).join('');
+    const rows = orders.map(order => {
+      const canCancel = order.order_status === 'pending' || order.order_status === 'processing';
+      return `
+        <tr>
+          <td>
+            ${order.avatar_url ? `<img src="${order.avatar_url}" alt="${order.username}" style="width: 30px; height: 30px; border-radius: 50%; margin-right: 8px;">` : '<i class="fas fa-user-circle" style="margin-right: 8px;"></i>'}
+            <strong>${order.username}</strong>
+          </td>
+          <td>#${order.order_id}</td>
+          <td>₫${new Intl.NumberFormat('vi-VN').format(Math.round(order.total_amount || 0))}</td>
+          <td>
+            <span class="badge ${this.getStatusBadgeClass(order.order_status)}">
+              ${this.getStatusLabel(order.order_status)}
+            </span>
+          </td>
+          <td>${new Date(order.created_at).toLocaleDateString()}</td>
+          <td>
+            ${canCancel ? `
+              <button class="btn btn-sm btn-outline-danger" onclick="window.adminCancelOrder(${order.order_id})">
+                <i class="fas fa-times"></i> Cancel
+              </button>
+            ` : '-'}
+          </td>
+        </tr>
+      `;
+    }).join('');
 
     return `
       <table class="table table-sm table-hover">
@@ -678,6 +698,7 @@ class AdminManager {
             <th>Amount</th>
             <th>Status</th>
             <th>Date</th>
+            <th>Action</th>
           </tr>
         </thead>
         <tbody>
