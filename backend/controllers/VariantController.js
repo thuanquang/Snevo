@@ -144,31 +144,24 @@ class VariantController extends BaseController {
   async updateVariant(req, res) {
     return this.handleRequest(req, res, async () => {
       try {
+        // Require authentication
         this.requireRole(req, ["seller", "admin"]);
 
         const { id } = req.params;
 
+        // Validate request
         this.validateRequest(
           { ...req.body, id: parseInt(id) },
           {
-            id: {
-              required: true,
-              type: "integer",
-              min: 1,
-            },
-            sku: {
-              required: false,
-              type: "string",
-              maxLength: 50,
-            },
-            variant_price: {
-              required: false,
-              type: "number",
-              min: 0,
-            },
+            id: { required: true, type: "integer", min: 1 },
+            variant_price: { required: false, type: "number", min: 0 },
+            stock_quantity: { required: false, type: "integer", min: 0 },
+            sku: { required: false, type: "string", maxLength: 50 },
+            is_active: { required: false, type: "boolean" },
           }
         );
 
+        // Call model update method
         const updatedVariant = await this.ShoeVariant.update(
           parseInt(id),
           req.body

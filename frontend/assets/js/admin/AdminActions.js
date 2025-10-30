@@ -245,33 +245,37 @@ class AdminActions {
    */
   editVariant(variantId) {
     console.log("✏️ Edit variant:", variantId);
-    alert("Edit variant feature - Coming soon");
+    window.adminManager.variantGenerator.editVariant(variantId);
   }
 
   /**
    * Delete variant
    */
-async deleteVariant(variantId, buttonElement) {  // ✅ ADD buttonElement parameter
-  try {
-    // Get row from button element
-    const row = buttonElement.closest('tr');
-    
-    if (!row) {
-      console.error('❌ Could not find variant row');
-      return;
+  async deleteVariant(variantId, buttonElement) {
+    // ✅ ADD buttonElement parameter
+    try {
+      // Get row from button element
+      const row = buttonElement.closest("tr");
+
+      if (!row) {
+        console.error("❌ Could not find variant row");
+        return;
+      }
+
+      // Delegate to AdminVariantGenerator for business logic
+      if (window.adminManager?.variantGenerator) {
+        await window.adminManager.variantGenerator.deleteVariant(
+          variantId,
+          row
+        );
+      } else {
+        throw new Error("Variant generator not initialized");
+      }
+    } catch (error) {
+      console.error("Delete variant failed:", error);
+      // Error already handled in AdminVariantGenerator
     }
-    
-    // Delegate to AdminVariantGenerator for business logic
-    if (window.adminManager?.variantGenerator) {
-      await window.adminManager.variantGenerator.deleteVariant(variantId, row);
-    } else {
-      throw new Error('Variant generator not initialized');
-    }
-  } catch (error) {
-    console.error('Delete variant failed:', error);
-    // Error already handled in AdminVariantGenerator
   }
-}
 
   /**
    * Edit category

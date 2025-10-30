@@ -150,6 +150,7 @@ class ShoeVariant extends BaseModel {
           throw new Error("Invalid operation");
         }
       }
+  
 
       const { data, error } = await supabaseConfig
         .getAdminClient()
@@ -169,6 +170,102 @@ class ShoeVariant extends BaseModel {
     } catch (error) {
       throw new Error(`Failed to update stock: ${error.message}`);
     }
+  }
+  /**
+  * UPDATE VARIANT - Specific for shoe_variants
+  * Update variant_price and stock_quantity
+  */
+  async update(variantId, updateData) {
+      try {
+          console.log(`📝 Updating variant ${variantId} with data:`, updateData);
+          
+          // ✅ Validate variantId
+          if (!variantId || isNaN(parseInt(variantId))) {
+              throw new ValidationError("Invalid variant ID");
+          }
+          
+          // ✅ Check variant exists and get current data
+          const existingVariant = await this.findById(parseInt(variantId));
+          if (!existingVariant) {
+              throw new NotFoundError(`Variant with ID ${variantId} not found`);
+          }
+          
+          // ✅ Filter only fillable fields
+          const allowedFields = ['variant_price', 'stock_quantity', 'sku', 'is_active'];
+          const filteredData = {};
+          
+          for (const key of allowedFields) {
+              if (updateData.hasOwnProperty(key) && updateData[key] !== undefined) {
+                  filteredData[key] = updateData[key];
+              }
+          }
+          
+          // ✅ Validate data if any updates
+          if (Object.keys(filteredData).length === 0) {
+              throw new ValidationError("No valid fields to update");
+          }
+          
+          // ✅ Validate variant_price
+          if (filteredData.variant_price !== undefined) {
+              const price = parseFloat(filteredData.variant_price);
+              if (isNaN(price) || price < 0) {
+                  throw new ValidationError("variant_price must be a positive number");
+              }
+              filteredData.variant_price = price;
+          }
+          
+          // ✅ Validate stock_quantity
+          if (filteredData.stock_quantity !== undefined) {
+              const stock = parseInt(filteredData.stock_quantity);
+              if (isNaN(stock) || stock < 0) {
+                  throw new ValidationError("stock_quantity must be a non-negative integer");
+              }
+              filteredData.stock_quantity = stock;
+          }
+          
+          // ✅ Add updated_at timestamp
+          filteredData.updated_at = new Date().toISOString();
+          
+          console.log(`💾 Applying updates:`, filteredData);
+          
+          // ✅ Update in database
+          const { data, error } = await supabaseConfig
+              .getAdminClient()
+              .from(this.tableName)
+              .update(filteredData)
+              .eq('variant_id', parseInt(variantId))
+              .select(`
+                  *,
+                  shoes (shoe_id, shoe_name, base_price, image_url),
+                  colors (color_id, color_name, hex_code),
+                  sizes (size_id, size_value, size_type)
+              `)
+              .single();
+          
+          if (error) {
+              console.error("❌ Supabase update error:", error);
+              throw error;
+          }
+          
+          if (!data) {
+              throw new Error("Update successful but no data returned");
+          }
+          
+          // ✅ Check low stock alert if stock was updated
+          if (filteredData.stock_quantity !== undefined) {
+              await this._checkLowStockAlert(parseInt(variantId), filteredData.stock_quantity);
+          }
+          
+          console.log(`✅ Variant ${variantId} updated successfully`);
+          console.log(`   Price: ${existingVariant.variant_price} → ${data.variant_price}`);
+          console.log(`   Stock: ${existingVariant.stock_quantity} → ${data.stock_quantity}`);
+          
+          return data;
+          
+      } catch (error) {
+          console.error("❌ Update variant error:", error);
+          throw new Error(`Failed to update variant: ${error.message}`);
+      }
   }
 
   async checkStock(variantId, requestedQuantity) {

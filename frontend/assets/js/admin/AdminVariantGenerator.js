@@ -475,6 +475,166 @@ class AdminVariantGenerator {
       throw error;
     }
   }
+  /**
+   * ✅ EDIT VARIANT - Open modal với form edit
+   */
+  async editVariant(variantId) {
+    try {
+      console.log("✏️ Opening edit modal for variant:", variantId);
+
+      // Find variant in current variants list
+      const variant = this.core.currentVariants.find(
+        (v) => v.variant_id === variantId
+      );
+
+      if (!variant) {
+        this.showToast("Error", "Variant not found", "error");
+        return;
+      }
+
+      console.log("📝 Editing variant:", variant);
+
+      // Store current editing variant
+      this.editingVariant = variant;
+
+      // Populate form với data hiện tại
+      this.renderEditVariantForm(variant);
+
+      // Show modal
+      const modal = new bootstrap.Modal(
+        document.getElementById("editVariantModal")
+      );
+      modal.show();
+    } catch (error) {
+      console.error("❌ Edit variant error:", error);
+      this.showToast("Error", "Failed to open edit form", "error");
+    }
+  }
+
+  /**
+   * ✅ RENDER EDIT VARIANT FORM
+   */
+  renderEditVariantForm(variant) {
+    // Variant info
+    document.getElementById("edit_variant_sku").textContent = variant.sku;
+    document.getElementById("edit_variant_color").textContent =
+      variant.colors?.color_name || "N/A";
+    document.getElementById("edit_variant_size").textContent =
+      variant.sizes?.size_value || "N/A";
+
+    // Fill current values
+    document.getElementById("edit_variant_price").value =
+      variant.variant_price || "";
+    document.getElementById("edit_variant_stock").value =
+      variant.stock_quantity || 0;
+
+    console.log("✅ Form populated with current values:", {
+      price: variant.variant_price,
+      stock: variant.stock_quantity,
+    });
+  }
+
+  /**
+   * ✅ SUBMIT EDIT VARIANT
+   */
+  async submitEditVariant() {
+    try {
+      if (!this.editingVariant) {
+        throw new Error("No variant is being edited");
+      }
+
+      const variantId = this.editingVariant.variant_id;
+
+      // ✅ CHỈ lấy giá, KHÔNG lấy stock
+      const priceInput = document.getElementById("edit_variant_price");
+      const newPrice = priceInput.value ? parseFloat(priceInput.value) : null;
+
+      // ✅ Validate price
+      if (newPrice === null) {
+        this.showToast("Warning", "Please enter a price to update", "warning");
+        return;
+      }
+
+      if (isNaN(newPrice) || newPrice < 0) {
+        this.showToast("Error", "Price must be a positive number", "error");
+        return;
+      }
+
+      // ✅ Build update payload - CHỈ CÓ GIÁ
+      const updateData = {
+        variant_price: newPrice,
+      };
+
+      console.log("💾 Updating variant price:", { variantId, updateData });
+
+      // Show confirmation
+      const confirmMsg =
+        `Update variant "${this.editingVariant.sku}"?\n\n` +
+        `Price: ${
+          this.editingVariant.variant_price?.toLocaleString("vi-VN") || "N/A"
+        } → ${newPrice.toLocaleString("vi-VN")} VND\n\n` +
+        `Note: Stock quantity remains ${this.editingVariant.stock_quantity} units (managed via Import system)`;
+
+      if (!confirm(confirmMsg)) {
+        return;
+      }
+
+      // Call API
+      const response = await window.variantsAPI.updateVariant(
+        variantId,
+        updateData
+      );
+
+      if (response?.success) {
+        this.showToast(
+          "Success",
+          "Variant price updated successfully",
+          "success"
+        );
+
+        // Close modal
+        const modalEl = document.getElementById("editVariantModal");
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) {
+          modal.hide();
+        }
+
+        // Clean up backdrop
+        setTimeout(() => {
+          document
+            .querySelectorAll(".modal-backdrop")
+            .forEach((b) => b.remove());
+          document.body.classList.remove("modal-open");
+          document.body.style.overflow = "";
+          document.body.style.paddingRight = "";
+        }, 300);
+
+        // ✅ Reload variants
+        if (window.adminManager && window.adminManager.variantRenderer) {
+          console.log("🔄 Reloading variants via variantRenderer...");
+          await window.adminManager.variantRenderer.viewShoeDetails(
+            this.editingVariant.shoe_id
+          );
+        } else {
+          console.log("🔄 Reloading shoes list (fallback)...");
+          await this.core.loadShoes();
+          this.productRenderer.renderShoesTable();
+        }
+
+        // Clear editing variant
+        this.editingVariant = null;
+      } else {
+        throw new Error(response?.message || "Update failed");
+      }
+    } catch (error) {
+      console.error("❌ Submit edit error:", error);
+      this.showToast(
+        "Error",
+        "Failed to update variant: " + error.message,
+        "error"
+      );
+    }
+  }
 
   /**
    * ✅ Update variant count display
