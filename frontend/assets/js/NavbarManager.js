@@ -309,6 +309,39 @@ class NavbarManager {
       { passive: true }
     );
   }
+  /**
+   * ✅ Close user dropdown when scrolling down
+   */
+  initDropdownScrollBehavior() {
+      let lastScrollTop = 0;
+      const scrollThreshold = 5; // Sensitivity
+      
+      window.addEventListener('scroll', () => {
+          const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+          const scrollDelta = currentScroll - lastScrollTop;
+          
+          // ✅ Only close dropdown when scrolling DOWN
+          if (scrollDelta > scrollThreshold) {
+              // Find dropdown element
+              const userDropdown = document.getElementById('userDropdown');
+              if (userDropdown) {
+                  // Get Bootstrap dropdown instance
+                  const dropdownInstance = bootstrap.Dropdown.getInstance(userDropdown);
+                  
+                  // If dropdown is open, close it
+                  if (dropdownInstance && dropdownInstance._isShown()) {
+                      dropdownInstance.hide();
+                      console.log('📉 Closing user dropdown on scroll down');
+                  }
+              }
+          }
+          
+          // ✅ Scroll UP: Do nothing (don't auto-open dropdown)
+          
+          lastScrollTop = currentScroll;
+      }, { passive: true });
+  }
+
 
   /**
    * Setup scroll behavior for navbar
@@ -585,6 +618,8 @@ class NavbarManager {
 
     // Initialize scroll behavior
     this.initScrollBehavior();
+
+    this.initDropdownScrollBehavior();
 
     this.setupScrollBehavior();
 
