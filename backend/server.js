@@ -76,6 +76,7 @@ class Server {
         this.profileController = new ProfileController(this.models);
         this.addressController = new AddressController(this.models);     
         this.paymentController = new PaymentController(this.models);
+        if (this.paymentController.setModels) this.paymentController.setModels(this.models);
         this.adminController = new AdminController(this.models);
         this.cartController = new CartController(this.models);
         // set models for controllers that require setModels (CartController uses models)
@@ -234,15 +235,17 @@ class Server {
         // Auth routes for profile management
         if (pathname.startsWith('/api/auth/')) {
             await this.handleAuthRoutes(req, res, pathname, req.method, body);
-        } else if (pathname.startsWith('/api/orders/')) {
+        } else if (pathname.startsWith('/api/orders') && (pathname === '/api/orders' || pathname.startsWith('/api/orders/'))) {
             await this.handleOrderRoutes(req, res, pathname, req.method, body);
-        } else if (pathname.startsWith('/api/users/')) {
+        } else if (pathname.startsWith('/api/admin/orders') && (pathname === '/api/admin/orders' || pathname.startsWith('/api/admin/orders/'))) {
+            await this.handleAdminOrderRoutes(req, res, pathname, req.method, body);
+        } else if (pathname.startsWith('/api/users') && (pathname === '/api/users' || pathname.startsWith('/api/users/'))) {
             await this.handleUserRoutes(req, res, pathname, req.method, body);
-        } else if (pathname.startsWith('/api/profiles/')) {
+        } else if (pathname.startsWith('/api/profiles') && (pathname === '/api/profiles' || pathname.startsWith('/api/profiles/'))) {
             await this.handleProfileRoutes(req, res, pathname, req.method, body);
-        } else if (pathname.startsWith('/api/addresses/')) {
+        } else if (pathname.startsWith('/api/addresses') && (pathname === '/api/addresses' || pathname.startsWith('/api/addresses/'))) {
             await this.handleAddressRoutes(req, res, pathname, req.method, body);
-        } else if (pathname.startsWith('/api/payments/')) {
+        } else if (pathname.startsWith('/api/payments') && (pathname === '/api/payments' || pathname.startsWith('/api/payments/'))) {
             await this.handlePaymentRoutes(req, res, pathname, req.method, body);
         } else if (pathname.startsWith('/api/reviews/')) {
             await this.handleReviewRoutes(req, res, pathname, req.method, body);
@@ -261,20 +264,32 @@ class Server {
     // Order routes handler
     async handleOrderRoutes(req, res, pathname, method, body) {
         const orderPath = pathname.replace('/api/orders', '');
+        console.log('📦 Order Route:', { pathname, orderPath, method });
 
         // Check authentication for protected routes
         const authResult = await authMiddleware.authenticate(req, res);
         if (!authResult || !authResult.success) {
+            console.warn('⚠️ Auth failed for order route');
             return;
         }
         req.user = authResult.user;
+        console.log('✅ Auth OK, user:', req.user.id);
 
         if (orderPath === '/' || orderPath === '') {
+            console.log('📦 Order root path, method:', method);
             if (method === 'GET') {
                 await this.orderController.getOrders(req, res);
             } else if (method === 'POST') {
+                console.log('📦 Creating order, body:', body);
                 req.body = body;
                 await this.orderController.createOrder(req, res);
+            } else {
+                this.sendError(res, 'Method not allowed', 405);
+            }
+        } else if (orderPath === '/preview') {
+            console.log('📦 Preview path');
+            if (method === 'GET') {
+                await this.orderController.previewOrder(req, res);
             } else {
                 this.sendError(res, 'Method not allowed', 405);
             }
@@ -286,25 +301,44 @@ class Server {
             } else {
                 this.sendError(res, 'Method not allowed', 405);
             }
-        } else if (orderPath.startsWith('/status')) {
+        } else if (orderPath.match(/^\/\d+\/status$/)) {
             const id = orderPath.replace('/status', '').replace('/', '');
-            if (id && method === 'PUT') {
+            if (method === 'PUT') {
                 req.params = { id };
                 req.body = body;
                 await this.orderController.updateOrderStatus(req, res);
             } else {
-                this.sendError(res, 'API endpoint not found', 404);
+                this.sendError(res, 'Method not allowed', 405);
             }
-        } else if (orderPath.startsWith('/cancel')) {
+        } else if (orderPath.match(/^\/\d+\/cancel$/)) {
             const id = orderPath.replace('/cancel', '').replace('/', '');
-            if (id && method === 'PUT') {
+            if (method === 'PUT') {
                 req.params = { id };
                 req.body = body;
                 await this.orderController.cancelOrder(req, res);
             } else {
-                this.sendError(res, 'API endpoint not found', 404);
+                this.sendError(res, 'Method not allowed', 405);
+            }
+        } else if (orderPath.match(/^\/\d+\/address$/)) {
+            const id = orderPath.replace('/address', '').replace('/', '');
+            if (method === 'PUT') {
+                req.params = { id };
+                req.body = body;
+                await this.orderController.updateOrderAddress(req, res);
+            } else {
+                this.sendError(res, 'Method not allowed', 405);
+            }
+        } else if (orderPath.match(/^\/\d+\/reorder$/)) {
+            const id = orderPath.replace('/reorder', '').replace('/', '');
+            if (method === 'POST') {
+                req.params = { id };
+                req.body = body;
+                await this.orderController.reorderItems(req, res);
+            } else {
+                this.sendError(res, 'Method not allowed', 405);
             }
         } else {
+            console.warn('⚠️ Order route not found:', { orderPath, method });
             this.sendError(res, 'API endpoint not found', 404);
         }
     }
@@ -386,7 +420,39 @@ class Server {
 
     // User routes handler (placeholder implementation)
     async handleUserRoutes(req, res, pathname, method, body) {
-        this.sendError(res, 'User routes not implemented yet', 501);
+        // Check authentication
+        const authResult = await authMiddleware.authenticate(req, res);
+        if (!authResult || !authResult.success) {
+            return;
+        }
+        req.user = authResult.user;
+
+        // Handle /api/users/addresses
+        if (pathname === '/api/users/addresses') {
+            if (method === 'GET') {
+                await this.addressController.getAddresses(req, res);
+            } else if (method === 'POST') {
+                req.body = body;
+                await this.addressController.createAddress(req, res);
+            } else {
+                this.sendError(res, 'Method not allowed', 405);
+            }
+        } else if (pathname.match(/^\/api\/users\/addresses\/\d+$/)) {
+            const id = pathname.replace('/api/users/addresses/', '');
+            req.params = { id };
+            if (method === 'GET') {
+                await this.addressController.getAddress(req, res);
+            } else if (method === 'PUT') {
+                req.body = body;
+                await this.addressController.updateAddress(req, res);
+            } else if (method === 'DELETE') {
+                await this.addressController.deleteAddress(req, res);
+            } else {
+                this.sendError(res, 'Method not allowed', 405);
+            }
+        } else {
+            this.sendError(res, 'API endpoint not found', 404);
+        }
     }
 
     // Profile routes handler
@@ -465,16 +531,54 @@ class Server {
             } else {
                 this.sendError(res, 'Method not allowed', 405);
             }
+        } else if (paymentPath === '/process') {
+            if (method === 'POST') {
+                req.body = body;
+                await this.paymentController.processPayment(req, res);
+            } else {
+                this.sendError(res, 'Method not allowed', 405);
+            }
+        } else if (paymentPath.match(/^\/\d+\/confirm$/)) {
+            const id = paymentPath.split('/')[1];
+            req.params = { id };
+            if (method === 'POST') {
+                req.body = body;
+                await this.paymentController.confirmPayment(req, res);
+            } else {
+                this.sendError(res, 'Method not allowed', 405);
+            }
+        } else if (paymentPath.match(/^\/\d+\/approve$/)) {
+            const id = paymentPath.split('/')[1];
+            req.params = { id };
+            if (method === 'POST') {
+                req.body = body;
+                await this.paymentController.approveCod(req, res);
+            } else {
+                this.sendError(res, 'Method not allowed', 405);
+            }
+        } else if (paymentPath.match(/^\/\d+\/collect$/)) {
+            const id = paymentPath.split('/')[1];
+            req.params = { id };
+            if (method === 'POST') {
+                req.body = body;
+                await this.paymentController.collectCod(req, res);
+            } else {
+                this.sendError(res, 'Method not allowed', 405);
+            }
         } else if (paymentPath.match(/^\/\d+$/)) {
             const id = paymentPath.substring(1);
             req.params = { id };
             if (method === 'GET') {
                 await this.paymentController.getPayment(req, res);
-            } else if (method === 'PUT') {
+            } else {
+                this.sendError(res, 'Method not allowed', 405);
+            }
+        } else if (paymentPath.match(/^\/\d+\/status$/)) {
+            const id = paymentPath.split('/')[1];
+            req.params = { id };
+            if (method === 'PUT') {
                 req.body = body;
-                await this.paymentController.updatePayment(req, res);
-            } else if (method === 'DELETE') {
-                await this.paymentController.deletePayment(req, res);
+                await this.paymentController.updatePaymentStatus(req, res);
             } else {
                 this.sendError(res, 'Method not allowed', 405);
             }
@@ -517,6 +621,77 @@ class Server {
     // Admin routes handler
     async handleAdminRoutes(req, res, pathname, method, body) {
         return adminRoutes(req, res, this.adminController, pathname, this.sendError.bind(this));
+    }
+
+    // Admin order routes handler
+    async handleAdminOrderRoutes(req, res, pathname, method, body) {
+        const adminOrderPath = pathname.replace('/api/admin/orders', '');
+        console.log('📦 Admin Order Route:', { pathname, adminOrderPath, method });
+
+        // Check authentication for protected routes
+        const authResult = await authMiddleware.authenticate(req, res);
+        if (!authResult || !authResult.success) {
+            console.warn('⚠️ Auth failed for admin order route');
+            return;
+        }
+        req.user = authResult.user;
+        console.log('✅ Auth OK, user:', req.user.id);
+
+        if (adminOrderPath === '/' || adminOrderPath === '') {
+            console.log('📦 Admin Order root path, method:', method);
+            if (method === 'GET') {
+                await this.orderController.getAdminOrders(req, res);
+            } else {
+                this.sendError(res, 'Method not allowed', 405);
+            }
+        } else if (adminOrderPath.match(/^\/\d+$/)) {
+            const id = adminOrderPath.substring(1);
+            req.params = { id };
+            if (method === 'GET') {
+                await this.orderController.getOrder(req, res);
+            } else {
+                this.sendError(res, 'Method not allowed', 405);
+            }
+        } else if (adminOrderPath.match(/^\/\d+\/status$/)) {
+            const id = adminOrderPath.replace('/status', '').replace('/', '');
+            if (method === 'PUT') {
+                req.params = { id };
+                req.body = body;
+                await this.orderController.updateOrderStatus(req, res);
+            } else {
+                this.sendError(res, 'Method not allowed', 405);
+            }
+        } else if (adminOrderPath.match(/^\/\d+\/cancel$/)) {
+            const id = adminOrderPath.replace('/cancel', '').replace('/', '');
+            if (method === 'PUT') {
+                req.params = { id };
+                req.body = body;
+                await this.orderController.cancelOrder(req, res);
+            } else {
+                this.sendError(res, 'Method not allowed', 405);
+            }
+        } else if (adminOrderPath.match(/^\/\d+\/address$/)) {
+            const id = adminOrderPath.replace('/address', '').replace('/', '');
+            if (method === 'PUT') {
+                req.params = { id };
+                req.body = body;
+                await this.orderController.updateOrderAddress(req, res);
+            } else {
+                this.sendError(res, 'Method not allowed', 405);
+            }
+        } else if (adminOrderPath.match(/^\/\d+\/reorder$/)) {
+            const id = adminOrderPath.replace('/reorder', '').replace('/', '');
+            if (method === 'POST') {
+                req.params = { id };
+                req.body = body;
+                await this.orderController.reorderItems(req, res);
+            } else {
+                this.sendError(res, 'Method not allowed', 405);
+            }
+        } else {
+            console.warn('⚠️ Admin order route not found:', { adminOrderPath, method });
+            this.sendError(res, 'API endpoint not found', 404);
+        }
     }
 
     // Start the server

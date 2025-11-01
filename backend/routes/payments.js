@@ -14,4 +14,8 @@ router.post('/', paymentController.createPayment.bind(paymentController));
 router.post('/process', paymentController.processPayment.bind(paymentController));
 router.put('/:id/status', paymentController.updatePaymentStatus.bind(paymentController));
 
-module.exports = router;
+// Admin routes
+router.post('/:id/confirm', paymentController.confirmPayment.bind(paymentController));
+router.post('/:id/collect', paymentController.collectCod.bind(paymentController));
+
+export default router;

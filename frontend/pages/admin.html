@@ -65,6 +65,13 @@
               <span class="badge bg-warning ms-auto" id="deletedCount">0</span>
             </a>
           </li>
+          <li class="sidebar-menu-item">
+            <a href="#" class="sidebar-menu-link" data-section="orders">
+              <i class="fas fa-shopping-cart"></i>
+              <span>Orders Management</span>
+              <span class="badge bg-danger ms-auto" id="pendingOrdersCount">0</span>
+            </a>
+          </li>
           <li class="logout-item mt-4">
             <a href="#" class="sidebar-menu-link" id="logoutBtn">
               <i class="fas fa-sign-out-alt"></i>
@@ -86,10 +93,97 @@
             <h1>Dashboard</h1>
             <p>Overview of store statistics and metrics</p>
           </div>
-          <div class="empty-state">
-            <i class="fas fa-chart-pie"></i>
-            <h3>Dashboard Coming Soon</h3>
-            <p>Analytics and metrics will be displayed here</p>
+
+          <!-- Statistics Cards -->
+          <div class="row mb-4">
+            <!-- Pending Orders Card -->
+            <div class="col-md-3">
+              <div class="section-card">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div>
+                    <p class="text-muted small mb-2">Pending Orders</p>
+                    <h3 class="mb-0" id="dashPendingCount">0</h3>
+                  </div>
+                  <i class="fas fa-hourglass-half text-warning" style="font-size: 2rem;"></i>
+                </div>
+              </div>
+            </div>
+
+            <!-- Approved Orders Card -->
+            <div class="col-md-3">
+              <div class="section-card">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div>
+                    <p class="text-muted small mb-2">Approved Orders</p>
+                    <h3 class="mb-0" id="dashApprovedCount">0</h3>
+                  </div>
+                  <i class="fas fa-check-circle text-info" style="font-size: 2rem;"></i>
+                </div>
+              </div>
+            </div>
+
+            <!-- Cancelled Orders Card -->
+            <div class="col-md-3">
+              <div class="section-card">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div>
+                    <p class="text-muted small mb-2">Cancelled Orders</p>
+                    <h3 class="mb-0" id="dashCancelledCount">0</h3>
+                  </div>
+                  <i class="fas fa-times-circle text-danger" style="font-size: 2rem;"></i>
+                </div>
+              </div>
+            </div>
+
+            <!-- Total Revenue Card -->
+            <div class="col-md-3">
+              <div class="section-card">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div>
+                    <p class="text-muted small mb-2">Total Revenue</p>
+                    <h3 class="mb-0" id="dashTotalRevenue">₫0</h3>
+                  </div>
+                  <i class="fas fa-chart-line text-success" style="font-size: 2rem;"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Orders -->
+          <div class="section-card">
+            <div class="section-header">
+              <h2 class="section-title">
+                <i class="fas fa-list"></i> Recent Orders
+              </h2>
+              <div class="section-actions">
+                <a href="#" class="btn btn-sm btn-outline-secondary" data-section="orders" onclick="adminManager.switchSection('orders')">
+                  <i class="fas fa-arrow-right"></i> View All
+                </a>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="table table-hover table-sm">
+                <thead class="table-light">
+                  <tr>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
+                <tbody id="dashRecentOrdersBody">
+                  <tr>
+                    <td colspan="5" class="text-center py-3 text-muted">
+                      <div class="spinner-border spinner-border-sm text-dark" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
@@ -729,8 +823,109 @@
             </div>
           </div>
         </div>
+
+        <!-- Orders Management Section -->
+        <div id="ordersSection" class="content-section" style="display: none">
+          <div class="admin-header">
+            <h1><i class="fas fa-shopping-cart me-2"></i>Orders Management</h1>
+            <p>View, approve, and manage customer orders</p>
+          </div>
+
+          <!-- Orders Section Card -->
+          <div class="section-card">
+            <div class="section-header">
+              <h2 class="section-title">
+                <i class="fas fa-list"></i> All Orders
+              </h2>
+              <div class="section-actions">
+                <button class="btn btn-outline-secondary" onclick="window.adminLoadOrders()">
+                  <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+              </div>
+            </div>
+
+            <!-- Filters & Search -->
+            <div class="row mb-4">
+              <div class="col-md-4">
+                <div class="input-group">
+                  <span class="input-group-text bg-white">
+                    <i class="fas fa-search"></i>
+                  </span>
+                  <input 
+                    type="text" 
+                    class="form-control" 
+                    id="orderSearchInput" 
+                    placeholder="Search by Order ID..."
+                    onkeydown="if(event.key === 'Enter') window.adminLoadOrders()"
+                  />
+                  <button 
+                    class="btn btn-outline-secondary" 
+                    type="button" 
+                    onclick="window.adminLoadOrders()"
+                  >
+                    <i class="fas fa-search"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="col-md-3">
+                <div class="input-group">
+                  <span class="input-group-text bg-white">
+                    <i class="fas fa-filter"></i>
+                  </span>
+                  <select class="form-select" id="orderStatusFilter" onchange="window.adminLoadOrders()">
+                    <option value="">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="processing">Approved</option>
+                    <option value="delivered">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="col-md-2">
+                <button 
+                  class="btn btn-outline-secondary w-100" 
+                  onclick="document.getElementById('orderSearchInput').value = ''; document.getElementById('orderStatusFilter').value = ''; window.adminLoadOrders();"
+                >
+                  <i class="bi bi-x-circle me-1"></i>Clear
+                </button>
+              </div>
+            </div>
+
+            <!-- Orders Table -->
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead class="table-light">
+                  <tr>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Payment</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="ordersTableBody">
+                  <tr>
+                    <td colspan="7" class="text-center py-5">
+                      <div class="loading-container">
+                        <div class="spinner-border text-dark" role="status">
+                          <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-3 text-muted">Loading orders...</p>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </main>
     </div>
+
     <!-- ==================== IMPORT MODAL ==================== -->
     <div
       class="modal fade"
@@ -1148,6 +1343,26 @@
       </div>
     </div>
 
+    <!-- ORDER DETAIL MODAL -->
+    <div class="modal fade" id="orderDetailModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header bg-info text-white">
+            <h5 class="modal-title">
+              <i class="fas fa-box me-2"></i>Order Details
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div id="orderDetailContent"></div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Toast Notification -->
     <div class="toast-container position-fixed bottom-0 end-0 p-3">
       <div
@@ -1441,5 +1656,514 @@
     <script src="../assets/js/admin/AdminActions.js"></script>
     <script src="../assets/js/admin/AdminHistory.js"></script>
     <script src="../assets/js/admin/AdminManager.js"></script>
+
+    <script>
+        // Admin function to cancel orders
+        window.adminCancelOrder = async function(orderId, buttonElement) {
+            // Prompt for reason
+            const reason = prompt('Reason for cancellation:', 'Admin cancellation');
+            
+            if (reason === null) {
+                // User cancelled
+                return;
+            }
+
+            // Confirm cancellation
+            if (!confirm(`Cancel order #${orderId}? Payments will be refunded if applicable.`)) {
+                return;
+            }
+
+            try {
+                // Call cancel API with admin authority (same endpoint, admin owns all orders in this context)
+                const response = await window.ordersAPI.cancelOrder(orderId, { reason });
+                
+                console.log('✅ Order cancelled by admin:', response);
+                alert('Order cancelled successfully.');
+                
+                // Reload orders
+                window.adminLoadOrders();
+            } catch (err) {
+                console.error('❌ Failed to cancel order:', err);
+                alert('Failed to cancel order: ' + (err.message || 'Unknown error'));
+            }
+        };
+
+        // Load dashboard statistics
+        window.loadDashboardStats = async function() {
+            try {
+                const response = await window.adminOrdersAPI.getOrders();
+                console.log('📊 Raw response from API:', response);
+                
+                // Response format: { success, message, data: { orders: [], total, page, limit, pages } }
+                // Orders are nested inside data.orders
+                const ordersList = Array.isArray(response?.data?.orders) ? response.data.orders : [];
+                
+                console.log('📊 Extracted ordersList:', ordersList, 'length:', ordersList.length);
+                
+                if (!Array.isArray(ordersList)) {
+                    console.error('❌ ordersList is not an array:', typeof ordersList, ordersList);
+                    throw new Error('Invalid orders data format - not an array');
+                }
+                
+                // Count by status
+                const pendingCount = ordersList.filter(o => o.status === 'pending').length;
+                const approvedCount = ordersList.filter(o => o.status === 'processing').length;
+                const cancelledCount = ordersList.filter(o => o.status === 'cancelled').length;
+                
+                console.log('📊 Status counts:', { pendingCount, approvedCount, cancelledCount });
+                
+                // Calculate total revenue (from approved orders)
+                const totalRevenue = ordersList
+                    .filter(o => o.status === 'processing')
+                    .reduce((sum, o) => sum + (o.total_amount || 0), 0);
+                
+                // Update stat cards
+                document.getElementById('dashPendingCount').textContent = pendingCount;
+                document.getElementById('dashApprovedCount').textContent = approvedCount;
+                document.getElementById('dashCancelledCount').textContent = cancelledCount;
+                document.getElementById('dashTotalRevenue').textContent = '₫' + new Intl.NumberFormat('vi-VN').format(Math.round(totalRevenue));
+                
+                // Update pending orders badge in sidebar
+                const badgeElement = document.getElementById('pendingOrdersCount');
+                if (badgeElement) {
+                    badgeElement.textContent = pendingCount;
+                    badgeElement.style.display = pendingCount > 0 ? 'inline-block' : 'none';
+                }
+                
+                // Display recent orders (last 5)
+                const recentOrders = ordersList.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 5);
+                
+                console.log('📊 Recent orders (first 5):', recentOrders);
+                
+                const tbody = document.getElementById('dashRecentOrdersBody');
+                if (recentOrders.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">No orders yet</td></tr>';
+                    console.log('✅ Dashboard rendered - no orders');
+                    return;
+                }
+                
+                const rows = recentOrders.map(order => {
+                    const totalAmount = order.total_amount || 0;
+                    const status = order.status || 'pending';
+                    const orderDate = new Date(order.created_at || order.order_date);
+                    const formattedDate = orderDate.toLocaleString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                    
+                    // Status badge colors
+                    const statusColors = {
+                        'pending': 'bg-warning',
+                        'processing': 'bg-info',
+                        'cancelled': 'bg-danger'
+                    };
+                    const statusColor = statusColors[status] || 'bg-secondary';
+                    const statusLabel = status === 'processing' ? 'Approved' : status.charAt(0).toUpperCase() + status.slice(1);
+                    
+                    // Get customer name from profiles
+                    const customerName = order.profiles?.username || 'Unknown Customer';
+                    
+                    return `
+                        <tr>
+                            <td><strong>#${order.order_id}</strong></td>
+                            <td>${customerName}</td>
+                            <td>₫${new Intl.NumberFormat('vi-VN').format(Math.round(totalAmount))}</td>
+                            <td><span class="badge ${statusColor}">${statusLabel}</span></td>
+                            <td><small class="text-muted">${formattedDate}</small></td>
+                        </tr>
+                    `;
+                }).join('');
+                
+                tbody.innerHTML = rows;
+                console.log('✅ Dashboard stats loaded - rendered', recentOrders.length, 'orders');
+            } catch (err) {
+                console.error('❌ Failed to load dashboard stats:', err);
+                
+                // If not authenticated, hide the error
+                if (err.message && err.message.includes('401')) {
+                    console.log('ℹ️ User not authenticated, skipping dashboard stats');
+                    const badgeElement = document.getElementById('pendingOrdersCount');
+                    if (badgeElement) {
+                        badgeElement.style.display = 'none';
+                    }
+                    return;
+                }
+                
+                // Show error for other cases
+                const tbody = document.getElementById('dashRecentOrdersBody');
+                if (tbody) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-3">
+                                Unable to load data: ${err.message}
+                            </td>
+                        </tr>
+                    `;
+                }
+            }
+        };
+
+        // Load all orders for admin
+        window.adminLoadOrders = async function() {
+            try {
+                const statusFilter = document.getElementById('orderStatusFilter')?.value || '';
+                const searchId = document.getElementById('orderSearchInput')?.value || '';
+                
+                console.log('📦 Loading orders with filters:', { statusFilter, searchId });
+                
+                // Fetch all orders using admin API
+                const response = await window.adminOrdersAPI.getOrders({ status: statusFilter, search: searchId });
+                console.log('📦 Raw API response:', response);
+                
+                // Response format: { success, message, data: { orders: [], total, page, limit, pages } }
+                // Orders are nested inside data.orders
+                const ordersList = Array.isArray(response?.data?.orders) ? response.data.orders : [];
+                
+                console.log('📦 Extracted ordersList:', ordersList, 'length:', ordersList.length);
+                
+                if (!Array.isArray(ordersList)) {
+                    console.error('❌ ordersList is not an array:', typeof ordersList, ordersList);
+                    throw new Error('Invalid orders data format - not an array');
+                }
+                
+                // Count pending orders for badge
+                const pendingCount = ordersList.filter(o => o.status === 'pending').length;
+                const badgeElement = document.getElementById('pendingOrdersCount');
+                if (badgeElement) {
+                    badgeElement.textContent = pendingCount;
+                    badgeElement.style.display = pendingCount > 0 ? 'inline-block' : 'none';
+                }
+                
+                console.log('📦 Rendering', ordersList.length, 'orders...');
+                
+                // Render orders (already filtered by status and search from API)
+                window.adminRenderOrders(ordersList);
+                
+                console.log('✅ Orders loaded and rendered successfully');
+            } catch (err) {
+                console.error('❌ Failed to load orders:', err);
+                document.getElementById('ordersTableBody').innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center text-danger py-4">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            Failed to load orders: ${err.message}
+                        </td>
+                    </tr>
+                `;
+            }
+        };
+
+        // Render orders in table
+        window.adminRenderOrders = function(orders) {
+            const tbody = document.getElementById('ordersTableBody');
+            
+            if (!orders || orders.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            <i class="fas fa-inbox me-2"></i>
+                            No orders found
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            const rows = orders.map(order => {
+                const totalAmount = order.total_amount || 0;
+                const status = order.status || 'pending';
+                const orderDate = new Date(order.created_at || order.order_date);
+                const formattedDate = orderDate.toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                // Status badge colors
+                const statusColors = {
+                    'pending': 'bg-warning',
+                    'processing': 'bg-info',
+                    'delivered': 'bg-success',
+                    'cancelled': 'bg-danger',
+                    'refunded': 'bg-secondary'
+                };
+                const statusColor = statusColors[status] || 'bg-secondary';
+                
+                // Status labels
+                const statusLabels = {
+                    'pending': 'Pending',
+                    'processing': 'Approved',
+                    'delivered': 'Completed',
+                    'cancelled': 'Cancelled'
+                };
+                const statusLabel = statusLabels[status] || status.charAt(0).toUpperCase() + status.slice(1);
+                
+                // Payment info
+                const payment = order.payment || null;
+                const paymentMethodDisplay = payment ? window.adminManager.getPaymentMethodDisplay(payment.payment_method) : 'N/A';
+                const paymentStatusBadge = payment ? window.adminManager.getPaymentStatusBadge(payment.status) : '<span class="badge bg-secondary">N/A</span>';
+                
+                // Can approve (pending) or cancel (pending/processing)
+                const canApprove = status === 'pending';
+                const canCancel = status === 'pending' || status === 'processing';
+                
+                return `
+                    <tr>
+                        <td><strong>#${order.order_id}</strong></td>
+                        <td>${order.profiles?.username || 'Unknown Customer'}</td>
+                        <td><strong>₫${new Intl.NumberFormat('vi-VN').format(Math.round(totalAmount))}</strong></td>
+                        <td>
+                            <span class="badge ${statusColor}">
+                                ${statusLabel}
+                            </span>
+                        </td>
+                        <td><small>${paymentMethodDisplay}</small><br>${paymentStatusBadge}</td>
+                        <td><small class="text-muted">${formattedDate}</small></td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button type="button" class="btn btn-outline-primary" onclick="window.adminViewOrderDetail(${order.order_id})" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                ${canApprove ? `
+                                    <button type="button" class="btn btn-outline-success" onclick="window.adminApproveOrder(${order.order_id})" title="Approve">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                ` : ''}
+                                ${canCancel ? `
+                                    <button type="button" class="btn btn-outline-danger" onclick="window.adminCancelOrder(${order.order_id})" title="Cancel">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            
+            tbody.innerHTML = rows;
+        };
+
+        // View order details
+        window.adminViewOrderDetail = async function(orderId) {
+            try {
+                const response = await window.adminOrdersAPI.getOrder(orderId);
+                console.log('📦 Order details:', response);
+                
+                const orderData = response?.data || response;
+                const items = orderData.order_items || [];
+                const address = orderData.address || {};
+                const payment = orderData.payment || orderData.payments?.[0] || null;
+                const totalAmount = orderData.total_amount || 0;
+                const status = orderData.status || 'pending';
+                const orderDate = new Date(orderData.created_at || orderData.order_date);
+                const formattedDate = orderDate.toLocaleString('en-US', {
+                    year: 'numeric', month: 'short', day: 'numeric', 
+                    hour: '2-digit', minute: '2-digit'
+                });
+                
+                const statusColors = {
+                    'pending': 'warning',
+                    'processing': 'success',
+                    'cancelled': 'danger',
+                    'refunded': 'secondary'
+                };
+                const statusColor = statusColors[status] || 'secondary';
+                const statusLabel = status === 'processing' ? 'Approved' : status.charAt(0).toUpperCase() + status.slice(1);
+                
+                let itemsHtml = items.map(item => `
+                    <tr>
+                        <td>${item.shoe_variants?.shoes?.shoe_name || 'Product'}</td>
+                        <td>${item.quantity}</td>
+                        <td>₫${new Intl.NumberFormat('vi-VN').format(Math.round(item.price_per_unit))}</td>
+                        <td>₫${new Intl.NumberFormat('vi-VN').format(Math.round(item.quantity * item.price_per_unit))}</td>
+                    </tr>
+                `).join('');
+                
+                // Payment section with admin actions
+                let paymentSection = '';
+                if (payment) {
+                    const paymentMethodDisplay = window.adminManager.getPaymentMethodDisplay(payment.payment_method);
+                    const paymentStatusBadge = window.adminManager.getPaymentStatusBadge(payment.status);
+                    const paymentDetailsHtml = window.adminManager.renderPaymentDetails(payment);
+                    
+                    // Admin action buttons based on order status and payment method
+                    let actionButtons = '';
+                    
+                    // Bank Transfer: Confirm payment when pending
+                    if (payment.payment_method === 'bank_transfer' && payment.status === 'pending') {
+                        actionButtons = `
+                            <button class="btn btn-success btn-sm mt-2" onclick="window.adminManager.confirmPayment(${payment.payment_id}); bootstrap.Modal.getInstance(document.getElementById('orderDetailModal')).hide();">
+                                <i class="fas fa-check-circle"></i> Confirm Payment
+                            </button>
+                        `;
+                    } 
+                    // COD: Different buttons for different stages
+                    else if (payment.payment_method === 'cash') {
+                        if (status === 'pending') {
+                            // Step 1: Approve for delivery
+                            actionButtons = `
+                                <button class="btn btn-success btn-sm mt-2" onclick="window.adminManager.approveCod(${payment.payment_id}); bootstrap.Modal.getInstance(document.getElementById('orderDetailModal')).hide();">
+                                    <i class="fas fa-check-circle"></i> Approve Order
+                                </button>
+                            `;
+                        } else if (status === 'processing' && payment.status === 'pending') {
+                            // Step 2: Mark as collected after delivery
+                            actionButtons = `
+                                <button class="btn btn-primary btn-sm mt-2" onclick="window.adminManager.collectCod(${payment.payment_id}); bootstrap.Modal.getInstance(document.getElementById('orderDetailModal')).hide();">
+                                    <i class="fas fa-money-bill-wave"></i> Mark as Collected
+                                </button>
+                            `;
+                        }
+                    }
+                    
+                    paymentSection = `
+                        <hr>
+                        <h6 class="fw-bold mb-3">Payment Information</h6>
+                        <div class="card bg-light mb-2">
+                            <div class="card-body">
+                                <div class="row mb-2">
+                                    <div class="col-6">
+                                        <p class="mb-1"><strong>Method:</strong></p>
+                                        <p class="mb-0">${paymentMethodDisplay}</p>
+                                    </div>
+                                    <div class="col-6">
+                                        <p class="mb-1"><strong>Status:</strong></p>
+                                        <p class="mb-0">${paymentStatusBadge}</p>
+                                    </div>
+                                </div>
+                                <hr class="my-2">
+                                <p class="mb-1"><strong>Details:</strong></p>
+                                ${paymentDetailsHtml}
+                                ${actionButtons}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    paymentSection = `
+                        <hr>
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            No payment information available
+                        </div>
+                    `;
+                }
+                
+                const detailHtml = `
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Order ID</h6>
+                            <p class="fs-5 fw-bold">#${orderData.order_id}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Status</h6>
+                            <p><span class="badge bg-${statusColor} fs-6">${statusLabel}</span></p>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Order Date</h6>
+                            <p>${formattedDate}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Customer</h6>
+                            <p>${address.recipient_name  || 'Unknown'}</p>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h6 class="fw-bold mb-3">Shipping Address</h6>
+                    <div class="card bg-light mb-3">
+                        <div class="card-body">
+                            <p class="mb-1"><strong>${address.recipient_name || 'N/A'}</strong></p>
+                            <p class="mb-1">📞 ${address.phone_number || 'N/A'}</p>
+                            <p class="mb-0">📍 ${[address.street, address.ward, address.district, address.city, address.zip_code].filter(Boolean).join(', ')}</p>
+                        </div>
+                    </div>
+                    
+                    <h6 class="fw-bold mb-3">Order Items</h6>
+                    <table class="table table-sm table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Product</th>
+                                <th>Qty</th>
+                                <th>Price</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${itemsHtml || '<tr><td colspan="4" class="text-center text-muted">No items</td></tr>'}
+                        </tbody>
+                    </table>
+                    
+                    <hr>
+                    
+                    <h6 class="fw-bold mb-3">Payment Summary</h6>
+                    <div class="row text-end">
+                        <div class="col-md-6 offset-md-6">
+                            <p class="mb-1"><strong>Subtotal:</strong> ₫${new Intl.NumberFormat('vi-VN').format(Math.round(totalAmount - (orderData.shipping_cost || 0) - (orderData.tax_amount || 0)))}</p>
+                            <p class="mb-1"><strong>Shipping:</strong> ₫${new Intl.NumberFormat('vi-VN').format(Math.round(orderData.shipping_cost || 0))}</p>
+                            <p class="mb-3"><strong>Tax:</strong> ₫${new Intl.NumberFormat('vi-VN').format(Math.round(orderData.tax_amount || 0))}</p>
+                            <p class="mb-0 fs-5"><strong>Total:</strong> ₫${new Intl.NumberFormat('vi-VN').format(Math.round(totalAmount))}</p>
+                        </div>
+                    </div>
+                    
+                    ${paymentSection}
+                    
+                    ${orderData.notes ? `
+                        <hr>
+                        <h6 class="fw-bold mb-2">Notes</h6>
+                        <div class="alert alert-secondary small mb-0">${orderData.notes}</div>
+                    ` : ''}
+                `;
+                
+                document.getElementById('orderDetailContent').innerHTML = detailHtml;
+                const modal = new bootstrap.Modal(document.getElementById('orderDetailModal'));
+                modal.show();
+            } catch (err) {
+                console.error('❌ Failed to load order:', err);
+                alert('Failed to load order details: ' + (err.message || 'Unknown error'));
+            }
+        };
+
+        // Approve order (change status from pending to processing)
+        window.adminApproveOrder = async function(orderId) {
+            if (!confirm(`Approve order #${orderId}?`)) {
+                return;
+            }
+            
+            try {
+                const response = await window.ordersAPI.updateOrderStatus(orderId, 'processing');
+                console.log('✅ Order approved:', response);
+                alert('Order approved successfully.');
+                window.adminLoadOrders();
+            } catch (err) {
+                console.error('❌ Failed to approve order:', err);
+                alert('Failed to approve order: ' + (err.message || 'Unknown error'));
+            }
+        };
+
+        // Load orders on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Listen for section changes
+            const originalShowSection = window.showSection;
+            window.showSection = function(sectionName) {
+                if (originalShowSection) originalShowSection(sectionName);
+                
+                if (sectionName === 'orders') {
+                    window.adminLoadOrders();
+                }
+            };
+
+            // Load dashboard stats on page load
+            window.loadDashboardStats();
+        });
+    </script>
   </body>
 </html>
