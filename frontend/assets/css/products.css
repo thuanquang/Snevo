@@ -70,6 +70,24 @@ html {
   color: #000;
 }
 
+/* Product Rating */
+.product-rating {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.product-rating i {
+  font-size: 14px;
+}
+
+.product-rating .rating-text {
+  font-size: 0.85rem;
+  color: #6c757d;
+  font-weight: 500;
+}
+
 /* Filter Styles */
 .filters-sidebar {
   background: white;

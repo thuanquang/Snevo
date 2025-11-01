@@ -26,6 +26,7 @@ import ImportController from './controllers/ImportController.js';
 import PaymentController from './controllers/PaymentController.js';
 import AdminController from './controllers/AdminController.js';
 import CartController from './controllers/CartController.js';
+import ReviewController from './controllers/ReviewController.js';
 import authMiddleware from './middleware/auth.js';
 import uploadMiddleware from './middleware/upload.js';
 import { createAvatarUploadMiddleware } from './middleware/upload.js';
@@ -42,6 +43,7 @@ import sizeRoutes from './routes/sizes.js';
 import importRoutes from './routes/imports.js';
 import adminRoutes from './routes/admin.js';
 import cartRoutes from './routes/cart.js';
+import reviewRoutes from './routes/reviews.js';
 
 class Server {
     constructor() {
@@ -81,6 +83,8 @@ class Server {
         this.cartController = new CartController(this.models);
         // set models for controllers that require setModels (CartController uses models)
         if (this.cartController.setModels) this.cartController.setModels(this.models);
+        this.reviewController = new ReviewController();
+        if (this.reviewController.setModels) this.reviewController.setModels(this.models);
 
         // Setup routes
         this.setupRoutes();
@@ -204,6 +208,15 @@ class Server {
         req.query = parsedUrl.query || {};
 
         // ⭐ MODULAR ROUTES (Your modules - use routes/ folder)
+        // ⚠️ IMPORTANT: Review routes MUST come before product routes
+        // because /api/products/:id/reviews/* would match /api/products first!
+        
+        // Review routes (both /api/reviews and /api/products/:id/reviews)
+        if (pathname.startsWith('/api/reviews') || pathname.match(/^\/api\/products\/\d+\/reviews/)) {
+            await reviewRoutes(req, res, this.reviewController, pathname);
+            return;
+        }
+        
         if (pathname.startsWith('/api/products')) {
             return productRoutes(req, res, this.productController, pathname);
         }
@@ -229,7 +242,7 @@ class Server {
         if (pathname.startsWith('/api/cart')) {
             await cartRoutes(req, res, this.cartController, pathname);
             return;
-        }       
+        }
 
         // ⭐ BUILT-IN ROUTES (Keep existing handlers)
         // Auth routes for profile management
@@ -247,8 +260,6 @@ class Server {
             await this.handleAddressRoutes(req, res, pathname, req.method, body);
         } else if (pathname.startsWith('/api/payments') && (pathname === '/api/payments' || pathname.startsWith('/api/payments/'))) {
             await this.handlePaymentRoutes(req, res, pathname, req.method, body);
-        } else if (pathname.startsWith('/api/reviews/')) {
-            await this.handleReviewRoutes(req, res, pathname, req.method, body);
         } else if (pathname === '/api/admin' || pathname.startsWith('/api/admin/')) {
             await this.handleAdminRoutes(req, res, pathname, req.method, body);
         } else {
@@ -579,37 +590,6 @@ class Server {
             if (method === 'PUT') {
                 req.body = body;
                 await this.paymentController.updatePaymentStatus(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else {
-            this.sendError(res, 'API endpoint not found', 404);
-        }
-    }
-
-    // Review routes handler
-    async handleReviewRoutes(req, res, pathname, method, body) {
-        const reviewPath = pathname.replace('/api/reviews', '');
-
-        if (reviewPath === '/' || reviewPath === '') {
-            if (method === 'GET') {
-                await this.reviewController.getReviews(req, res);
-            } else if (method === 'POST') {
-                req.body = body;
-                await this.reviewController.createReview(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else if (reviewPath.match(/^\/\d+$/)) {
-            const id = reviewPath.substring(1);
-            req.params = { id };
-            if (method === 'GET') {
-                await this.reviewController.getReview(req, res);
-            } else if (method === 'PUT') {
-                req.body = body;
-                await this.reviewController.updateReview(req, res);
-            } else if (method === 'DELETE') {
-                await this.reviewController.deleteReview(req, res);
             } else {
                 this.sendError(res, 'Method not allowed', 405);
             }
