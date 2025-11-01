@@ -19,14 +19,37 @@ class OrderController extends BaseController {
     this.Order = models.Order;
     this.OrderItem = models.OrderItem;
     this.Cart = models.Cart;
+    this.Payment = models.Payment;
   }
 
   // GET /api/orders
   async getOrders(req, res) {
     return this.handleRequest(req, res, async () => {
       this.requireAuth(req);
-      const result = await this.Order.findByUserId(req.user.id);
+      const { status, page = 1, limit = 10 } = req.query || {};
+      const result = await this.Order.findByUserId(req.user.id, status || null, page, limit);
       this.sendResponse(res, result, 'Orders fetched');
+    });
+  }
+
+  // GET /api/admin/orders - Get ALL orders (admin only)
+  async getAdminOrders(req, res) {
+    return this.handleRequest(req, res, async () => {
+      this.requireAuth(req);
+      console.log('🔐 Admin user:', req.user.id);
+      // TODO: Add admin role check here if needed
+      const { status, page = 1, limit = 10, search = '' } = req.query || {};
+      console.log('📊 getAdminOrders params:', { status, page, limit, search });
+      
+      const result = await this.Order.getAllOrders(status || null, page, limit, search);
+      
+      console.log('📊 getAdminOrders result:', { 
+        ordersCount: result.orders.length,
+        total: result.total,
+        pages: result.pages
+      });
+      
+      this.sendResponse(res, result, 'Admin orders fetched');
     });
   }
 
@@ -177,31 +200,16 @@ class OrderController extends BaseController {
         return;
       }
 
-      // Only allow cancelling pending or processing (processing = paid/success) orders
-      const allowedStatuses = [constants.ORDER_STATUS.PENDING, constants.ORDER_STATUS.SUCCESS];
-      if (!allowedStatuses.includes(order.status)) {
+      // USER CAN ONLY CANCEL PENDING ORDERS
+      // For regular users, only pending orders can be cancelled freely
+      // Processing/success orders require admin intervention
+      if (order.status !== constants.ORDER_STATUS.PENDING) {
         this.sendError(
           res, 
-          `Cannot cancel order with status '${order.status}'. Orders can only be cancelled if pending or approved. Please contact support for shipped/delivered orders.`,
+          `Cannot cancel order with status '${order.status}'. Only pending orders can be cancelled. Please contact support for approved/shipped orders.`,
           constants.HTTP_STATUS.UNPROCESSABLE_ENTITY
         );
         return;
-      }
-
-      // If cancelling a processing (paid) order, refund associated payments
-      if (order.status === constants.ORDER_STATUS.SUCCESS) {
-        try {
-          const payments = await this.Payment.findByOrderId(parseInt(id));
-          for (const payment of payments) {
-            if (payment.status !== constants.PAYMENT_STATUS.REFUNDED) {
-              console.log(`💳 Refunding payment ${payment.payment_id} for cancelled order`);
-              await this.Payment.refundPayment(payment.payment_id, `Order cancelled: ${reason || 'No reason provided'}`);
-            }
-          }
-        } catch (e) {
-          console.warn('⚠️ Failed to process refunds:', e?.message || e);
-          // Non-blocking: continue with order cancellation
-        }
       }
 
       // Build cancellation reason with timestamp
@@ -226,12 +234,8 @@ class OrderController extends BaseController {
         throw new Error(`Failed to cancel order: ${error.message}`);
       }
 
-      // Trigger restore_stock_on_cancel() automatically fires
-      const message = order.status === constants.ORDER_STATUS.SUCCESS 
-        ? 'Order cancelled successfully. Payment has been refunded and stock has been released.'
-        : 'Order cancelled successfully. Stock has been released.';
-      
-      this.sendResponse(res, updatedOrder, message);
+      // Trigger restore_stock_on_cancel() automatically fires via DB
+      this.sendResponse(res, updatedOrder, 'Order cancelled successfully. Stock has been released.');
     });
   }
 
@@ -284,6 +288,59 @@ class OrderController extends BaseController {
       }
 
       this.sendResponse(res, data, 'Order address updated');
+    });
+  }
+
+  // POST /api/orders/:id/reorder - Copy order items back to cart
+  async reorderItems(req, res) {
+    return this.handleRequest(req, res, async () => {
+      this.requireAuth(req);
+      const { id } = req.params;
+      
+      // Get order and verify ownership
+      const order = await this.Order.findWithItems(parseInt(id));
+      if (!order || order.user_id !== req.user.id) {
+        this.sendError(res, 'Order not found', constants.HTTP_STATUS.NOT_FOUND);
+        return;
+      }
+      
+      // Get order items
+      if (!order.order_items || order.order_items.length === 0) {
+        this.sendError(res, 'No items in this order', constants.HTTP_STATUS.BAD_REQUEST);
+        return;
+      }
+      
+      // Add items to cart
+      let itemsAdded = 0;
+      try {
+        for (const orderItem of order.order_items) {
+          // Check if item already in cart
+          const existingCart = await this.Cart.findByUserAndVariant(req.user.id, orderItem.variant_id);
+          
+          if (existingCart) {
+            // Update quantity
+            await supabaseConfig.getAdminClient()
+              .from('carts')
+              .update({ quantity: existingCart.quantity + orderItem.quantity, updated_at: new Date().toISOString() })
+              .eq('cart_id', existingCart.cart_id);
+          } else {
+            // Insert new item
+            await supabaseConfig.getAdminClient()
+              .from('carts')
+              .insert([{
+                user_id: req.user.id,
+                variant_id: orderItem.variant_id,
+                quantity: orderItem.quantity,
+                price_at_add: orderItem.price_per_unit
+              }]);
+          }
+          itemsAdded++;
+        }
+        
+        this.sendResponse(res, { items_added: itemsAdded }, 'Items added to cart', constants.HTTP_STATUS.CREATED);
+      } catch (err) {
+        throw new Error(`Failed to add items to cart: ${err.message}`);
+      }
     });
   }
 }

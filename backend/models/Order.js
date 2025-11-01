@@ -11,15 +11,36 @@ class Order extends BaseModel {
         super('orders', 'order_id');
     }
 
-    // Get orders by user ID
-    async findByUserId(userId) {
-        const { data, error } = await supabaseConfig.getAdminClient()
+    // Get orders by user ID with optional status filter and pagination
+    async findByUserId(userId, status = null, page = 1, limit = 10) {
+        let query = supabaseConfig.getAdminClient()
             .from(this.tableName)
-            .select('*')
+            .select(`
+                *,
+                order_items (order_item_id, quantity)
+            `, { count: 'exact' })
             .eq('user_id', userId)
             .order('created_at', { ascending: false });
+        
+        // Filter by status if provided
+        if (status) {
+            query = query.eq('status', status);
+        }
+        
+        // Apply pagination
+        const offset = (parseInt(page) - 1) * parseInt(limit);
+        query = query.range(offset, offset + parseInt(limit) - 1);
+        
+        const { data, error, count } = await query;
         if (error) throw new Error(`Failed to fetch orders: ${error.message}`);
-        return data || [];
+        
+        return {
+            orders: data || [],
+            total: count || 0,
+            page: parseInt(page),
+            limit: parseInt(limit),
+            pages: Math.ceil((count || 0) / parseInt(limit))
+        };
     }
 
     // Get orders by status
@@ -28,18 +49,145 @@ class Order extends BaseModel {
         throw new Error('Find by status method not implemented');
     }
 
-    // Get order with items
+    // Get ALL orders (for admin) with user profile info and pagination
+    async getAllOrders(status = null, page = 1, limit = 10, search = '') {
+        console.log('📊 getAllOrders called with:', { status, page, limit, search });
+        
+        let query = supabaseConfig.getAdminClient()
+            .from(this.tableName)
+            .select(`
+                order_id,
+                user_id,
+                address_id,
+                total_amount,
+                shipping_cost,
+                tax_amount,
+                status,
+                notes,
+                created_at,
+                updated_at,
+                order_items (order_item_id)
+            `, { count: 'exact' })
+            .order('created_at', { ascending: false });
+        
+        // Filter by status if provided
+        if (status) {
+            console.log('🔍 Filtering by status:', status);
+            query = query.eq('status', status);
+        }
+        
+        // Search by order_id if provided
+        if (search) {
+            console.log('🔍 Searching by order_id:', search);
+            query = query.ilike('order_id', `%${search}%`);
+        }
+        
+        // Apply pagination
+        const offset = (parseInt(page) - 1) * parseInt(limit);
+        query = query.range(offset, offset + parseInt(limit) - 1);
+        
+        const { data, error, count } = await query;
+        
+        console.log('📊 Query result - error:', error, 'count:', count, 'data length:', data?.length);
+        
+        if (error) {
+            console.error('❌ Query error:', error.message);
+            throw new Error(`Failed to fetch admin orders: ${error.message}`);
+        }
+        
+        // Fetch user profiles separately to avoid relationship issues
+        let ordersWithProfiles = data || [];
+        console.log('📊 Orders fetched:', ordersWithProfiles.length);
+        
+        if (ordersWithProfiles.length > 0) {
+            const userIds = [...new Set(ordersWithProfiles.map(o => o.user_id).filter(Boolean))];
+            console.log('👥 User IDs:', userIds);
+            
+            if (userIds.length > 0) {
+                const { data: profiles, error: profileError } = await supabaseConfig.getAdminClient()
+                    .from('profiles')
+                    .select('user_id, username, email')
+                    .in('user_id', userIds);
+                
+                console.log('👥 Profiles fetched:', profiles?.length, 'error:', profileError);
+                
+                if (!profileError && profiles) {
+                    const profileMap = {};
+                    profiles.forEach(p => {
+                        profileMap[p.user_id] = p;
+                    });
+                    
+                    ordersWithProfiles = ordersWithProfiles.map(order => ({
+                        ...order,
+                        profiles: profileMap[order.user_id] || null
+                    }));
+                }
+            }
+        }
+        
+        console.log('✅ Returning orders with profiles:', ordersWithProfiles.length);
+        
+        return {
+            orders: ordersWithProfiles,
+            total: count || 0,
+            page: parseInt(page),
+            limit: parseInt(limit),
+            pages: Math.ceil((count || 0) / parseInt(limit))
+        };
+    }
+
+    // Get order with items, variants, payments, and addresses
     async findWithItems(orderId) {
         const { data, error } = await supabaseConfig.getAdminClient()
             .from(this.tableName)
             .select(`
                 *,
-                order_items (*),
-                addresses (* )
+                order_items (
+                    order_item_id,
+                    variant_id,
+                    quantity,
+                    price_per_unit,
+                    shoe_variants (
+                        shoe_id,
+                        shoes (
+                            shoe_name,
+                            image_url
+                        ),
+                        colors (
+                            color_id,
+                            color_name
+                        ),
+                        sizes (
+                            size_id,
+                            size_value
+                        )
+                    )
+                ),
+                payments (
+                    payment_id,
+                    payment_method,
+                    payment_amount,
+                    status,
+                    transaction_id,
+                    payment_date
+                )
             `)
             .eq(this.primaryKey, orderId)
             .single();
         if (error) throw new Error(`Failed to fetch order: ${error.message}`);
+        
+        // Fetch address separately to avoid join alias issues
+        if (data && data.address_id) {
+            const { data: address, error: addrError } = await supabaseConfig.getAdminClient()
+                .from('addresses')
+                .select('*')
+                .eq('address_id', data.address_id)
+                .single();
+            if (!addrError && address) {
+                data.address = address;
+            }
+        }
+        
         return data;
     }
 

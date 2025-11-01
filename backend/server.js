@@ -237,6 +237,8 @@ class Server {
             await this.handleAuthRoutes(req, res, pathname, req.method, body);
         } else if (pathname.startsWith('/api/orders') && (pathname === '/api/orders' || pathname.startsWith('/api/orders/'))) {
             await this.handleOrderRoutes(req, res, pathname, req.method, body);
+        } else if (pathname.startsWith('/api/admin/orders') && (pathname === '/api/admin/orders' || pathname.startsWith('/api/admin/orders/'))) {
+            await this.handleAdminOrderRoutes(req, res, pathname, req.method, body);
         } else if (pathname.startsWith('/api/users') && (pathname === '/api/users' || pathname.startsWith('/api/users/'))) {
             await this.handleUserRoutes(req, res, pathname, req.method, body);
         } else if (pathname.startsWith('/api/profiles') && (pathname === '/api/profiles' || pathname.startsWith('/api/profiles/'))) {
@@ -323,6 +325,15 @@ class Server {
                 req.params = { id };
                 req.body = body;
                 await this.orderController.updateOrderAddress(req, res);
+            } else {
+                this.sendError(res, 'Method not allowed', 405);
+            }
+        } else if (orderPath.match(/^\/\d+\/reorder$/)) {
+            const id = orderPath.replace('/reorder', '').replace('/', '');
+            if (method === 'POST') {
+                req.params = { id };
+                req.body = body;
+                await this.orderController.reorderItems(req, res);
             } else {
                 this.sendError(res, 'Method not allowed', 405);
             }
@@ -583,6 +594,77 @@ class Server {
     // Admin routes handler
     async handleAdminRoutes(req, res, pathname, method, body) {
         return adminRoutes(req, res, this.adminController, pathname, this.sendError.bind(this));
+    }
+
+    // Admin order routes handler
+    async handleAdminOrderRoutes(req, res, pathname, method, body) {
+        const adminOrderPath = pathname.replace('/api/admin/orders', '');
+        console.log('📦 Admin Order Route:', { pathname, adminOrderPath, method });
+
+        // Check authentication for protected routes
+        const authResult = await authMiddleware.authenticate(req, res);
+        if (!authResult || !authResult.success) {
+            console.warn('⚠️ Auth failed for admin order route');
+            return;
+        }
+        req.user = authResult.user;
+        console.log('✅ Auth OK, user:', req.user.id);
+
+        if (adminOrderPath === '/' || adminOrderPath === '') {
+            console.log('📦 Admin Order root path, method:', method);
+            if (method === 'GET') {
+                await this.orderController.getAdminOrders(req, res);
+            } else {
+                this.sendError(res, 'Method not allowed', 405);
+            }
+        } else if (adminOrderPath.match(/^\/\d+$/)) {
+            const id = adminOrderPath.substring(1);
+            req.params = { id };
+            if (method === 'GET') {
+                await this.orderController.getOrder(req, res);
+            } else {
+                this.sendError(res, 'Method not allowed', 405);
+            }
+        } else if (adminOrderPath.match(/^\/\d+\/status$/)) {
+            const id = adminOrderPath.replace('/status', '').replace('/', '');
+            if (method === 'PUT') {
+                req.params = { id };
+                req.body = body;
+                await this.orderController.updateOrderStatus(req, res);
+            } else {
+                this.sendError(res, 'Method not allowed', 405);
+            }
+        } else if (adminOrderPath.match(/^\/\d+\/cancel$/)) {
+            const id = adminOrderPath.replace('/cancel', '').replace('/', '');
+            if (method === 'PUT') {
+                req.params = { id };
+                req.body = body;
+                await this.orderController.cancelOrder(req, res);
+            } else {
+                this.sendError(res, 'Method not allowed', 405);
+            }
+        } else if (adminOrderPath.match(/^\/\d+\/address$/)) {
+            const id = adminOrderPath.replace('/address', '').replace('/', '');
+            if (method === 'PUT') {
+                req.params = { id };
+                req.body = body;
+                await this.orderController.updateOrderAddress(req, res);
+            } else {
+                this.sendError(res, 'Method not allowed', 405);
+            }
+        } else if (adminOrderPath.match(/^\/\d+\/reorder$/)) {
+            const id = adminOrderPath.replace('/reorder', '').replace('/', '');
+            if (method === 'POST') {
+                req.params = { id };
+                req.body = body;
+                await this.orderController.reorderItems(req, res);
+            } else {
+                this.sendError(res, 'Method not allowed', 405);
+            }
+        } else {
+            console.warn('⚠️ Admin order route not found:', { adminOrderPath, method });
+            this.sendError(res, 'API endpoint not found', 404);
+        }
     }
 
     // Start the server

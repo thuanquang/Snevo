@@ -1042,6 +1042,47 @@ class OrdersAPI {
     const response = await this.client.get("/api/orders/preview");
     return response.data;
   }
+
+  async reorderItems(id) {
+    const response = await this.client.post(`/api/orders/${id}/reorder`, {});
+    return response.data;
+  }
+}
+
+// ============================================================
+// 👨‍💼 ADMIN ORDERS API
+// ============================================================
+
+class AdminOrdersAPI {
+    constructor(client) {
+        this.client = client;
+    }
+
+    async getOrders(params = {}) {
+        const response = await this.client.get("/api/admin/orders", params);
+        return response.data;
+    }
+
+    async getOrder(id) {
+        const response = await this.client.get(`/api/admin/orders/${id}`);
+        return response.data;
+    }
+
+    async updateOrderStatus(id, status) {
+        const response = await this.client.put(`/api/admin/orders/${id}/status`, {
+            status,
+        });
+        return response.data;
+    }
+
+    async cancelOrder(id, options = {}) {
+        const payload = {};
+        if (options.reason) {
+            payload.reason = options.reason;
+        }
+        const response = await this.client.put(`/api/admin/orders/${id}/cancel`, payload);
+        return response.data;
+    }
 }
 
 // ============================================================
@@ -1373,6 +1414,7 @@ class VariantsAPI {
 const authAPI = new AuthAPI(apiClient);
 const productsAPI = new ProductsAPI(apiClient);
 const ordersAPI = new OrdersAPI(apiClient);
+const adminOrdersAPI = new AdminOrdersAPI(apiClient);
 const usersAPI = new UsersAPI(apiClient);
 const importsAPI = new ImportsAPI(apiClient);
 const variantsAPI = new VariantsAPI(apiClient);
@@ -1385,6 +1427,7 @@ window.apiClient = apiClient;
 window.authAPI = authAPI;
 window.productsAPI = productsAPI;
 window.ordersAPI = ordersAPI;
+window.adminOrdersAPI = adminOrdersAPI;
 window.usersAPI = usersAPI;
 window.importsAPI = importsAPI;
 window.variantsAPI = variantsAPI;

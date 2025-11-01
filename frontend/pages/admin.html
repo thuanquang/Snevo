@@ -901,14 +901,13 @@
                     <th>Customer</th>
                     <th>Amount</th>
                     <th>Status</th>
-                    <th>Payment</th>
                     <th>Date</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody id="ordersTableBody">
                   <tr>
-                    <td colspan="7" class="text-center py-5">
+                    <td colspan="6" class="text-center py-5">
                       <div class="loading-container">
                         <div class="spinner-border text-dark" role="status">
                           <span class="visually-hidden">Loading...</span>
@@ -1342,6 +1341,26 @@
       </div>
     </div>
 
+    <!-- ORDER DETAIL MODAL -->
+    <div class="modal fade" id="orderDetailModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header bg-info text-white">
+            <h5 class="modal-title">
+              <i class="fas fa-box me-2"></i>Order Details
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div id="orderDetailContent"></div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Toast Notification -->
     <div class="toast-container position-fixed bottom-0 end-0 p-3">
       <div
@@ -1670,19 +1689,31 @@
         // Load dashboard statistics
         window.loadDashboardStats = async function() {
             try {
-                const orders = await window.ordersAPI.getOrders();
-                const ordersList = orders?.data || orders || [];
+                const response = await window.adminOrdersAPI.getOrders();
+                console.log('📊 Raw response from API:', response);
                 
-                console.log('📊 Loaded orders for dashboard:', ordersList);
+                // Response format: { success, message, data: { orders: [], total, page, limit, pages } }
+                // Orders are nested inside data.orders
+                const ordersList = Array.isArray(response?.data?.orders) ? response.data.orders : [];
+                
+                console.log('📊 Extracted ordersList:', ordersList, 'length:', ordersList.length);
+                
+                if (!Array.isArray(ordersList)) {
+                    console.error('❌ ordersList is not an array:', typeof ordersList, ordersList);
+                    throw new Error('Invalid orders data format - not an array');
+                }
                 
                 // Count by status
                 const pendingCount = ordersList.filter(o => o.status === 'pending').length;
                 const approvedCount = ordersList.filter(o => o.status === 'processing').length;
                 const cancelledCount = ordersList.filter(o => o.status === 'cancelled').length;
                 
-                // Calculate total revenue (from non-pending, paid orders)
-                const paidOrders = ordersList.filter(o => o.status === 'processing' && o.payment_status === 'completed');
-                const totalRevenue = paidOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
+                console.log('📊 Status counts:', { pendingCount, approvedCount, cancelledCount });
+                
+                // Calculate total revenue (from approved orders)
+                const totalRevenue = ordersList
+                    .filter(o => o.status === 'processing')
+                    .reduce((sum, o) => sum + (o.total_amount || 0), 0);
                 
                 // Update stat cards
                 document.getElementById('dashPendingCount').textContent = pendingCount;
@@ -1700,9 +1731,12 @@
                 // Display recent orders (last 5)
                 const recentOrders = ordersList.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 5);
                 
+                console.log('📊 Recent orders (first 5):', recentOrders);
+                
                 const tbody = document.getElementById('dashRecentOrdersBody');
                 if (recentOrders.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">No orders yet</td></tr>';
+                    console.log('✅ Dashboard rendered - no orders');
                     return;
                 }
                 
@@ -1727,10 +1761,13 @@
                     const statusColor = statusColors[status] || 'bg-secondary';
                     const statusLabel = status === 'processing' ? 'Approved' : status.charAt(0).toUpperCase() + status.slice(1);
                     
+                    // Get customer name from profiles
+                    const customerName = order.profiles?.username || 'Unknown Customer';
+                    
                     return `
                         <tr>
                             <td><strong>#${order.order_id}</strong></td>
-                            <td>${order.profiles?.full_name || 'N/A'}</td>
+                            <td>${customerName}</td>
                             <td>₫${new Intl.NumberFormat('vi-VN').format(Math.round(totalAmount))}</td>
                             <td><span class="badge ${statusColor}">${statusLabel}</span></td>
                             <td><small class="text-muted">${formattedDate}</small></td>
@@ -1739,14 +1776,13 @@
                 }).join('');
                 
                 tbody.innerHTML = rows;
-                console.log('✅ Dashboard stats loaded');
+                console.log('✅ Dashboard stats loaded - rendered', recentOrders.length, 'orders');
             } catch (err) {
                 console.error('❌ Failed to load dashboard stats:', err);
                 
                 // If not authenticated, hide the error
                 if (err.message && err.message.includes('401')) {
                     console.log('ℹ️ User not authenticated, skipping dashboard stats');
-                    // Hide pending orders badge if not authenticated
                     const badgeElement = document.getElementById('pendingOrdersCount');
                     if (badgeElement) {
                         badgeElement.style.display = 'none';
@@ -1760,7 +1796,7 @@
                     tbody.innerHTML = `
                         <tr>
                             <td colspan="5" class="text-center text-muted py-3">
-                                Unable to load data
+                                Unable to load data: ${err.message}
                             </td>
                         </tr>
                     `;
@@ -1774,11 +1810,22 @@
                 const statusFilter = document.getElementById('orderStatusFilter')?.value || '';
                 const searchId = document.getElementById('orderSearchInput')?.value || '';
                 
-                // Fetch all orders
-                const orders = await window.ordersAPI.getOrders();
-                const ordersList = orders?.data || orders || [];
+                console.log('📦 Loading orders with filters:', { statusFilter, searchId });
                 
-                console.log('📦 Loaded orders:', ordersList);
+                // Fetch all orders using admin API
+                const response = await window.adminOrdersAPI.getOrders({ status: statusFilter, search: searchId });
+                console.log('📦 Raw API response:', response);
+                
+                // Response format: { success, message, data: { orders: [], total, page, limit, pages } }
+                // Orders are nested inside data.orders
+                const ordersList = Array.isArray(response?.data?.orders) ? response.data.orders : [];
+                
+                console.log('📦 Extracted ordersList:', ordersList, 'length:', ordersList.length);
+                
+                if (!Array.isArray(ordersList)) {
+                    console.error('❌ ordersList is not an array:', typeof ordersList, ordersList);
+                    throw new Error('Invalid orders data format - not an array');
+                }
                 
                 // Count pending orders for badge
                 const pendingCount = ordersList.filter(o => o.status === 'pending').length;
@@ -1788,24 +1835,17 @@
                     badgeElement.style.display = pendingCount > 0 ? 'inline-block' : 'none';
                 }
                 
-                // Filter by status
-                let filtered = ordersList;
-                if (statusFilter) {
-                    filtered = filtered.filter(o => o.status === statusFilter);
-                }
+                console.log('📦 Rendering', ordersList.length, 'orders...');
                 
-                // Filter by order ID
-                if (searchId) {
-                    filtered = filtered.filter(o => o.order_id.toString().includes(searchId));
-                }
+                // Render orders (already filtered by status and search from API)
+                window.adminRenderOrders(ordersList);
                 
-                // Render orders
-                window.adminRenderOrders(filtered);
+                console.log('✅ Orders loaded and rendered successfully');
             } catch (err) {
                 console.error('❌ Failed to load orders:', err);
                 document.getElementById('ordersTableBody').innerHTML = `
                     <tr>
-                        <td colspan="7" class="text-center text-danger py-4">
+                        <td colspan="6" class="text-center text-danger py-4">
                             <i class="fas fa-exclamation-circle me-2"></i>
                             Failed to load orders: ${err.message}
                         </td>
@@ -1821,7 +1861,7 @@
             if (!orders || orders.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="7" class="text-center text-muted py-4">
+                        <td colspan="6" class="text-center text-muted py-4">
                             <i class="fas fa-inbox me-2"></i>
                             No orders found
                         </td>
@@ -1858,16 +1898,11 @@
                 return `
                     <tr>
                         <td><strong>#${order.order_id}</strong></td>
-                        <td>${order.username || 'Unknown Customer'}</td>
+                        <td>${order.profiles?.username || 'Unknown Customer'}</td>
                         <td><strong>₫${new Intl.NumberFormat('vi-VN').format(Math.round(totalAmount))}</strong></td>
                         <td>
                             <span class="badge ${statusColor}">
                                 ${statusLabel}
-                            </span>
-                        </td>
-                        <td>
-                            <span class="badge bg-secondary">
-                                ${order.payment_status ? order.payment_status.charAt(0).toUpperCase() + order.payment_status.slice(1) : 'Pending'}
                             </span>
                         </td>
                         <td><small class="text-muted">${formattedDate}</small></td>
@@ -1898,50 +1933,117 @@
         // View order details
         window.adminViewOrderDetail = async function(orderId) {
             try {
-                const order = await window.ordersAPI.getOrder(orderId);
-                console.log('📦 Order details:', order);
+                const response = await window.adminOrdersAPI.getOrder(orderId);
+                console.log('📦 Order details:', response);
                 
-                const orderData = order?.data || order;
+                const orderData = response?.data || response;
                 const items = orderData.order_items || [];
+                const address = orderData.address || {};
+                const payment = orderData.payments?.[0] || {};
                 const totalAmount = orderData.total_amount || 0;
                 const status = orderData.status || 'pending';
-                const orderDate = new Date(orderData.created_at || orderData.order_date).toLocaleString();
+                const orderDate = new Date(orderData.created_at || orderData.order_date);
+                const formattedDate = orderDate.toLocaleString('en-US', {
+                    year: 'numeric', month: 'short', day: 'numeric', 
+                    hour: '2-digit', minute: '2-digit'
+                });
+                
+                const statusColors = {
+                    'pending': 'warning',
+                    'processing': 'info',
+                    'cancelled': 'danger'
+                };
+                const statusColor = statusColors[status] || 'secondary';
+                const statusLabel = status === 'processing' ? 'Approved' : status.charAt(0).toUpperCase() + status.slice(1);
                 
                 let itemsHtml = items.map(item => `
                     <tr>
-                        <td>${item.id}</td>
+                        <td>${item.shoe_variants?.shoes?.shoe_name || 'Product'}</td>
                         <td>${item.quantity}</td>
                         <td>₫${new Intl.NumberFormat('vi-VN').format(Math.round(item.price_per_unit))}</td>
                         <td>₫${new Intl.NumberFormat('vi-VN').format(Math.round(item.quantity * item.price_per_unit))}</td>
                     </tr>
                 `).join('');
                 
-                const details = `
-                    <strong>Order ID:</strong> #${orderData.order_id}<br>
-                    <strong>Date:</strong> ${orderDate}<br>
-                    <strong>Status:</strong> <span class="badge bg-${status === 'pending' ? 'warning' : status === 'processing' ? 'info' : 'danger'}">${status}</span><br>
-                    <strong>Total:</strong> ₫${new Intl.NumberFormat('vi-VN').format(Math.round(totalAmount))}<br>
-                    <strong>Shipping:</strong> ₫${new Intl.NumberFormat('vi-VN').format(Math.round(orderData.shipping_cost || 0))}<br>
-                    <strong>Tax:</strong> ₫${new Intl.NumberFormat('vi-VN').format(Math.round(orderData.tax_amount || 0))}<br>
-                    <br>
-                    <strong>Items:</strong><br>
-                    <table class="table table-sm">
-                        <thead>
+                const detailHtml = `
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Order ID</h6>
+                            <p class="fs-5 fw-bold">#${orderData.order_id}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Status</h6>
+                            <p><span class="badge bg-${statusColor} fs-6">${statusLabel}</span></p>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Order Date</h6>
+                            <p>${formattedDate}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Customer</h6>
+                            <p>${address.recipient_name  || 'Unknown'}</p>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h6 class="fw-bold mb-3">Shipping Address</h6>
+                    <div class="card bg-light mb-3">
+                        <div class="card-body">
+                            <p class="mb-1"><strong>${address.recipient_name || 'N/A'}</strong></p>
+                            <p class="mb-1">📞 ${address.phone_number || 'N/A'}</p>
+                            <p class="mb-0">📍 ${[address.street, address.ward, address.district, address.city, address.zip_code].filter(Boolean).join(', ')}</p>
+                        </div>
+                    </div>
+                    
+                    <h6 class="fw-bold mb-3">Order Items</h6>
+                    <table class="table table-sm table-hover">
+                        <thead class="table-light">
                             <tr>
-                                <th>Item ID</th>
+                                <th>Product</th>
                                 <th>Qty</th>
                                 <th>Price</th>
                                 <th>Total</th>
                             </tr>
                         </thead>
                         <tbody>
-                            ${itemsHtml || '<tr><td colspan="4">No items</td></tr>'}
+                            ${itemsHtml || '<tr><td colspan="4" class="text-center text-muted">No items</td></tr>'}
                         </tbody>
                     </table>
-                    ${orderData.notes ? `<strong>Notes:</strong> ${orderData.notes}` : ''}
+                    
+                    <hr>
+                    
+                    <h6 class="fw-bold mb-3">Payment Summary</h6>
+                    <div class="row text-end">
+                        <div class="col-md-6 offset-md-6">
+                            <p class="mb-1"><strong>Subtotal:</strong> ₫${new Intl.NumberFormat('vi-VN').format(Math.round(totalAmount - (orderData.shipping_cost || 0) - (orderData.tax_amount || 0)))}</p>
+                            <p class="mb-1"><strong>Shipping:</strong> ₫${new Intl.NumberFormat('vi-VN').format(Math.round(orderData.shipping_cost || 0))}</p>
+                            <p class="mb-3"><strong>Tax:</strong> ₫${new Intl.NumberFormat('vi-VN').format(Math.round(orderData.tax_amount || 0))}</p>
+                            <p class="mb-0 fs-5"><strong>Total:</strong> ₫${new Intl.NumberFormat('vi-VN').format(Math.round(totalAmount))}</p>
+                        </div>
+                    </div>
+                    
+                    ${payment.payment_method ? `
+                        <hr>
+                        <h6 class="fw-bold mb-3">Payment Details</h6>
+                        <p class="mb-1"><strong>Method:</strong> ${payment.payment_method}</p>
+                        <p class="mb-1"><strong>Status:</strong> <span class="badge bg-secondary">${payment.status || 'pending'}</span></p>
+                        ${payment.transaction_id ? `<p class="mb-0"><strong>Transaction ID:</strong> ${payment.transaction_id}</p>` : ''}
+                    ` : ''}
+                    
+                    ${orderData.notes ? `
+                        <hr>
+                        <h6 class="fw-bold mb-2">Notes</h6>
+                        <div class="alert alert-secondary small mb-0">${orderData.notes}</div>
+                    ` : ''}
                 `;
                 
-                alert(details);
+                document.getElementById('orderDetailContent').innerHTML = detailHtml;
+                const modal = new bootstrap.Modal(document.getElementById('orderDetailModal'));
+                modal.show();
             } catch (err) {
                 console.error('❌ Failed to load order:', err);
                 alert('Failed to load order details: ' + (err.message || 'Unknown error'));
