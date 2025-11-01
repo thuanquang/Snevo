@@ -85,7 +85,17 @@
             color: #856404;
         }
         
+        .status-processing {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
         .status-success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-delivered {
             background: #d4edda;
             color: #155724;
         }
@@ -618,7 +628,7 @@
                         <h5>Payment Info</h5>
                         <p class="mb-1"><strong>Method:</strong> ${payment.payment_method || 'N/A'}</p>
                         <p class="mb-1"><strong>Status:</strong> ${paymentStatus}</p>
-                        ${payment.transaction_id ? `<p class="mb-0"><strong>Transaction ID:</strong> ${payment.transaction_id}</p>` : ''}
+                        ${payment.transaction_id ? `<p class="mb-0"><strong>Transaction:</strong> ${formatTransactionId(payment.transaction_id, payment.payment_method)}</p>` : ''}
                     </div>
                 </div>
 
@@ -766,6 +776,59 @@
                 'cancelled': 'cancelled'
             };
             return colors[status] || 'secondary';
+        }
+
+        /**
+         * Parse and format transaction ID for display
+         * @param {string} transactionId - Raw transaction ID (may be JSON)
+         * @param {string} paymentMethod - Payment method
+         * @returns {string} - Formatted display string
+         */
+        function formatTransactionId(transactionId, paymentMethod) {
+            if (!transactionId) return 'N/A';
+            
+            try {
+                const parsed = JSON.parse(transactionId);
+                
+                // Parse compact JSON format
+                if (parsed.t) {
+                    switch (parsed.t) {
+                        case 'card':
+                            return `Card ending in ${parsed.n || '****'}`;
+                        case 'bank':
+                            const bank = parsed.b || 'Bank';
+                            const account = parsed.a || '****';
+                            return `${bank} - Account ${account}`;
+                        case 'stripe':
+                            return `Stripe - ${parsed.pi || 'N/A'}`;
+                        case 'cash':
+                            return `Cash on Delivery${parsed.s ? ' (' + parsed.s + ')' : ''}`;
+                        default:
+                            return transactionId;
+                    }
+                }
+                
+                // Already full format (backward compatibility)
+                if (parsed.type) {
+                    switch (parsed.type) {
+                        case 'card':
+                            return `Card ending in ${parsed.card_number || '****'}`;
+                        case 'bank':
+                            return `${parsed.bank_code || 'Bank'} - Account ${parsed.account_number || '****'}`;
+                        case 'stripe':
+                            return `Stripe - ${parsed.stripe_payment_intent_id || 'N/A'}`;
+                        case 'cash':
+                            return `Cash on Delivery`;
+                        default:
+                            return transactionId;
+                    }
+                }
+                
+                return transactionId;
+            } catch (e) {
+                // Not JSON, return as-is
+                return transactionId;
+            }
         }
     </script>
 </body>
