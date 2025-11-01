@@ -55,7 +55,8 @@ class AdminManager {
         this.core.loadCategories(),
         this.core.loadColors(),
         this.core.loadSizes(),
-        this.loadDashboard()
+        // Dashboard data is now loaded via window.loadDashboardStats() when switching to dashboard section
+        // this.loadDashboard()
       ]);
 
       // Render initial data
@@ -461,7 +462,16 @@ class AdminManager {
           // Already loaded
           break;
         case "dashboard":
-          // Load dashboard stats (future)
+          // ✅ Load dashboard stats
+          if (window.loadDashboardStats) {
+            window.loadDashboardStats();
+          }
+          break;
+        case "orders":
+          // ✅ Load orders when section is switched to
+          if (window.adminLoadOrders) {
+            window.adminLoadOrders();
+          }
           break;
       }
     } else {
@@ -652,22 +662,32 @@ class AdminManager {
       `;
     }
 
-    const rows = orders.map(order => `
-      <tr>
-        <td>
-          ${order.avatar_url ? `<img src="${order.avatar_url}" alt="${order.username}" style="width: 30px; height: 30px; border-radius: 50%; margin-right: 8px;">` : '<i class="fas fa-user-circle" style="margin-right: 8px;"></i>'}
-          <strong>${order.username}</strong>
-        </td>
-        <td>#${order.order_id}</td>
-        <td>$${parseFloat(order.total_amount || 0).toFixed(2)}</td>
-        <td>
-          <span class="badge ${this.getStatusBadgeClass(order.order_status)}">
-            ${order.order_status}
-          </span>
-        </td>
-        <td>${new Date(order.created_at).toLocaleDateString()}</td>
-      </tr>
-    `).join('');
+    const rows = orders.map(order => {
+      const canCancel = order.order_status === 'pending' || order.order_status === 'processing';
+      return `
+        <tr>
+          <td>
+            ${order.avatar_url ? `<img src="${order.avatar_url}" alt="${order.username}" style="width: 30px; height: 30px; border-radius: 50%; margin-right: 8px;">` : '<i class="fas fa-user-circle" style="margin-right: 8px;"></i>'}
+            <strong>${order.username}</strong>
+          </td>
+          <td>#${order.order_id}</td>
+          <td>₫${new Intl.NumberFormat('vi-VN').format(Math.round(order.total_amount || 0))}</td>
+          <td>
+            <span class="badge ${this.getStatusBadgeClass(order.order_status)}">
+              ${this.getStatusLabel(order.order_status)}
+            </span>
+          </td>
+          <td>${new Date(order.created_at).toLocaleDateString()}</td>
+          <td>
+            ${canCancel ? `
+              <button class="btn btn-sm btn-outline-danger" onclick="window.adminCancelOrder(${order.order_id})">
+                <i class="fas fa-times"></i> Cancel
+              </button>
+            ` : '-'}
+          </td>
+        </tr>
+      `;
+    }).join('');
 
     return `
       <table class="table table-sm table-hover">
@@ -678,6 +698,7 @@ class AdminManager {
             <th>Amount</th>
             <th>Status</th>
             <th>Date</th>
+            <th>Action</th>
           </tr>
         </thead>
         <tbody>
@@ -729,13 +750,183 @@ class AdminManager {
   getStatusBadgeClass(status) {
     const statusMap = {
       'pending': 'bg-warning',
-      'processing': 'bg-info',
-      'shipped': 'bg-primary',
-      'delivered': 'bg-success',
+      'processing': 'bg-success',  // Approved/Success state
       'cancelled': 'bg-danger',
       'refunded': 'bg-secondary'
     };
     return statusMap[status?.toLowerCase()] || 'bg-secondary';
+  }
+  
+  /**
+   * Get display label for order status
+   */
+  getStatusLabel(status) {
+    const labelMap = {
+      'pending': 'Pending',
+      'processing': 'Approved',
+      'cancelled': 'Cancelled',
+      'refunded': 'Refunded'
+    };
+    return labelMap[status?.toLowerCase()] || status;
+  }
+
+  /**
+   * Get payment status badge HTML
+   */
+  getPaymentStatusBadge(status) {
+    const statusMap = {
+      'pending': '<span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i>Pending</span>',
+      'completed': '<span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Completed</span>',
+      'failed': '<span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i>Failed</span>',
+      'refunded': '<span class="badge bg-secondary"><i class="fas fa-undo me-1"></i>Refunded</span>'
+    };
+    return statusMap[status?.toLowerCase()] || `<span class="badge bg-secondary">${status}</span>`;
+  }
+
+  /**
+   * Get payment method icon and label
+   */
+  getPaymentMethodDisplay(method) {
+    const methodMap = {
+      'cash': '<i class="fas fa-money-bill-wave me-1"></i>Cash on Delivery',
+      'credit_card': '<i class="fas fa-credit-card me-1"></i>Credit Card',
+      'bank_transfer': '<i class="fas fa-university me-1"></i>Bank Transfer',
+      'stripe': '<i class="fab fa-stripe me-1"></i>Stripe'
+    };
+    return methodMap[method?.toLowerCase()] || `<i class="fas fa-question-circle me-1"></i>${method}`;
+  }
+
+  /**
+   * Render parsed payment details
+   */
+  renderPaymentDetails(payment) {
+    if (!payment || !payment.details) {
+      return '<p class="text-muted">No payment details available</p>';
+    }
+
+    const details = payment.details;
+    let html = '';
+
+    // Card payment (expanded from compact format: t='card')
+    if (details.type === 'card' && details.card_number) {
+      html = `
+        <p class="mb-1"><strong>Card Number:</strong> ${details.card_number}</p>
+        ${details.processed_at ? `<p class="mb-0 text-muted"><small>Processed: ${details.processed_at}</small></p>` : ''}
+      `;
+    }
+    // Bank transfer (expanded from compact format: t='bank')
+    else if (details.type === 'bank' && details.bank_code) {
+      html = `
+        <p class="mb-1"><strong>Bank:</strong> ${details.bank_code}</p>
+        <p class="mb-1"><strong>Account:</strong> ${details.account_number}</p>
+        ${details.submitted_at ? `<p class="mb-1 text-muted"><small>Submitted: ${details.submitted_at}</small></p>` : ''}
+        ${details.verified_by ? `<p class="mb-0 text-success"><small><i class="fas fa-check-circle"></i> Verified by Admin #${details.verified_by} on ${details.verified_at}</small></p>` : ''}
+      `;
+    }
+    // Stripe (expanded from compact format: t='stripe')
+    else if (details.type === 'stripe' && details.stripe_payment_intent_id) {
+      html = `
+        <p class="mb-1"><strong>Payment Intent:</strong> <code>${details.stripe_payment_intent_id}</code></p>
+        ${details.processed_at ? `<p class="mb-0 text-muted"><small>Processed: ${details.processed_at}</small></p>` : ''}
+      `;
+    }
+    // Cash on Delivery (expanded from compact format: t='cash')
+    else if (details.type === 'cash') {
+      const collectionStatus = details.collection_status || 'pending';
+      html = `
+        <p class="mb-1"><strong>Collection Status:</strong> 
+          ${collectionStatus === 'collected' 
+            ? '<span class="badge bg-success"><i class="fas fa-check"></i> Collected</span>' 
+            : '<span class="badge bg-warning text-dark"><i class="fas fa-clock"></i> Pending</span>'}
+        </p>
+        ${details.collected_by ? `<p class="mb-0 text-success"><small><i class="fas fa-user-check"></i> Collected by ${details.collected_by} on ${details.collected_at}</small></p>` : ''}
+      `;
+    }
+    // Legacy format
+    else if (details.type === 'legacy') {
+      html = `<p class="mb-0 text-muted"><small>Transaction ID: ${details.transaction_id}</small></p>`;
+    }
+    // Fallback
+    else {
+      html = '<p class="text-muted">Payment details not available</p>';
+    }
+
+    return html;
+  }
+
+  /**
+   * Confirm bank transfer payment
+   */
+  async confirmPayment(paymentId) {
+    if (!confirm('Confirm this bank transfer payment?')) {
+      return;
+    }
+
+    try {
+      console.log('💳 Confirming payment:', paymentId);
+      const response = await window.paymentsAPI.confirmPayment(paymentId);
+      console.log('✅ Payment confirmed:', response);
+      
+      AdminUtils.showToast('Success', 'Payment confirmed successfully', 'success');
+      
+      // Reload orders to reflect changes
+      if (window.adminLoadOrders) {
+        await window.adminLoadOrders();
+      }
+    } catch (err) {
+      console.error('❌ Failed to confirm payment:', err);
+      AdminUtils.showToast('Error', 'Failed to confirm payment: ' + (err.message || 'Unknown error'), 'error');
+    }
+  }
+
+  /**
+   * Approve COD order (not collected yet, just approved for delivery)
+   */
+  async approveCod(paymentId) {
+    if (!confirm('Approve this Cash on Delivery order for delivery?')) {
+      return;
+    }
+
+    try {
+      console.log('✅ Approving COD order:', paymentId);
+      const response = await window.paymentsAPI.approveCod(paymentId);
+      console.log('✅ COD order approved:', response);
+      
+      AdminUtils.showToast('Success', 'COD order approved for delivery', 'success');
+      
+      // Reload orders to reflect changes
+      if (window.adminLoadOrders) {
+        await window.adminLoadOrders();
+      }
+    } catch (err) {
+      console.error('❌ Failed to approve COD:', err);
+      AdminUtils.showToast('Error', 'Failed to approve COD order: ' + (err.message || 'Unknown error'), 'error');
+    }
+  }
+
+  /**
+   * Mark COD as collected (after delivery)
+   */
+  async collectCod(paymentId) {
+    if (!confirm('Mark this Cash on Delivery payment as collected?')) {
+      return;
+    }
+
+    try {
+      console.log('💵 Collecting COD payment:', paymentId);
+      const response = await window.paymentsAPI.collectCod(paymentId);
+      console.log('✅ COD collected:', response);
+      
+      AdminUtils.showToast('Success', 'COD payment marked as collected', 'success');
+      
+      // Reload orders to reflect changes
+      if (window.adminLoadOrders) {
+        await window.adminLoadOrders();
+      }
+    } catch (err) {
+      console.error('❌ Failed to collect COD:', err);
+      AdminUtils.showToast('Error', 'Failed to mark payment as collected: ' + (err.message || 'Unknown error'), 'error');
+    }
   }
 }
 

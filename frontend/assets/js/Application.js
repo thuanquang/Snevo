@@ -536,35 +536,14 @@ class Application {
     }
 
     /**
-     * Update UI based on current state
+     * Update UI
      */
     updateUI() {
-        this.updateCartUI();
         authManager.updateAuthUI();
     }
 
     /**
-     * Update cart UI
-     */
-    updateCartUI(data = null) {
-        const cartCount = document.getElementById('cartCount');
-        const cart = productManager.getCart();
-        
-        if (cartCount) {
-            const itemCount = productManager.getCartItemCount();
-            cartCount.textContent = itemCount;
-            cartCount.style.display = itemCount > 0 ? 'block' : 'none';
-        }
-        
-        // Update cart dropdown if exists
-        const cartDropdown = document.getElementById('cartDropdown');
-        if (cartDropdown) {
-            this.renderCartDropdown(cartDropdown, cart);
-        }
-    }
-
-    /**
-     * Render cart dropdown
+     * Render cart dropdown (kept for compatibility but disabled)
      */
     renderCartDropdown(container, cart) {
         if (cart.length === 0) {

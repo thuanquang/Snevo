@@ -139,14 +139,26 @@ class CartManager {
         }
 
         container.innerHTML = this.items.map(it => {
-            const v = it.shoe_variants || {};
-            const shoe = v.shoes || {};
-            const color = v.colors || {};
-            const size = v.sizes || {};
-            const title = shoe.shoe_name || 'Product';
-            const img = shoe.image_url || '../assets/images/ui/hero_image.svg';
-            const variantText = `${color.color_name || ''} / ${size.size_value || ''}`.trim();
-            const price = this.formatPrice(it.price_at_add);
+            // Handle both nested structure (from CartAPI.getCart) and flattened structure (from previewOrder)
+            let title, img, variantText, price;
+            
+            if (it.shoe_name) {
+                // Flattened structure (from previewOrder)
+                title = it.shoe_name || 'Product';
+                img = it.image_url || '../assets/images/ui/hero_image.svg';
+                variantText = `${it.color_name || ''} / ${it.size_label || ''}`.trim();
+            } else {
+                // Nested structure (from CartAPI.getCart)
+                const v = it.shoe_variants || {};
+                const shoe = v.shoes || {};
+                const color = v.colors || {};
+                const size = v.sizes || {};
+                title = shoe.shoe_name || 'Product';
+                img = shoe.image_url || '../assets/images/ui/hero_image.svg';
+                variantText = `${color.color_name || ''} / ${size.size_value || ''}`.trim();
+            }
+            
+            price = this.formatPrice(it.price_at_add);
             const lineTotal = this.formatPrice((Number(it.price_at_add) || 0) * it.quantity);
 
             console.log('📋 Rendering item:', { title, variantText, price, quantity: it.quantity });

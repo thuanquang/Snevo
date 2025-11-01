@@ -103,22 +103,26 @@ class AddressController {
                 }, 401);
             }
 
-            const { street, city, state, zip_code, country, is_default } = req.body;
+            const { recipient_name, phone_number, street, ward, district, city, state, zip_code, country, is_default } = req.body;
 
             // Validate required fields
-            if (!street || !city || !state || !zip_code || !country) {
+            if (!recipient_name || !phone_number || !street || !ward || !district || !city || !state) {
                 return this.sendJson(res, {
                     success: false,
-                    message: 'Missing required fields: street, city, state, zip_code, country'
+                    message: 'Missing required fields: recipient_name, phone_number, street, ward, district, city, state'
                 }, 400);
             }
 
             const addressData = {
+                recipient_name,
+                phone_number,
                 street,
+                ward,
+                district,
                 city,
                 state,
-                zip_code,
-                country,
+                zip_code: zip_code || null,
+                country: country || 'Vietnam',
                 is_default: is_default === true || is_default === 'true'
             };
 
@@ -175,7 +179,7 @@ class AddressController {
 
             // Build update data from request body
             const updateData = {};
-            const allowedFields = ['street', 'city', 'state', 'zip_code', 'country', 'is_default'];
+            const allowedFields = ['recipient_name', 'phone_number', 'street', 'ward', 'district', 'city', 'state', 'zip_code', 'country', 'is_default'];
             
             for (const field of allowedFields) {
                 if (req.body[field] !== undefined) {
