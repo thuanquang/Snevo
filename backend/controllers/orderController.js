@@ -4,6 +4,11 @@
 import BaseController from '../utils/BaseController.js';
 import constants from '../../config/constants.js';
 import createSupabaseConfig from '../../config/supabase.js';
+import { 
+    validateOrderTransition, 
+    shouldAutoApproveOrder,
+    shouldAutoCompletePayment
+} from '../utils/orderUtils.js';
 
 const supabaseConfig = createSupabaseConfig();
 
@@ -28,6 +33,13 @@ class OrderController extends BaseController {
       this.requireAuth(req);
       const { status, page = 1, limit = 10 } = req.query || {};
       const result = await this.Order.findByUserId(req.user.id, status || null, page, limit);
+      
+      // Enrich each order with payment data
+      for (const order of result.orders) {
+        const payment = await this.Payment.findLatestByOrderId(order.order_id);
+        order.payment = payment || null;
+      }
+      
       this.sendResponse(res, result, 'Orders fetched');
     });
   }
@@ -42,6 +54,12 @@ class OrderController extends BaseController {
       console.log('📊 getAdminOrders params:', { status, page, limit, search });
       
       const result = await this.Order.getAllOrders(status || null, page, limit, search);
+      
+      // Enrich each order with payment data
+      for (const order of result.orders) {
+        const payment = await this.Payment.findLatestByOrderId(order.order_id);
+        order.payment = payment || null;
+      }
       
       console.log('📊 getAdminOrders result:', { 
         ordersCount: result.orders.length,
@@ -58,6 +76,7 @@ class OrderController extends BaseController {
     return this.handleRequest(req, res, async () => {
       this.requireAuth(req);
       const { id } = req.params;
+      // Use findWithItems which already includes payment data
       const order = await this.Order.findWithItems(parseInt(id));
       if (!order || order.user_id !== req.user.id) {
         this.sendError(res, 'Order not found', constants.HTTP_STATUS.NOT_FOUND);
@@ -109,14 +128,25 @@ class OrderController extends BaseController {
     });
   }
 
-  // POST /api/orders { address_id, notes, shipping_cost, tax_amount }
+  // POST /api/orders { address_id, notes, shipping_cost, tax_amount, payment_method, payment_details }
   async createOrder(req, res) {
     return this.handleRequest(req, res, async () => {
       this.requireAuth(req);
-      const { address_id, notes, shipping_cost = 0, tax_amount = 0 } = req.body || {};
+      const { 
+        address_id, 
+        notes, 
+        shipping_cost = 0, 
+        tax_amount = 0,
+        payment_method,
+        payment_details = {}
+      } = req.body || {};
 
-      this.validateRequest({ address_id: parseInt(address_id) }, {
-        address_id: { required: true, type: 'integer', min: 1 }
+      this.validateRequest({ 
+        address_id: parseInt(address_id),
+        payment_method: payment_method
+      }, {
+        address_id: { required: true, type: 'integer', min: 1 },
+        payment_method: { required: true, type: 'string' }
       });
 
       // Load cart & summary for subtotal
@@ -142,23 +172,45 @@ class OrderController extends BaseController {
       });
 
       try {
-        // Insert order items
+        // Insert order items (triggers stock deduction)
         await this.OrderItem.insertItems(orderRow.order_id, items.map(it => ({
           variant_id: it.variant_id,
           quantity: it.quantity,
           price_per_unit: it.price_at_add
         })));
 
-        // CLEAR CART IMMEDIATELY after order creation
+        // Create payment record
+        const payment = await this.Payment.createPayment({
+          order_id: orderRow.order_id,
+          payment_method: payment_method,
+          payment_amount: total_amount,
+          payment_details: payment_details
+        });
+
+        console.log('💳 Payment created:', payment.payment_id, 'Status:', payment.status);
+
+        // ⭐ Auto-complete order for card/Stripe (payment = delivered instantly)
+        if (shouldAutoCompletePayment(payment.payment_method)) {
+          await this.Order.setStatus(orderRow.order_id, 'delivered');
+          orderRow.status = 'delivered';
+          console.log('✅ Order auto-completed for', payment.payment_method);
+        }
+        // COD orders stay pending until admin confirms
+        // Bank transfer orders stay pending until admin confirms
+
+        // Clear cart after successful order creation
         try {
           await this.Cart.clearUserCart(req.user.id);
           console.log('✅ Cart cleared after order creation');
         } catch (e) {
           console.warn('⚠️ Failed to clear cart after order creation:', e?.message || e);
-          // Non-blocking: don't fail order creation if cart clear fails
         }
 
-        this.sendResponse(res, { order_id: orderRow.order_id }, 'Order placed', constants.HTTP_STATUS.CREATED);
+        this.sendResponse(res, { 
+          order_id: orderRow.order_id,
+          order_status: orderRow.status,
+          payment: payment
+        }, 'Order placed', constants.HTTP_STATUS.CREATED);
       } catch (err) {
         // Attempt to cleanup order on failure
         try { await this.Order.deleteById(orderRow.order_id); } catch (_) {}
@@ -173,7 +225,25 @@ class OrderController extends BaseController {
       this.requireAuth(req);
       const { id } = req.params;
       const { status } = req.body || {};
-      this.validateRequest({ status }, { status: { required: true, type: 'string', enum: Object.values(constants.ORDER_STATUS) } });
+      
+      this.validateRequest({ status }, { 
+        status: { required: true, type: 'string', enum: Object.values(constants.ORDER_STATUS) } 
+      });
+      
+      // Get order with payment
+      const order = await this.Order.getWithPayment(parseInt(id));
+      if (!order) {
+        this.sendError(res, 'Order not found', constants.HTTP_STATUS.NOT_FOUND);
+        return;
+      }
+      
+      // Validate transition
+      const validation = validateOrderTransition(order, status, order.payment);
+      if (!validation.valid) {
+        this.sendError(res, validation.reason, constants.HTTP_STATUS.UNPROCESSABLE_ENTITY);
+        return;
+      }
+      
       const updated = await this.Order.updateStatus(parseInt(id), status);
       this.sendResponse(res, updated, 'Order status updated');
     });
@@ -232,6 +302,25 @@ class OrderController extends BaseController {
 
       if (error) {
         throw new Error(`Failed to cancel order: ${error.message}`);
+      }
+
+      // ⭐ Cancel payment if exists (mark as 'failed' for cancelled orders)
+      try {
+        const payment = await this.Payment.findLatestByOrderId(parseInt(id));
+        if (payment && payment.status === constants.PAYMENT_STATUS.PENDING) {
+          console.log('💳 Marking payment as failed for cancelled order:', payment.payment_id);
+          await supabaseConfig.getAdminClient()
+            .from('payments')
+            .update({
+              status: constants.PAYMENT_STATUS.FAILED,
+              updated_at: new Date().toISOString()
+            })
+            .eq('payment_id', payment.payment_id);
+          console.log('✅ Payment marked as failed');
+        }
+      } catch (e) {
+        console.warn('⚠️ Failed to update payment status:', e?.message);
+        // Don't fail the order cancellation if payment update fails
       }
 
       // Trigger restore_stock_on_cancel() automatically fires via DB

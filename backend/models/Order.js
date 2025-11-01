@@ -3,6 +3,7 @@
 
 import BaseModel from '../utils/BaseModel.js';
 import createSupabaseConfig from '../../config/supabase.js';
+import { parsePaymentDetails } from '../utils/orderUtils.js';
 
 const supabaseConfig = createSupabaseConfig();
 
@@ -188,6 +189,59 @@ class Order extends BaseModel {
             }
         }
         
+        // Parse payment details
+        if (data && data.payments && data.payments.length > 0) {
+            data.payments = data.payments.map(payment => ({
+                ...payment,
+                details: parsePaymentDetails(payment.transaction_id)
+            }));
+            
+            // Attach latest payment to order for convenience
+            data.payment = data.payments[0];
+        }
+        
+        return data;
+    }
+
+    // Get order with payment summary (lighter version)
+    async getWithPayment(orderId) {
+        const order = await this.findById(orderId);
+        if (!order) return null;
+        
+        // Fetch latest payment
+        const { data: payment, error } = await supabaseConfig.getAdminClient()
+            .from('payments')
+            .select('*')
+            .eq('order_id', orderId)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+            
+        if (!error && payment) {
+            order.payment = {
+                ...payment,
+                details: parsePaymentDetails(payment.transaction_id)
+            };
+        }
+        
+        return order;
+    }
+
+    // Set order status with validation
+    async setStatus(orderId, status) {
+        const { data, error } = await supabaseConfig.getAdminClient()
+            .from(this.tableName)
+            .update({ 
+                status, 
+                updated_at: new Date().toISOString() 
+            })
+            .eq(this.primaryKey, orderId)
+            .select()
+            .single();
+            
+        if (error) throw new Error(`Failed to update order status: ${error.message}`);
+        
+        console.log(`📦 Order ${orderId} status updated to: ${status}`);
         return data;
     }
 

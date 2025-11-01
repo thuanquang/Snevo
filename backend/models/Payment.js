@@ -3,6 +3,12 @@
 
 import BaseModel from '../utils/BaseModel.js';
 import createSupabaseConfig from '../../config/supabase.js';
+import { 
+    generateMockPaymentDetails, 
+    parsePaymentDetails, 
+    shouldAutoCompletePayment 
+} from '../utils/orderUtils.js';
+import constants from '../../config/constants.js';
 
 const supabaseConfig = createSupabaseConfig();
 
@@ -60,21 +66,140 @@ class Payment extends BaseModel {
     }
 
     // Create payment record
-    async createPayment({ order_id, payment_method, payment_amount, status = 'pending', transaction_id = null }) {
+    async createPayment({ order_id, payment_method, payment_amount, status = 'pending', transaction_id = null, payment_details = {} }) {
+        // Generate mock details and merge with provided details
+        const mockDetailsJson = generateMockPaymentDetails(payment_method, payment_details);
+        const finalTransactionId = transaction_id || mockDetailsJson;
+        
+        // Auto-complete status for card/Stripe
+        const finalStatus = shouldAutoCompletePayment(payment_method) 
+            ? constants.PAYMENT_STATUS.COMPLETED 
+            : (status || constants.PAYMENT_STATUS.PENDING);
+        
+        console.log('💳 Creating payment:', {
+            order_id,
+            payment_method,
+            payment_amount,
+            finalStatus,
+            transaction_id_length: finalTransactionId?.length
+        });
+        
         const { data, error } = await supabaseConfig.getAdminClient()
             .from(this.tableName)
             .insert([{
                 order_id,
                 payment_method,
                 payment_amount,
-                status,
-                transaction_id,
+                status: finalStatus,
+                transaction_id: finalTransactionId,
                 payment_date: new Date().toISOString()
             }])
             .select()
             .single();
+            
         if (error) throw new Error(`Failed to create payment: ${error.message}`);
+        
+        // Parse and attach details
+        if (data) {
+            data.details = parsePaymentDetails(data.transaction_id);
+        }
+        
         return data;
+    }
+
+    // Get latest payment by order_id with parsed details
+    async findLatestByOrderId(orderId) {
+        const { data, error } = await supabaseConfig.getAdminClient()
+            .from(this.tableName)
+            .select('*')
+            .eq('order_id', orderId)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+            
+        if (error) {
+            if (error.code === 'PGRST116') return null; // Not found
+            throw new Error(`Failed to fetch payment: ${error.message}`);
+        }
+        
+        // Parse transaction_id into details
+        if (data) {
+            data.details = parsePaymentDetails(data.transaction_id);
+        }
+        
+        return data;
+    }
+
+    // Mark payment as completed (for admin confirmation)
+    async markCompleted(paymentId, options = {}) {
+        try {
+            const existing = await this.findById(paymentId);
+            if (!existing) {
+                throw new Error(`Payment ${paymentId} not found`);
+            }
+
+            // Idempotent: if already completed, return current state
+            if (existing.status === constants.PAYMENT_STATUS.COMPLETED) {
+                console.log('💳 Payment already completed (idempotent):', paymentId);
+                existing.details = parsePaymentDetails(existing.transaction_id);
+                return existing;
+            }
+
+            // Parse existing details (compact format)
+            let currentDetails;
+            try {
+                currentDetails = JSON.parse(existing.transaction_id);
+            } catch (e) {
+                currentDetails = { t: 'unknown' };
+            }
+            
+            // Update compact format with verification/collection info
+            if (currentDetails.t === 'bank' && options.verified_by) {
+                currentDetails.v = options.verified_by;
+                currentDetails.va = new Date().toISOString().split('T')[0];
+            }
+            
+            // For COD, update collection status (compact format)
+            if (currentDetails.t === 'cash' && options.collected) {
+                currentDetails.s = 'collected';
+                currentDetails.c = options.collected_by || 'Admin';
+                currentDetails.ca = new Date().toISOString().split('T')[0];
+            }
+
+            const updatedTransactionId = JSON.stringify(currentDetails);
+            
+            // Verify length constraint
+            if (updatedTransactionId.length > 100) {
+                console.warn('⚠️ Transaction ID too long, truncating:', updatedTransactionId.length);
+                // Fallback to minimal format
+                currentDetails = { t: currentDetails.t, s: 'completed' };
+            }
+
+            const { data, error } = await supabaseConfig.getAdminClient()
+                .from(this.tableName)
+                .update({
+                    status: constants.PAYMENT_STATUS.COMPLETED,
+                    transaction_id: JSON.stringify(currentDetails),
+                    payment_date: new Date().toISOString()
+                })
+                .eq('payment_id', paymentId)
+                .select()
+                .single();
+
+            if (error) throw new Error(`Failed to mark payment completed: ${error.message}`);
+
+            console.log(`✅ Payment ${paymentId} marked completed`);
+            
+            // Parse and attach details
+            if (data) {
+                data.details = parsePaymentDetails(data.transaction_id);
+            }
+            
+            return data;
+        } catch (error) {
+            console.error('Error marking payment completed:', error);
+            throw error;
+        }
     }
 
     // Refund a payment (idempotent)

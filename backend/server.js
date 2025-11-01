@@ -538,6 +538,33 @@ class Server {
             } else {
                 this.sendError(res, 'Method not allowed', 405);
             }
+        } else if (paymentPath.match(/^\/\d+\/confirm$/)) {
+            const id = paymentPath.split('/')[1];
+            req.params = { id };
+            if (method === 'POST') {
+                req.body = body;
+                await this.paymentController.confirmPayment(req, res);
+            } else {
+                this.sendError(res, 'Method not allowed', 405);
+            }
+        } else if (paymentPath.match(/^\/\d+\/approve$/)) {
+            const id = paymentPath.split('/')[1];
+            req.params = { id };
+            if (method === 'POST') {
+                req.body = body;
+                await this.paymentController.approveCod(req, res);
+            } else {
+                this.sendError(res, 'Method not allowed', 405);
+            }
+        } else if (paymentPath.match(/^\/\d+\/collect$/)) {
+            const id = paymentPath.split('/')[1];
+            req.params = { id };
+            if (method === 'POST') {
+                req.body = body;
+                await this.paymentController.collectCod(req, res);
+            } else {
+                this.sendError(res, 'Method not allowed', 405);
+            }
         } else if (paymentPath.match(/^\/\d+$/)) {
             const id = paymentPath.substring(1);
             req.params = { id };

@@ -877,6 +877,7 @@
                     <option value="">All Status</option>
                     <option value="pending">Pending</option>
                     <option value="processing">Approved</option>
+                    <option value="delivered">Completed</option>
                     <option value="cancelled">Cancelled</option>
                   </select>
                 </div>
@@ -901,13 +902,14 @@
                     <th>Customer</th>
                     <th>Amount</th>
                     <th>Status</th>
+                    <th>Payment</th>
                     <th>Date</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody id="ordersTableBody">
                   <tr>
-                    <td colspan="6" class="text-center py-5">
+                    <td colspan="7" class="text-center py-5">
                       <div class="loading-container">
                         <div class="spinner-border text-dark" role="status">
                           <span class="visually-hidden">Loading...</span>
@@ -1861,7 +1863,7 @@
             if (!orders || orders.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="6" class="text-center text-muted py-4">
+                        <td colspan="7" class="text-center text-muted py-4">
                             <i class="fas fa-inbox me-2"></i>
                             No orders found
                         </td>
@@ -1886,10 +1888,25 @@
                 const statusColors = {
                     'pending': 'bg-warning',
                     'processing': 'bg-info',
-                    'cancelled': 'bg-danger'
+                    'delivered': 'bg-success',
+                    'cancelled': 'bg-danger',
+                    'refunded': 'bg-secondary'
                 };
                 const statusColor = statusColors[status] || 'bg-secondary';
-                const statusLabel = status === 'processing' ? 'Approved' : status.charAt(0).toUpperCase() + status.slice(1);
+                
+                // Status labels
+                const statusLabels = {
+                    'pending': 'Pending',
+                    'processing': 'Approved',
+                    'delivered': 'Completed',
+                    'cancelled': 'Cancelled'
+                };
+                const statusLabel = statusLabels[status] || status.charAt(0).toUpperCase() + status.slice(1);
+                
+                // Payment info
+                const payment = order.payment || null;
+                const paymentMethodDisplay = payment ? window.adminManager.getPaymentMethodDisplay(payment.payment_method) : 'N/A';
+                const paymentStatusBadge = payment ? window.adminManager.getPaymentStatusBadge(payment.status) : '<span class="badge bg-secondary">N/A</span>';
                 
                 // Can approve (pending) or cancel (pending/processing)
                 const canApprove = status === 'pending';
@@ -1905,6 +1922,7 @@
                                 ${statusLabel}
                             </span>
                         </td>
+                        <td><small>${paymentMethodDisplay}</small><br>${paymentStatusBadge}</td>
                         <td><small class="text-muted">${formattedDate}</small></td>
                         <td>
                             <div class="btn-group btn-group-sm" role="group">
@@ -1939,7 +1957,7 @@
                 const orderData = response?.data || response;
                 const items = orderData.order_items || [];
                 const address = orderData.address || {};
-                const payment = orderData.payments?.[0] || {};
+                const payment = orderData.payment || orderData.payments?.[0] || null;
                 const totalAmount = orderData.total_amount || 0;
                 const status = orderData.status || 'pending';
                 const orderDate = new Date(orderData.created_at || orderData.order_date);
@@ -1950,8 +1968,9 @@
                 
                 const statusColors = {
                     'pending': 'warning',
-                    'processing': 'info',
-                    'cancelled': 'danger'
+                    'processing': 'success',
+                    'cancelled': 'danger',
+                    'refunded': 'secondary'
                 };
                 const statusColor = statusColors[status] || 'secondary';
                 const statusLabel = status === 'processing' ? 'Approved' : status.charAt(0).toUpperCase() + status.slice(1);
@@ -1964,6 +1983,75 @@
                         <td>₫${new Intl.NumberFormat('vi-VN').format(Math.round(item.quantity * item.price_per_unit))}</td>
                     </tr>
                 `).join('');
+                
+                // Payment section with admin actions
+                let paymentSection = '';
+                if (payment) {
+                    const paymentMethodDisplay = window.adminManager.getPaymentMethodDisplay(payment.payment_method);
+                    const paymentStatusBadge = window.adminManager.getPaymentStatusBadge(payment.status);
+                    const paymentDetailsHtml = window.adminManager.renderPaymentDetails(payment);
+                    
+                    // Admin action buttons based on order status and payment method
+                    let actionButtons = '';
+                    
+                    // Bank Transfer: Confirm payment when pending
+                    if (payment.payment_method === 'bank_transfer' && payment.status === 'pending') {
+                        actionButtons = `
+                            <button class="btn btn-success btn-sm mt-2" onclick="window.adminManager.confirmPayment(${payment.payment_id}); bootstrap.Modal.getInstance(document.getElementById('orderDetailModal')).hide();">
+                                <i class="fas fa-check-circle"></i> Confirm Payment
+                            </button>
+                        `;
+                    } 
+                    // COD: Different buttons for different stages
+                    else if (payment.payment_method === 'cash') {
+                        if (status === 'pending') {
+                            // Step 1: Approve for delivery
+                            actionButtons = `
+                                <button class="btn btn-success btn-sm mt-2" onclick="window.adminManager.approveCod(${payment.payment_id}); bootstrap.Modal.getInstance(document.getElementById('orderDetailModal')).hide();">
+                                    <i class="fas fa-check-circle"></i> Approve Order
+                                </button>
+                            `;
+                        } else if (status === 'processing' && payment.status === 'pending') {
+                            // Step 2: Mark as collected after delivery
+                            actionButtons = `
+                                <button class="btn btn-primary btn-sm mt-2" onclick="window.adminManager.collectCod(${payment.payment_id}); bootstrap.Modal.getInstance(document.getElementById('orderDetailModal')).hide();">
+                                    <i class="fas fa-money-bill-wave"></i> Mark as Collected
+                                </button>
+                            `;
+                        }
+                    }
+                    
+                    paymentSection = `
+                        <hr>
+                        <h6 class="fw-bold mb-3">Payment Information</h6>
+                        <div class="card bg-light mb-2">
+                            <div class="card-body">
+                                <div class="row mb-2">
+                                    <div class="col-6">
+                                        <p class="mb-1"><strong>Method:</strong></p>
+                                        <p class="mb-0">${paymentMethodDisplay}</p>
+                                    </div>
+                                    <div class="col-6">
+                                        <p class="mb-1"><strong>Status:</strong></p>
+                                        <p class="mb-0">${paymentStatusBadge}</p>
+                                    </div>
+                                </div>
+                                <hr class="my-2">
+                                <p class="mb-1"><strong>Details:</strong></p>
+                                ${paymentDetailsHtml}
+                                ${actionButtons}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    paymentSection = `
+                        <hr>
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            No payment information available
+                        </div>
+                    `;
+                }
                 
                 const detailHtml = `
                     <div class="row mb-3">
@@ -2026,13 +2114,7 @@
                         </div>
                     </div>
                     
-                    ${payment.payment_method ? `
-                        <hr>
-                        <h6 class="fw-bold mb-3">Payment Details</h6>
-                        <p class="mb-1"><strong>Method:</strong> ${payment.payment_method}</p>
-                        <p class="mb-1"><strong>Status:</strong> <span class="badge bg-secondary">${payment.status || 'pending'}</span></p>
-                        ${payment.transaction_id ? `<p class="mb-0"><strong>Transaction ID:</strong> ${payment.transaction_id}</p>` : ''}
-                    ` : ''}
+                    ${paymentSection}
                     
                     ${orderData.notes ? `
                         <hr>

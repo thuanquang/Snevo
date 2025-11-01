@@ -1171,6 +1171,45 @@ class PaymentsAPI {
       throw error;
     }
   }
+
+  /**
+   * POST confirm bank transfer payment (admin)
+   */
+  async confirmPayment(paymentId) {
+    try {
+      const response = await this.client.post(`/api/payments/${paymentId}/confirm`, {});
+      return response.data;
+    } catch (error) {
+      console.error("❌ Confirm payment error:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * POST approve COD order (admin)
+   */
+  async approveCod(paymentId) {
+    try {
+      const response = await this.client.post(`/api/payments/${paymentId}/approve`, {});
+      return response.data;
+    } catch (error) {
+      console.error("❌ Approve COD error:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * POST mark COD as collected (admin)
+   */
+  async collectCod(paymentId) {
+    try {
+      const response = await this.client.post(`/api/payments/${paymentId}/collect`, {});
+      return response.data;
+    } catch (error) {
+      console.error("❌ Collect COD error:", error);
+      throw error;
+    }
+  }
 }
 
 // Users API

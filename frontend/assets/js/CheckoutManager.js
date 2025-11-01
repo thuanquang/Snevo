@@ -623,20 +623,65 @@ class CheckoutManager {
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
 
-            // Create order
+            // Collect payment details based on payment method
+            let payment_details = null;
+            if (this.orderData.payment_method === 'credit_card') {
+                const cardNumber = document.getElementById('cardNumber')?.value;
+                const cardHolder = document.getElementById('cardHolder')?.value;
+                const expiryDate = document.getElementById('expiryDate')?.value;
+                const cvv = document.getElementById('cvv')?.value;
+                
+                if (!cardNumber || !cardHolder || !expiryDate || !cvv) {
+                    alert('Please fill all card details');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-check"></i> Confirm & Pay';
+                    return;
+                }
+                
+                payment_details = {
+                    card_number: cardNumber.replace(/\s/g, ''),
+                    card_holder: cardHolder,
+                    expiry_date: expiryDate,
+                    cvv: cvv
+                };
+            } else if (this.orderData.payment_method === 'bank_transfer') {
+                const bankCode = document.getElementById('bankCode')?.value;
+                const bankAccount = document.getElementById('bankAccount')?.value;
+                
+                if (!bankCode || !bankAccount) {
+                    alert('Please fill all bank transfer details');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-check"></i> Confirm & Pay';
+                    return;
+                }
+                
+                payment_details = {
+                    bank_code: bankCode,
+                    account_number: bankAccount
+                };
+            }
+
+            // Create order with payment info
             const orderPayload = {
                 address_id: this.orderData.address_id,
                 notes: this.orderData.notes || null,
                 shipping_cost: this.orderData.shipping_cost || 0,
-                tax_amount: this.orderData.tax_amount || 0
+                tax_amount: this.orderData.tax_amount || 0,
+                payment_method: this.orderData.payment_method,
+                payment_details: payment_details
             };
-            console.log('📝 Creating order with payload:', orderPayload);
+            console.log('� Creating order with payload:', orderPayload);
             const orderRes = await window.ordersAPI.createOrder(orderPayload);
             console.log('✅ Order created:', orderRes);
 
-            // Extract order ID from nested response: { success, data: { order_id }, message }
-            const orderId = orderRes?.data?.order_id || orderRes?.order_id;
-            console.log('📦 Order ID:', orderId, 'Type:', typeof orderId);
+            // Extract order data from nested response
+            const orderData = orderRes?.data || orderRes;
+            const orderId = orderData.order_id;
+            const orderStatus = orderData.order_status;
+            const payment = orderData.payment;
+            
+            console.log('📦 Order ID:', orderId, 'Status:', orderStatus);
+            console.log('� Payment:', payment);
 
             if (!orderId) {
                 throw new Error('Order created but no order_id in response');
@@ -644,82 +689,25 @@ class CheckoutManager {
 
             this.currentOrderId = orderId; // Store order ID for cancellation
 
-            // ⭐ Handle Cash on Delivery separately - create pending payment row
-            if (this.orderData.payment_method === 'cash') {
-                console.log('💵 Cash selected - creating pending payment row');
-
-                try {
-                    // Create a pending payment record for cash
-                    const cashPaymentPayload = {
-                        order_id: orderId,
-                        payment_method: 'cash',
-                        payment_amount: this.orderData.total
-                    };
-                    console.log('💳 Creating cash payment record:', cashPaymentPayload);
-                    console.log('  - order_id type:', typeof orderId, 'value:', orderId);
-                    console.log('  - payment_method type:', typeof 'cash', 'value:', 'cash');
-                    console.log('  - payment_amount type:', typeof this.orderData.total, 'value:', this.orderData.total);
-                    
-                    const cashPaymentRes = await window.paymentsAPI.createPayment(cashPaymentPayload);
-                    console.log('✅ Cash payment record created:', cashPaymentRes);
-                } catch (e) {
-                    console.error('❌ Failed to create cash payment row:', e);
-                    console.error('  Error message:', e.message);
-                    console.error('  Error response:', e.response?.data);
-                    // Non-blocking: continue even if payment record creation fails
-                    console.log('⚠️ Proceeding to order completion despite payment creation failure');
-                }
-                
-                // Update navbar cart count
-                if (window.navbarManager && window.navbarManager.updateCartCount) {
-                    window.navbarManager.updateCartCount(0);
-                }
-
-                // Redirect to order confirmation
-                alert('Order placed successfully! You will pay cash on delivery.');
-                window.location.href = `orders.html?order_id=${orderId}`;
-                return;
-            }
-
-            // ⭐ For other payment methods: create payment record
-            const paymentPayload = {
-                order_id: orderId,
-                payment_method: this.orderData.payment_method,
-                payment_amount: this.orderData.total
-            };
-            console.log('💳 Creating payment with payload:', paymentPayload);
-            const paymentRes = await window.paymentsAPI.createPayment(paymentPayload);
-            console.log('✅ Payment created:', paymentRes);
-
-            const paymentId = paymentRes?.data?.payment_id || paymentRes?.payment_id;
-            console.log('💳 Payment ID:', paymentId);
-
-            // Process payment (mock)
-            const processPayload = {
-                payment_id: paymentId,
-                provider: this.orderData.payment_method === 'stripe' ? 'stripe' : null,
-                payload: {}
-            };
-            console.log('🔄 Processing payment with payload:', processPayload);
-            const processRes = await window.paymentsAPI.processPayment(processPayload);
-            console.log('✅ Payment processed:', processRes);
-
             // Update navbar cart count
             if (window.navbarManager && window.navbarManager.updateCartCount) {
                 window.navbarManager.updateCartCount(0);
             }
 
-            // Redirect to order confirmation
-            const finalStatus = processRes?.data?.status || processRes?.status;
-            if (finalStatus === 'completed') {
-                console.log('✅ Payment completed, redirecting to orders page');
-                alert('Payment successful! Order has been placed.');
-                window.location.href = `orders.html?order_id=${orderId}`;
+            // Show appropriate message based on payment method and status
+            let message = '';
+            if (this.orderData.payment_method === 'cash') {
+                message = 'Order placed successfully! You will pay cash on delivery.';
+            } else if (this.orderData.payment_method === 'bank_transfer') {
+                message = 'Order placed! Please wait for admin confirmation of your bank transfer.';
+            } else if (payment?.status === 'completed') {
+                message = 'Payment successful! Your order has been confirmed.';
             } else {
-                console.warn('⚠️ Payment status not completed:', processRes.status);
-                alert('Payment processing failed. Your order is pending payment.');
-                window.location.href = `orders.html?order_id=${orderId}`;
+                message = 'Order placed! Payment is being processed.';
             }
+
+            alert(message);
+            window.location.href = `orders.html?order_id=${orderId}`;
         } catch (err) {
             console.error('❌ Order confirmation failed');
             console.error('Error object:', err);

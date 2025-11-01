@@ -242,7 +242,7 @@
                         <!-- <button class="tab-btn active" data-status="">All Orders</button> -->
                         <button class="tab-btn" data-status="pending">Pending</button>
                         <button class="tab-btn" data-status="processing">Approved</button>
-                        <button class="tab-btn" data-status="success">Completed</button>
+                        <button class="tab-btn" data-status="delivered">Completed</button>
                         <button class="tab-btn" data-status="cancelled">Cancelled</button>
                     </div>
                     
@@ -559,8 +559,8 @@
                         <div><strong>Confirmed</strong><br><small>${status !== 'pending' ? 'Approved' : 'Pending approval'}</small></div>
                     </div>
                     <div class="timeline-item">
-                        <div class="timeline-marker ${status === 'success' ? 'active' : ''}"><i class="fas fa-check"></i></div>
-                        <div><strong>Completed</strong><br><small>${status === 'success' ? 'Ready' : 'In progress'}</small></div>
+                        <div class="timeline-marker ${status === 'delivered' || status === 'success' ? 'active' : ''}"><i class="fas fa-check"></i></div>
+                        <div><strong>Completed</strong><br><small>${status === 'delivered' || status === 'success' ? 'Delivered' : 'In progress'}</small></div>
                     </div>
                 </div>
             `;
@@ -750,7 +750,8 @@
             const labels = {
                 'pending': 'Pending Approval',
                 'processing': 'Approved',
-                'success': 'Completed',
+                'delivered': 'Completed',
+                'success': 'Completed',  // Backward compatibility
                 'cancelled': 'Cancelled'
             };
             return labels[status] || status;
@@ -760,7 +761,8 @@
             const colors = {
                 'pending': 'pending',
                 'processing': 'info',
-                'success': 'success',
+                'delivered': 'success',
+                'success': 'success',  // Backward compatibility
                 'cancelled': 'cancelled'
             };
             return colors[status] || 'secondary';

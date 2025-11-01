@@ -25,20 +25,83 @@ export const USER_ROLES = {
 export const ORDER_STATUS = {
     PENDING: 'pending',
     SUCCESS: 'processing',  // Map to 'processing' for DB constraint compatibility
+    SHIPPED: 'shipped',     // Order shipped
+    DELIVERED: 'delivered', // Order delivered (payment completed)
     CANCELLED: 'cancelled'
 };
 
 export const PAYMENT_STATUS = {
     PENDING: 'pending',
     COMPLETED: 'completed',
-    FAILED: 'failed'
+    FAILED: 'failed',
+    REFUNDED: 'refunded'
 };
 
 export const PAYMENT_METHODS = {
     CASH: 'cash',
     CREDIT_CARD: 'credit_card',
+    DEBIT_CARD: 'credit_card', // Merged with credit_card in DB
     BANK_TRANSFER: 'bank_transfer',
+    STRIPE: 'stripe',
     E_WALLET: 'e_wallet'
+};
+
+// Order transition rules
+export const ORDER_TRANSITIONS = {
+    // Can approve order when payment completed or COD
+    canApprove: (order, payment) => {
+        return order.status === ORDER_STATUS.PENDING && 
+               (payment?.status === PAYMENT_STATUS.COMPLETED || 
+                payment?.payment_method === PAYMENT_METHODS.CASH);
+    },
+    
+    // Can only cancel pending orders
+    canCancel: (order) => {
+        return order.status === ORDER_STATUS.PENDING;
+    },
+    
+    // Processing orders need refund if cancelled
+    requiresRefund: (order, payment) => {
+        return order.status === ORDER_STATUS.SUCCESS && 
+               payment?.status === PAYMENT_STATUS.COMPLETED;
+    }
+};
+
+// Mock payment details schema (stored as JSON string in transaction_id)
+export const PAYMENT_DETAILS_SCHEMA = {
+    credit_card: {
+        type: 'credit_card',
+        masked_number: String,      // "**** **** **** 1234"
+        brand: String,               // "Visa", "Mastercard"
+        authorization_code: String,  // "AUTH_456"
+        payment_date: String         // ISO timestamp
+    },
+    
+    bank_transfer: {
+        type: 'bank_transfer',
+        bank_name: String,          // "VCB", "Techcombank"
+        account_last4: String,      // "***1234"
+        reference_code: String,     // "FT2025110100123"
+        transfer_date: String,      // "2025-11-01"
+        verified_by: String,        // admin_id who confirmed
+        verified_at: String         // ISO timestamp
+    },
+    
+    stripe: {
+        type: 'stripe',
+        payment_intent: String,     // "pi_mock_1234567890"
+        charge_id: String,          // "ch_mock_abcdef"
+        last4: String,              // "4242"
+        payment_date: String        // ISO timestamp
+    },
+    
+    cash: {
+        type: 'cash',
+        collection_status: String,  // "pending", "collected"
+        collected_amount: Number,   // null until collected
+        collected_by: String,       // delivery person name
+        collected_at: String        // ISO timestamp when collected
+    }
 };
 
 export const API_ENDPOINTS = {
@@ -253,6 +316,8 @@ export default {
     ORDER_STATUS,
     PAYMENT_STATUS,
     PAYMENT_METHODS,
+    ORDER_TRANSITIONS,
+    PAYMENT_DETAILS_SCHEMA,
     API_ENDPOINTS,
     VALIDATION_RULES,
     PAGINATION,
