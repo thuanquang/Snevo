@@ -819,38 +819,41 @@ class ImportsAPI {
    * @param {Object} pagination - Optional { page, limit }
    */
   async getAllImportHistory(filters = {}, pagination = {}) {
-    console.log('📦 API: Getting all import history...', { filters, pagination });
-    
+    console.log("📦 API: Getting all import history...", {
+      filters,
+      pagination,
+    });
+
     try {
       // Build query params
       const params = new URLSearchParams();
-      
+
       // Add pagination
-      if (pagination.page) params.append('page', pagination.page);
-      if (pagination.limit) params.append('limit', pagination.limit);
-      
+      if (pagination.page) params.append("page", pagination.page);
+      if (pagination.limit) params.append("limit", pagination.limit);
+
       // Add filters
-      if (filters.shoeid) params.append('shoeid', filters.shoeid);
-      if (filters.variantid) params.append('variantid', filters.variantid);
-      if (filters.userid) params.append('userid', filters.userid);
-      if (filters.fromdate) params.append('fromdate', filters.fromdate);
-      if (filters.todate) params.append('todate', filters.todate);
-      
+      if (filters.shoeid) params.append("shoeid", filters.shoeid);
+      if (filters.variantid) params.append("variantid", filters.variantid);
+      if (filters.userid) params.append("userid", filters.userid);
+      if (filters.fromdate) params.append("fromdate", filters.fromdate);
+      if (filters.todate) params.append("todate", filters.todate);
+
       const queryString = params.toString();
-      const url = `/api/imports${queryString ? '?' + queryString : ''}`;
-      
+      const url = `/api/imports${queryString ? "?" + queryString : ""}`;
+
       const response = await this.client.get(url);
-      
-      console.log('✅ Import history response:', response);
-      
+
+      console.log("✅ Import history response:", response);
+
       return {
         success: true,
         data: response.data.data || [],
         pagination: response.data.pagination || {},
-        message: response.data.message
+        message: response.data.message,
       };
     } catch (error) {
-      console.error('❌ Get import history error:', error);
+      console.error("❌ Get import history error:", error);
       throw error;
     }
   }
@@ -860,27 +863,29 @@ class ImportsAPI {
    */
   async getImportHistoryByShoe(shoeId, pagination = {}) {
     console.log(`📦 API: Getting import history for shoe ${shoeId}...`);
-    
+
     try {
       const params = new URLSearchParams();
-      if (pagination.page) params.append('page', pagination.page);
-      if (pagination.limit) params.append('limit', pagination.limit);
-      
+      if (pagination.page) params.append("page", pagination.page);
+      if (pagination.limit) params.append("limit", pagination.limit);
+
       const queryString = params.toString();
-      const url = `/api/imports/shoe/${shoeId}${queryString ? '?' + queryString : ''}`;
-      
+      const url = `/api/imports/shoe/${shoeId}${
+        queryString ? "?" + queryString : ""
+      }`;
+
       const response = await this.client.get(url);
-      
-      console.log('✅ Shoe import history response:', response);
-      
+
+      console.log("✅ Shoe import history response:", response);
+
       return {
         success: true,
         data: response.data.data || [],
         pagination: response.data.pagination || {},
-        message: response.data.message
+        message: response.data.message,
       };
     } catch (error) {
-      console.error('❌ Get shoe import history error:', error);
+      console.error("❌ Get shoe import history error:", error);
       throw error;
     }
   }
@@ -889,28 +894,30 @@ class ImportsAPI {
    * Get import statistics (uses: GET /api/imports/statistics)
    */
   async getImportStatistics(filters = {}) {
-    console.log('📊 API: Getting import statistics...', filters);
-    
+    console.log("📊 API: Getting import statistics...", filters);
+
     try {
       const params = new URLSearchParams();
-      if (filters.userid) params.append('userid', filters.userid);
-      if (filters.fromdate) params.append('fromdate', filters.fromdate);
-      if (filters.todate) params.append('todate', filters.todate);
-      
+      if (filters.userid) params.append("userid", filters.userid);
+      if (filters.fromdate) params.append("fromdate", filters.fromdate);
+      if (filters.todate) params.append("todate", filters.todate);
+
       const queryString = params.toString();
-      const url = `/api/imports/statistics${queryString ? '?' + queryString : ''}`;
-      
+      const url = `/api/imports/statistics${
+        queryString ? "?" + queryString : ""
+      }`;
+
       const response = await this.client.get(url);
-      
-      console.log('✅ Import statistics response:', response);
-      
+
+      console.log("✅ Import statistics response:", response);
+
       return {
         success: true,
         data: response.data.data || {},
-        message: response.data.message
+        message: response.data.message,
       };
     } catch (error) {
-      console.error('❌ Get import statistics error:', error);
+      console.error("❌ Get import statistics error:", error);
       throw error;
     }
   }
@@ -1247,73 +1254,120 @@ class VariantsAPI {
       throw error;
     }
   }
-/**
- * ✅ Soft delete variant (preserve stock)
- */
-async softDeleteVariant(variantId) {
-  try {
-    console.log('🗑️ Soft deleting variant:', variantId);
-    const response = await this.client.delete(`/api/variants/${variantId}`);  // ✅ ADD /api
-    console.log('✅ Soft delete response:', response);
-    return response.data;  // ✅ Return response.data not response
-  } catch (error) {
-    console.error('❌ Error soft deleting variant:', error);
-    throw error;
-  }
-}
+  /**
+   * ✅ UPDATE VARIANT - Price and/or Stock
+   * PUT /api/variants/:id
+   */
+  async updateVariant(variantId, updateData) {
+    try {
+      console.log(`💰 Updating variant ${variantId}:`, updateData);
 
-/**
- * ✅ Restore deleted variant
- */
-async restoreVariant(variantId) {
-  try {
-    console.log('♻️ Restoring variant:', variantId);
-    const response = await this.client.post(`/api/variants/${variantId}/restore`);  // ✅ ADD /api
-    console.log('✅ Restore response:', response);
-    return response.data;  // ✅ Return response.data
-  } catch (error) {
-    console.error('❌ Error restoring variant:', error);
-    throw error;
-  }
-}
+      if (!variantId || isNaN(parseInt(variantId))) {
+        throw new Error("Invalid variant ID");
+      }
 
-/**
- * ✅ Get deleted variants for a shoe
- */
-async getDeletedVariants(shoeId) {
-  try {
-    console.log('📋 Getting deleted variants for shoe:', shoeId);
-    const response = await this.client.get(`/api/variants/deleted/${shoeId}`);  // ✅ ADD /api
-    console.log('✅ Deleted variants response:', response);
-    return response.data;  // ✅ Return response.data
-  } catch (error) {
-    console.error('❌ Error getting deleted variants:', error);
-    throw error;
+      const payload = {};
+
+      if (updateData.variant_price !== undefined) {
+        const price = parseFloat(updateData.variant_price);
+        if (isNaN(price) || price < 0) {
+          throw new Error("variant_price must be a positive number");
+        }
+        payload.variant_price = price;
+      }
+
+      if (updateData.stock_quantity !== undefined) {
+        const stock = parseInt(updateData.stock_quantity);
+        if (isNaN(stock) || stock < 0) {
+          throw new Error("stock_quantity must be a non-negative integer");
+        }
+        payload.stock_quantity = stock;
+      }
+
+      if (Object.keys(payload).length === 0) {
+        throw new Error("No valid fields to update");
+      }
+
+      const response = await this.client.put(
+        `/api/variants/${variantId}`,
+        payload
+      );
+
+      return response.data;
+    } catch (error) {
+      console.error("❌ Update variant error:", error);
+      throw error;
+    }
   }
-}
-/**
- * Get variants with filters
- */
-async getVariants(params = {}) {
-  try {
-    const response = await this.client.get('/api/variants', params);
-    return response.data;
-  } catch (error) {
-    console.error('❌ Get variants error:', error);
-    throw error;
+  /**
+   * ✅ Soft delete variant (preserve stock)
+   */
+  async softDeleteVariant(variantId) {
+    try {
+      console.log("🗑️ Soft deleting variant:", variantId);
+      const response = await this.client.delete(`/api/variants/${variantId}`); // ✅ ADD /api
+      console.log("✅ Soft delete response:", response);
+      return response.data; // ✅ Return response.data not response
+    } catch (error) {
+      console.error("❌ Error soft deleting variant:", error);
+      throw error;
+    }
   }
-}
-async getAllDeletedVariants() {
-  try {
-    console.log('📋 Getting all deleted variants...');
-    const response = await this.client.get('/api/variants/deleted-all');
-    console.log('✅ Get all deleted variants response:', response);
-    return response.data;
-  } catch (error) {
-    console.error('❌ Get all deleted variants error:', error);
-    throw error;
+
+  /**
+   * ✅ Restore deleted variant
+   */
+  async restoreVariant(variantId) {
+    try {
+      console.log("♻️ Restoring variant:", variantId);
+      const response = await this.client.post(
+        `/api/variants/${variantId}/restore`
+      ); // ✅ ADD /api
+      console.log("✅ Restore response:", response);
+      return response.data; // ✅ Return response.data
+    } catch (error) {
+      console.error("❌ Error restoring variant:", error);
+      throw error;
+    }
   }
-}
+
+  /**
+   * ✅ Get deleted variants for a shoe
+   */
+  async getDeletedVariants(shoeId) {
+    try {
+      console.log("📋 Getting deleted variants for shoe:", shoeId);
+      const response = await this.client.get(`/api/variants/deleted/${shoeId}`); // ✅ ADD /api
+      console.log("✅ Deleted variants response:", response);
+      return response.data; // ✅ Return response.data
+    } catch (error) {
+      console.error("❌ Error getting deleted variants:", error);
+      throw error;
+    }
+  }
+  /**
+   * Get variants with filters
+   */
+  async getVariants(params = {}) {
+    try {
+      const response = await this.client.get("/api/variants", params);
+      return response.data;
+    } catch (error) {
+      console.error("❌ Get variants error:", error);
+      throw error;
+    }
+  }
+  async getAllDeletedVariants() {
+    try {
+      console.log("📋 Getting all deleted variants...");
+      const response = await this.client.get("/api/variants/deleted-all");
+      console.log("✅ Get all deleted variants response:", response);
+      return response.data;
+    } catch (error) {
+      console.error("❌ Get all deleted variants error:", error);
+      throw error;
+    }
+  }
 }
 // Create API instances
 const authAPI = new AuthAPI(apiClient);
