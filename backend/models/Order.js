@@ -129,11 +129,13 @@ class Order extends BaseModel {
         console.log('✅ Returning orders with profiles:', ordersWithProfiles.length);
         
         return {
-            orders: ordersWithProfiles,
+            data: ordersWithProfiles,
+            orders: ordersWithProfiles,  // Keep for backward compatibility
             total: count || 0,
             page: parseInt(page),
             limit: parseInt(limit),
-            pages: Math.ceil((count || 0) / parseInt(limit))
+            pages: Math.ceil((count || 0) / parseInt(limit)),
+            totalPages: Math.ceil((count || 0) / parseInt(limit))
         };
     }
 

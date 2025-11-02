@@ -47,13 +47,22 @@ class OrderController extends BaseController {
   // GET /api/admin/orders - Get ALL orders (admin only)
   async getAdminOrders(req, res) {
     return this.handleRequest(req, res, async () => {
-      this.requireAuth(req);
-      console.log('🔐 Admin user:', req.user.id);
-      // TODO: Add admin role check here if needed
-      const { status, page = 1, limit = 10, search = '' } = req.query || {};
-      console.log('📊 getAdminOrders params:', { status, page, limit, search });
+      // Authorization: Only sellers can view all orders
+      const user = this.requireRole(req, ['seller']);
+      console.log('🔐 Seller user:', user.id, user.role);
       
-      const result = await this.Order.getAllOrders(status || null, page, limit, search);
+      // Extract pagination parameters with default limit of 10
+      const pagination = this.getPaginationParams(req, {
+        page: 1,
+        limit: 10,
+        sort: 'created_at',
+        order: 'desc'
+      });
+      
+      const { status, search = '' } = req.query || {};
+      console.log('📊 getAdminOrders params:', { status, search, pagination });
+      
+      const result = await this.Order.getAllOrders(status || null, pagination.page, pagination.limit, search);
       
       // Enrich each order with payment data
       for (const order of result.orders) {
@@ -67,7 +76,8 @@ class OrderController extends BaseController {
         pages: result.pages
       });
       
-      this.sendResponse(res, result, 'Admin orders fetched');
+      // Use sendPaginatedResponse for consistent format
+      this.sendPaginatedResponse(res, result, pagination, 'Admin orders fetched');
     });
   }
 
@@ -82,6 +92,25 @@ class OrderController extends BaseController {
         this.sendError(res, 'Order not found', constants.HTTP_STATUS.NOT_FOUND);
         return;
       }
+      this.sendResponse(res, order, 'Order fetched');
+    });
+  }
+
+  // GET /api/admin/orders/:id - Admin can view any order
+  async getAdminOrder(req, res) {
+    return this.handleRequest(req, res, async () => {
+      // Authorization: Only sellers can view any order
+      const user = this.requireRole(req, ['seller']);
+      const { id } = req.params;
+      
+      // Use findWithItems - no ownership check for sellers
+      const order = await this.Order.findWithItems(parseInt(id));
+      if (!order) {
+        this.sendError(res, 'Order not found', constants.HTTP_STATUS.NOT_FOUND);
+        return;
+      }
+      
+      console.log('🔐 Seller viewing order:', id, 'by', user.email);
       this.sendResponse(res, order, 'Order fetched');
     });
   }
@@ -249,6 +278,38 @@ class OrderController extends BaseController {
     });
   }
 
+  // PUT /api/admin/orders/:id/status - Seller can update any order status
+  async updateAdminOrderStatus(req, res) {
+    return this.handleRequest(req, res, async () => {
+      // Authorization: Only sellers can update order status
+      const user = this.requireRole(req, ['seller']);
+      const { id } = req.params;
+      const { status } = req.body || {};
+      
+      this.validateRequest({ status }, { 
+        status: { required: true, type: 'string', enum: Object.values(constants.ORDER_STATUS) } 
+      });
+      
+      // Get order with payment - no ownership check
+      const order = await this.Order.getWithPayment(parseInt(id));
+      if (!order) {
+        this.sendError(res, 'Order not found', constants.HTTP_STATUS.NOT_FOUND);
+        return;
+      }
+      
+      // Sellers have broader transition permissions
+      const validation = validateOrderTransition(order, status, order.payment);
+      if (!validation.valid) {
+        this.sendError(res, validation.reason, constants.HTTP_STATUS.UNPROCESSABLE_ENTITY);
+        return;
+      }
+      
+      const updated = await this.Order.updateStatus(parseInt(id), status);
+      console.log('🔐 Seller updated order status:', id, 'to', status, 'by', user.email);
+      this.sendResponse(res, updated, 'Order status updated');
+    });
+  }
+
   // PUT /api/orders/:id/cancel { reason? }
   async cancelOrder(req, res) {
     return this.handleRequest(req, res, async () => {
@@ -325,6 +386,103 @@ class OrderController extends BaseController {
 
       // Trigger restore_stock_on_cancel() automatically fires via DB
       this.sendResponse(res, updatedOrder, 'Order cancelled successfully. Stock has been released.');
+    });
+  }
+
+  // PUT /api/admin/orders/:id/cancel - Seller can cancel any order at any status
+  async cancelAdminOrder(req, res) {
+    return this.handleRequest(req, res, async () => {
+      // Authorization: Only sellers can cancel any order
+      const user = this.requireRole(req, ['seller']);
+      const { id } = req.params;
+      const { reason } = req.body || {};
+      
+      // Get order - no ownership check
+      const order = await this.Order.findWithItems(parseInt(id));
+      if (!order) {
+        this.sendError(res, 'Order not found', constants.HTTP_STATUS.NOT_FOUND);
+        return;
+      }
+
+      // Check if order is already cancelled (idempotent)
+      if (order.status === constants.ORDER_STATUS.CANCELLED) {
+        console.log('⚠️ Order already cancelled (idempotent call):', id);
+        this.sendResponse(res, order, 'Order is already cancelled');
+        return;
+      }
+
+      // SELLER CAN CANCEL ORDERS AT ANY STATUS (except delivered/refunded)
+      // Don't allow cancelling completed deliveries
+      if (order.status === constants.ORDER_STATUS.DELIVERED || order.status === 'refunded') {
+        this.sendError(
+          res, 
+          `Cannot cancel order with status '${order.status}'. Order has been completed.`,
+          constants.HTTP_STATUS.UNPROCESSABLE_ENTITY
+        );
+        return;
+      }
+
+      // Build cancellation reason with timestamp
+      const timestamp = new Date().toISOString();
+      const cancellationNote = `[SELLER CANCELLED ${timestamp}] ${reason || 'Seller cancellation'} (by ${user.email})`;
+      
+      // Update order with cancellation reason appended to notes
+      const existingNotes = order.notes ? `${order.notes}\n${cancellationNote}` : cancellationNote;
+      
+      const { data: updatedOrder, error } = await supabaseConfig.getAdminClient()
+        .from('orders')
+        .update({
+          status: constants.ORDER_STATUS.CANCELLED,
+          notes: existingNotes,
+          updated_at: new Date().toISOString()
+        })
+        .eq('order_id', parseInt(id))
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(`Failed to cancel order: ${error.message}`);
+      }
+
+      // ⭐ Handle payment adjustments based on payment status
+      try {
+        const payment = await this.Payment.findLatestByOrderId(parseInt(id));
+        if (payment) {
+          console.log('💳 Processing payment for cancelled order:', payment.payment_id, 'Status:', payment.status);
+          
+          // If payment was completed, mark as refunded
+          if (payment.status === constants.PAYMENT_STATUS.COMPLETED) {
+            console.log('💸 Marking completed payment as refunded');
+            await supabaseConfig.getAdminClient()
+              .from('payments')
+              .update({
+                status: constants.PAYMENT_STATUS.REFUNDED,
+                updated_at: new Date().toISOString()
+              })
+              .eq('payment_id', payment.payment_id);
+            console.log('✅ Payment marked as refunded');
+          } 
+          // If payment was pending, mark as failed
+          else if (payment.status === constants.PAYMENT_STATUS.PENDING) {
+            console.log('❌ Marking pending payment as failed');
+            await supabaseConfig.getAdminClient()
+              .from('payments')
+              .update({
+                status: constants.PAYMENT_STATUS.FAILED,
+                updated_at: new Date().toISOString()
+              })
+              .eq('payment_id', payment.payment_id);
+            console.log('✅ Payment marked as failed');
+          }
+        }
+      } catch (e) {
+        console.warn('⚠️ Failed to update payment status:', e?.message);
+        // Don't fail the order cancellation if payment update fails
+      }
+
+      // Trigger restore_stock_on_cancel() automatically fires via DB
+      console.log('🔐 Seller cancelled order:', id, 'by', user.email);
+      this.sendResponse(res, updatedOrder, 'Order cancelled successfully by seller. Stock has been released and payment adjusted.');
     });
   }
 
