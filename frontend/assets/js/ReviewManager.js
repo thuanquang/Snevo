@@ -3,15 +3,21 @@
  * Handles review display, creation, editing, and deletion
  */
 class ReviewManager {
-  constructor(productId) {
+  constructor(productId, options = {}) {
     this.productId = productId;
     this.currentPage = 1;
     this.currentFilter = "all";
     this.modal = null;
     this.editingReviewId = null;
     this.userReview = null;
+    this.options = {
+      loadStats: true,
+      loadReviews: true,
+      checkUserReview: true,
+      ...options
+    };
 
-    console.log("✅ ReviewManager initialized for product:", productId);
+    console.log("✅ ReviewManager initialized for product:", productId, "with options:", this.options);
   }
 
   /**
@@ -44,10 +50,16 @@ class ReviewManager {
       // Setup event listeners
       this.setupEventListeners();
 
-      // Load initial data
-      await this.loadReviewStats();
-      await this.loadReviews();
-      await this.checkUserReview();
+      // Load initial data (conditionally based on options)
+      if (this.options.loadStats) {
+        await this.loadReviewStats();
+      }
+      if (this.options.loadReviews) {
+        await this.loadReviews();
+      }
+      if (this.options.checkUserReview) {
+        await this.checkUserReview();
+      }
     } catch (error) {
       console.error("❌ Error initializing ReviewManager:", error);
     }
@@ -524,10 +536,16 @@ class ReviewManager {
       await window.reviewsAPI.deleteReview(reviewId);
       this.showToast("Review deleted successfully", "success");
 
-      // Reload data
-      await this.loadReviewStats();
-      await this.loadReviews(this.currentPage);
-      await this.checkUserReview();
+      // Reload data (conditionally based on options)
+      if (this.options.loadStats) {
+        await this.loadReviewStats();
+      }
+      if (this.options.loadReviews) {
+        await this.loadReviews(this.currentPage);
+      }
+      if (this.options.checkUserReview) {
+        await this.checkUserReview();
+      }
     } catch (error) {
       console.error("❌ Error deleting review:", error);
       this.showToast(error.message || "Failed to delete review", "danger");
@@ -567,13 +585,20 @@ class ReviewManager {
         this.showToast("Review submitted successfully", "success");
       }
 
-      // Close modal and reload
+      // Close modal and reload (conditionally based on options)
       if (this.modal) {
         this.modal.hide();
       }
-      await this.loadReviewStats();
-      await this.loadReviews(1); // Go to first page
-      await this.checkUserReview();
+      
+      if (this.options.loadStats) {
+        await this.loadReviewStats();
+      }
+      if (this.options.loadReviews) {
+        await this.loadReviews(1); // Go to first page
+      }
+      if (this.options.checkUserReview) {
+        await this.checkUserReview();
+      }
     } catch (error) {
       console.error("❌ Error submitting review:", error);
       this.showToast(error.message || "Failed to submit review", "danger");

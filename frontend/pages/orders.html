@@ -967,8 +967,13 @@
                 currentReviewShoeId = shoeId;
 
                 // Create temporary ReviewManager instance for this product
+                // Use minimal options - only modal functionality, no stats/reviews list
                 if (!ordersReviewManager) {
-                    ordersReviewManager = new window.ReviewManager(shoeId);
+                    ordersReviewManager = new window.ReviewManager(shoeId, {
+                        loadStats: false,      // Don't load review statistics
+                        loadReviews: false,    // Don't load reviews list
+                        checkUserReview: false // Don't check user review (we do it manually)
+                    });
                     await ordersReviewManager.init();
                 } else {
                     // Update product ID if different
