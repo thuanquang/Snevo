@@ -54,6 +54,9 @@ class ProductDetailManager {
       document.getElementById("productDetail").style.display = "block";
 
       console.log("✅ Product detail loaded successfully");
+
+      // Initialize review manager
+      await this.initReviewManager();
     } catch (error) {
       console.error("❌ Failed to load product:", error);
 
@@ -214,13 +217,40 @@ class ProductDetailManager {
   /**
    * Render product information
    */
-  renderProduct() {
+  async renderProduct() {
     const product = this.productData;
 
     // Set title and subtitle
     document.getElementById("productTitle").textContent = product.shoe_name;
     document.getElementById("productSubtitle").textContent =
       product.category_name || "Men's Shoes";
+
+    // Fetch and display rating summary
+    try {
+      if (window.reviewsAPI) {
+        const stats = await window.reviewsAPI.getProductReviewStats(product.shoe_id);
+        const avgRating = stats.average_rating || 0;
+        const totalReviews = stats.total_reviews || 0;
+        
+        const ratingSummaryHTML = `
+          <div class="rating-summary d-flex align-items-center gap-2 mb-2">
+            <div class="stars">
+              ${this.generateStarHTML(avgRating)}
+            </div>
+            <span class="fw-bold">${avgRating.toFixed(1)}</span>
+            <span class="text-muted">(${totalReviews} ${totalReviews === 1 ? 'review' : 'reviews'})</span>
+          </div>
+        `;
+        
+        // Insert after subtitle
+        const subtitleEl = document.getElementById("productSubtitle");
+        if (subtitleEl) {
+          subtitleEl.insertAdjacentHTML('afterend', ratingSummaryHTML);
+        }
+      }
+    } catch (error) {
+      console.error('❌ Failed to load rating summary:', error);
+    }
 
     // Set price
     const currentPrice = parseFloat(product.base_price);
@@ -264,6 +294,23 @@ class ProductDetailManager {
       });
       thumbnailList.appendChild(thumb);
     }
+  }
+
+  /**
+   * Generate star HTML for rating display
+   */
+  generateStarHTML(rating) {
+    let html = '';
+    for (let i = 1; i <= 5; i++) {
+      if (i <= Math.floor(rating)) {
+        html += '<i class="fas fa-star text-warning"></i>';
+      } else if (i === Math.ceil(rating) && rating % 1 !== 0) {
+        html += '<i class="fas fa-star-half-alt text-warning"></i>';
+      } else {
+        html += '<i class="far fa-star text-warning"></i>';
+      }
+    }
+    return html;
   }
   /**
    * ⭐ NEW: Update price when variant is selected
@@ -710,6 +757,26 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
+/**
+ * Initialize ReviewManager
+ */
+ProductDetailManager.prototype.initReviewManager = async function() {
+  try {
+    if (typeof ReviewManager === 'undefined') {
+      console.warn('⚠️ ReviewManager not loaded');
+      return;
+    }
+
+    // Create and initialize review manager
+    window.reviewManager = new ReviewManager(this.productId);
+    await window.reviewManager.init();
+    
+    console.log('✅ ReviewManager initialized');
+  } catch (error) {
+    console.error('❌ Error initializing ReviewManager:', error);
+  }
+};
 
 // Make it globally accessible
 window.ProductDetailManager = ProductDetailManager;
