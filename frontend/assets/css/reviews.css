@@ -1,0 +1,417 @@
+/* ============================================================
+   Reviews Section Styles
+   ============================================================ */
+
+.reviews-section {
+    padding: 2rem 0;
+}
+
+.section-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #111;
+    margin-bottom: 1.5rem;
+}
+
+/* ============================================================
+   Review Summary
+   ============================================================ */
+
+.review-summary {
+    background: #f5f5f5;
+    padding: 2rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+}
+
+.average-rating h1 {
+    font-size: 4rem;
+    font-weight: 700;
+    color: #111;
+    margin-bottom: 0.5rem;
+}
+
+.average-rating .stars {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.average-rating .stars i {
+    color: #ffa500;
+}
+
+/* ============================================================
+   Rating Distribution
+   ============================================================ */
+
+.rating-distribution {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.rating-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.rating-label {
+    min-width: 50px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.rating-count {
+    min-width: 40px;
+    text-align: right;
+    font-size: 0.875rem;
+    color: #757575;
+}
+
+.rating-bar-row .progress {
+    height: 8px;
+    background-color: #e0e0e0;
+    border-radius: 4px;
+}
+
+.rating-bar-row .progress-bar {
+    background-color: #ffa500;
+}
+
+/* ============================================================
+   Review Filters
+   ============================================================ */
+
+.review-filters {
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 1rem;
+}
+
+.filter-btn {
+    border-radius: 20px;
+    padding: 0.375rem 1rem;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+}
+
+.filter-btn:hover {
+    background-color: #f5f5f5;
+    border-color: #111;
+}
+
+.filter-btn.active {
+    background-color: #111;
+    color: white;
+    border-color: #111;
+}
+
+/* ============================================================
+   Reviews List
+   ============================================================ */
+
+.reviews-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.review-card {
+    background: white;
+    padding: 1.5rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    transition: box-shadow 0.2s ease;
+}
+
+.review-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.review-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.review-header h6 {
+    font-weight: 600;
+    color: #111;
+    margin-bottom: 0.25rem;
+}
+
+.review-rating {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.review-rating i {
+    color: #ffa500;
+    font-size: 1rem;
+}
+
+.review-comment {
+    color: #424242;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-top: 0.75rem;
+}
+
+.review-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* ============================================================
+   Review Modal
+   ============================================================ */
+
+.modal-header {
+    border-bottom: 1px solid #e0e0e0;
+    padding: 1.25rem 1.5rem;
+}
+
+.modal-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #111;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.star-rating-input {
+    display: flex;
+    gap: 0.5rem;
+    font-size: 2rem;
+    cursor: pointer;
+    margin-bottom: 0.5rem;
+}
+
+.star-rating-input i {
+    transition: all 0.2s ease;
+    color: #ffa500;
+}
+
+.star-rating-input i:hover {
+    transform: scale(1.2);
+}
+
+.form-label {
+    font-weight: 600;
+    color: #111;
+    margin-bottom: 0.5rem;
+}
+
+.form-control:focus {
+    border-color: #111;
+    box-shadow: 0 0 0 0.2rem rgba(17, 17, 17, 0.1);
+}
+
+.form-text {
+    color: #757575;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+.modal-footer {
+    border-top: 1px solid #e0e0e0;
+    padding: 1rem 1.5rem;
+}
+
+.modal-footer .btn {
+    padding: 0.5rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+.modal-footer .btn-primary {
+    background-color: #111;
+    border-color: #111;
+}
+
+.modal-footer .btn-primary:hover {
+    background-color: #000;
+    border-color: #000;
+}
+
+/* ============================================================
+   Pagination
+   ============================================================ */
+
+.pagination {
+    margin-top: 2rem;
+}
+
+.pagination .page-link {
+    color: #111;
+    border-color: #e0e0e0;
+    padding: 0.5rem 1rem;
+    margin: 0 0.25rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.pagination .page-link:hover {
+    background-color: #f5f5f5;
+    border-color: #111;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #111;
+    border-color: #111;
+    color: white;
+}
+
+.pagination .page-item.disabled .page-link {
+    color: #9e9e9e;
+    background-color: #fafafa;
+}
+
+/* ============================================================
+   Badges
+   ============================================================ */
+
+.badge {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 4px;
+}
+
+.badge.bg-success {
+    background-color: #4caf50 !important;
+}
+
+/* ============================================================
+   Empty State
+   ============================================================ */
+
+.reviews-list .text-center {
+    padding: 3rem 0;
+}
+
+.reviews-list .fa-comments {
+    color: #bdbdbd;
+}
+
+/* ============================================================
+   Responsive Design
+   ============================================================ */
+
+@media (max-width: 768px) {
+    .review-summary {
+        padding: 1.5rem;
+    }
+
+    .average-rating h1 {
+        font-size: 3rem;
+    }
+
+    .review-card {
+        padding: 1rem;
+    }
+
+    .review-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .review-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .rating-distribution {
+        margin-top: 1.5rem;
+    }
+
+    .filter-btn {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.75rem;
+    }
+}
+
+/* ============================================================
+   Orders Page Review Button
+   ============================================================ */
+
+.item-card .review-btn {
+    border-radius: 6px;
+    padding: 0.375rem 1rem;
+    font-size: 0.875rem;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.item-card .review-btn:hover {
+    background-color: #111;
+    border-color: #111;
+    color: white;
+}
+
+.item-card .review-btn i {
+    margin-right: 0.25rem;
+}
+
+/* ============================================================
+   Animation
+   ============================================================ */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.review-card {
+    animation: fadeIn 0.3s ease;
+}
+
+/* ============================================================
+   Dark Mode Support (Optional)
+   ============================================================ */
+
+@media (prefers-color-scheme: dark) {
+    .review-summary {
+        background: #2c2c2c;
+    }
+
+    .review-card {
+        background: #2c2c2c;
+        border-color: #444;
+        color: #e0e0e0;
+    }
+
+    .review-header h6,
+    .section-title,
+    .modal-title,
+    .form-label {
+        color: #e0e0e0;
+    }
+
+    .review-comment {
+        color: #bdbdbd;
+    }
+
+    .filter-btn.active {
+        background-color: #fff;
+        color: #111;
+    }
+}

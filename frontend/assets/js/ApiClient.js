@@ -1449,6 +1449,173 @@ class VariantsAPI {
     }
   }
 }
+
+// ============================================================
+// ReviewsAPI - Product Reviews Management
+// ============================================================
+
+class ReviewsAPI {
+  constructor(client) {
+    this.client = client;
+  }
+
+  /**
+   * GET reviews for a product with pagination and filters
+   * @param {number} shoeId - Product ID
+   * @param {Object} params - { page, limit, rating }
+   * @returns {Promise<Object>} - { data, total, page, limit, totalPages }
+   */
+  async getProductReviews(shoeId, params = {}) {
+    try {
+      const queryParams = new URLSearchParams();
+      if (params.page) queryParams.append('page', params.page);
+      if (params.limit) queryParams.append('limit', params.limit);
+      if (params.rating) queryParams.append('rating', params.rating);
+
+      const queryString = queryParams.toString();
+      const url = `/api/products/${shoeId}/reviews${queryString ? `?${queryString}` : ''}`;
+      
+      const response = await this.client.get(url);
+      // Server sends paginated response: { success, data: [...], pagination: {...} }
+      const responseData = response.data;
+      
+      // Transform to expected format
+      return {
+        data: responseData.data || [],
+        total: responseData.pagination?.total || 0,
+        page: responseData.pagination?.page || 1,
+        limit: responseData.pagination?.limit || 10,
+        totalPages: responseData.pagination?.totalPages || 0
+      };
+    } catch (error) {
+      console.error('❌ Get product reviews error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * GET review statistics for a product
+   * @param {number} shoeId - Product ID
+   * @returns {Promise<Object>} - { average_rating, total_reviews, distribution, percentage_distribution }
+   */
+  async getProductReviewStats(shoeId) {
+    try {
+      const response = await this.client.get(`/api/products/${shoeId}/reviews/stats`);
+      // Server sends { success: true, data: {...} }, extract data property
+      return response.data.data || response.data;
+    } catch (error) {
+      console.error('❌ Get product review stats error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * POST create a new review
+   * @param {Object} reviewData - { shoe_id, rating, comment }
+   * @returns {Promise<Object>} - Created review
+   */
+  async createReview(reviewData) {
+    try {
+      console.log('📝 Creating review:', reviewData);
+      const response = await this.client.post('/api/reviews', reviewData);
+      console.log('✅ Create review response:', response);
+      // Server sends { success: true, data: {...} }, extract data property
+      return response.data.data || response.data;
+    } catch (error) {
+      console.error('❌ Create review error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * PUT update an existing review
+   * @param {number} reviewId - Review ID
+   * @param {Object} updateData - { rating?, comment? }
+   * @returns {Promise<Object>} - Updated review
+   */
+  async updateReview(reviewId, updateData) {
+    try {
+      console.log('✏️ Updating review:', reviewId, updateData);
+      const response = await this.client.put(`/api/reviews/${reviewId}`, updateData);
+      console.log('✅ Update review response:', response);
+      // Server sends { success: true, data: {...} }, extract data property
+      return response.data.data || response.data;
+    } catch (error) {
+      console.error('❌ Update review error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * DELETE a review
+   * @param {number} reviewId - Review ID
+   * @returns {Promise<Object>} - Deletion confirmation
+   */
+  async deleteReview(reviewId) {
+    try {
+      console.log('🗑️ Deleting review:', reviewId);
+      const response = await this.client.delete(`/api/reviews/${reviewId}`);
+      console.log('✅ Delete review response:', response);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Delete review error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * GET current user's reviews with pagination
+   * @param {Object} params - { page, limit }
+   * @returns {Promise<Object>} - { data, total, page, limit, totalPages }
+   */
+  async getMyReviews(params = {}) {
+    try {
+      const queryParams = new URLSearchParams();
+      if (params.page) queryParams.append('page', params.page);
+      if (params.limit) queryParams.append('limit', params.limit);
+
+      const queryString = queryParams.toString();
+      const url = `/api/reviews/my-reviews${queryString ? `?${queryString}` : ''}`;
+      
+      const response = await this.client.get(url);
+      // Server sends paginated response: { success, data: [...], pagination: {...} }
+      const responseData = response.data;
+      
+      // Transform to expected format
+      return {
+        data: responseData.data || [],
+        total: responseData.pagination?.total || 0,
+        page: responseData.pagination?.page || 1,
+        limit: responseData.pagination?.limit || 10,
+        totalPages: responseData.pagination?.totalPages || 0
+      };
+    } catch (error) {
+      console.error('❌ Get my reviews error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * GET current user's review for a specific product (optimized single query)
+   * @param {number} shoeId - Product ID
+   * @returns {Promise<Object|null>} - Review object or null
+   */
+  async getMyReviewForProduct(shoeId) {
+    try {
+      const response = await this.client.get(`/api/products/${shoeId}/reviews/me`);
+      // Server sends { success: true, data: {...} }, extract data property
+      return response.data.data || response.data;
+    } catch (error) {
+      // If 404 or no review, return null
+      if (error?.response?.status === 404 || error?.message?.includes('not found')) {
+        return null;
+      }
+      console.error('❌ Get my review for product error:', error);
+      throw error;
+    }
+  }
+}
+
 // Create API instances
 const authAPI = new AuthAPI(apiClient);
 const productsAPI = new ProductsAPI(apiClient);
@@ -1459,6 +1626,7 @@ const importsAPI = new ImportsAPI(apiClient);
 const variantsAPI = new VariantsAPI(apiClient);
 const cartAPI = new CartAPI(apiClient);
 const paymentsAPI = new PaymentsAPI(apiClient);
+const reviewsAPI = new ReviewsAPI(apiClient);
 
 // Export for global use
 window.ApiClient = ApiClient;
@@ -1472,3 +1640,4 @@ window.importsAPI = importsAPI;
 window.variantsAPI = variantsAPI;
 window.cartAPI = cartAPI;
 window.paymentsAPI = paymentsAPI;
+window.reviewsAPI = reviewsAPI;
