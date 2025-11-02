@@ -308,14 +308,14 @@ class Order extends BaseModel {
         }
     }
 
-    // Get count of pending/processing orders (admin helper)
+    // Get count of pending orders (admin helper)
     async countPending() {
         try {
             const { count, error } = await supabaseConfig
                 .getAdminClient()
                 .from(this.tableName)
                 .select('*', { count: 'exact', head: true })
-                .in('order_status', ['pending', 'processing']);
+                .eq('status', 'pending');
 
             if (error) {
                 console.error("Error counting pending orders:", error);
@@ -324,6 +324,46 @@ class Order extends BaseModel {
             return count || 0;
         } catch (err) {
             console.error("Error counting pending orders:", err);
+            return 0;
+        }
+    }
+
+    // Get count of approved orders (processing, shipped, delivered)
+    async countApproved() {
+        try {
+            const { count, error } = await supabaseConfig
+                .getAdminClient()
+                .from(this.tableName)
+                .select('*', { count: 'exact', head: true })
+                .in('status', ['processing', 'shipped', 'delivered']);
+
+            if (error) {
+                console.error("Error counting approved orders:", error);
+                return 0;
+            }
+            return count || 0;
+        } catch (err) {
+            console.error("Error counting approved orders:", err);
+            return 0;
+        }
+    }
+
+    // Get count of cancelled orders
+    async countCancelled() {
+        try {
+            const { count, error } = await supabaseConfig
+                .getAdminClient()
+                .from(this.tableName)
+                .select('*', { count: 'exact', head: true })
+                .eq('status', 'cancelled');
+
+            if (error) {
+                console.error("Error counting cancelled orders:", error);
+                return 0;
+            }
+            return count || 0;
+        } catch (err) {
+            console.error("Error counting cancelled orders:", err);
             return 0;
         }
     }

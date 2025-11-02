@@ -46,11 +46,11 @@ class AdminDashboard {
       // Show loading state
       this.showLoadingState();
       
-      // Fetch orders data
-      await this.fetchOrdersData();
+      // ⭐ NEW: Fetch enhanced metrics from backend (includes 30-day analytics)
+      await this.fetchDashboardMetrics();
       
-      // Calculate metrics
-      this.calculateMetrics();
+      // Still fetch orders for recent orders table
+      await this.fetchOrdersData();
       
       // Render all dashboard components
       this.renderDashboard();
@@ -114,7 +114,58 @@ class AdminDashboard {
   }
 
   /**
-   * Fetch orders data from API
+   * ⭐ Fetch enhanced dashboard metrics from backend
+   * Includes: totalShoes, totalVariants, totalOrders, revenue, top-selling 30-day products
+   */
+  async fetchDashboardMetrics() {
+    try {
+      console.log('📊 Fetching enhanced dashboard metrics from backend...');
+      
+      // ⭐ Ensure AdminAPI is initialized
+      if (!this.core.ensureAdminAPI()) {
+        throw new Error('AdminAPI not available');
+      }
+      
+      const metricsData = await this.core.adminAPI.getDashboardMetrics();
+      
+      console.log('✅ Dashboard metrics:', metricsData);
+      
+      // Store metrics for rendering
+      this.metrics = {
+        totalShoes: metricsData.totalMetrics?.totalShoes || 0,
+        totalVariants: metricsData.totalMetrics?.totalVariants || 0,
+        totalOrders: metricsData.totalMetrics?.totalOrders || 0,
+        totalRevenue: metricsData.totalMetrics?.totalRevenue || 0,
+        lowStockItems: metricsData.totalMetrics?.lowStockItems || 0,
+        pendingOrders: metricsData.totalMetrics?.pendingOrders || 0,
+        approvedOrders: metricsData.totalMetrics?.approvedOrders || 0,
+        cancelledOrders: metricsData.totalMetrics?.cancelledOrders || 0,
+        topSelling30Days: metricsData.topSelling?.products || []
+      };
+      
+      return this.metrics;
+    } catch (error) {
+      console.error('❌ Failed to fetch dashboard metrics:', error);
+      
+      // Fallback to empty metrics
+      this.metrics = {
+        totalShoes: 0,
+        totalVariants: 0,
+        totalOrders: 0,
+        totalRevenue: 0,
+        lowStockItems: 0,
+        pendingOrders: 0,
+        approvedOrders: 0,
+        cancelledOrders: 0,
+        topSelling30Days: []
+      };
+      
+      throw error;
+    }
+  }
+
+  /**
+   * Fetch orders data from API (for recent orders table only)
    */
   async fetchOrdersData() {
     try {
@@ -148,62 +199,6 @@ class AdminDashboard {
   }
 
   /**
-   * Calculate dashboard metrics
-   */
-  calculateMetrics() {
-    console.log('🔢 Calculating metrics from', this.ordersData.length, 'orders');
-    
-    const now = new Date();
-    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-    
-    // Basic counts by status
-    const pendingOrders = this.ordersData.filter(o => o.status === 'pending');
-    const processingOrders = this.ordersData.filter(o => o.status === 'processing');
-    const deliveredOrders = this.ordersData.filter(o => o.status === 'delivered');
-    const cancelledOrders = this.ordersData.filter(o => o.status === 'cancelled');
-    
-    // Revenue calculations (processing + delivered = completed)
-    const completedOrders = [...processingOrders, ...deliveredOrders];
-    const totalRevenue = completedOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
-    
-    // Last 30 days metrics
-    const recent30DaysOrders = this.ordersData.filter(o => {
-      const orderDate = new Date(o.created_at || o.order_date);
-      return orderDate >= thirtyDaysAgo;
-    });
-    const revenue30Days = recent30DaysOrders
-      .filter(o => o.status === 'processing' || o.status === 'delivered')
-      .reduce((sum, o) => sum + (o.total_amount || 0), 0);
-    
-    // Average order value (completed orders only)
-    const avgOrderValue = completedOrders.length > 0 
-      ? totalRevenue / completedOrders.length 
-      : 0;
-    
-    // Unique customers
-    const uniqueCustomers = new Set(this.ordersData.map(o => o.user_id)).size;
-    
-    // Store metrics
-    this.metrics = {
-      totalOrders: this.ordersData.length,
-      pendingCount: pendingOrders.length,
-      processingCount: processingOrders.length,
-      deliveredCount: deliveredOrders.length,
-      cancelledCount: cancelledOrders.length,
-      totalRevenue,
-      revenue30Days,
-      avgOrderValue,
-      uniqueCustomers,
-      recentOrders: this.ordersData
-        .sort((a, b) => new Date(b.created_at || b.order_date) - new Date(a.created_at || a.order_date))
-        .slice(0, 5)
-    };
-    
-    console.log('✅ Metrics calculated:', this.metrics);
-    return this.metrics;
-  }
-
-  /**
    * Render complete dashboard
    */
   renderDashboard() {
@@ -213,32 +208,38 @@ class AdminDashboard {
   }
 
   /**
-   * Render stat cards
+   * ⭐ Render stat cards with NEW metrics from backend
    */
   renderStatCards() {
-    // Update stat card values
+    // ⭐ Update stat card values with BACKEND metrics
     const updates = {
-      'dashPendingCount': this.metrics.pendingCount,
-      'dashApprovedCount': this.metrics.processingCount,
-      'dashCancelledCount': this.metrics.cancelledCount,
-      'dashTotalRevenue': '₫' + new Intl.NumberFormat('vi-VN').format(Math.round(this.metrics.totalRevenue))
+      'dashTotalShoes': this.metrics.totalShoes || 0,
+      'dashTotalVariants': this.metrics.totalVariants || 0,
+      'dashPendingCount': this.metrics.pendingOrders || 0,
+      'dashApprovedCount': this.metrics.approvedOrders || 0,
+      'dashCancelledCount': this.metrics.cancelledOrders || 0,
+      'dashTotalOrders': this.metrics.totalOrders || 0,
+      'dashLowStockItems': this.metrics.lowStockItems || 0,
+      'dashTotalRevenue': '₫' + new Intl.NumberFormat('vi-VN').format(Math.round(this.metrics.totalRevenue || 0))
     };
     
     Object.entries(updates).forEach(([id, value]) => {
       const el = document.getElementById(id);
       if (el) {
         el.textContent = value;
+      } else {
+        console.warn(`⚠️ Element #${id} not found in DOM`);
       }
     });
     
     // Update sidebar badge
     const badgeElement = document.getElementById('pendingOrdersCount');
     if (badgeElement) {
-      badgeElement.textContent = this.metrics.pendingCount;
-      badgeElement.style.display = this.metrics.pendingCount > 0 ? 'inline-block' : 'none';
+      badgeElement.textContent = this.metrics.pendingOrders || 0;
+      badgeElement.style.display = (this.metrics.pendingOrders || 0) > 0 ? 'inline-block' : 'none';
     }
     
-    console.log('✅ Stat cards updated');
+    console.log('✅ Stat cards updated with backend metrics');
   }
 
   /**
@@ -248,14 +249,17 @@ class AdminDashboard {
     const tbody = document.getElementById('dashRecentOrdersBody');
     if (!tbody) return;
     
-    const orders = this.metrics.recentOrders || [];
+    // Take first 5 orders from ordersData
+    const recentOrders = this.ordersData
+      .sort((a, b) => new Date(b.created_at || b.order_date) - new Date(a.created_at || a.order_date))
+      .slice(0, 5);
     
-    if (orders.length === 0) {
+    if (recentOrders.length === 0) {
       tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">No orders yet</td></tr>';
       return;
     }
     
-    const rows = orders.map(order => {
+    const rows = recentOrders.map(order => {
       const totalAmount = order.total_amount || 0;
       const status = order.status || 'pending';
       const orderDate = new Date(order.created_at || order.order_date);
@@ -290,7 +294,7 @@ class AdminDashboard {
     }).join('');
     
     tbody.innerHTML = rows;
-    console.log('✅ Recent orders rendered:', orders.length);
+    console.log('✅ Recent orders rendered:', recentOrders.length);
   }
 
   /**
@@ -311,6 +315,7 @@ class AdminDashboard {
     // Create charts
     this.createOrderStatusChart();
     this.createRevenueChart();
+    this.createTopSellingChart(); // ⭐ NEW: Top-selling products chart
     
     console.log('✅ Charts rendered');
   }
@@ -324,16 +329,31 @@ class AdminDashboard {
     
     const ctx = canvas.getContext('2d');
     
+    // Calculate order status counts from ordersData
+    const statusCounts = {
+      pending: 0,
+      processing: 0,
+      delivered: 0,
+      cancelled: 0
+    };
+    
+    this.ordersData.forEach(order => {
+      const status = order.status || 'pending';
+      if (statusCounts.hasOwnProperty(status)) {
+        statusCounts[status]++;
+      }
+    });
+    
     this.charts.orderStatus = new Chart(ctx, {
       type: 'doughnut',
       data: {
-        labels: ['Pending', 'Approved', 'Delivered', 'Cancelled'],
+        labels: ['Pending', 'Processing', 'Delivered', 'Cancelled'],
         datasets: [{
           data: [
-            this.metrics.pendingCount,
-            this.metrics.processingCount,
-            this.metrics.deliveredCount,
-            this.metrics.cancelledCount
+            statusCounts.pending,
+            statusCounts.processing,
+            statusCounts.delivered,
+            statusCounts.cancelled
           ],
           backgroundColor: [
             'rgba(255, 193, 7, 0.8)',   // warning
@@ -444,6 +464,132 @@ class AdminDashboard {
         }
       }
     });
+  }
+
+  /**
+   * ⭐ Create top-selling products bar chart (Last 30 days)
+   */
+  createTopSellingChart() {
+    const canvas = document.getElementById('topSellingChart');
+    if (!canvas) {
+      console.warn('⚠️ #topSellingChart canvas not found in DOM');
+      return;
+    }
+    
+    const ctx = canvas.getContext('2d');
+    const topProducts = this.metrics.topSelling30Days || [];
+    
+    // ⭐ DEBUG: Log metrics data
+    console.log('📊 Top-selling chart - Full metrics:', this.metrics);
+    console.log('📊 Top-selling chart - Products array:', topProducts);
+    console.log('📊 Top-selling chart - Array length:', topProducts.length);
+    console.log('📊 Top-selling chart - Array type:', Array.isArray(topProducts));
+    
+    if (topProducts.length === 0) {
+      console.log('ℹ️ No top-selling products data available');
+      // Show placeholder
+      ctx.font = '14px Arial';
+      ctx.fillStyle = '#6c757d';
+      ctx.textAlign = 'center';
+      ctx.fillText('No sales data in last 30 days', canvas.width / 2, canvas.height / 2);
+      return;
+    }
+    
+    // Extract data for chart
+    const labels = topProducts.map(p => p.shoe_name.length > 20 ? p.shoe_name.substring(0, 20) + '...' : p.shoe_name);
+    const revenueData = topProducts.map(p => Math.round(p.revenue));
+    const unitsData = topProducts.map(p => p.units_sold);
+    
+    console.log('📊 Chart data prepared:', { labels, revenueData, unitsData });
+    
+    this.charts.topSelling = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Revenue (₫)',
+          data: revenueData,
+          backgroundColor: 'rgba(75, 192, 192, 0.6)',
+          borderColor: 'rgba(75, 192, 192, 1)',
+          borderWidth: 2,
+          yAxisID: 'y'
+        }, {
+          label: 'Units Sold',
+          data: unitsData,
+          backgroundColor: 'rgba(255, 159, 64, 0.6)',
+          borderColor: 'rgba(255, 159, 64, 1)',
+          borderWidth: 2,
+          yAxisID: 'y1'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+          mode: 'index',
+          intersect: false
+        },
+        plugins: {
+          legend: {
+            position: 'top'
+          },
+          title: {
+            display: true,
+            text: 'Top Selling Products (Last 30 Days)'
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const datasetLabel = context.dataset.label;
+                const value = context.parsed.y;
+                
+                if (datasetLabel === 'Revenue (₫)') {
+                  const product = topProducts[context.dataIndex];
+                  return [
+                    'Revenue: ₫' + new Intl.NumberFormat('vi-VN').format(value),
+                    'Share: ' + product.percentage_of_revenue + '%'
+                  ];
+                } else {
+                  return 'Units: ' + value;
+                }
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            type: 'linear',
+            display: true,
+            position: 'left',
+            beginAtZero: true,
+            ticks: {
+              callback: function(value) {
+                return '₫' + (value / 1000000).toFixed(1) + 'M';
+              }
+            },
+            title: {
+              display: true,
+              text: 'Revenue'
+            }
+          },
+          y1: {
+            type: 'linear',
+            display: true,
+            position: 'right',
+            beginAtZero: true,
+            grid: {
+              drawOnChartArea: false
+            },
+            title: {
+              display: true,
+              text: 'Units'
+            }
+          }
+        }
+      }
+    });
+    
+    console.log('✅ Top-selling chart created with', topProducts.length, 'products');
   }
 
   /**

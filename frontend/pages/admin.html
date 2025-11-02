@@ -149,6 +149,61 @@
             </div>
           </div>
 
+          <!-- ⭐ NEW: Second Row - Product Metrics -->
+          <div class="row mb-4">
+            <!-- Total Shoes Card -->
+            <div class="col-md-3">
+              <div class="section-card">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div>
+                    <p class="text-muted small mb-2">Total Shoes</p>
+                    <h3 class="mb-0" id="dashTotalShoes">0</h3>
+                  </div>
+                  <i class="fas fa-shoe-prints text-primary" style="font-size: 2rem;"></i>
+                </div>
+              </div>
+            </div>
+
+            <!-- Total Variants Card -->
+            <div class="col-md-3">
+              <div class="section-card">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div>
+                    <p class="text-muted small mb-2">Total Variants</p>
+                    <h3 class="mb-0" id="dashTotalVariants">0</h3>
+                  </div>
+                  <i class="fas fa-boxes text-info" style="font-size: 2rem;"></i>
+                </div>
+              </div>
+            </div>
+
+            <!-- Total Orders Card -->
+            <div class="col-md-3">
+              <div class="section-card">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div>
+                    <p class="text-muted small mb-2">Total Orders</p>
+                    <h3 class="mb-0" id="dashTotalOrders">0</h3>
+                  </div>
+                  <i class="fas fa-shopping-cart text-success" style="font-size: 2rem;"></i>
+                </div>
+              </div>
+            </div>
+
+            <!-- Low Stock Items Card -->
+            <div class="col-md-3">
+              <div class="section-card">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div>
+                    <p class="text-muted small mb-2">Low Stock Items</p>
+                    <h3 class="mb-0" id="dashLowStockItems">0</h3>
+                  </div>
+                  <i class="fas fa-exclamation-triangle text-warning" style="font-size: 2rem;"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Recent Orders -->
           <div class="section-card">
             <div class="section-header">
@@ -202,6 +257,22 @@
               <div class="section-card">
                 <div style="height: 300px; position: relative;">
                   <canvas id="revenueChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ⭐ NEW: Top-Selling Products Chart -->
+          <div class="row mb-4">
+            <div class="col-12">
+              <div class="section-card">
+                <div class="section-header">
+                  <h2 class="section-title">
+                    <i class="fas fa-trophy"></i> Top Selling Products (Last 30 Days)
+                  </h2>
+                </div>
+                <div style="height: 350px; position: relative;">
+                  <canvas id="topSellingChart"></canvas>
                 </div>
               </div>
             </div>
