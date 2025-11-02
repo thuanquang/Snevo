@@ -19,10 +19,26 @@ class ReviewManager {
    */
   async init() {
     try {
+      // Wait for Bootstrap to be ready
+      if (typeof bootstrap === 'undefined') {
+        console.warn('⏳ Bootstrap not loaded yet, waiting...');
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+
       // Initialize modal
       const modalElement = document.getElementById("reviewModal");
       if (modalElement) {
-        this.modal = new bootstrap.Modal(modalElement);
+        // Ensure Bootstrap Modal is available
+        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+          this.modal = new bootstrap.Modal(modalElement, {
+            backdrop: true,
+            keyboard: true,
+            focus: true
+          });
+          console.log('✅ Modal initialized successfully');
+        } else {
+          console.error('❌ Bootstrap Modal not available');
+        }
       }
 
       // Setup event listeners
@@ -77,6 +93,17 @@ class ReviewManager {
         this.setupStarRating()
       );
     }
+
+    // ✅ Thêm: Xử lý nút Cancel thủ công (fallback)
+    const cancelBtns = document.querySelectorAll('[data-bs-dismiss="modal"]');
+    cancelBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        console.log('🔘 Cancel button clicked');
+        if (this.modal) {
+          this.modal.hide();
+        }
+      });
+    });
   }
   /**
    * Setup star rating event listeners
@@ -434,25 +461,47 @@ class ReviewManager {
    * Open review modal for create/edit
    */
   openReviewModal(reviewId = null, rating = 0, comment = "") {
-    if (!this.modal) return;
+    console.log('🔓 Opening review modal...', { reviewId, rating, modal: !!this.modal });
+    
+    if (!this.modal) {
+      console.error('❌ Modal not initialized');
+      // Try to initialize modal on-demand
+      const modalElement = document.getElementById("reviewModal");
+      if (modalElement && typeof bootstrap !== 'undefined') {
+        this.modal = new bootstrap.Modal(modalElement);
+        console.log('✅ Modal initialized on-demand');
+      } else {
+        alert('Unable to open review form. Please refresh the page.');
+        return;
+      }
+    }
 
     this.editingReviewId = reviewId || this.userReview?.review_id || null;
 
     // Set modal title
     const modalTitle = document.getElementById("reviewModalTitle");
-    modalTitle.textContent = this.editingReviewId
-      ? "Edit Your Review"
-      : "Write a Review";
+    if (modalTitle) {
+      modalTitle.textContent = this.editingReviewId
+        ? "Edit Your Review"
+        : "Write a Review";
+    }
 
     // Populate form if editing
     if (this.editingReviewId) {
       this.setStarRating(rating || this.userReview?.rating || 0);
-      document.getElementById("reviewComment").value =
-        comment || this.userReview?.comment || "";
-      this.updateCharCount();
+      const commentInput = document.getElementById("reviewComment");
+      if (commentInput) {
+        commentInput.value = comment || this.userReview?.comment || "";
+        this.updateCharCount();
+      }
     }
 
-    this.modal.show();
+    try {
+      this.modal.show();
+      console.log('✅ Modal shown');
+    } catch (error) {
+      console.error('❌ Error showing modal:', error);
+    }
     // Star rating listeners sẽ được setup tự động bởi 'shown.bs.modal' event
   }
 
@@ -519,7 +568,9 @@ class ReviewManager {
       }
 
       // Close modal and reload
-      this.modal.hide();
+      if (this.modal) {
+        this.modal.hide();
+      }
       await this.loadReviewStats();
       await this.loadReviews(1); // Go to first page
       await this.checkUserReview();
