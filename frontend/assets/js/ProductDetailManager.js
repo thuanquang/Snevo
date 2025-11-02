@@ -14,6 +14,9 @@ class ProductDetailManager {
     this.selectedSize = null;
     this.currentVariant = null;
 
+    // ⭐ Cache for purchase validation
+    this.ordersCache = null;
+
     console.log("✅ ProductDetailManager initialized");
   }
 
@@ -769,12 +772,147 @@ ProductDetailManager.prototype.initReviewManager = async function() {
     }
 
     // Create and initialize review manager
-    window.reviewManager = new ReviewManager(this.productId);
+    window.reviewManager = new ReviewManager(this.productId, {
+      loadStats: true,
+      loadReviews: true,
+      checkUserReview: true,
+      setupWriteButton: false // Don't let ReviewManager setup write button, we'll do it manually
+    });
     await window.reviewManager.init();
     
-    console.log('✅ ReviewManager initialized');
+    // ⭐ Preload orders cache for instant validation
+    await this.preloadOrdersCache();
+    
+    // ⭐ Setup write review button with purchase validation
+    await this.setupReviewValidation();
+    
+    console.log('✅ ReviewManager initialized with purchase validation');
   } catch (error) {
     console.error('❌ Error initializing ReviewManager:', error);
+  }
+};
+
+/**
+ * Preload orders cache for instant purchase validation
+ */
+ProductDetailManager.prototype.preloadOrdersCache = async function() {
+  try {
+    // Only preload if user is authenticated
+    if (!window.authService?.isAuthenticated()) {
+      console.log('⏭️ Skipping orders cache preload (not authenticated)');
+      return;
+    }
+
+    // Wait for ordersAPI to be available
+    let attempts = 0;
+    while (!window.ordersAPI && attempts < 30) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      attempts++;
+    }
+
+    if (!window.ordersAPI) {
+      console.warn('⚠️ ordersAPI not available for cache preload');
+      return;
+    }
+
+    // Fetch and cache all orders once
+    const response = await window.ordersAPI.getOrders({ limit: 1000 });
+    this.ordersCache = response.data?.orders || response.orders || [];
+    console.log('✅ Preloaded orders cache:', this.ordersCache.length, 'orders');
+  } catch (error) {
+    console.error('❌ Error preloading orders cache:', error);
+    this.ordersCache = []; // Set empty array as fallback
+  }
+};
+
+/**
+ * Setup review validation - only allow reviews from users who purchased the product
+ */
+ProductDetailManager.prototype.setupReviewValidation = async function() {
+  try {
+    const writeReviewBtn = document.getElementById('writeReviewBtn');
+    if (!writeReviewBtn) {
+      console.warn('⚠️ Write review button not found');
+      return;
+    }
+
+    // Add click handler with validation
+    writeReviewBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+
+      // Check authentication first
+      if (!window.authService?.isAuthenticated()) {
+        alert('Please login to write a review');
+        if (window.showLoginModal) {
+          window.showLoginModal();
+        }
+        return;
+      }
+
+      // Validate purchase (uses cache for instant validation)
+      const canReview = await this.validateUserPurchase();
+      if (!canReview) {
+        alert('You can only review products from completed orders (delivered/success status).');
+        return;
+      }
+
+      // If validation passed, open modal
+      if (window.reviewManager) {
+        window.reviewManager.openReviewModal();
+      }
+    });
+
+    console.log('✅ Review purchase validation enabled for write button');
+  } catch (error) {
+    console.error('❌ Error setting up review validation:', error);
+  }
+};
+
+/**
+ * Validate if user has purchased this product from a completed order
+ * Uses cached orders data for instant validation
+ */
+ProductDetailManager.prototype.validateUserPurchase = async function() {
+  try {
+    // ⭐ Use cached orders if available
+    let orders = this.ordersCache;
+
+    // Fallback: fetch if cache is empty (shouldn't happen if preload worked)
+    if (!orders || orders.length === 0) {
+      console.warn('⚠️ Orders cache empty, fetching...');
+      
+      // Wait for ordersAPI
+      let attempts = 0;
+      while (!window.ordersAPI && attempts < 30) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
+      }
+
+      if (!window.ordersAPI) {
+        console.error('❌ ordersAPI not available');
+        return false;
+      }
+
+      const response = await window.ordersAPI.getOrders({ limit: 1000 });
+      orders = response.data?.orders || response.orders || [];
+      this.ordersCache = orders; // Update cache
+    }
+
+    // Check if product exists in any completed order
+    const hasCompletedOrder = orders.some(order => {
+      const isCompleted = order.status === 'delivered' || order.status === 'success';
+      if (!isCompleted) return false;
+
+      // Check if this product is in the order items
+      return (order.order_items || []).some(item => {
+        return item.shoe_variants?.shoe_id === parseInt(this.productId);
+      });
+    });
+
+    return hasCompletedOrder;
+  } catch (error) {
+    console.error('❌ Error validating user purchase:', error);
+    return false;
   }
 };
 

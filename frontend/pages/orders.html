@@ -415,6 +415,9 @@
 
         // Review cache to avoid refetching
         let userReviewsCache = null;
+        
+        // Orders cache for validation (stores ALL orders with full details)
+        let allOrdersCache = null;
 
         // Initialize
         (async function() {
@@ -441,6 +444,16 @@
             } catch (error) {
                 console.error('❌ Failed to preload reviews cache:', error);
                 userReviewsCache = [];
+            }
+
+            // Preload ALL orders for validation (only fetch once)
+            try {
+                const ordersResponse = await window.ordersAPI.getOrders({ limit: 1000 });
+                allOrdersCache = ordersResponse.data?.orders || ordersResponse.orders || [];
+                console.log('✅ Preloaded all orders cache:', allOrdersCache.length, 'orders');
+            } catch (error) {
+                console.error('❌ Failed to preload orders cache:', error);
+                allOrdersCache = [];
             }
 
             // Setup event listeners
@@ -660,6 +673,9 @@
                 const shoeId = item.shoe_variants?.shoe_id;
                 const shoeName = item.shoe_variants?.shoes?.shoe_name || 'Product';
                 
+                // Only allow reviews for completed orders (delivered or success status)
+                const canReview = (status === 'delivered' || status === 'success');
+                
                 return `
                     <div class="item-card">
                         <div class="item-image">
@@ -674,7 +690,7 @@
                             </div>
                             <div>₫${new Intl.NumberFormat('vi-VN').format(Math.round(item.price_per_unit))}</div>
                         </div>
-                        ${(status === 'delivered') ? `
+                        ${canReview ? `
                             <div class="ms-3">
                                 <button class="btn btn-sm btn-outline-primary review-btn" 
                                         data-shoe-id="${shoeId}" 
@@ -950,6 +966,13 @@
             console.log('🔓 Opening review modal for shoe:', shoeId, shoeName);
             
             try {
+                // ✅ Validate that user can only review products from completed orders
+                const canReview = await validateCanReview(shoeId);
+                if (!canReview) {
+                    alert('You can only review products from completed orders (delivered/success status).');
+                    return;
+                }
+
                 // Wait for ReviewManager to be available
                 let attempts = 0;
                 while (!window.ReviewManager && attempts < 50) {
@@ -1027,6 +1050,41 @@
             } catch (error) {
                 console.error('❌ Error opening review modal:', error);
                 alert('Failed to open review modal');
+            }
+        }
+
+        /**
+         * Validate if user can review this product (must be from completed order)
+         * Uses cached orders data for instant validation
+         */
+        async function validateCanReview(shoeId) {
+            try {
+                // Use cached orders if available (instant validation)
+                let orders = allOrdersCache;
+                
+                // Fallback: fetch if cache is empty (shouldn't happen normally)
+                if (!orders || orders.length === 0) {
+                    console.warn('⚠️ Orders cache empty, fetching...');
+                    const response = await window.ordersAPI.getOrders({ limit: 1000 });
+                    orders = response.data?.orders || response.orders || [];
+                    allOrdersCache = orders; // Update cache
+                }
+                
+                // Check if shoe exists in any completed order
+                const hasCompletedOrder = orders.some(order => {
+                    const isCompleted = order.status === 'delivered' || order.status === 'success';
+                    if (!isCompleted) return false;
+                    
+                    // Check if this shoe is in the order items
+                    return (order.order_items || []).some(item => {
+                        return item.shoe_variants?.shoe_id === parseInt(shoeId);
+                    });
+                });
+                
+                return hasCompletedOrder;
+            } catch (error) {
+                console.error('❌ Error validating review permission:', error);
+                return false;
             }
         }
 

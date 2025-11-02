@@ -14,6 +14,7 @@ class ReviewManager {
       loadStats: true,
       loadReviews: true,
       checkUserReview: true,
+      setupWriteButton: true, // Whether to setup write review button listener
       ...options
     };
 
@@ -69,10 +70,12 @@ class ReviewManager {
    * Setup event listeners
    */
   setupEventListeners() {
-    // Write review button
-    const writeBtn = document.getElementById("writeReviewBtn");
-    if (writeBtn) {
-      writeBtn.addEventListener("click", () => this.openReviewModal());
+    // Write review button (only if option enabled)
+    if (this.options.setupWriteButton) {
+      const writeBtn = document.getElementById("writeReviewBtn");
+      if (writeBtn) {
+        writeBtn.addEventListener("click", () => this.openReviewModal());
+      }
     }
 
     // Character count
