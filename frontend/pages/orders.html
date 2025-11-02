@@ -1025,24 +1025,28 @@
                     ordersReviewManager.openReviewModal();
                 }
 
-                // Override submit handler to refresh orders list after review
+                // Override submit handler to redirect to product detail after review
                 const submitBtn = document.getElementById('submitReviewBtn');
                 if (submitBtn) {
                     // Remove old listeners
                     const newSubmitBtn = submitBtn.cloneNode(true);
                     submitBtn.parentNode.replaceChild(newSubmitBtn, submitBtn);
                     
-                    // Add new listener
+                    // Add new listener with redirect
                     newSubmitBtn.addEventListener('click', async () => {
-                        await ordersReviewManager.submitReview();
-                        
-                        // Reload user reviews cache
                         try {
-                            const reviewsData = await window.reviewsAPI.getMyReviews({ limit: 100 });
-                            userReviewsCache = reviewsData.data || [];
-                            console.log('✅ Reloaded reviews cache after submit');
+                            // Submit review
+                            await ordersReviewManager.submitReview();
+                            
+                            // Wait a moment for the submission to complete
+                            await new Promise(resolve => setTimeout(resolve, 500));
+                            
+                            // ⭐ Redirect to product detail page to see updated review
+                            console.log('✅ Review submitted, redirecting to product detail page...');
+                            window.location.href = `product-detail.html?id=${shoeId}`;
                         } catch (err) {
-                            console.error('❌ Failed to reload reviews cache:', err);
+                            console.error('❌ Failed to submit review:', err);
+                            // Don't redirect if submission failed
                         }
                     });
                 }
