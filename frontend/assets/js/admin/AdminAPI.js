@@ -49,7 +49,7 @@ class AdminAPI {
     }
 
     /**
-     * Get dashboard overview
+     * Get dashboard overview (LEGACY)
      * Returns: { summary, stats, recentActivity }
      */
     async getDashboard() {
@@ -75,6 +75,58 @@ class AdminAPI {
             console.error("❌ Dashboard API error:", error);
             return this.getDefaultDashboard();
         }
+    }
+
+    /**
+     * ⭐ Get enhanced dashboard metrics with 30-day analytics
+     * Returns: { totalMetrics, topSelling: { period, startDate, endDate, products } }
+     */
+    async getDashboardMetrics() {
+        try {
+            console.log("📊 Fetching enhanced dashboard metrics...");
+
+            const headers = await this.getAuthHeaders();
+            const response = await this.client.get("/api/admin/metrics", {}, { headers });
+
+            console.log("📊 Dashboard metrics response:", response);
+
+            const metricsData = response?.data;
+
+            if (metricsData?.success) {
+                console.log("✅ Dashboard metrics:", metricsData.data);
+                return metricsData.data;
+            } else {
+                console.error("❌ Metrics fetch failed:", metricsData?.error || "Unknown error");
+                return this.getDefaultMetrics();
+            }
+        } catch (error) {
+            console.error("❌ Dashboard metrics API error:", error);
+            return this.getDefaultMetrics();
+        }
+    }
+
+    /**
+     * ⭐ Get default metrics structure (fallback)
+     */
+    getDefaultMetrics() {
+        return {
+            totalMetrics: {
+                totalShoes: 0,
+                totalVariants: 0,
+                totalOrders: 0,
+                lowStockItems: 0,
+                totalRevenue: 0,
+                pendingOrders: 0,
+                approvedOrders: 0,
+                cancelledOrders: 0
+            },
+            topSelling: {
+                period: '30_days',
+                startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+                endDate: new Date().toISOString(),
+                products: []
+            }
+        };
     }
 
     /**

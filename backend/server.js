@@ -25,8 +25,11 @@ import VariantController from './controllers/VariantController.js';
 import ImportController from './controllers/ImportController.js';
 import PaymentController from './controllers/PaymentController.js';
 import AdminController from './controllers/AdminController.js';
+import CartController from './controllers/CartController.js';
+import ReviewController from './controllers/ReviewController.js';
 import authMiddleware from './middleware/auth.js';
 import uploadMiddleware from './middleware/upload.js';
+import { createAvatarUploadMiddleware } from './middleware/upload.js';
 import corsMiddleware from './middleware/cors.js';
 import createSupabaseConfig from '../config/supabase.js';
 import { initializeModels } from './models/index.js';
@@ -39,6 +42,15 @@ import colorRoutes from './routes/colors.js';
 import sizeRoutes from './routes/sizes.js';
 import importRoutes from './routes/imports.js';
 import adminRoutes from './routes/admin.js';
+import cartRoutes from './routes/cart.js';
+import reviewRoutes from './routes/reviews.js';
+import orderRoutes from './routes/orders.js';
+import adminOrderRoutes from './routes/adminOrders.js';
+import authRoutes from './routes/auth.js';
+import userRoutes from './routes/users.js';
+import profileRoutes from './routes/profiles.js';
+import addressRoutes from './routes/addresses.js';
+import paymentRoutes from './routes/payments.js';
 
 class Server {
     constructor() {
@@ -69,10 +81,17 @@ class Server {
         this.importController.setModels(this.models);
 
         this.orderController = new OrderController(this.models);
+        if (this.orderController.setModels) this.orderController.setModels(this.models);
         this.profileController = new ProfileController(this.models);
         this.addressController = new AddressController(this.models);     
         this.paymentController = new PaymentController(this.models);
+        if (this.paymentController.setModels) this.paymentController.setModels(this.models);
         this.adminController = new AdminController(this.models);
+        this.cartController = new CartController(this.models);
+        // set models for controllers that require setModels (CartController uses models)
+        if (this.cartController.setModels) this.cartController.setModels(this.models);
+        this.reviewController = new ReviewController();
+        if (this.reviewController.setModels) this.reviewController.setModels(this.models);
 
         // Setup routes
         this.setupRoutes();
@@ -171,21 +190,24 @@ class Server {
         // SKIP body parsing for upload routes
         const isUploadRoute = (
         (req.method === 'POST' && pathname === '/api/products') ||
-        (req.method === 'PUT' && pathname.match(/^\/api\/products\/\d+$/))
+        (req.method === 'PUT' && pathname.match(/^\/api\/products\/\d+$/)) ||
+        (req.method === 'PUT' && pathname === '/api/auth/profile')
         );
 
         // Parse body for POST/PUT/PATCH requests
         let body = {};
         if (['POST', 'PUT', 'PATCH'].includes(req.method)) {
-        if (isUploadRoute) {
-            // ✅ SKIP parsing for upload routes - middleware will handle it
-            console.log('⏭️ Skipping JSON body parse for upload route');
-            // Upload middleware will populate req.body
-        } else {
-            // ✅ Parse JSON body for normal routes
-            body = await this.parseBody(req);
-            req.body = body;
-        }
+            const isMultipart = (req.headers['content-type'] || '').includes('multipart/form-data');
+            
+            if (isUploadRoute || isMultipart) {
+                // SKIP parsing for upload routes or multipart requests - middleware will handle it
+                console.log('Skipping JSON body parse for upload/multipart request');
+                // Upload middleware will populate req.body
+            } else {
+                // Parse JSON body for normal routes
+                body = await this.parseBody(req);
+                req.body = body;
+            }
         }
 
         // Parse query parameters
@@ -193,6 +215,15 @@ class Server {
         req.query = parsedUrl.query || {};
 
         // ⭐ MODULAR ROUTES (Your modules - use routes/ folder)
+        // ⚠️ IMPORTANT: Review routes MUST come before product routes
+        // because /api/products/:id/reviews/* would match /api/products first!
+        
+        // Review routes (both /api/reviews and /api/products/:id/reviews)
+        if (pathname.startsWith('/api/reviews') || pathname.match(/^\/api\/products\/\d+\/reviews/)) {
+            await reviewRoutes(req, res, this.reviewController, pathname);
+            return;
+        }
+        
         if (pathname.startsWith('/api/products')) {
             return productRoutes(req, res, this.productController, pathname);
         }
@@ -215,22 +246,33 @@ class Server {
         if (pathname.startsWith('/api/imports')) {
             return importRoutes(req, res, this.importController, pathname);
         }
+        if (pathname.startsWith('/api/cart')) {
+            await cartRoutes(req, res, this.cartController, pathname);
+            return;
+        }
+
         // ⭐ BUILT-IN ROUTES (Keep existing handlers)
         // Auth routes for profile management
         if (pathname.startsWith('/api/auth/')) {
-            await this.handleAuthRoutes(req, res, pathname, req.method, body);
-        } else if (pathname.startsWith('/api/orders/')) {
-            await this.handleOrderRoutes(req, res, pathname, req.method, body);
-        } else if (pathname.startsWith('/api/users/')) {
-            await this.handleUserRoutes(req, res, pathname, req.method, body);
-        } else if (pathname.startsWith('/api/profiles/')) {
-            await this.handleProfileRoutes(req, res, pathname, req.method, body);
-        } else if (pathname.startsWith('/api/addresses/')) {
-            await this.handleAddressRoutes(req, res, pathname, req.method, body);
-        } else if (pathname.startsWith('/api/payments/')) {
-            await this.handlePaymentRoutes(req, res, pathname, req.method, body);
-        } else if (pathname.startsWith('/api/reviews/')) {
-            await this.handleReviewRoutes(req, res, pathname, req.method, body);
+            await authRoutes(req, res, {
+                profileController: this.profileController,
+                addressController: this.addressController
+            }, pathname, this.sendError.bind(this));
+        } else if (pathname.startsWith('/api/orders') && (pathname === '/api/orders' || pathname.startsWith('/api/orders/'))) {
+            await orderRoutes(req, res, this.orderController, pathname, this.sendError.bind(this));
+        } else if (pathname.startsWith('/api/admin/orders') && (pathname === '/api/admin/orders' || pathname.startsWith('/api/admin/orders/'))) {
+            await adminOrderRoutes(req, res, this.orderController, pathname, this.sendError.bind(this));
+        } else if (pathname.startsWith('/api/users') && (pathname === '/api/users' || pathname.startsWith('/api/users/'))) {
+            await userRoutes(req, res, { 
+                profileController: this.profileController, 
+                addressController: this.addressController 
+            }, pathname, this.sendError.bind(this));
+        } else if (pathname.startsWith('/api/profiles') && (pathname === '/api/profiles' || pathname.startsWith('/api/profiles/'))) {
+            await profileRoutes(req, res, this.profileController, pathname, this.sendError.bind(this));
+        } else if (pathname.startsWith('/api/addresses') && (pathname === '/api/addresses' || pathname.startsWith('/api/addresses/'))) {
+            await addressRoutes(req, res, this.addressController, pathname, this.sendError.bind(this));
+        } else if (pathname.startsWith('/api/payments') && (pathname === '/api/payments' || pathname.startsWith('/api/payments/'))) {
+            await paymentRoutes(req, res, this.paymentController, pathname, this.sendError.bind(this));
         } else if (pathname === '/api/admin' || pathname.startsWith('/api/admin/')) {
             await this.handleAdminRoutes(req, res, pathname, req.method, body);
         } else {
@@ -240,234 +282,6 @@ class Server {
         } catch (error) {
         console.error('API Error:', error);
         this.sendError(res, 'Internal server error', 500);
-        }
-    }
-
-    // Order routes handler
-    async handleOrderRoutes(req, res, pathname, method, body) {
-        const orderPath = pathname.replace('/api/orders', '');
-
-        // Check authentication for protected routes
-        const authResult = await authMiddleware.authenticate(req, res);
-        if (!authResult || !authResult.success) {
-            return;
-        }
-        req.user = authResult.user;
-
-        if (orderPath === '/' || orderPath === '') {
-            if (method === 'GET') {
-                await this.orderController.getOrders(req, res);
-            } else if (method === 'POST') {
-                req.body = body;
-                await this.orderController.createOrder(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else if (orderPath.match(/^\/\d+$/)) {
-            const id = orderPath.substring(1);
-            req.params = { id };
-            if (method === 'GET') {
-                await this.orderController.getOrder(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else if (orderPath.startsWith('/status')) {
-            const id = orderPath.replace('/status', '').replace('/', '');
-            if (id && method === 'PUT') {
-                req.params = { id };
-                req.body = body;
-                await this.orderController.updateOrderStatus(req, res);
-            } else {
-                this.sendError(res, 'API endpoint not found', 404);
-            }
-        } else if (orderPath.startsWith('/cancel')) {
-            const id = orderPath.replace('/cancel', '').replace('/', '');
-            if (id && method === 'PUT') {
-                req.params = { id };
-                req.body = body;
-                await this.orderController.cancelOrder(req, res);
-            } else {
-                this.sendError(res, 'API endpoint not found', 404);
-            }
-        } else {
-            this.sendError(res, 'API endpoint not found', 404);
-        }
-    }
-
-    // Auth routes handler
-    async handleAuthRoutes(req, res, pathname, method, body) {
-        const authPath = pathname.replace('/api/auth', '');
-
-        // Check authentication for protected routes
-        const authResult = await authMiddleware.authenticate(req, res);
-        if (!authResult || !authResult.success) {
-            return;
-        }
-        req.user = authResult.user;
-
-        if (authPath === '/profile') {
-            if (method === 'GET') {
-                await this.profileController.getProfile(req, res);
-            } else if (method === 'PUT') {
-                req.body = body;
-                await this.profileController.updateProfile(req, res);
-            } else if (method === 'DELETE') {
-                await this.profileController.deleteProfile(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else if (authPath === '/addresses' || authPath === '/addresses/') {
-            if (method === 'GET') {
-                await this.addressController.getAddresses(req, res);
-            } else if (method === 'POST') {
-                req.body = body;
-                await this.addressController.createAddress(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else if (authPath.match(/^\/addresses\/\d+$/)) {
-            const id = authPath.replace('/addresses/', '');
-            req.params = { id };
-            if (method === 'PUT') {
-                req.body = body;
-                await this.addressController.updateAddress(req, res);
-            } else if (method === 'DELETE') {
-                await this.addressController.deleteAddress(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else {
-            this.sendError(res, 'API endpoint not found', 404);
-        }
-    }
-
-    // User routes handler (placeholder implementation)
-    async handleUserRoutes(req, res, pathname, method, body) {
-        this.sendError(res, 'User routes not implemented yet', 501);
-    }
-
-    // Profile routes handler
-    async handleProfileRoutes(req, res, pathname, method, body) {
-        // Check authentication
-        const authResult = await authMiddleware.authenticate(req, res);
-        if (!authResult || !authResult.success) {
-            return;
-        }
-        req.user = authResult.user;
-
-        if (pathname === '/api/profiles') {
-            if (method === 'GET') {
-                await this.profileController.getProfile(req, res);
-            } else if (method === 'PUT') {
-                req.body = body;
-                await this.profileController.updateProfile(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else {
-            this.sendError(res, 'API endpoint not found', 404);
-        }
-    }
-
-    // Address routes handler
-    async handleAddressRoutes(req, res, pathname, method, body) {
-        // Check authentication
-        const authResult = await authMiddleware.authenticate(req, res);
-        if (!authResult || !authResult.success) {
-            return;
-        }
-        req.user = authResult.user;
-
-        if (pathname === '/api/addresses') {
-            if (method === 'GET') {
-                await this.addressController.getAddresses(req, res);
-            } else if (method === 'POST') {
-                req.body = body;
-                await this.addressController.createAddress(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else if (pathname.match(/^\/api\/addresses\/\d+$/)) {
-            const id = pathname.replace('/api/addresses/', '');
-            req.params = { id };
-            if (method === 'PUT') {
-                req.body = body;
-                await this.addressController.updateAddress(req, res);
-            } else if (method === 'DELETE') {
-                await this.addressController.deleteAddress(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else {
-            this.sendError(res, 'API endpoint not found', 404);
-        }
-    }   
-    // Payment routes handler
-    async handlePaymentRoutes(req, res, pathname, method, body) {
-        const paymentPath = pathname.replace('/api/payments', '');
-
-        // Check authentication for protected routes
-        const authResult = await authMiddleware.authenticate(req, res);
-        if (!authResult || !authResult.success) {
-            return;
-        }
-        req.user = authResult.user;
-
-        if (paymentPath === '/' || paymentPath === '') {
-            if (method === 'GET') {
-                await this.paymentController.getPayments(req, res);
-            } else if (method === 'POST') {
-                req.body = body;
-                await this.paymentController.createPayment(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else if (paymentPath.match(/^\/\d+$/)) {
-            const id = paymentPath.substring(1);
-            req.params = { id };
-            if (method === 'GET') {
-                await this.paymentController.getPayment(req, res);
-            } else if (method === 'PUT') {
-                req.body = body;
-                await this.paymentController.updatePayment(req, res);
-            } else if (method === 'DELETE') {
-                await this.paymentController.deletePayment(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else {
-            this.sendError(res, 'API endpoint not found', 404);
-        }
-    }
-
-    // Review routes handler
-    async handleReviewRoutes(req, res, pathname, method, body) {
-        const reviewPath = pathname.replace('/api/reviews', '');
-
-        if (reviewPath === '/' || reviewPath === '') {
-            if (method === 'GET') {
-                await this.reviewController.getReviews(req, res);
-            } else if (method === 'POST') {
-                req.body = body;
-                await this.reviewController.createReview(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else if (reviewPath.match(/^\/\d+$/)) {
-            const id = reviewPath.substring(1);
-            req.params = { id };
-            if (method === 'GET') {
-                await this.reviewController.getReview(req, res);
-            } else if (method === 'PUT') {
-                req.body = body;
-                await this.reviewController.updateReview(req, res);
-            } else if (method === 'DELETE') {
-                await this.reviewController.deleteReview(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else {
-            this.sendError(res, 'API endpoint not found', 404);
         }
     }
 

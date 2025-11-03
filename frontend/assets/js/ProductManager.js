@@ -256,6 +256,9 @@ class ProductManager {
       if (response.success) {
         this.products = response.data || [];
 
+        // ⭐ Fetch review stats for each product
+        await this.enrichProductsWithReviews(this.products);
+
         if (response.pagination) {
           this.totalProducts = response.pagination.total || 0;
           this.totalPages = response.pagination.totalPages || 0;
@@ -280,6 +283,38 @@ class ProductManager {
       this.hideLoading();
     }
   }
+
+  /**
+   * ⭐ Enrich products with review statistics
+   * Fetches review stats for each product and adds to product object
+   */
+  async enrichProductsWithReviews(products) {
+    if (!products || products.length === 0) return;
+
+    try {
+      // Fetch review stats for all products in parallel
+      const statsPromises = products.map(product => 
+        window.reviewsAPI.getProductReviewStats(product.shoe_id)
+          .catch(error => {
+            console.warn(`Failed to fetch stats for product ${product.shoe_id}:`, error);
+            return { average_rating: 0, total_reviews: 0 };
+          })
+      );
+
+      const allStats = await Promise.all(statsPromises);
+
+      // Add stats to each product
+      products.forEach((product, index) => {
+        product.average_rating = allStats[index]?.average_rating || 0;
+        product.total_reviews = allStats[index]?.total_reviews || 0;
+      });
+
+      console.log('✅ Enriched products with review stats');
+    } catch (error) {
+      console.error('❌ Error enriching products with reviews:', error);
+    }
+  }
+
   /**
    * ⭐ Render color filters - Display only color circles (no names)
    */
@@ -738,6 +773,11 @@ updateSliderTrack() {
             ? product.image_url
             : "/assets/images/ui/thian.jpg";
 
+        // Generate star rating HTML
+        const avgRating = product.average_rating || 0;
+        const totalReviews = product.total_reviews || 0;
+        const starHTML = this.generateStarRating(avgRating);
+
         return `
             <div class="card product-card" style="cursor: pointer;" onclick="window.location.href='product-detail.html?id=${
               product.shoe_id
@@ -754,6 +794,18 @@ updateSliderTrack() {
                 <div class="product-price">
                     ${this.formatPrice(product.base_price)}
                 </div>
+                ${
+                  totalReviews > 0
+                    ? `
+                <div class="product-rating mb-2">
+                    ${starHTML}
+                    <span class="rating-text text-muted ms-1" style="font-size: 0.85rem;">
+                        ${avgRating.toFixed(1)} (${totalReviews})
+                    </span>
+                </div>
+                `
+                    : ""
+                }
                 <div class="product-category text-muted small">${categoryName}</div>
                 ${
                   hasStock
@@ -770,6 +822,36 @@ updateSliderTrack() {
     container.innerHTML = productsHTML;
     container.style.display = "flex";
     console.log(`✅ Rendered ${products.length} products`);
+  }
+
+  /**
+   * Generate star rating HTML
+   * @param {number} rating - Rating value (0-5)
+   * @returns {string} HTML string with stars
+   */
+  generateStarRating(rating) {
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 >= 0.5;
+    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+
+    let stars = '';
+    
+    // Full stars
+    for (let i = 0; i < fullStars; i++) {
+      stars += '<i class="fas fa-star text-warning"></i>';
+    }
+    
+    // Half star
+    if (hasHalfStar) {
+      stars += '<i class="fas fa-star-half-alt text-warning"></i>';
+    }
+    
+    // Empty stars
+    for (let i = 0; i < emptyStars; i++) {
+      stars += '<i class="far fa-star text-warning"></i>';
+    }
+    
+    return stars;
   }
   /**
    * Render pagination
@@ -1048,9 +1130,27 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (window.authManager) {
     window.authManager.updateAuthUI();
   }
+  
+  // Sync cart count from API and update navbar
+  if (window.authManager && window.authManager.isAuthenticated() && window.cartAPI && window.navbarManager) {
+    try {
+      console.log('🛒 Syncing cart count from API...');
+      const cartRes = await window.cartAPI.getCart();
+      const cartItems = Array.isArray(cartRes?.data) ? cartRes.data : (Array.isArray(cartRes) ? cartRes : []);
+      const cartCount = cartItems.length;
+      console.log('🛒 Cart count from API:', cartCount);
+      window.navbarManager.updateCartCount(cartCount);
+    } catch (err) {
+      console.error('Failed to sync cart count:', err);
+    }
+  }
 });
 
 // Export for modules
 if (typeof module !== "undefined" && module.exports) {
   module.exports = ProductManager;
 }
+
+// ES6 exports
+export default ProductManager;
+export { productManager };

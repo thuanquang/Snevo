@@ -14,9 +14,14 @@ export default async function handleAdminRoutes(req, res, adminController, pathn
     req.user = authResult.user;
 
     try {
-        // GET /api/admin/ or /api/admin (Dashboard)
+        // GET /api/admin/ or /api/admin (Dashboard - Legacy)
         if ((adminPath === '/' || adminPath === '') && req.method === 'GET') {
             return await adminController.getDashboard(req, res);
+        }
+
+        // ⭐ GET /api/admin/metrics (Enhanced Dashboard Metrics with 30-day analytics)
+        if (adminPath === '/metrics' && req.method === 'GET') {
+            return await adminController.getDashboardMetrics(req, res);
         }
 
         // GET /api/admin/statistics

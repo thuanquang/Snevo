@@ -1,0 +1,592 @@
+/* ============================================================
+   Reviews Section Styles - Nike Theme
+============================================================ */
+
+:root {
+  --nike-black: #111111;
+  --nike-gray: #757575;
+  --nike-light-gray: #f5f5f5;
+  --nike-border: #e5e5e5;
+}
+
+.reviews-section {
+  padding: 48px 0;
+}
+
+.section-title {
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--nike-black);
+  margin-bottom: 32px;
+  line-height: 1.2;
+}
+
+/* ============================================================
+   Review Summary
+============================================================ */
+
+.review-summary {
+  background: var(--nike-light-gray);
+  padding: 40px;
+  border-radius: 16px;
+  margin-bottom: 40px;
+  border: 1px solid var(--nike-border);
+}
+
+.average-rating h1 {
+  font-size: 4rem;
+  font-weight: 600;
+  color: var(--nike-black);
+  margin-bottom: 0.5rem;
+}
+
+.average-rating .stars {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.average-rating .stars i {
+  color: #ffd700;
+}
+
+.average-rating p {
+  color: var(--nike-gray);
+  font-size: 14px;
+}
+
+/* ============================================================
+   Rating Distribution
+============================================================ */
+
+.rating-distribution {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rating-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.rating-label {
+  min-width: 50px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--nike-black);
+}
+
+.rating-count {
+  min-width: 40px;
+  text-align: right;
+  font-size: 14px;
+  color: var(--nike-gray);
+}
+
+.rating-bar-row .progress {
+  height: 8px;
+  background-color: var(--nike-border);
+  border-radius: 4px;
+}
+
+.rating-bar-row .progress-bar {
+  background-color: var(--nike-black);
+}
+
+/* ============================================================
+   Write Review Button
+============================================================ */
+
+#writeReviewBtn {
+  width: 100%;
+  padding: 20px;
+  background-color: var(--nike-black);
+  color: white;
+  border: none;
+  border-radius: 30px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+#writeReviewBtn:hover {
+  background-color: #333;
+  transform: scale(1.02);
+}
+
+/* ============================================================
+   Review Filters
+============================================================ */
+
+.review-filters {
+  border-bottom: 1px solid var(--nike-border);
+  padding-bottom: 24px;
+  margin-bottom: 32px;
+}
+
+.review-filters label {
+  color: var(--nike-black);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.filter-btn {
+  padding: 12px 20px;
+  border: 1.5px solid var(--nike-border);
+  background-color: white;
+  color: var(--nike-black);
+  border-radius: 30px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filter-btn:hover {
+  border-color: var(--nike-black);
+  transform: translateY(-2px);
+}
+
+.filter-btn.active {
+  background-color: var(--nike-black);
+  color: white;
+  border-color: var(--nike-black);
+}
+
+/* ============================================================
+   Reviews List
+============================================================ */
+
+.reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.review-card {
+  background: white;
+  padding: 32px;
+  border: 1px solid var(--nike-border);
+  border-radius: 16px;
+  transition: all 0.3s ease;
+}
+
+.review-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.review-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--nike-border);
+}
+
+.review-header h6 {
+  font-weight: 600;
+  color: var(--nike-black);
+  font-size: 16px;
+  margin-bottom: 0.25rem;
+}
+
+.review-header .text-muted {
+  color: var(--nike-gray);
+  font-size: 14px;
+}
+
+.review-rating {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.review-rating i {
+  color: #ffd700;
+  font-size: 16px;
+}
+
+.review-comment {
+  color: var(--nike-gray);
+  font-size: 16px;
+  line-height: 1.8;
+  margin-top: 16px;
+}
+
+.review-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.review-actions .btn {
+  padding: 8px 16px;
+  border: 1.5px solid var(--nike-border);
+  background-color: white;
+  color: var(--nike-black);
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.review-actions .btn:hover {
+  border-color: var(--nike-black);
+  background-color: var(--nike-light-gray);
+}
+
+/* ============================================================
+   Review Modal
+============================================================ */
+
+.modal-header {
+  border-bottom: 1px solid var(--nike-border);
+  padding: 24px 32px;
+}
+
+.modal-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--nike-black);
+}
+
+.modal-body {
+  padding: 32px;
+}
+
+/* ============================================================
+   Star Rating Input - White/Black Design
+============================================================ */
+
+.star-rating-input {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.star-rating-input .star {
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.star-rating-input .star svg {
+    width: 100%;
+    height: 100%;
+    fill: white;
+    stroke: var(--nike-black);
+    stroke-width: 1.5px;
+    transition: all 0.2s ease;
+}
+
+/* Unselected state - Trắng viền đen */
+.star-rating-input .star:not(.active):not(.hover) svg {
+    fill: white;
+    stroke: var(--nike-black);
+    stroke-width: 1.5px;
+}
+
+/* Hover state - Đen cả sao */
+.star-rating-input .star.hover svg {
+    fill: var(--nike-black);
+    stroke: var(--nike-black);
+    transform: scale(1.15);
+}
+
+/* Selected/Active state - Đen cả sao */
+.star-rating-input .star.active svg {
+    fill: var(--nike-black);
+    stroke: var(--nike-black);
+}
+
+/* Visited stars (trước selected star khi hover) - Đen cả sao */
+.star-rating-input .star.visited svg {
+    fill: var(--nike-black);
+    stroke: var(--nike-black);
+}
+
+/* Animation */
+@keyframes starPulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.star-rating-input .star.active svg {
+    animation: starPulse 0.3s ease;
+}
+
+
+.form-label {
+  font-weight: 600;
+  color: var(--nike-black);
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.form-control {
+  border: 1.5px solid var(--nike-border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 16px;
+  color: var(--nike-black);
+  transition: all 0.2s;
+}
+
+.form-control:focus {
+  border-color: var(--nike-black);
+  box-shadow: 0 0 0 0.2rem rgba(17, 17, 17, 0.1);
+  outline: none;
+}
+
+.form-text {
+  color: var(--nike-gray);
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+.invalid-feedback {
+  color: #c62828;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+.modal-footer {
+  border-top: 1px solid var(--nike-border);
+  padding: 24px 32px;
+  gap: 12px;
+}
+
+.modal-footer .btn {
+  padding: 16px 32px;
+  border-radius: 30px;
+  font-weight: 600;
+  font-size: 16px;
+  transition: all 0.2s;
+}
+
+.modal-footer .btn-secondary {
+  background-color: white;
+  color: var(--nike-black);
+  border: 1.5px solid var(--nike-border);
+}
+
+.modal-footer .btn-secondary:hover {
+  border-color: var(--nike-black);
+  background-color: var(--nike-light-gray);
+}
+
+.modal-footer .btn-primary {
+  background-color: var(--nike-black);
+  border-color: var(--nike-black);
+  color: white;
+}
+
+.modal-footer .btn-primary:hover {
+  background-color: #f3f2f2;
+  transform: scale(1.02);
+}
+
+/* ============================================================
+   Pagination
+============================================================ */
+
+#reviewsPagination {
+  margin-top: 40px;
+}
+
+.pagination {
+  gap: 8px;
+}
+
+.pagination .page-link {
+  color: var(--nike-black);
+  border: 1.5px solid var(--nike-border);
+  padding: 12px 20px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  background-color: white;
+}
+
+.pagination .page-link:hover {
+  border-color: var(--nike-black);
+  background-color: var(--nike-light-gray);
+  transform: translateY(-2px);
+}
+
+.pagination .page-item.active .page-link {
+  background-color: var(--nike-black);
+  border-color: var(--nike-black);
+  color: white;
+}
+
+.pagination .page-item.disabled .page-link {
+  color: var(--nike-gray);
+  background-color: var(--nike-light-gray);
+  border-color: var(--nike-border);
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* ============================================================
+   Badges
+============================================================ */
+
+.badge {
+  padding: 4px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 4px;
+}
+
+.badge.bg-success {
+  background-color: #2e7d32 !important;
+  color: white;
+}
+
+.badge.bg-warning {
+  background-color: #f57c00 !important;
+  color: white;
+}
+
+/* ============================================================
+   Empty State
+============================================================ */
+
+.reviews-list .text-center {
+  padding: 60px 0;
+}
+
+.reviews-list .fa-comments {
+  color: var(--nike-gray);
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.reviews-list .text-muted {
+  color: var(--nike-gray);
+  font-size: 16px;
+}
+
+/* ============================================================
+   Animation
+============================================================ */
+.star-rating-input svg {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  opacity: 0.6;
+  width: 2rem;
+  height: 2rem;
+}
+
+.star-rating-input svg:hover,
+.star-rating-input svg.selected {
+  opacity: 1;
+  filter: brightness(1.3);
+  transform: scale(1.1);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.review-card {
+  animation: fadeIn 0.3s ease;
+}
+
+/* ============================================================
+   Responsive Design
+============================================================ */
+
+@media (max-width: 992px) {
+  .review-summary {
+    padding: 32px;
+  }
+}
+
+@media (max-width: 768px) {
+  .section-title {
+    font-size: 24px;
+  }
+
+  .review-summary {
+    padding: 24px;
+  }
+
+  .average-rating h1 {
+    font-size: 3rem;
+  }
+
+  .review-card {
+    padding: 20px;
+  }
+
+  .review-header {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .review-actions {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .rating-distribution {
+    margin-top: 24px;
+  }
+
+  .filter-btn {
+    font-size: 12px;
+    padding: 8px 16px;
+  }
+
+  .modal-body,
+  .modal-header,
+  .modal-footer {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 576px) {
+  .review-filters .d-flex {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .filter-btn {
+    font-size: 11px;
+    padding: 6px 12px;
+  }
+}

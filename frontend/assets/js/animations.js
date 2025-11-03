@@ -598,5 +598,3 @@ const animationController = new AnimationController();
 window.AnimationController = AnimationController;
 window.animationController = animationController;
 
-export default AnimationController;
-export { animationController };

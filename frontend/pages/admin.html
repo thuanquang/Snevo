@@ -65,6 +65,13 @@
               <span class="badge bg-warning ms-auto" id="deletedCount">0</span>
             </a>
           </li>
+          <li class="sidebar-menu-item">
+            <a href="#" class="sidebar-menu-link" data-section="orders">
+              <i class="fas fa-shopping-cart"></i>
+              <span>Orders Management</span>
+              <span class="badge bg-danger ms-auto" id="pendingOrdersCount">0</span>
+            </a>
+          </li>
           <li class="logout-item mt-4">
             <a href="#" class="sidebar-menu-link" id="logoutBtn">
               <i class="fas fa-sign-out-alt"></i>
@@ -86,10 +93,189 @@
             <h1>Dashboard</h1>
             <p>Overview of store statistics and metrics</p>
           </div>
-          <div class="empty-state">
-            <i class="fas fa-chart-pie"></i>
-            <h3>Dashboard Coming Soon</h3>
-            <p>Analytics and metrics will be displayed here</p>
+
+          <!-- Statistics Cards -->
+          <div class="row mb-4">
+            <!-- Pending Orders Card -->
+            <div class="col-md-3">
+              <div class="section-card">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div>
+                    <p class="text-muted small mb-2">Pending Orders</p>
+                    <h3 class="mb-0" id="dashPendingCount">0</h3>
+                  </div>
+                  <i class="fas fa-hourglass-half text-warning" style="font-size: 2rem;"></i>
+                </div>
+              </div>
+            </div>
+
+            <!-- Approved Orders Card -->
+            <div class="col-md-3">
+              <div class="section-card">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div>
+                    <p class="text-muted small mb-2">Approved Orders</p>
+                    <h3 class="mb-0" id="dashApprovedCount">0</h3>
+                  </div>
+                  <i class="fas fa-check-circle text-info" style="font-size: 2rem;"></i>
+                </div>
+              </div>
+            </div>
+
+            <!-- Cancelled Orders Card -->
+            <div class="col-md-3">
+              <div class="section-card">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div>
+                    <p class="text-muted small mb-2">Cancelled Orders</p>
+                    <h3 class="mb-0" id="dashCancelledCount">0</h3>
+                  </div>
+                  <i class="fas fa-times-circle text-danger" style="font-size: 2rem;"></i>
+                </div>
+              </div>
+            </div>
+
+            <!-- Total Revenue Card -->
+            <div class="col-md-3">
+              <div class="section-card">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div>
+                    <p class="text-muted small mb-2">Total Revenue</p>
+                    <h3 class="mb-0" id="dashTotalRevenue">₫0</h3>
+                  </div>
+                  <i class="fas fa-chart-line text-success" style="font-size: 2rem;"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ⭐ NEW: Second Row - Product Metrics -->
+          <div class="row mb-4">
+            <!-- Total Shoes Card -->
+            <div class="col-md-3">
+              <div class="section-card">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div>
+                    <p class="text-muted small mb-2">Total Shoes</p>
+                    <h3 class="mb-0" id="dashTotalShoes">0</h3>
+                  </div>
+                  <i class="fas fa-shoe-prints text-primary" style="font-size: 2rem;"></i>
+                </div>
+              </div>
+            </div>
+
+            <!-- Total Variants Card -->
+            <div class="col-md-3">
+              <div class="section-card">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div>
+                    <p class="text-muted small mb-2">Total Variants</p>
+                    <h3 class="mb-0" id="dashTotalVariants">0</h3>
+                  </div>
+                  <i class="fas fa-boxes text-info" style="font-size: 2rem;"></i>
+                </div>
+              </div>
+            </div>
+
+            <!-- Total Orders Card -->
+            <div class="col-md-3">
+              <div class="section-card">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div>
+                    <p class="text-muted small mb-2">Total Orders</p>
+                    <h3 class="mb-0" id="dashTotalOrders">0</h3>
+                  </div>
+                  <i class="fas fa-shopping-cart text-success" style="font-size: 2rem;"></i>
+                </div>
+              </div>
+            </div>
+
+            <!-- Low Stock Items Card -->
+            <div class="col-md-3">
+              <div class="section-card">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div>
+                    <p class="text-muted small mb-2">Low Stock Items</p>
+                    <h3 class="mb-0" id="dashLowStockItems">0</h3>
+                  </div>
+                  <i class="fas fa-exclamation-triangle text-warning" style="font-size: 2rem;"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Orders -->
+          <div class="section-card">
+            <div class="section-header">
+              <h2 class="section-title">
+                <i class="fas fa-list"></i> Recent Orders
+              </h2>
+              <div class="section-actions">
+                <a href="#" class="btn btn-sm btn-outline-secondary" data-section="orders" onclick="adminManager.switchSection('orders')">
+                  <i class="fas fa-arrow-right"></i> View All
+                </a>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="table table-hover table-sm">
+                <thead class="table-light">
+                  <tr>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
+                <tbody id="dashRecentOrdersBody">
+                  <tr>
+                    <td colspan="5" class="text-center py-3 text-muted">
+                      <div class="spinner-border spinner-border-sm text-dark" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Charts Row -->
+          <div class="row mb-4">
+            <!-- Order Status Chart -->
+            <div class="col-lg-6">
+              <div class="section-card">
+                <div style="height: 300px; position: relative;">
+                  <canvas id="orderStatusChart"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <!-- Revenue Chart -->
+            <div class="col-lg-6">
+              <div class="section-card">
+                <div style="height: 300px; position: relative;">
+                  <canvas id="revenueChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ⭐ NEW: Top-Selling Products Chart -->
+          <div class="row mb-4">
+            <div class="col-12">
+              <div class="section-card">
+                <div class="section-header">
+                  <h2 class="section-title">
+                    <i class="fas fa-trophy"></i> Top Selling Products (Last 30 Days)
+                  </h2>
+                </div>
+                <div style="height: 350px; position: relative;">
+                  <canvas id="topSellingChart"></canvas>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -415,7 +601,9 @@
             <div class="tab-pane fade" id="deleted-variants" role="tabpanel">
               <div class="section-card">
                 <!-- Header with Stats -->
-                <div class="d-flex justify-content-between align-items-center mb-4">
+                <div
+                  class="d-flex justify-content-between align-items-center mb-4"
+                >
                   <div>
                     <h4 class="mb-1">🗑️ Deleted Variants Management</h4>
                     <p class="text-muted mb-0">
@@ -424,15 +612,30 @@
                   </div>
                   <div class="d-flex gap-3">
                     <div class="text-center">
-                      <div class="fs-4 fw-bold text-danger" id="deleted-total-count">0</div>
+                      <div
+                        class="fs-4 fw-bold text-danger"
+                        id="deleted-total-count"
+                      >
+                        0
+                      </div>
                       <small class="text-muted">Total Deleted</small>
                     </div>
                     <div class="text-center">
-                      <div class="fs-4 fw-bold text-success" id="deleted-restorable-count">0</div>
+                      <div
+                        class="fs-4 fw-bold text-success"
+                        id="deleted-restorable-count"
+                      >
+                        0
+                      </div>
                       <small class="text-muted">Restorable</small>
                     </div>
                     <div class="text-center">
-                      <div class="fs-4 fw-bold text-warning" id="deleted-blocked-count">0</div>
+                      <div
+                        class="fs-4 fw-bold text-warning"
+                        id="deleted-blocked-count"
+                      >
+                        0
+                      </div>
                       <small class="text-muted">Blocked</small>
                     </div>
                   </div>
@@ -482,7 +685,10 @@
 
                       <!-- Shoe Status Filter -->
                       <div class="col-md-2">
-                        <select class="form-select" id="deleted-shoe-status-filter">
+                        <select
+                          class="form-select"
+                          id="deleted-shoe-status-filter"
+                        >
                           <option value="">All Shoes</option>
                           <option value="active">Active Shoes</option>
                           <option value="deleted">Deleted Shoes</option>
@@ -504,7 +710,10 @@
                 </div>
 
                 <!-- ✅ 2. EMPTY STATE (Hidden by default) -->
-                <div id="deleted-variants-empty" class="text-center py-5 d-none">
+                <div
+                  id="deleted-variants-empty"
+                  class="text-center py-5 d-none"
+                >
                   <i class="bi bi-inbox display-1 text-muted"></i>
                   <h5 class="mt-3 text-muted">No Deleted Variants</h5>
                   <p class="text-muted">All variants are currently active.</p>
@@ -706,8 +915,114 @@
             </div>
           </div>
         </div>
+
+        <!-- Orders Management Section -->
+        <div id="ordersSection" class="content-section" style="display: none">
+          <div class="admin-header">
+            <h1><i class="fas fa-shopping-cart me-2"></i>Orders Management</h1>
+            <p>View, approve, and manage customer orders</p>
+          </div>
+
+          <!-- Orders Section Card -->
+          <div class="section-card">
+            <div class="section-header">
+              <h2 class="section-title">
+                <i class="fas fa-list"></i> All Orders
+              </h2>
+              <div class="section-actions">
+                <button class="btn btn-outline-secondary" onclick="window.adminLoadOrders()">
+                  <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+              </div>
+            </div>
+
+            <!-- Filters & Search -->
+            <div class="row mb-4">
+              <div class="col-md-4">
+                <div class="input-group">
+                  <span class="input-group-text bg-white">
+                    <i class="fas fa-search"></i>
+                  </span>
+                  <input 
+                    type="text" 
+                    class="form-control" 
+                    id="orderSearchInput" 
+                    placeholder="Search by Order ID..."
+                    onkeydown="if(event.key === 'Enter') window.adminLoadOrders(1)"
+                  />
+                  <button 
+                    class="btn btn-outline-secondary" 
+                    type="button" 
+                    onclick="window.adminLoadOrders(1)"
+                  >
+                    <i class="fas fa-search"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="col-md-3">
+                <div class="input-group">
+                  <span class="input-group-text bg-white">
+                    <i class="fas fa-filter"></i>
+                  </span>
+                  <select class="form-select" id="orderStatusFilter" onchange="window.adminLoadOrders(1)">
+                    <option value="">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="processing">Approved</option>
+                    <option value="delivered">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="col-md-2">
+                <button 
+                  class="btn btn-outline-secondary w-100" 
+                  onclick="document.getElementById('orderSearchInput').value = ''; document.getElementById('orderStatusFilter').value = ''; window.adminLoadOrders(1);"
+                >
+                  <i class="bi bi-x-circle me-1"></i>Clear
+                </button>
+              </div>
+            </div>
+
+            <!-- Orders Table -->
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead class="table-light">
+                  <tr>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Payment</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="ordersTableBody">
+                  <tr>
+                    <td colspan="7" class="text-center py-5">
+                      <div class="loading-container">
+                        <div class="spinner-border text-dark" role="status">
+                          <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-3 text-muted">Loading orders...</p>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            
+            <!-- Pagination Controls -->
+            <div class="mt-3" id="ordersPagination">
+              <!-- Pagination will be rendered here by JavaScript -->
+            </div>
+          </div>
+        </div>
       </main>
     </div>
+
     <!-- ==================== IMPORT MODAL ==================== -->
     <div
       class="modal fade"
@@ -1125,6 +1440,26 @@
       </div>
     </div>
 
+    <!-- ORDER DETAIL MODAL -->
+    <div class="modal fade" id="orderDetailModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header bg-info text-white">
+            <h5 class="modal-title">
+              <i class="fas fa-box me-2"></i>Order Details
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div id="orderDetailContent"></div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Toast Notification -->
     <div class="toast-container position-fixed bottom-0 end-0 p-3">
       <div
@@ -1280,11 +1615,130 @@
         </div>
       </div>
     </div>
+    <!-- ✅ EDIT VARIANT MODAL -->
+    <div
+      class="modal fade"
+      id="editVariantModal"
+      tabindex="-1"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header bg-warning text-dark">
+            <h5 class="modal-title">
+              <i class="bi bi-pencil-square me-2"></i>
+              Edit Variant
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <!-- Variant Info (Read-only) -->
+            <div class="card border-0 bg-light mb-3">
+              <div class="card-body">
+                <h6 class="card-title mb-3">
+                  <i class="bi bi-info-circle text-primary me-2"></i>
+                  Variant Information
+                </h6>
+                <div class="row g-2">
+                  <div class="col-12">
+                    <strong>SKU:</strong>
+                    <span
+                      id="edit_variant_sku"
+                      class="ms-2 text-primary"
+                    ></span>
+                  </div>
+                  <div class="col-6">
+                    <strong>Color:</strong>
+                    <span id="edit_variant_color" class="ms-2"></span>
+                  </div>
+                  <div class="col-6">
+                    <strong>Size:</strong>
+                    <span id="edit_variant_size" class="ms-2"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Edit Form -->
+            <form id="editVariantForm">
+              <!-- Price Input (Editable) -->
+              <div class="mb-3">
+                <label for="edit_variant_price" class="form-label">
+                  <i class="bi bi-currency-dollar text-success me-2"></i>
+                  <strong>Variant Price (VND)</strong>
+                </label>
+                <input
+                  type="number"
+                  class="form-control form-control-lg"
+                  id="edit_variant_price"
+                  placeholder="Enter new price..."
+                  min="0"
+                  step="1000"
+                />
+                <small class="form-text text-muted">
+                  <i class="bi bi-info-circle me-1"></i>
+                  Leave empty to keep current price
+                </small>
+              </div>
+
+              <!-- ✅ Stock Input (READ-ONLY) -->
+              <div class="mb-3">
+                <label for="edit_variant_stock" class="form-label">
+                  <i class="bi bi-box-seam text-secondary me-2"></i>
+                  <strong>Current Stock Quantity</strong>
+                </label>
+                <input
+                  type="number"
+                  class="form-control form-control-lg bg-light"
+                  id="edit_variant_stock"
+                  readonly
+                  disabled
+                  style="cursor: not-allowed"
+                />
+                <small class="form-text text-muted">
+                  <i class="bi bi-lock-fill me-1"></i>
+                  <strong>Warning:</strong> Stock can only be changed via
+                  Import system
+                </small>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              <i class="bi bi-x-circle me-2"></i>
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="btn btn-warning"
+              onclick="adminManager.variantGenerator.submitEditVariant()"
+            >
+              <i class="bi bi-save me-2"></i>
+              Save Changes
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Chart.js for Dashboard Visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../assets/js/config.js"></script>
+    
     <!-- NavbarLoaded-->
     <script type="module" src="../assets/js/ApiClient.js"></script>
     <script type="module" src="../assets/js/AuthManager.js"></script>
@@ -1304,6 +1758,41 @@
     <script src="../assets/js/admin/AdminProduct.js"></script>
     <script src="../assets/js/admin/AdminActions.js"></script>
     <script src="../assets/js/admin/AdminHistory.js"></script>
+    
+    <!-- ✅ NEW: Dashboard and Order Management Modules -->
+    <script src="../assets/js/admin/AdminDashboard.js"></script>
+    <script src="../assets/js/admin/AdminOrderManagement.js"></script>
+    
     <script src="../assets/js/admin/AdminManager.js"></script>
+
+    <script>
+        // ⭐ ROLE-BASED ACCESS CONTROL - Block non-sellers from accessing admin page
+        window.addEventListener('DOMContentLoaded', async function() {
+            console.log('🔐 Checking user role for admin access...');
+            
+            // Wait for AuthService to initialize
+            if (window.authService) {
+                await window.authService.initialize();
+                
+                const currentUser = window.authService.currentUser;
+                const userRole = window.authService.userRole;
+                
+                console.log('👤 Current user:', currentUser?.email, '| Role:', userRole);
+                
+                // Block access if user is not a seller
+                if (!currentUser || userRole !== 'seller') {
+                    console.warn('⛔ Access denied: User is not a seller');
+                    alert('Access Denied: This page is only accessible to sellers/administrators.');
+                    window.location.href = 'index.html';
+                    return;
+                }
+                
+                console.log('✅ Seller access granted');
+            } else {
+                console.warn('⚠️ AuthService not available, redirecting...');
+                window.location.href = 'index.html';
+            }
+        });
+    </script>
   </body>
 </html>

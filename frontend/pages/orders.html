@@ -12,12 +12,229 @@
     <link href="../assets/css/animations.css" rel="stylesheet">
     <link href="../assets/css/components.css" rel="stylesheet">
     <link href="../assets/css/responsive.css" rel="stylesheet">
+    <link href="../assets/css/reviews.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/navbar.css">
     
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="../assets/images/favicon.ico">
+    
+    <style>
+        .orders-tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .tab-btn {
+            padding: 1rem;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .tab-btn.active {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+        
+        .tab-btn:hover {
+            border-color: #007bff;
+        }
+        
+        .order-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: box-shadow 0.3s ease;
+        }
+        
+        .order-card:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .order-id {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .status-badge {
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-processing {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-delivered {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-cancelled {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .order-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+            color: #666;
+        }
+        
+        .order-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .order-actions .btn {
+            font-size: 0.9rem;
+        }
+        
+        .pagination-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1040;
+        }
+        
+        .modal-backdrop.show {
+            display: block;
+        }
+        
+        .modal-content-custom {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            z-index: 1050;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        }
+        
+        .modal-content-custom.show {
+            display: block;
+        }
+        
+        .detail-view {
+            display: none;
+        }
+        
+        .detail-view.show {
+            display: block;
+        }
+        
+        .timeline {
+            margin: 2rem 0;
+        }
+        
+        .timeline-item {
+            display: flex;
+            margin-bottom: 1.5rem;
+        }
+        
+        .timeline-marker {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+        
+        .timeline-marker.active {
+            background: #28a745;
+            color: white;
+        }
+        
+        .item-card {
+            border: 1px solid #eee;
+            border-radius: 6px;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .item-image {
+            width: 80px;
+            height: 80px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .item-image img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+        
+        @media (max-width: 768px) {
+            .orders-tabs {
+                grid-template-columns: 1fr;
+            }
+            
+            .order-details {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
     <!-- Unified Navbar Root -->
@@ -28,21 +245,145 @@
         <div class="container py-5">
             <div class="row">
                 <div class="col-12">
-                    <h1 class="mb-4">My Orders</h1>
-                    <p class="text-muted">Track and manage your orders</p>
-                    <div id="ordersContainer" class="mt-4">
-                        <!-- Orders will be loaded dynamically -->
-                        <div class="text-center py-5">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Loading...</span>
+                    <h1 class="mb-2">My Orders</h1>
+                    <p class="text-muted mb-4">Track and manage your orders</p>
+                    
+                    <!-- Tabs Section -->
+                    <div id="tabsSection" class="orders-tabs">
+                        <!-- <button class="tab-btn active" data-status="">All Orders</button> -->
+                        <button class="tab-btn" data-status="pending">Pending</button>
+                        <button class="tab-btn" data-status="processing">Approved</button>
+                        <button class="tab-btn" data-status="delivered">Completed</button>
+                        <button class="tab-btn" data-status="cancelled">Cancelled</button>
+                    </div>
+                    
+                    <!-- List View -->
+                    <div id="listView">
+                        <div id="ordersContainer" class="mt-4">
+                            <div class="text-center py-5">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mt-3 text-muted">Loading your orders...</p>
                             </div>
-                            <p class="mt-3 text-muted">Loading your orders...</p>
                         </div>
+                        
+                        <!-- Pagination -->
+                        <div class="pagination-controls">
+                            <button class="btn btn-outline-primary" id="prevBtn" disabled>← Previous</button>
+                            <span id="pageInfo" class="text-muted">Page 1</span>
+                            <button class="btn btn-outline-primary" id="nextBtn">Next →</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Detail View -->
+                    <div id="detailView" class="detail-view">
+                        <!-- Will be populated by JS -->
+                    </div>
+                    
+                    <!-- Back Button for Detail View -->
+                    <div id="backBtnContainer" style="display: none; margin-top: 1rem;">
+                        <button class="btn btn-secondary" id="backBtn">← Back to List</button>
                     </div>
                 </div>
             </div>
         </div>
     </main>
+
+    <!-- Cancel Modal -->
+    <div id="cancelModalBackdrop" class="modal-backdrop"></div>
+    <div id="cancelModal" class="modal-content-custom">
+        <h5 class="mb-3">Cancel Order</h5>
+        <p class="text-muted mb-3">Why are you cancelling this order?</p>
+        
+        <div class="mb-3">
+            <label for="cancelReason" class="form-label">Cancellation Reason</label>
+            <select class="form-select" id="cancelReason">
+                <option value="">-- Select a reason --</option>
+                <option value="Wrong item ordered">Wrong item ordered</option>
+                <option value="Changed my mind">Changed my mind</option>
+                <option value="Found better price">Found better price</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+        
+        <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="confirmCheckbox">
+            <label class="form-check-label" for="confirmCheckbox">
+                I understand the order will be cancelled immediately and refund will arrive within 3-5 business days.
+            </label>
+        </div>
+        
+        <div class="d-flex gap-2 justify-content-end">
+            <button class="btn btn-secondary" id="cancelModalCloseBtn">Close</button>
+            <button class="btn btn-danger" id="confirmCancelBtn" disabled>Confirm Cancel</button>
+        </div>
+    </div>
+
+    <!-- Review Modal -->
+    <div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalTitle" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="reviewModalTitle">Write a Review</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="reviewForm">
+                        <input type="hidden" id="reviewId" value="">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Rating *</label>
+                            <div id="starRating" class="star-rating-input">
+                                <div class="star" data-rating="1">
+                                    <svg viewBox="0 0 24 24" class="star-outline">
+                                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                    </svg>
+                                </div>
+                                <div class="star" data-rating="2">
+                                    <svg viewBox="0 0 24 24" class="star-outline">
+                                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                    </svg>
+                                </div>
+                                <div class="star" data-rating="3">
+                                    <svg viewBox="0 0 24 24" class="star-outline">
+                                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                    </svg>
+                                </div>
+                                <div class="star" data-rating="4">
+                                    <svg viewBox="0 0 24 24" class="star-outline">
+                                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                    </svg>
+                                </div>
+                                <div class="star" data-rating="5">
+                                    <svg viewBox="0 0 24 24" class="star-outline">
+                                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <input type="hidden" id="ratingInput" value="0" required>
+                            <div class="invalid-feedback">Please select a rating</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="reviewComment" class="form-label fw-bold">Your Review</label>
+                            <textarea 
+                                id="reviewComment" 
+                                class="form-control" 
+                                rows="5" 
+                                maxlength="2000"
+                                placeholder="Share your thoughts about this product..."></textarea>
+                            <div class="form-text">
+                                <span id="charCount">0</span>/2000 characters
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="submitReviewBtn">Submit Review</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -57,26 +398,707 @@
     <script type="module" src="../assets/js/AuthManager.js"></script>
     <script type="module" src="../assets/js/NavbarManager.js"></script>
     <script type="module" src="../assets/js/Application.js"></script>
+    <script type="module" src="../assets/js/ReviewManager.js"></script>
     <script src="../assets/js/animations.js"></script>
     
     <script>
-        // Wait for auth to be ready before loading orders
+        // State management
+        const state = {
+            currentStatus: '',
+            currentPage: 1,
+            limit: 10,
+            orders: [],
+            total: 0,
+            viewingDetailId: null,
+            pendingCancelOrderId: null
+        };
+
+        // Review cache to avoid refetching
+        let userReviewsCache = null;
+        
+        // Orders cache for validation (stores ALL orders with full details)
+        let allOrdersCache = null;
+
+        // Initialize
         (async function() {
-            while (!window.authService) {
-                await new Promise(resolve => setTimeout(resolve, 50));
+            // Wait for auth and APIs
+            let attempts = 0;
+            while (!(window.authService?.initialized && window.ordersAPI && window.reviewsAPI) && attempts < 50) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+                attempts++;
             }
-            await window.authService.initialize();
-            
-            if (!window.authService.isAuthenticated()) {
+
+            // Check authentication
+            if (!window.authService?.isAuthenticated()) {
                 if (window.showLoginModal) {
                     window.showLoginModal();
                 }
                 return;
             }
+
+            // Preload user reviews cache for efficient review button checks
+            try {
+                const reviewsData = await window.reviewsAPI.getMyReviews({ limit: 100 });
+                userReviewsCache = reviewsData.data || [];
+                console.log('✅ Preloaded user reviews cache:', userReviewsCache.length, 'reviews');
+            } catch (error) {
+                console.error('❌ Failed to preload reviews cache:', error);
+                userReviewsCache = [];
+            }
+
+            // Preload ALL orders for validation (only fetch once)
+            try {
+                const ordersResponse = await window.ordersAPI.getOrders({ limit: 1000 });
+                allOrdersCache = ordersResponse.data?.orders || ordersResponse.orders || [];
+                console.log('✅ Preloaded all orders cache:', allOrdersCache.length, 'orders');
+            } catch (error) {
+                console.error('❌ Failed to preload orders cache:', error);
+                allOrdersCache = [];
+            }
+
+            // Setup event listeners
+            setupTabListeners();
+            setupPaginationListeners();
+            setupCancelModal();
             
-            // Load orders here
-            console.log('Loading orders for authenticated user');
+            // Auto-select Pending tab and load orders
+            const pendingTab = document.querySelector('[data-status="pending"]');
+            if (pendingTab) {
+                pendingTab.classList.add('active');
+                state.currentStatus = 'pending';
+            }
+            
+            // Load initial orders
+            await loadOrders();
         })();
+
+        function setupTabListeners() {
+            const tabs = document.querySelectorAll('.tab-btn');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', async (e) => {
+                    // Update active tab
+                    tabs.forEach(t => t.classList.remove('active'));
+                    e.target.classList.add('active');
+                    
+                    // Update state and load orders
+                    state.currentStatus = e.target.dataset.status;
+                    state.currentPage = 1;
+                    await loadOrders();
+                });
+            });
+        }
+
+        function setupPaginationListeners() {
+            document.getElementById('prevBtn').addEventListener('click', async () => {
+                if (state.currentPage > 1) {
+                    state.currentPage--;
+                    await loadOrders();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            });
+
+            document.getElementById('nextBtn').addEventListener('click', async () => {
+                if (state.currentPage < state.pages) {
+                    state.currentPage++;
+                    await loadOrders();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            });
+        }
+
+        async function loadOrders() {
+            const container = document.getElementById('ordersContainer');
+            container.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div><p class="mt-3">Loading...</p></div>';
+
+            try {
+                const params = {
+                    status: state.currentStatus || null,
+                    page: state.currentPage,
+                    limit: state.limit
+                };
+
+                const response = await window.ordersAPI.getOrders(params);
+                const data = response.data || response;
+                
+                state.orders = data.orders || [];
+                state.total = data.total || 0;
+                state.pages = data.pages || 1;
+                
+                // For cancelled orders, sort by updated_at (cancellation time) in descending order
+                if (state.currentStatus === 'cancelled') {
+                    state.orders.sort((a, b) => {
+                        const dateA = new Date(a.updated_at || a.created_at);
+                        const dateB = new Date(b.updated_at || b.created_at);
+                        return dateB - dateA;
+                    });
+                }
+                
+                // For approved (processing) orders, sort by updated_at (approval time) in descending order
+                if (state.currentStatus === 'processing') {
+                    state.orders.sort((a, b) => {
+                        const dateA = new Date(a.updated_at || a.created_at);
+                        const dateB = new Date(b.updated_at || b.created_at);
+                        return dateB - dateA;
+                    });
+                }
+
+                renderOrders();
+                updatePaginationUI();
+            } catch (err) {
+                console.error('❌ Failed to load orders:', err);
+                container.innerHTML = `<p class="text-danger text-center py-5">Failed to load orders. ${err.message}</p>`;
+            }
+        }
+
+        function renderOrders() {
+            const container = document.getElementById('ordersContainer');
+
+            if (!state.orders || state.orders.length === 0) {
+                container.innerHTML = '<p class="text-muted text-center py-5">No orders found.</p>';
+                return;
+            }
+
+            const html = state.orders.map(order => {
+                const status = normalizeStatus(order.status);
+                const statusLabel = getStatusLabel(status);
+                const statusColor = getStatusColor(status);
+                const totalAmount = order.total_amount || 0;
+                const orderDate = new Date(order.created_at);
+                const formattedDate = orderDate.toLocaleString('en-US', {
+                    year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                });
+                
+                // Calculate total quantity from all items
+                const totalQuantity = (order.order_items || []).reduce((sum, item) => sum + (item.quantity || 0), 0);
+
+                return `
+                    <div class="order-card">
+                        <div class="order-header">
+                            <div>
+                                <div class="order-id">Order #${order.order_id}</div>
+                                <div class="text-muted small mt-1">
+                                    <i class="fas fa-calendar"></i> ${formattedDate}
+                                </div>
+                            </div>
+                            <span class="status-badge status-${status}">${statusLabel}</span>
+                        </div>
+                        
+                        <div class="order-details">
+                            <div>
+                                <strong>Amount:</strong><br>
+                                ₫${new Intl.NumberFormat('vi-VN').format(Math.round(totalAmount))}
+                            </div>
+                            <div>
+                                <strong>Quantity:</strong><br>
+                                ${totalQuantity} item(s)
+                            </div>
+                        </div>
+                        
+                        <div class="order-actions">
+                            <button class="btn btn-sm btn-primary" onclick="viewOrderDetail(${order.order_id})">
+                                <i class="fas fa-eye"></i> View
+                            </button>
+                            ${status === 'pending' ? `
+                                <button class="btn btn-sm btn-danger" onclick="openCancelModal(${order.order_id})">
+                                    <i class="fas fa-times"></i> Cancel
+                                </button>
+                            ` : ''}
+                            ${(status === 'success' || status === 'cancelled') ? `
+                                <button class="btn btn-sm btn-info" onclick="reorderItems(${order.order_id})">
+                                    <i class="fas fa-redo"></i> Reorder
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = html;
+        }
+
+        function updatePaginationUI() {
+            const pageInfo = document.getElementById('pageInfo');
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+
+            pageInfo.textContent = `Page ${state.currentPage} of ${state.pages || 1}`;
+            prevBtn.disabled = state.currentPage <= 1;
+            nextBtn.disabled = state.currentPage >= (state.pages || 1);
+        }
+
+        async function viewOrderDetail(orderId) {
+            try {
+                const response = await window.ordersAPI.getOrder(orderId);
+                const order = response.data || response;
+
+                displayOrderDetail(order);
+                
+                document.getElementById('listView').classList.add('d-none');
+                document.getElementById('detailView').classList.add('show');
+                document.getElementById('backBtnContainer').style.display = 'block';
+                document.getElementById('tabsSection').style.display = 'none';
+            } catch (err) {
+                console.error('❌ Failed to load order detail:', err);
+                alert('Failed to load order details.');
+            }
+        }
+
+        function displayOrderDetail(order) {
+            const status = normalizeStatus(order.status);
+            const statusLabel = getStatusLabel(status);
+            const totalAmount = order.total_amount || 0;
+            const orderDate = new Date(order.created_at);
+            const formattedDate = orderDate.toLocaleString('vi-VN');
+
+            // Timeline
+            const timeline = `
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-marker active"><i class="fas fa-check"></i></div>
+                        <div><strong>Placed</strong><br><small>${formattedDate}</small></div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker ${status !== 'pending' ? 'active' : ''}"><i class="fas fa-check"></i></div>
+                        <div><strong>Confirmed</strong><br><small>${status !== 'pending' ? 'Approved' : 'Pending approval'}</small></div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker ${status === 'delivered' || status === 'success' ? 'active' : ''}"><i class="fas fa-check"></i></div>
+                        <div><strong>Completed</strong><br><small>${status === 'delivered' || status === 'success' ? 'Delivered' : 'In progress'}</small></div>
+                    </div>
+                </div>
+            `;
+
+            // Items
+            const itemsHtml = (order.order_items || []).map(item => {
+                const shoeId = item.shoe_variants?.shoe_id;
+                const shoeName = item.shoe_variants?.shoes?.shoe_name || 'Product';
+                
+                // Only allow reviews for completed orders (delivered or success status)
+                const canReview = (status === 'delivered' || status === 'success');
+                
+                return `
+                    <div class="item-card">
+                        <div class="item-image">
+                            ${item.shoe_variants?.shoes?.image_url ? `<img src="${item.shoe_variants.shoes.image_url}" alt="Product">` : '<i class="fas fa-image"></i>'}
+                        </div>
+                        <div class="flex-grow-1">
+                            <div><strong>${shoeName}</strong></div>
+                            <div class="small text-muted">
+                                Color: ${item.shoe_variants?.colors?.color_name || 'N/A'} | 
+                                Size: ${item.shoe_variants?.sizes?.size_value || 'N/A'} | 
+                                Qty: ${item.quantity}
+                            </div>
+                            <div>₫${new Intl.NumberFormat('vi-VN').format(Math.round(item.price_per_unit))}</div>
+                        </div>
+                        ${canReview ? `
+                            <div class="ms-3">
+                                <button class="btn btn-sm btn-outline-primary review-btn" 
+                                        data-shoe-id="${shoeId}" 
+                                        data-shoe-name="${shoeName}">
+                                    <i class="fas fa-star"></i> Review
+                                </button>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+
+            // Payment info
+            const payment = (order.payments && order.payments[0]) || {};
+            const paymentStatus = payment.status || 'N/A';
+
+            // Address - handle both full_name from address object and fallback
+            const address = order.address || {};
+            const customerName = address.recipient_name || 'Customer';
+            const street = address.street || '';
+            const ward = address.ward ? `${address.ward}` : '';
+            const district = address.district ? `${address.district}` : '';
+            const city = address.city || '';
+            const zipCode = address.zip_code ? `, ${address.zip_code}` : '';
+            const phone = address.phone_number || 'N/A';
+            
+            // Build full address string
+            const addressParts = [street, ward, district, city].filter(Boolean);
+            const fullAddress = addressParts.join(', ') + zipCode;
+
+            const html = `
+                <div class="mb-4">
+                    <h3 class="mb-3">Order #${order.order_id}</h3>
+                    <span class="status-badge status-${status}">${statusLabel}</span>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h5>Shipping Address</h5>
+                        <p class="mb-1"><strong>${customerName}</strong></p>
+                        <p class="mb-1">${phone}</p>
+                        <p class="mb-0">${fullAddress}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Payment Info</h5>
+                        <p class="mb-1"><strong>Method:</strong> ${payment.payment_method || 'N/A'}</p>
+                        <p class="mb-1"><strong>Status:</strong> ${paymentStatus}</p>
+                        ${payment.transaction_id ? `<p class="mb-0"><strong>Transaction:</strong> ${formatTransactionId(payment.transaction_id, payment.payment_method)}</p>` : ''}
+                    </div>
+                </div>
+
+                <h5 class="mb-3">Items</h5>
+                <div class="mb-4">${itemsHtml}</div>
+
+                <h5 class="mb-3">Order Timeline</h5>
+                ${timeline}
+
+                <div class="border-top pt-3 mt-4">
+                    <div class="row text-end">
+                        <div class="col-md-6 offset-md-6">
+                            <p class="mb-1"><strong>Subtotal:</strong> ₫${new Intl.NumberFormat('vi-VN').format(Math.round(order.total_amount - (order.shipping_cost || 0) - (order.tax_amount || 0)))}</p>
+                            <p class="mb-1"><strong>Shipping:</strong> ₫${new Intl.NumberFormat('vi-VN').format(Math.round(order.shipping_cost || 0))}</p>
+                            <p class="mb-1"><strong>Tax:</strong> ₫${new Intl.NumberFormat('vi-VN').format(Math.round(order.tax_amount || 0))}</p>
+                            <p class="mb-0 h5"><strong>Total:</strong> ₫${new Intl.NumberFormat('vi-VN').format(Math.round(totalAmount))}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    ${status === 'pending' ? `
+                        <button class="btn btn-danger" onclick="openCancelModal(${order.order_id})">
+                            <i class="fas fa-times"></i> Cancel Order
+                        </button>
+                    ` : ''}
+                    ${(status === 'success' || status === 'cancelled') ? `
+                        <button class="btn btn-info" onclick="reorderItems(${order.order_id})">
+                            <i class="fas fa-redo"></i> Reorder
+                        </button>
+                    ` : ''}
+                </div>
+            `;
+
+            document.getElementById('detailView').innerHTML = html;
+
+            // Setup review button listeners
+            setupReviewButtonListeners();
+        }
+
+        // Back to list
+        document.getElementById('backBtn')?.addEventListener('click', () => {
+            document.getElementById('listView').classList.remove('d-none');
+            document.getElementById('detailView').classList.remove('show');
+            document.getElementById('backBtnContainer').style.display = 'none';
+            document.getElementById('tabsSection').style.display = 'grid';
+            state.viewingDetailId = null;
+        });
+
+        // Cancel modal
+        function setupCancelModal() {
+            const confirmCheckbox = document.getElementById('confirmCheckbox');
+            const confirmBtn = document.getElementById('confirmCancelBtn');
+
+            confirmCheckbox.addEventListener('change', () => {
+                confirmBtn.disabled = !confirmCheckbox.checked;
+            });
+
+            document.getElementById('cancelModalCloseBtn').addEventListener('click', closeCancelModal);
+
+            confirmBtn.addEventListener('click', async () => {
+                await confirmOrderCancel();
+            });
+        }
+
+        function openCancelModal(orderId) {
+            state.pendingCancelOrderId = orderId;
+            document.getElementById('cancelReason').value = '';
+            document.getElementById('confirmCheckbox').checked = false;
+            document.getElementById('confirmCancelBtn').disabled = true;
+            document.getElementById('cancelModalBackdrop').classList.add('show');
+            document.getElementById('cancelModal').classList.add('show');
+        }
+
+        function closeCancelModal() {
+            document.getElementById('cancelModalBackdrop').classList.remove('show');
+            document.getElementById('cancelModal').classList.remove('show');
+            state.pendingCancelOrderId = null;
+        }
+
+        async function confirmOrderCancel() {
+            const orderId = state.pendingCancelOrderId;
+            const reason = document.getElementById('cancelReason').value;
+
+            if (!reason) {
+                alert('Please select a cancellation reason.');
+                return;
+            }
+
+            try {
+                document.getElementById('confirmCancelBtn').disabled = true;
+                await window.ordersAPI.cancelOrder(orderId, { reason });
+                closeCancelModal();
+                alert('Order cancelled successfully. If payment was made, it will be refunded within 3-5 business days.');
+                
+                // Navigate back to list view
+                document.getElementById('listView').classList.remove('d-none');
+                document.getElementById('detailView').classList.remove('show');
+                document.getElementById('backBtnContainer').style.display = 'none';
+                document.getElementById('tabsSection').style.display = 'grid';
+                
+                // Reload orders to show updated status
+                await loadOrders();
+            } catch (err) {
+                console.error('❌ Failed to cancel order:', err);
+                alert('Failed to cancel order: ' + (err.message || 'Unknown error'));
+            } finally {
+                document.getElementById('confirmCancelBtn').disabled = false;
+            }
+        }
+
+        // Reorder
+        async function reorderItems(orderId) {
+            try {
+                await window.ordersAPI.reorderItems(orderId);
+                alert('Items added to cart! Redirecting to checkout...');
+                window.location.href = 'checkout.html';
+            } catch (err) {
+                console.error('❌ Failed to reorder:', err);
+                alert('Failed to reorder: ' + (err.message || 'Unknown error'));
+            }
+        }
+
+        // Helpers
+        function normalizeStatus(status) {
+            // Keep processing as-is (for Approved tab)
+            // Only map success for consistency
+            return status;
+        }
+
+        function getStatusLabel(status) {
+            const labels = {
+                'pending': 'Pending Approval',
+                'processing': 'Approved',
+                'delivered': 'Completed',
+                'success': 'Completed',  // Backward compatibility
+                'cancelled': 'Cancelled'
+            };
+            return labels[status] || status;
+        }
+
+        function getStatusColor(status) {
+            const colors = {
+                'pending': 'pending',
+                'processing': 'info',
+                'delivered': 'success',
+                'success': 'success',  // Backward compatibility
+                'cancelled': 'cancelled'
+            };
+            return colors[status] || 'secondary';
+        }
+
+        /**
+         * Parse and format transaction ID for display
+         * @param {string} transactionId - Raw transaction ID (may be JSON)
+         * @param {string} paymentMethod - Payment method
+         * @returns {string} - Formatted display string
+         */
+        function formatTransactionId(transactionId, paymentMethod) {
+            if (!transactionId) return 'N/A';
+            
+            try {
+                const parsed = JSON.parse(transactionId);
+                
+                // Parse compact JSON format
+                if (parsed.t) {
+                    switch (parsed.t) {
+                        case 'card':
+                            return `Card ending in ${parsed.n || '****'}`;
+                        case 'bank':
+                            const bank = parsed.b || 'Bank';
+                            const account = parsed.a || '****';
+                            return `${bank} - Account ${account}`;
+                        case 'stripe':
+                            return `Stripe - ${parsed.pi || 'N/A'}`;
+                        case 'cash':
+                            return `Cash on Delivery${parsed.s ? ' (' + parsed.s + ')' : ''}`;
+                        default:
+                            return transactionId;
+                    }
+                }
+                
+                // Already full format (backward compatibility)
+                if (parsed.type) {
+                    switch (parsed.type) {
+                        case 'card':
+                            return `Card ending in ${parsed.card_number || '****'}`;
+                        case 'bank':
+                            return `${parsed.bank_code || 'Bank'} - Account ${parsed.account_number || '****'}`;
+                        case 'stripe':
+                            return `Stripe - ${parsed.stripe_payment_intent_id || 'N/A'}`;
+                        case 'cash':
+                            return `Cash on Delivery`;
+                        default:
+                            return transactionId;
+                    }
+                }
+                
+                return transactionId;
+            } catch (e) {
+                // Not JSON, return as-is
+                return transactionId;
+            }
+        }
+
+        // ============================================================
+        // Review Management - Using ReviewManager for consistency
+        // ============================================================
+
+        let ordersReviewManager = null;
+        let currentReviewShoeId = null;
+
+        function setupReviewButtonListeners() {
+            const reviewBtns = document.querySelectorAll('.review-btn');
+            reviewBtns.forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const shoeId = e.currentTarget.dataset.shoeId;
+                    const shoeName = e.currentTarget.dataset.shoeName;
+                    await openReviewModal(shoeId, shoeName);
+                });
+            });
+        }
+
+        async function openReviewModal(shoeId, shoeName) {
+            console.log('🔓 Opening review modal for shoe:', shoeId, shoeName);
+            
+            try {
+                // ✅ Validate that user can only review products from completed orders
+                const canReview = await validateCanReview(shoeId);
+                if (!canReview) {
+                    alert('You can only review products from completed orders (delivered/success status).');
+                    return;
+                }
+
+                // Wait for ReviewManager to be available
+                let attempts = 0;
+                while (!window.ReviewManager && attempts < 50) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    attempts++;
+                }
+
+                if (!window.ReviewManager) {
+                    console.error('❌ ReviewManager not available');
+                    alert('Review system not ready. Please try again.');
+                    return;
+                }
+
+                // Store current shoe ID for modal context
+                currentReviewShoeId = shoeId;
+
+                // Create temporary ReviewManager instance for this product
+                // Use minimal options - only modal functionality, no stats/reviews list
+                if (!ordersReviewManager) {
+                    ordersReviewManager = new window.ReviewManager(shoeId, {
+                        loadStats: false,      // Don't load review statistics
+                        loadReviews: false,    // Don't load reviews list
+                        checkUserReview: false // Don't check user review (we do it manually)
+                    });
+                    await ordersReviewManager.init();
+                } else {
+                    // Update product ID if different
+                    ordersReviewManager.productId = shoeId;
+                }
+
+                // Check if user already reviewed
+                const existingReview = await window.reviewsAPI.getMyReviewForProduct(shoeId);
+
+                // Update modal title
+                const modalTitle = document.getElementById('reviewModalTitle');
+                if (modalTitle) {
+                    modalTitle.textContent = existingReview 
+                        ? `Edit Review - ${shoeName}` 
+                        : `Write Review - ${shoeName}`;
+                }
+
+                // Open modal using ReviewManager
+                if (existingReview) {
+                    ordersReviewManager.openReviewModal(
+                        existingReview.review_id,
+                        existingReview.rating,
+                        existingReview.comment || ''
+                    );
+                } else {
+                    ordersReviewManager.openReviewModal();
+                }
+
+                // Override submit handler to redirect to product detail after review
+                const submitBtn = document.getElementById('submitReviewBtn');
+                if (submitBtn) {
+                    // Remove old listeners
+                    const newSubmitBtn = submitBtn.cloneNode(true);
+                    submitBtn.parentNode.replaceChild(newSubmitBtn, submitBtn);
+                    
+                    // Add new listener with redirect
+                    newSubmitBtn.addEventListener('click', async () => {
+                        try {
+                            // Submit review
+                            await ordersReviewManager.submitReview();
+                            
+                            // Wait a moment for the submission to complete
+                            await new Promise(resolve => setTimeout(resolve, 500));
+                            
+                            // ⭐ Redirect to product detail page to see updated review
+                            console.log('✅ Review submitted, redirecting to product detail page...');
+                            window.location.href = `product-detail.html?id=${shoeId}`;
+                        } catch (err) {
+                            console.error('❌ Failed to submit review:', err);
+                            // Don't redirect if submission failed
+                        }
+                    });
+                }
+
+            } catch (error) {
+                console.error('❌ Error opening review modal:', error);
+                alert('Failed to open review modal');
+            }
+        }
+
+        /**
+         * Validate if user can review this product (must be from completed order)
+         * Uses cached orders data for instant validation
+         */
+        async function validateCanReview(shoeId) {
+            try {
+                // Use cached orders if available (instant validation)
+                let orders = allOrdersCache;
+                
+                // Fallback: fetch if cache is empty (shouldn't happen normally)
+                if (!orders || orders.length === 0) {
+                    console.warn('⚠️ Orders cache empty, fetching...');
+                    const response = await window.ordersAPI.getOrders({ limit: 1000 });
+                    orders = response.data?.orders || response.orders || [];
+                    allOrdersCache = orders; // Update cache
+                }
+                
+                // Check if shoe exists in any completed order
+                const hasCompletedOrder = orders.some(order => {
+                    const isCompleted = order.status === 'delivered' || order.status === 'success';
+                    if (!isCompleted) return false;
+                    
+                    // Check if this shoe is in the order items
+                    return (order.order_items || []).some(item => {
+                        return item.shoe_variants?.shoe_id === parseInt(shoeId);
+                    });
+                });
+                
+                return hasCompletedOrder;
+            } catch (error) {
+                console.error('❌ Error validating review permission:', error);
+                return false;
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            if (window.showAlert) {
+                window.showAlert(message, type);
+            } else {
+                alert(message);
+            }
+        }
     </script>
 </body>
 </html>

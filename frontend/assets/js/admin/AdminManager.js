@@ -30,6 +30,10 @@ class AdminManager {
     window.adminHistory = this.historyManager;
     this.actions = new AdminActions(this.core);
 
+    // ✅ NEW: Initialize dashboard and order management modules
+    this.dashboard = new AdminDashboard(this.core, this);
+    this.orderManagement = new AdminOrderManagement(this.core, this);
+
     this.actions.productManager = this.productManager; // Wire connection
     window.adminActions = this.actions; // Expose globally
     window.adminManager = this;
@@ -55,13 +59,16 @@ class AdminManager {
         this.core.loadCategories(),
         this.core.loadColors(),
         this.core.loadSizes(),
-        this.loadDashboard()
       ]);
 
       // Render initial data
       this.productRenderer.applySortByStock();
       this.categoryManager.renderCategoriesTable();
       this.core.updateStats();
+
+      // ✅ Setup dashboard and order management
+      this.dashboard.attachToSection('dashboardSection');
+      this.orderManagement.init();
 
       // Setup event listeners (ONLY ONCE)
       this.setupEventListeners();
@@ -453,15 +460,24 @@ class AdminManager {
       switch (sectionName) {
         case "history":
           if (this.historyManager) {
-            this.historyManager.loadDeletedProducts(); // ✅ Load deleted products
-            this.historyManager.loadGlobalImportHistory(); // ✅ Load global imports
+            this.historyManager.loadDeletedProducts();
+            this.historyManager.loadGlobalImportHistory();
           }
           break;
         case "inventory":
           // Already loaded
           break;
         case "dashboard":
-          // Load dashboard stats (future)
+          // ✅ Load dashboard via new module
+          if (this.dashboard) {
+            this.dashboard.loadAndRender();
+          }
+          break;
+        case "orders":
+          // ✅ Load orders via new module
+          if (this.orderManagement) {
+            this.orderManagement.loadOrders(1);
+          }
           break;
       }
     } else {
@@ -478,268 +494,98 @@ class AdminManager {
     if (activeLink) {
       activeLink.classList.add("active");
     }
-  }
-    /**
-     * Delete variant wrapper - called from HTML onclick
-     */
-    async deleteVariant(variantId, buttonElement) {
-    try {
-        console.log('🗑️ Delete variant called:', variantId);     
-        // Pass to AdminActions with buttonElement
-        await this.actions.deleteVariant(variantId, buttonElement);
-    } catch (error) {
-        console.error('Delete variant failed in AdminManager:', error);
-    }
     }
 
   /**
-   * Load and display dashboard section
+   * Delete variant wrapper - called from HTML onclick
    */
-  async loadDashboard() {
+  async deleteVariant(variantId, buttonElement) {
     try {
-      console.log("🔄 Loading dashboard...");
-
-      // Show loading state
-      const dashboardSection = document.getElementById('dashboardSection');
-      if (dashboardSection) {
-        const emptyState = dashboardSection.querySelector('.empty-state');
-        if (emptyState) {
-          emptyState.innerHTML = `
-            <div class="spinner-border text-primary" role="status">
-              <span class="visually-hidden">Loading...</span>
-            </div>
-            <p>Loading dashboard...</p>
-          `;
-        }
-      }
-
-      // Fetch dashboard data
-      const data = await this.core.loadDashboardData();
-
-      if (!data) {
-        throw new Error('No dashboard data returned');
-      }
-
-      // Update dashboard display
-      this.renderDashboard(data);
-
-      console.log("✅ Dashboard loaded successfully");
-
+      console.log('🗑️ Delete variant called:', variantId);     
+      // Pass to AdminActions with buttonElement
+      await this.actions.deleteVariant(variantId, buttonElement);
     } catch (error) {
-      console.error("❌ Dashboard load error:", error);
-      AdminUtils.showError('Failed to load dashboard');
+      console.error('Delete variant failed in AdminManager:', error);
     }
   }
 
+  // ==================== PAYMENT HELPERS (for Order Management) ====================
+  
   /**
-   * Render dashboard data in HTML
+   * Confirm bank transfer payment
    */
-  renderDashboard(data) {
-    console.log("🎨 Rendering dashboard...", data);
-
-    if (!data) {
-      console.warn("⚠️ No data to render");
+  async confirmPayment(paymentId) {
+    if (!confirm('Confirm this bank transfer payment?')) {
       return;
     }
 
-    // Get dashboard section
-    const dashboardSection = document.getElementById('dashboardSection');
-    if (!dashboardSection) {
-      console.error("❌ Dashboard section not found");
+    try {
+      console.log('💳 Confirming payment:', paymentId);
+      const response = await window.paymentsAPI.confirmPayment(paymentId);
+      console.log('✅ Payment confirmed:', response);
+      
+      AdminUtils.showToast('Success', 'Payment confirmed successfully', 'success');
+      
+      // Reload orders to reflect changes
+      if (this.orderManagement) {
+        await this.orderManagement.loadOrders(this.orderManagement.currentState.currentPage);
+      }
+    } catch (err) {
+      console.error('❌ Failed to confirm payment:', err);
+      AdminUtils.showToast('Error', 'Failed to confirm payment: ' + (err.message || 'Unknown error'), 'error');
+    }
+  }
+
+  /**
+   * Approve COD order (not collected yet, just approved for delivery)
+   */
+  async approveCod(paymentId) {
+    if (!confirm('Approve this Cash on Delivery order for delivery?')) {
       return;
     }
 
-    // Extract data
-    const { summary = {}, stats = {}, recentActivity = {} } = data;
-
-    // Create dashboard HTML
-    const dashboardHTML = `
-      <div class="admin-header">
-        <h1>Dashboard</h1>
-        <p>Overview of store statistics and metrics</p>
-      </div>
-
-      <!-- Summary Cards -->
-      <div class="row mb-4">
-        <div class="col-md-6 col-lg-3 mb-3">
-          <div class="card bg-primary text-white">
-            <div class="card-body">
-              <h6 class="card-title">Total Products</h6>
-              <h2>${summary.totalProducts || 0}</h2>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-md-6 col-lg-3 mb-3">
-          <div class="card bg-success text-white">
-            <div class="card-body">
-              <h6 class="card-title">Total Orders</h6>
-              <h2>${summary.totalOrders || 0}</h2>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-md-6 col-lg-3 mb-3">
-          <div class="card bg-warning text-white">
-            <div class="card-body">
-              <h6 class="card-title">Low Stock Items (<10)</h6>
-              <h2>${summary.lowStockItems || 0}</h2>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-md-6 col-lg-3 mb-3">
-          <div class="card bg-info text-white">
-            <div class="card-body">
-              <h6 class="card-title">Total Revenue</h6>
-              <h2>$${summary.totalRevenue || '0.00'}</h2>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Statistics & Recent Orders Row -->
-      <div class="row mb-4">
-        <div class="col-lg-4">
-          <h3>Statistics</h3>
-          <ul class="list-group">
-            <li class="list-group-item">
-              <strong>Active Categories:</strong>
-              <span class="badge bg-primary float-end">${stats.activeCategories || 0}</span>
-            </li>
-            <li class="list-group-item">
-              <strong>Total Variants:</strong>
-              <span class="badge bg-secondary float-end">${stats.totalVariants || 0}</span>
-            </li>
-            <li class="list-group-item">
-              <strong>Pending Orders:</strong>
-              <span class="badge bg-warning float-end">${stats.pendingOrders || 0}</span>
-            </li>
-          </ul>
-        </div>
-
-        <!-- Recent Orders -->
-        <div class="col-lg-8">
-          <h3>Recent Orders</h3>
-          ${this.renderRecentOrders(recentActivity.recentOrders || [])}
-        </div>
-      </div>
-
-      <!-- Top Selling Products -->
-      <div class="row">
-        <div class="col-12">
-          <h3>Top Selling Products</h3>
-          ${this.renderTopSellingProducts(recentActivity.topSellingProducts || [])}
-        </div>
-      </div>
-    `;
-
-    // Update dashboard section
-    dashboardSection.innerHTML = dashboardHTML;
-    console.log("✅ Dashboard rendered");
+    try {
+      console.log('✅ Approving COD order:', paymentId);
+      const response = await window.paymentsAPI.approveCod(paymentId);
+      console.log('✅ COD order approved:', response);
+      
+      AdminUtils.showToast('Success', 'COD order approved for delivery', 'success');
+      
+      // Reload orders to reflect changes
+      if (this.orderManagement) {
+        await this.orderManagement.loadOrders(this.orderManagement.currentState.currentPage);
+      }
+    } catch (err) {
+      console.error('❌ Failed to approve COD:', err);
+      AdminUtils.showToast('Error', 'Failed to approve COD order: ' + (err.message || 'Unknown error'), 'error');
+    }
   }
 
   /**
-   * Render recent orders table with user info
+   * Mark COD as collected (after delivery)
    */
-  renderRecentOrders(orders) {
-    if (!orders || orders.length === 0) {
-      return `
-        <div class="alert alert-info">
-          <i class="fas fa-info-circle me-2"></i>
-          No recent orders found
-        </div>
-      `;
+  async collectCod(paymentId) {
+    if (!confirm('Mark this Cash on Delivery payment as collected?')) {
+      return;
     }
 
-    const rows = orders.map(order => `
-      <tr>
-        <td>
-          ${order.avatar_url ? `<img src="${order.avatar_url}" alt="${order.username}" style="width: 30px; height: 30px; border-radius: 50%; margin-right: 8px;">` : '<i class="fas fa-user-circle" style="margin-right: 8px;"></i>'}
-          <strong>${order.username}</strong>
-        </td>
-        <td>#${order.order_id}</td>
-        <td>$${parseFloat(order.total_amount || 0).toFixed(2)}</td>
-        <td>
-          <span class="badge ${this.getStatusBadgeClass(order.order_status)}">
-            ${order.order_status}
-          </span>
-        </td>
-        <td>${new Date(order.created_at).toLocaleDateString()}</td>
-      </tr>
-    `).join('');
-
-    return `
-      <table class="table table-sm table-hover">
-        <thead>
-          <tr>
-            <th>Customer</th>
-            <th>Order ID</th>
-            <th>Amount</th>
-            <th>Status</th>
-            <th>Date</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${rows}
-        </tbody>
-      </table>
-    `;
-  }
-
-  /**
-   * Render top selling products
-   */
-  renderTopSellingProducts(products) {
-    if (!products || products.length === 0) {
-      return `
-        <div class="alert alert-info">
-          <i class="fas fa-info-circle me-2"></i>
-          No sales data available yet
-        </div>
-      `;
+    try {
+      console.log('💵 Collecting COD payment:', paymentId);
+      const response = await window.paymentsAPI.collectCod(paymentId);
+      console.log('✅ COD collected:', response);
+      
+      AdminUtils.showToast('Success', 'COD payment marked as collected', 'success');
+      
+      // Reload orders to reflect changes
+      if (this.orderManagement) {
+        await this.orderManagement.loadOrders(this.orderManagement.currentState.currentPage);
+      }
+    } catch (err) {
+      console.error('❌ Failed to collect COD:', err);
+      AdminUtils.showToast('Error', 'Failed to mark payment as collected: ' + (err.message || 'Unknown error'), 'error');
     }
-
-    const cards = products.map(product => `
-      <div class="col-md-6 col-lg-4 mb-3">
-        <div class="card h-100">
-          ${product.image_url ? `
-            <img src="${product.image_url}" class="card-img-top" alt="${product.shoe_name}" style="height: 200px; object-fit: cover;">
-          ` : `
-            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
-              <i class="fas fa-shoe-prints fa-3x text-muted"></i>
-            </div>
-          `}
-          <div class="card-body">
-            <h5 class="card-title">${product.shoe_name}</h5>
-            <p class="card-text">
-              <strong>Sales: </strong><span class="badge bg-success">${product.salesCount}</span>
-            </p>
-          </div>
-        </div>
-      </div>
-    `).join('');
-
-    return `<div class="row">${cards}</div>`;
   }
-
-  /**
-   * Get Bootstrap badge class based on order status
-   */
-  getStatusBadgeClass(status) {
-    const statusMap = {
-      'pending': 'bg-warning',
-      'processing': 'bg-info',
-      'shipped': 'bg-primary',
-      'delivered': 'bg-success',
-      'cancelled': 'bg-danger',
-      'refunded': 'bg-secondary'
-    };
-    return statusMap[status?.toLowerCase()] || 'bg-secondary';
-  }
-}
-
-// Initialize on page load
+}// Initialize on page load
 window.addEventListener("DOMContentLoaded", async () => {
   window.adminManager = new AdminManager();
   await window.adminManager.init();

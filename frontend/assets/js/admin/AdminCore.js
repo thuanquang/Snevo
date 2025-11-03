@@ -7,6 +7,9 @@ class AdminCore {
     constructor() {
         this.api = window.productsAPI;
         
+        // ⭐ Initialize AdminAPI early (will work after AdminAPI is loaded)
+        this.adminAPI = null;
+        
         // Data State
         this.shoes = [];
         this.allShoes = [];
@@ -28,6 +31,17 @@ class AdminCore {
         };
         
         console.log("✅ AdminCore initialized");
+    }
+    
+    /**
+     * ⭐ Initialize AdminAPI (lazy initialization)
+     */
+    ensureAdminAPI() {
+        if (!this.adminAPI && window.AdminAPI && this.api?.client) {
+            this.adminAPI = new window.AdminAPI(this.api.client);
+            console.log("✅ AdminAPI initialized");
+        }
+        return this.adminAPI;
     }
     
     /**
@@ -139,15 +153,10 @@ class AdminCore {
         try {
             console.log("📊 Loading dashboard data...");
 
-            // Wait for AdminAPI to be available
-            if (!window.AdminAPI) {
+            // ⭐ Ensure AdminAPI is initialized
+            if (!this.ensureAdminAPI()) {
                 console.warn("⚠️ AdminAPI not available yet");
                 return null;
-            }
-
-            // Create instance if not exists
-            if (!this.adminAPI) {
-                this.adminAPI = new window.AdminAPI(this.api.client);
             }
 
             // Fetch dashboard data
