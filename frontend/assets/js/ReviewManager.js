@@ -3,15 +3,22 @@
  * Handles review display, creation, editing, and deletion
  */
 class ReviewManager {
-  constructor(productId) {
+  constructor(productId, options = {}) {
     this.productId = productId;
     this.currentPage = 1;
     this.currentFilter = "all";
     this.modal = null;
     this.editingReviewId = null;
     this.userReview = null;
+    this.options = {
+      loadStats: true,
+      loadReviews: true,
+      checkUserReview: true,
+      setupWriteButton: true, // Whether to setup write review button listener
+      ...options
+    };
 
-    console.log("✅ ReviewManager initialized for product:", productId);
+    console.log("✅ ReviewManager initialized for product:", productId, "with options:", this.options);
   }
 
   /**
@@ -19,19 +26,41 @@ class ReviewManager {
    */
   async init() {
     try {
+      // Wait for Bootstrap to be ready
+      if (typeof bootstrap === 'undefined') {
+        console.warn('⏳ Bootstrap not loaded yet, waiting...');
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+
       // Initialize modal
       const modalElement = document.getElementById("reviewModal");
       if (modalElement) {
-        this.modal = new bootstrap.Modal(modalElement);
+        // Ensure Bootstrap Modal is available
+        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+          this.modal = new bootstrap.Modal(modalElement, {
+            backdrop: true,
+            keyboard: true,
+            focus: true
+          });
+          console.log('✅ Modal initialized successfully');
+        } else {
+          console.error('❌ Bootstrap Modal not available');
+        }
       }
 
       // Setup event listeners
       this.setupEventListeners();
 
-      // Load initial data
-      await this.loadReviewStats();
-      await this.loadReviews();
-      await this.checkUserReview();
+      // Load initial data (conditionally based on options)
+      if (this.options.loadStats) {
+        await this.loadReviewStats();
+      }
+      if (this.options.loadReviews) {
+        await this.loadReviews();
+      }
+      if (this.options.checkUserReview) {
+        await this.checkUserReview();
+      }
     } catch (error) {
       console.error("❌ Error initializing ReviewManager:", error);
     }
@@ -41,10 +70,12 @@ class ReviewManager {
    * Setup event listeners
    */
   setupEventListeners() {
-    // Write review button
-    const writeBtn = document.getElementById("writeReviewBtn");
-    if (writeBtn) {
-      writeBtn.addEventListener("click", () => this.openReviewModal());
+    // Write review button (only if option enabled)
+    if (this.options.setupWriteButton) {
+      const writeBtn = document.getElementById("writeReviewBtn");
+      if (writeBtn) {
+        writeBtn.addEventListener("click", () => this.openReviewModal());
+      }
     }
 
     // Character count
@@ -77,6 +108,17 @@ class ReviewManager {
         this.setupStarRating()
       );
     }
+
+    // ✅ Thêm: Xử lý nút Cancel thủ công (fallback)
+    const cancelBtns = document.querySelectorAll('[data-bs-dismiss="modal"]');
+    cancelBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        console.log('🔘 Cancel button clicked');
+        if (this.modal) {
+          this.modal.hide();
+        }
+      });
+    });
   }
   /**
    * Setup star rating event listeners
@@ -434,25 +476,47 @@ class ReviewManager {
    * Open review modal for create/edit
    */
   openReviewModal(reviewId = null, rating = 0, comment = "") {
-    if (!this.modal) return;
+    console.log('🔓 Opening review modal...', { reviewId, rating, modal: !!this.modal });
+    
+    if (!this.modal) {
+      console.error('❌ Modal not initialized');
+      // Try to initialize modal on-demand
+      const modalElement = document.getElementById("reviewModal");
+      if (modalElement && typeof bootstrap !== 'undefined') {
+        this.modal = new bootstrap.Modal(modalElement);
+        console.log('✅ Modal initialized on-demand');
+      } else {
+        alert('Unable to open review form. Please refresh the page.');
+        return;
+      }
+    }
 
     this.editingReviewId = reviewId || this.userReview?.review_id || null;
 
     // Set modal title
     const modalTitle = document.getElementById("reviewModalTitle");
-    modalTitle.textContent = this.editingReviewId
-      ? "Edit Your Review"
-      : "Write a Review";
+    if (modalTitle) {
+      modalTitle.textContent = this.editingReviewId
+        ? "Edit Your Review"
+        : "Write a Review";
+    }
 
     // Populate form if editing
     if (this.editingReviewId) {
       this.setStarRating(rating || this.userReview?.rating || 0);
-      document.getElementById("reviewComment").value =
-        comment || this.userReview?.comment || "";
-      this.updateCharCount();
+      const commentInput = document.getElementById("reviewComment");
+      if (commentInput) {
+        commentInput.value = comment || this.userReview?.comment || "";
+        this.updateCharCount();
+      }
     }
 
-    this.modal.show();
+    try {
+      this.modal.show();
+      console.log('✅ Modal shown');
+    } catch (error) {
+      console.error('❌ Error showing modal:', error);
+    }
     // Star rating listeners sẽ được setup tự động bởi 'shown.bs.modal' event
   }
 
@@ -475,10 +539,16 @@ class ReviewManager {
       await window.reviewsAPI.deleteReview(reviewId);
       this.showToast("Review deleted successfully", "success");
 
-      // Reload data
-      await this.loadReviewStats();
-      await this.loadReviews(this.currentPage);
-      await this.checkUserReview();
+      // Reload data (conditionally based on options)
+      if (this.options.loadStats) {
+        await this.loadReviewStats();
+      }
+      if (this.options.loadReviews) {
+        await this.loadReviews(this.currentPage);
+      }
+      if (this.options.checkUserReview) {
+        await this.checkUserReview();
+      }
     } catch (error) {
       console.error("❌ Error deleting review:", error);
       this.showToast(error.message || "Failed to delete review", "danger");
@@ -518,11 +588,20 @@ class ReviewManager {
         this.showToast("Review submitted successfully", "success");
       }
 
-      // Close modal and reload
-      this.modal.hide();
-      await this.loadReviewStats();
-      await this.loadReviews(1); // Go to first page
-      await this.checkUserReview();
+      // Close modal and reload (conditionally based on options)
+      if (this.modal) {
+        this.modal.hide();
+      }
+      
+      if (this.options.loadStats) {
+        await this.loadReviewStats();
+      }
+      if (this.options.loadReviews) {
+        await this.loadReviews(1); // Go to first page
+      }
+      if (this.options.checkUserReview) {
+        await this.checkUserReview();
+      }
     } catch (error) {
       console.error("❌ Error submitting review:", error);
       this.showToast(error.message || "Failed to submit review", "danger");

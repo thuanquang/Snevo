@@ -18,7 +18,19 @@ class Order extends BaseModel {
             .from(this.tableName)
             .select(`
                 *,
-                order_items (order_item_id, quantity)
+                order_items (
+                    order_item_id, 
+                    quantity,
+                    shoe_variants (
+                        variant_id,
+                        shoe_id,
+                        shoes (
+                            shoe_id,
+                            shoe_name,
+                            image_url
+                        )
+                    )
+                )
             `, { count: 'exact' })
             .eq('user_id', userId)
             .order('created_at', { ascending: false });
@@ -129,11 +141,13 @@ class Order extends BaseModel {
         console.log('✅ Returning orders with profiles:', ordersWithProfiles.length);
         
         return {
-            orders: ordersWithProfiles,
+            data: ordersWithProfiles,
+            orders: ordersWithProfiles,  // Keep for backward compatibility
             total: count || 0,
             page: parseInt(page),
             limit: parseInt(limit),
-            pages: Math.ceil((count || 0) / parseInt(limit))
+            pages: Math.ceil((count || 0) / parseInt(limit)),
+            totalPages: Math.ceil((count || 0) / parseInt(limit))
         };
     }
 

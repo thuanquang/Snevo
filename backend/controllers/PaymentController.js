@@ -216,10 +216,11 @@ class PaymentController extends BaseController {
     // POST /api/payments/:id/confirm - Admin confirms bank transfer
     async confirmPayment(req, res) {
         return this.handleRequest(req, res, async () => {
-            this.requireAuth(req);
+            // Authorization: Only sellers can confirm payments
+            const user = this.requireRole(req, ['seller']);
             const { id } = req.params;
 
-            console.log('🏦 Admin confirming payment:', id);
+            console.log('🏦 Seller confirming payment:', id, 'by', user.email);
 
             const payment = await this.Payment.findById(parseInt(id));
             if (!payment) {
@@ -257,10 +258,11 @@ class PaymentController extends BaseController {
     // POST /api/payments/:id/approve - Admin approves COD order (not collected yet)
     async approveCod(req, res) {
         return this.handleRequest(req, res, async () => {
-            this.requireAuth(req);
+            // Authorization: Only sellers can approve COD
+            const user = this.requireRole(req, ['seller']);
             const { id } = req.params;
 
-            console.log('✅ Admin approving COD order:', id);
+            console.log('✅ Seller approving COD order:', id, 'by', user.email);
 
             const payment = await this.Payment.findById(parseInt(id));
             if (!payment) {
@@ -299,11 +301,12 @@ class PaymentController extends BaseController {
     // POST /api/payments/:id/collect - Mark COD as collected (after delivery)
     async collectCod(req, res) {
         return this.handleRequest(req, res, async () => {
-            this.requireAuth(req);
+            // Authorization: Only sellers can collect COD
+            const user = this.requireRole(req, ['seller']);
             const { id } = req.params;
             const { collected_by } = req.body || {};
 
-            console.log('💵 Marking COD collected:', id);
+            console.log('💵 Marking COD collected:', id, 'by', user.email);
 
             const payment = await this.Payment.findById(parseInt(id));
             if (!payment) {

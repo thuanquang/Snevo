@@ -628,7 +628,7 @@ class Server {
             const id = adminOrderPath.substring(1);
             req.params = { id };
             if (method === 'GET') {
-                await this.orderController.getOrder(req, res);
+                await this.orderController.getAdminOrder(req, res);
             } else {
                 this.sendError(res, 'Method not allowed', 405);
             }
@@ -637,7 +637,7 @@ class Server {
             if (method === 'PUT') {
                 req.params = { id };
                 req.body = body;
-                await this.orderController.updateOrderStatus(req, res);
+                await this.orderController.updateAdminOrderStatus(req, res);
             } else {
                 this.sendError(res, 'Method not allowed', 405);
             }
@@ -646,7 +646,7 @@ class Server {
             if (method === 'PUT') {
                 req.params = { id };
                 req.body = body;
-                await this.orderController.cancelOrder(req, res);
+                await this.orderController.cancelAdminOrder(req, res);
             } else {
                 this.sendError(res, 'Method not allowed', 405);
             }

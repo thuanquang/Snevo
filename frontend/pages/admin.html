@@ -856,12 +856,12 @@
                     class="form-control" 
                     id="orderSearchInput" 
                     placeholder="Search by Order ID..."
-                    onkeydown="if(event.key === 'Enter') window.adminLoadOrders()"
+                    onkeydown="if(event.key === 'Enter') window.adminLoadOrders(1)"
                   />
                   <button 
                     class="btn btn-outline-secondary" 
                     type="button" 
-                    onclick="window.adminLoadOrders()"
+                    onclick="window.adminLoadOrders(1)"
                   >
                     <i class="fas fa-search"></i>
                   </button>
@@ -873,7 +873,7 @@
                   <span class="input-group-text bg-white">
                     <i class="fas fa-filter"></i>
                   </span>
-                  <select class="form-select" id="orderStatusFilter" onchange="window.adminLoadOrders()">
+                  <select class="form-select" id="orderStatusFilter" onchange="window.adminLoadOrders(1)">
                     <option value="">All Status</option>
                     <option value="pending">Pending</option>
                     <option value="processing">Approved</option>
@@ -886,7 +886,7 @@
               <div class="col-md-2">
                 <button 
                   class="btn btn-outline-secondary w-100" 
-                  onclick="document.getElementById('orderSearchInput').value = ''; document.getElementById('orderStatusFilter').value = ''; window.adminLoadOrders();"
+                  onclick="document.getElementById('orderSearchInput').value = ''; document.getElementById('orderStatusFilter').value = ''; window.adminLoadOrders(1);"
                 >
                   <i class="bi bi-x-circle me-1"></i>Clear
                 </button>
@@ -920,6 +920,11 @@
                   </tr>
                 </tbody>
               </table>
+            </div>
+            
+            <!-- Pagination Controls -->
+            <div class="mt-3" id="ordersPagination">
+              <!-- Pagination will be rendered here by JavaScript -->
             </div>
           </div>
         </div>
@@ -1658,6 +1663,34 @@
     <script src="../assets/js/admin/AdminManager.js"></script>
 
     <script>
+        // ⭐ ROLE-BASED ACCESS CONTROL - Block non-sellers from accessing admin page
+        window.addEventListener('DOMContentLoaded', async function() {
+            console.log('🔐 Checking user role for admin access...');
+            
+            // Wait for AuthService to initialize
+            if (window.authService) {
+                await window.authService.initialize();
+                
+                const currentUser = window.authService.currentUser;
+                const userRole = window.authService.userRole;
+                
+                console.log('👤 Current user:', currentUser?.email, '| Role:', userRole);
+                
+                // Block access if user is not a seller
+                if (!currentUser || userRole !== 'seller') {
+                    console.warn('⛔ Access denied: User is not a seller');
+                    alert('Access Denied: This page is only accessible to sellers/administrators.');
+                    window.location.href = 'index.html';
+                    return;
+                }
+                
+                console.log('✅ Seller access granted');
+            } else {
+                console.warn('⚠️ AuthService not available, redirecting...');
+                window.location.href = 'index.html';
+            }
+        });
+
         // Admin function to cancel orders
         window.adminCancelOrder = async function(orderId, buttonElement) {
             // Prompt for reason
@@ -1674,14 +1707,15 @@
             }
 
             try {
-                // Call cancel API with admin authority (same endpoint, admin owns all orders in this context)
-                const response = await window.ordersAPI.cancelOrder(orderId, { reason });
+                // Use admin API to cancel order (no ownership check)
+                const response = await window.adminOrdersAPI.cancelOrder(orderId, { reason });
                 
-                console.log('✅ Order cancelled by admin:', response);
+                console.log('✅ Order cancelled by seller:', response);
                 alert('Order cancelled successfully.');
                 
-                // Reload orders
-                window.adminLoadOrders();
+                // Reload current page
+                const currentPage = window.adminOrdersState?.currentPage || 1;
+                window.adminLoadOrders(currentPage);
             } catch (err) {
                 console.error('❌ Failed to cancel order:', err);
                 alert('Failed to cancel order: ' + (err.message || 'Unknown error'));
@@ -1691,14 +1725,14 @@
         // Load dashboard statistics
         window.loadDashboardStats = async function() {
             try {
-                const response = await window.adminOrdersAPI.getOrders();
+                // Fetch with no pagination (just to get totals)
+                const response = await window.adminOrdersAPI.getOrders({ limit: 100 });
                 console.log('📊 Raw response from API:', response);
                 
-                // Response format: { success, message, data: { orders: [], total, page, limit, pages } }
-                // Orders are nested inside data.orders
-                const ordersList = Array.isArray(response?.data?.orders) ? response.data.orders : [];
+                // Extract orders from data array
+                const ordersList = Array.isArray(response?.data) ? response.data : [];
                 
-                console.log('📊 Extracted ordersList:', ordersList, 'length:', ordersList.length);
+                console.log('📊 Extracted ordersList:', ordersList.length, 'items');
                 
                 if (!Array.isArray(ordersList)) {
                     console.error('❌ ordersList is not an array:', typeof ordersList, ordersList);
@@ -1807,22 +1841,35 @@
         };
 
         // Load all orders for admin
-        window.adminLoadOrders = async function() {
+        window.adminLoadOrders = async function(page = 1) {
             try {
-                const statusFilter = document.getElementById('orderStatusFilter')?.value || '';
-                const searchId = document.getElementById('orderSearchInput')?.value || '';
+                // Get current filters from UI or stored state
+                const statusFilter = document.getElementById('orderStatusFilter')?.value || window.adminOrdersState?.status || '';
+                const searchId = document.getElementById('orderSearchInput')?.value || window.adminOrdersState?.search || '';
                 
-                console.log('📦 Loading orders with filters:', { statusFilter, searchId });
+                // Store state for persistence
+                window.adminOrdersState = {
+                    status: statusFilter,
+                    search: searchId,
+                    currentPage: page
+                };
                 
-                // Fetch all orders using admin API
-                const response = await window.adminOrdersAPI.getOrders({ status: statusFilter, search: searchId });
+                console.log('📦 Loading orders page', page, 'with filters:', { statusFilter, searchId });
+                
+                // Fetch orders with pagination (limit=10 fixed)
+                const response = await window.adminOrdersAPI.getOrders({ 
+                    status: statusFilter, 
+                    search: searchId,
+                    page: page,
+                    limit: 10
+                });
                 console.log('📦 Raw API response:', response);
                 
-                // Response format: { success, message, data: { orders: [], total, page, limit, pages } }
-                // Orders are nested inside data.orders
-                const ordersList = Array.isArray(response?.data?.orders) ? response.data.orders : [];
+                // Extract pagination metadata
+                const pagination = response?.pagination || {};
+                const ordersList = Array.isArray(response?.data) ? response.data : [];
                 
-                console.log('📦 Extracted ordersList:', ordersList, 'length:', ordersList.length);
+                console.log('📦 Extracted ordersList:', ordersList.length, 'items | Pagination:', pagination);
                 
                 if (!Array.isArray(ordersList)) {
                     console.error('❌ ordersList is not an array:', typeof ordersList, ordersList);
@@ -1839,20 +1886,28 @@
                 
                 console.log('📦 Rendering', ordersList.length, 'orders...');
                 
-                // Render orders (already filtered by status and search from API)
+                // Render orders table
                 window.adminRenderOrders(ordersList);
+                
+                // Render pagination controls
+                window.adminRenderPagination(pagination);
                 
                 console.log('✅ Orders loaded and rendered successfully');
             } catch (err) {
                 console.error('❌ Failed to load orders:', err);
                 document.getElementById('ordersTableBody').innerHTML = `
                     <tr>
-                        <td colspan="6" class="text-center text-danger py-4">
+                        <td colspan="7" class="text-center text-danger py-4">
                             <i class="fas fa-exclamation-circle me-2"></i>
                             Failed to load orders: ${err.message}
                         </td>
                     </tr>
                 `;
+                // Clear pagination on error
+                const paginationContainer = document.getElementById('ordersPagination');
+                if (paginationContainer) {
+                    paginationContainer.innerHTML = '';
+                }
             }
         };
 
@@ -1946,6 +2001,97 @@
             }).join('');
             
             tbody.innerHTML = rows;
+        };
+
+        // Render pagination controls
+        window.adminRenderPagination = function(pagination) {
+            const container = document.getElementById('ordersPagination');
+            if (!container) return;
+            
+            if (!pagination || pagination.total === 0) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            const { page, totalPages, hasNext, hasPrev } = pagination;
+            
+            // Build page numbers array (show current, +/- 2 pages, first and last)
+            let pages = [];
+            const startPage = Math.max(1, page - 2);
+            const endPage = Math.min(totalPages, page + 2);
+            
+            for (let i = startPage; i <= endPage; i++) {
+                pages.push(i);
+            }
+            
+            // Add ellipsis and first/last if needed
+            if (startPage > 1) {
+                pages.unshift('...');
+                pages.unshift(1);
+            }
+            if (endPage < totalPages) {
+                pages.push('...');
+                pages.push(totalPages);
+            }
+            
+            // Build HTML
+            let html = '<nav aria-label="Orders pagination"><ul class="pagination pagination-sm justify-content-center mb-0">';
+            
+            // First button
+            html += `
+                <li class="page-item ${!hasPrev ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="window.adminLoadOrders(1); return false;">
+                        <i class="fas fa-angle-double-left"></i>
+                    </a>
+                </li>
+            `;
+            
+            // Previous button
+            html += `
+                <li class="page-item ${!hasPrev ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="window.adminLoadOrders(${page - 1}); return false;">
+                        <i class="fas fa-angle-left"></i>
+                    </a>
+                </li>
+            `;
+            
+            // Page numbers
+            pages.forEach(p => {
+                if (p === '...') {
+                    html += '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                } else {
+                    html += `
+                        <li class="page-item ${p === page ? 'active' : ''}">
+                            <a class="page-link" href="#" onclick="window.adminLoadOrders(${p}); return false;">${p}</a>
+                        </li>
+                    `;
+                }
+            });
+            
+            // Next button
+            html += `
+                <li class="page-item ${!hasNext ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="window.adminLoadOrders(${page + 1}); return false;">
+                        <i class="fas fa-angle-right"></i>
+                    </a>
+                </li>
+            `;
+            
+            // Last button
+            html += `
+                <li class="page-item ${!hasNext ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="window.adminLoadOrders(${totalPages}); return false;">
+                        <i class="fas fa-angle-double-right"></i>
+                    </a>
+                </li>
+            `;
+            
+            html += '</ul></nav>';
+            
+            // Add page info
+            html += `<div class="text-center mt-2"><small class="text-muted">Page ${page} of ${totalPages} (${pagination.total} total orders)</small></div>`;
+            
+            container.innerHTML = html;
         };
 
         // View order details
@@ -2139,10 +2285,12 @@
             }
             
             try {
-                const response = await window.ordersAPI.updateOrderStatus(orderId, 'processing');
+                const response = await window.adminOrdersAPI.updateOrderStatus(orderId, 'processing');
                 console.log('✅ Order approved:', response);
                 alert('Order approved successfully.');
-                window.adminLoadOrders();
+                // Reload current page
+                const currentPage = window.adminOrdersState?.currentPage || 1;
+                window.adminLoadOrders(currentPage);
             } catch (err) {
                 console.error('❌ Failed to approve order:', err);
                 alert('Failed to approve order: ' + (err.message || 'Unknown error'));
@@ -2157,7 +2305,7 @@
                 if (originalShowSection) originalShowSection(sectionName);
                 
                 if (sectionName === 'orders') {
-                    window.adminLoadOrders();
+                    window.adminLoadOrders(1);
                 }
             };
 

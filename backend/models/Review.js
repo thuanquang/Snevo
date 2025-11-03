@@ -12,10 +12,10 @@ class Review extends BaseModel {
     }
 
     /**
-     * Verify if user has purchased a product (order status = 'processing' or 'delivered' means completed)
+     * Verify if user has purchased a product (order must be completed: 'delivered' or 'success')
      * @param {string} userId - User UUID
      * @param {number} shoeId - Shoe ID
-     * @returns {Promise<boolean>} - True if user has purchased product
+     * @returns {Promise<boolean>} - True if user has purchased product from completed order
      */
     async verifyPurchase(userId, shoeId) {
         try {
@@ -35,7 +35,7 @@ class Review extends BaseModel {
                 `)
                 .eq('orders.user_id', userId)
                 .eq('shoe_variants.shoe_id', shoeId)
-                .in('orders.status', ['processing', 'delivered']) // Accept both statuses
+                .in('orders.status', ['delivered', 'success']) // Only accept completed orders
                 .limit(1);
 
             if (error) {

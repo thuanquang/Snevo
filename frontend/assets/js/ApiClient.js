@@ -1083,6 +1083,10 @@ class AdminOrdersAPI {
         const response = await this.client.put(`/api/admin/orders/${id}/cancel`, payload);
         return response.data;
     }
+
+    async approveOrder(id) {
+        return this.updateOrderStatus(id, 'processing');
+    }
 }
 
 // ============================================================

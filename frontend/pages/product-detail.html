@@ -170,12 +170,12 @@
     </div>
 
     <!-- Review Modal -->
-    <div class="modal fade" id="reviewModal" tabindex="-1">
+    <div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalTitle" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="reviewModalTitle">Write a Review</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <form id="reviewForm">
@@ -258,6 +258,24 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // ✅ Debug: Check Bootstrap availability
+            console.log('🔍 Bootstrap available:', typeof bootstrap !== 'undefined');
+            console.log('🔍 Bootstrap.Modal available:', typeof bootstrap !== 'undefined' && typeof bootstrap.Modal !== 'undefined');
+            
+            // ✅ Test modal close buttons
+            setTimeout(() => {
+                const modal = document.getElementById('reviewModal');
+                const closeButtons = modal?.querySelectorAll('[data-bs-dismiss="modal"]');
+                console.log('🔍 Modal found:', !!modal);
+                console.log('🔍 Close buttons found:', closeButtons?.length);
+                
+                if (closeButtons) {
+                    closeButtons.forEach((btn, idx) => {
+                        console.log(`  Button ${idx}:`, btn.className);
+                    });
+                }
+            }, 500);
+
             setTimeout(() => {
                 const productId = new URLSearchParams(window.location.search).get('id');
                 if (!productId) {
