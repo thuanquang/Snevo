@@ -115,7 +115,7 @@ header {
 
 .input:focus {
   width: 200px;
-  height: 23px;
+  height: 28px;
   border-radius: 40px;
   padding: 0 20px;
   line-height: 2em;
@@ -150,7 +150,7 @@ header {
 .front {
   position: absolute;
   right: 16px !important;
-  top: 8px !important;
+  top: 10.5px !important;
   transform: rotate(-45deg);
   opacity: 0;
   animation-delay: 2s;
@@ -185,5 +185,5 @@ input:focus + div .front {
 
 input:focus + div .back {
   right: 16px !important;
-  top: 8px !important;
+  top: 10.5px !important;
 }

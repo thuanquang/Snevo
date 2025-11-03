@@ -178,7 +178,91 @@ html {
   flex-shrink: 0;
 }
 
+.price-range-filter {
+  width: 100%;
+  max-width: 300px;
+  position: relative;
+  font-family: 'Inter', sans-serif;
+}
 
+.form-range {
+  width: 100%;
+  height: 8px;
+  background: transparent;
+  position: absolute;
+  pointer-events: none; /* Để tránh chặn bộ range bên dưới */
+  top: 50%;
+  transform: translateY(-50%);
+  margin: 0;
+  padding: 0;
+}
+
+.form-range#minPriceRange {
+  z-index: 3;
+  pointer-events: auto;
+}
+
+.form-range#maxPriceRange {
+  z-index: 2;
+  pointer-events: auto;
+}
+
+/* Track */
+.form-range::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 8px;
+  background: black; /* Màu nền thanh track */
+  border-radius: 6px;
+}
+
+.form-range::-moz-range-track {
+  width: 100%;
+  height: 8px;
+  background: b;
+  border-radius: 6px;
+}
+
+/* Thumb (nút kéo) */
+.form-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  background: black;
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+  position: relative;
+  margin-top: -6px; /* center thumb */
+  z-index: 5;
+  transition: background-color 0.3s ease;
+}
+.form-range#minPriceRange::-webkit-slider-thumb {
+  background-color: black;
+}
+.form-range#maxPriceRange::-webkit-slider-thumb {
+  background-color: black;
+}
+.form-range::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  background: black;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+}
+
+.form-range:focus::-webkit-slider-thumb {
+  background-color: #333;
+}
+
+.price-values {
+  margin-top: 30px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 16px;
+  color: #000;
+}
 
 @media (max-width: 768px) {
   .filters-sidebar {
