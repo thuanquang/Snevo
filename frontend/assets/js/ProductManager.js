@@ -556,11 +556,37 @@ class ProductManager {
     this.currentFilters.minPrice = null;
     this.currentFilters.maxPrice = null;
 
+    // Initialize slider track position
+  this.updateSliderTrack();
+
     console.log("✅ Price range UI initialized:", {
       min: this.priceRange.min,
       max: this.priceRange.max,
     });
   }
+
+  /**
+ * Update slider track position based on thumb values
+ */
+updateSliderTrack() {
+  const minRange = document.getElementById('minPriceRange');
+  const maxRange = document.getElementById('maxPriceRange');
+  const sliderTrack = document.getElementById('sliderTrack');
+  
+  if (!minRange || !maxRange || !sliderTrack) return;
+  
+  const min = parseInt(minRange.value);
+  const max = parseInt(maxRange.value);
+  const rangeMin = parseInt(minRange.min);
+  const rangeMax = parseInt(minRange.max);
+  
+  const percentMin = ((min - rangeMin) / (rangeMax - rangeMin)) * 100;
+  const percentMax = ((max - rangeMin) / (rangeMax - rangeMin)) * 100;
+  
+  sliderTrack.style.left = percentMin + '%';
+  sliderTrack.style.width = (percentMax - percentMin) + '%';
+}
+
 
   /**
    * ⭐ Unified price range handler với logic fixed
@@ -587,6 +613,9 @@ class ProductManager {
     if (minDisplay) minDisplay.textContent = this.formatPrice(minVal);
     if (maxDisplay) maxDisplay.textContent = this.formatPrice(maxVal);
 
+    // Update slider track visual
+  this.updateSliderTrack();
+
     // ⭐ FIX: Chỉ set filter nếu khác giá trị mặc định
     this.currentFilters.minPrice = minVal > this.priceRange.min ? minVal : null;
     this.currentFilters.maxPrice = maxVal < this.priceRange.max ? maxVal : null;
@@ -605,6 +634,8 @@ class ProductManager {
       });
     }, 500);
   }
+
+  
 
   /**
    * Handle sort change

@@ -178,11 +178,37 @@ html {
   flex-shrink: 0;
 }
 
+/* Price Range Slider Styles */
 .price-range-filter {
   width: 100%;
   max-width: 300px;
   position: relative;
   font-family: 'Inter', sans-serif;
+  height: 40px;
+  margin-bottom: 10px;
+}
+
+.price-range-filter::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 8px;
+  background: #e0e0e0;
+  border-radius: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+}
+
+.price-range-slider-track {
+  position: absolute;
+  height: 8px;
+  background: #000 !important;
+  border-radius: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  pointer-events: none;
 }
 
 .form-range {
@@ -190,36 +216,38 @@ html {
   height: 8px;
   background: transparent;
   position: absolute;
-  pointer-events: none; /* Để tránh chặn bộ range bên dưới */
+  pointer-events: auto;
   top: 50%;
   transform: translateY(-50%);
   margin: 0;
   padding: 0;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .form-range#minPriceRange {
-  z-index: 3;
-  pointer-events: auto;
+  z-index: 4;
 }
 
 .form-range#maxPriceRange {
-  z-index: 2;
-  pointer-events: auto;
+  z-index: 3;
 }
 
-/* Track */
+/* Track - làm trong suốt vì đã có background track riêng */
 .form-range::-webkit-slider-runnable-track {
   width: 100%;
   height: 8px;
-  background: black; /* Màu nền thanh track */
+  background: transparent;
   border-radius: 6px;
+  border: none;
 }
 
 .form-range::-moz-range-track {
   width: 100%;
   height: 8px;
-  background: b;
+  background: transparent;
   border-radius: 6px;
+  border: none;
 }
 
 /* Thumb (nút kéo) */
@@ -228,32 +256,46 @@ html {
   appearance: none;
   width: 20px;
   height: 20px;
-  background: black;
+  background: #000;
   border-radius: 50%;
   cursor: pointer;
-  border: none;
+  border: 3px solid #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   position: relative;
-  margin-top: -6px; /* center thumb */
+  margin-top: -6px;
   z-index: 5;
-  transition: background-color 0.3s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-.form-range#minPriceRange::-webkit-slider-thumb {
-  background-color: black;
-}
-.form-range#maxPriceRange::-webkit-slider-thumb {
-  background-color: black;
-}
+
 .form-range::-moz-range-thumb {
   width: 20px;
   height: 20px;
-  background: black;
+  background: #000;
   border-radius: 50%;
-  border: none;
+  border: 3px solid #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.form-range:focus::-webkit-slider-thumb {
-  background-color: #333;
+.form-range:hover::-webkit-slider-thumb {
+  transform: scale(1.1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.form-range:hover::-moz-range-thumb {
+  transform: scale(1.1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.form-range:active::-webkit-slider-thumb {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.form-range:active::-moz-range-thumb {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 .price-values {
