@@ -201,7 +201,7 @@ html {
   width: 100%;
   max-width: 300px;
   position: relative;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   height: 40px;
   margin-bottom: 10px;
 }
@@ -277,8 +277,7 @@ html {
   background: #000;
   border-radius: 50%;
   cursor: pointer;
-  border: 3px solid #fff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  border: 2px solid #fff;
   position: relative;
   margin-top: -6px;
   z-index: 5;
@@ -290,36 +289,29 @@ html {
   height: 20px;
   background: #000;
   border-radius: 50%;
-  border: 3px solid #fff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  border: 2px solid #fff !important;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .form-range:hover::-webkit-slider-thumb {
   transform: scale(1.1);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
 .form-range:hover::-moz-range-thumb {
   transform: scale(1.1);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
 .form-range:active::-webkit-slider-thumb {
   transform: scale(1.05);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 .form-range:active::-moz-range-thumb {
   transform: scale(1.05);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 .price-values {
-  margin-top: 30px;
   text-align: center;
-  font-weight: 600;
   font-size: 16px;
   color: #000;
 }
