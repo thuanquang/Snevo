@@ -44,6 +44,13 @@ import importRoutes from './routes/imports.js';
 import adminRoutes from './routes/admin.js';
 import cartRoutes from './routes/cart.js';
 import reviewRoutes from './routes/reviews.js';
+import orderRoutes from './routes/orders.js';
+import adminOrderRoutes from './routes/adminOrders.js';
+import authRoutes from './routes/auth.js';
+import userRoutes from './routes/users.js';
+import profileRoutes from './routes/profiles.js';
+import addressRoutes from './routes/addresses.js';
+import paymentRoutes from './routes/payments.js';
 
 class Server {
     constructor() {
@@ -247,19 +254,25 @@ class Server {
         // ⭐ BUILT-IN ROUTES (Keep existing handlers)
         // Auth routes for profile management
         if (pathname.startsWith('/api/auth/')) {
-            await this.handleAuthRoutes(req, res, pathname, req.method, body);
+            await authRoutes(req, res, {
+                profileController: this.profileController,
+                addressController: this.addressController
+            }, pathname, this.sendError.bind(this));
         } else if (pathname.startsWith('/api/orders') && (pathname === '/api/orders' || pathname.startsWith('/api/orders/'))) {
-            await this.handleOrderRoutes(req, res, pathname, req.method, body);
+            await orderRoutes(req, res, this.orderController, pathname, this.sendError.bind(this));
         } else if (pathname.startsWith('/api/admin/orders') && (pathname === '/api/admin/orders' || pathname.startsWith('/api/admin/orders/'))) {
-            await this.handleAdminOrderRoutes(req, res, pathname, req.method, body);
+            await adminOrderRoutes(req, res, this.orderController, pathname, this.sendError.bind(this));
         } else if (pathname.startsWith('/api/users') && (pathname === '/api/users' || pathname.startsWith('/api/users/'))) {
-            await this.handleUserRoutes(req, res, pathname, req.method, body);
+            await userRoutes(req, res, { 
+                profileController: this.profileController, 
+                addressController: this.addressController 
+            }, pathname, this.sendError.bind(this));
         } else if (pathname.startsWith('/api/profiles') && (pathname === '/api/profiles' || pathname.startsWith('/api/profiles/'))) {
-            await this.handleProfileRoutes(req, res, pathname, req.method, body);
+            await profileRoutes(req, res, this.profileController, pathname, this.sendError.bind(this));
         } else if (pathname.startsWith('/api/addresses') && (pathname === '/api/addresses' || pathname.startsWith('/api/addresses/'))) {
-            await this.handleAddressRoutes(req, res, pathname, req.method, body);
+            await addressRoutes(req, res, this.addressController, pathname, this.sendError.bind(this));
         } else if (pathname.startsWith('/api/payments') && (pathname === '/api/payments' || pathname.startsWith('/api/payments/'))) {
-            await this.handlePaymentRoutes(req, res, pathname, req.method, body);
+            await paymentRoutes(req, res, this.paymentController, pathname, this.sendError.bind(this));
         } else if (pathname === '/api/admin' || pathname.startsWith('/api/admin/')) {
             await this.handleAdminRoutes(req, res, pathname, req.method, body);
         } else {
@@ -272,406 +285,9 @@ class Server {
         }
     }
 
-    // Order routes handler
-    async handleOrderRoutes(req, res, pathname, method, body) {
-        const orderPath = pathname.replace('/api/orders', '');
-        console.log('📦 Order Route:', { pathname, orderPath, method });
-
-        // Check authentication for protected routes
-        const authResult = await authMiddleware.authenticate(req, res);
-        if (!authResult || !authResult.success) {
-            console.warn('⚠️ Auth failed for order route');
-            return;
-        }
-        req.user = authResult.user;
-        console.log('✅ Auth OK, user:', req.user.id);
-
-        if (orderPath === '/' || orderPath === '') {
-            console.log('📦 Order root path, method:', method);
-            if (method === 'GET') {
-                await this.orderController.getOrders(req, res);
-            } else if (method === 'POST') {
-                console.log('📦 Creating order, body:', body);
-                req.body = body;
-                await this.orderController.createOrder(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else if (orderPath === '/preview') {
-            console.log('📦 Preview path');
-            if (method === 'GET') {
-                await this.orderController.previewOrder(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else if (orderPath.match(/^\/\d+$/)) {
-            const id = orderPath.substring(1);
-            req.params = { id };
-            if (method === 'GET') {
-                await this.orderController.getOrder(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else if (orderPath.match(/^\/\d+\/status$/)) {
-            const id = orderPath.replace('/status', '').replace('/', '');
-            if (method === 'PUT') {
-                req.params = { id };
-                req.body = body;
-                await this.orderController.updateOrderStatus(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else if (orderPath.match(/^\/\d+\/cancel$/)) {
-            const id = orderPath.replace('/cancel', '').replace('/', '');
-            if (method === 'PUT') {
-                req.params = { id };
-                req.body = body;
-                await this.orderController.cancelOrder(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else if (orderPath.match(/^\/\d+\/address$/)) {
-            const id = orderPath.replace('/address', '').replace('/', '');
-            if (method === 'PUT') {
-                req.params = { id };
-                req.body = body;
-                await this.orderController.updateOrderAddress(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else if (orderPath.match(/^\/\d+\/reorder$/)) {
-            const id = orderPath.replace('/reorder', '').replace('/', '');
-            if (method === 'POST') {
-                req.params = { id };
-                req.body = body;
-                await this.orderController.reorderItems(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else {
-            console.warn('⚠️ Order route not found:', { orderPath, method });
-            this.sendError(res, 'API endpoint not found', 404);
-        }
-    }
-
-    // Auth routes handler
-    async handleAuthRoutes(req, res, pathname, method, body) {
-        const authPath = pathname.replace('/api/auth', '');
-
-        // Check authentication for protected routes
-        const authResult = await authMiddleware.authenticate(req, res);
-        if (!authResult || !authResult.success) {
-            return;
-        }
-        req.user = authResult.user;
-
-        if (authPath === '/profile') {
-            if (method === 'GET') {
-                await this.profileController.getProfile(req, res);
-            } else if (method === 'PUT') {
-                // ⭐ UPDATED: Apply avatar upload middleware for multipart requests
-                const contentType = req.headers['content-type'] || '';
-                if (contentType.includes('multipart/form-data')) {
-                    console.log('📤 Processing avatar upload for profile');
-                    const avatarMiddleware = createAvatarUploadMiddleware(req.user.id);
-                    
-                    try {
-                        // Use middleware to handle upload - wrap in promise for proper async handling
-                        await new Promise((resolve, reject) => {
-                            avatarMiddleware.handleUpload(req, res, async () => {
-                                try {
-                                    req.body = req.body || {};
-                                    await this.profileController.updateProfile(req, res);
-                                    resolve();
-                                } catch (err) {
-                                    reject(err);
-                                }
-                            });
-                        });
-                    } catch (error) {
-                        console.error('Avatar upload error:', error);
-                        if (!res.headersSent) {
-                            this.sendError(res, error.message || 'Avatar upload failed', 400);
-                        }
-                    }
-                } else {
-                    // Regular JSON request
-                    req.body = body;
-                    await this.profileController.updateProfile(req, res);
-                }
-            } else if (method === 'DELETE') {
-                await this.profileController.deleteProfile(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else if (authPath === '/addresses' || authPath === '/addresses/') {
-            if (method === 'GET') {
-                await this.addressController.getAddresses(req, res);
-            } else if (method === 'POST') {
-                req.body = body;
-                await this.addressController.createAddress(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else if (authPath.match(/^\/addresses\/\d+$/)) {
-            const id = authPath.replace('/addresses/', '');
-            req.params = { id };
-            if (method === 'PUT') {
-                req.body = body;
-                await this.addressController.updateAddress(req, res);
-            } else if (method === 'DELETE') {
-                await this.addressController.deleteAddress(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else {
-            this.sendError(res, 'API endpoint not found', 404);
-        }
-    }
-
-    // User routes handler (placeholder implementation)
-    async handleUserRoutes(req, res, pathname, method, body) {
-        // Check authentication
-        const authResult = await authMiddleware.authenticate(req, res);
-        if (!authResult || !authResult.success) {
-            return;
-        }
-        req.user = authResult.user;
-
-        // Handle /api/users/addresses
-        if (pathname === '/api/users/addresses') {
-            if (method === 'GET') {
-                await this.addressController.getAddresses(req, res);
-            } else if (method === 'POST') {
-                req.body = body;
-                await this.addressController.createAddress(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else if (pathname.match(/^\/api\/users\/addresses\/\d+$/)) {
-            const id = pathname.replace('/api/users/addresses/', '');
-            req.params = { id };
-            if (method === 'GET') {
-                await this.addressController.getAddress(req, res);
-            } else if (method === 'PUT') {
-                req.body = body;
-                await this.addressController.updateAddress(req, res);
-            } else if (method === 'DELETE') {
-                await this.addressController.deleteAddress(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else {
-            this.sendError(res, 'API endpoint not found', 404);
-        }
-    }
-
-    // Profile routes handler
-    async handleProfileRoutes(req, res, pathname, method, body) {
-        // Check authentication
-        const authResult = await authMiddleware.authenticate(req, res);
-        if (!authResult || !authResult.success) {
-            return;
-        }
-        req.user = authResult.user;
-
-        if (pathname === '/api/profiles') {
-            if (method === 'GET') {
-                await this.profileController.getProfile(req, res);
-            } else if (method === 'PUT') {
-                req.body = body;
-                await this.profileController.updateProfile(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else {
-            this.sendError(res, 'API endpoint not found', 404);
-        }
-    }
-
-    // Address routes handler
-    async handleAddressRoutes(req, res, pathname, method, body) {
-        // Check authentication
-        const authResult = await authMiddleware.authenticate(req, res);
-        if (!authResult || !authResult.success) {
-            return;
-        }
-        req.user = authResult.user;
-
-        if (pathname === '/api/addresses') {
-            if (method === 'GET') {
-                await this.addressController.getAddresses(req, res);
-            } else if (method === 'POST') {
-                req.body = body;
-                await this.addressController.createAddress(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else if (pathname.match(/^\/api\/addresses\/\d+$/)) {
-            const id = pathname.replace('/api/addresses/', '');
-            req.params = { id };
-            if (method === 'PUT') {
-                req.body = body;
-                await this.addressController.updateAddress(req, res);
-            } else if (method === 'DELETE') {
-                await this.addressController.deleteAddress(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else {
-            this.sendError(res, 'API endpoint not found', 404);
-        }
-    }   
-    // Payment routes handler
-    async handlePaymentRoutes(req, res, pathname, method, body) {
-        const paymentPath = pathname.replace('/api/payments', '');
-
-        // Check authentication for protected routes
-        const authResult = await authMiddleware.authenticate(req, res);
-        if (!authResult || !authResult.success) {
-            return;
-        }
-        req.user = authResult.user;
-
-        if (paymentPath === '/' || paymentPath === '') {
-            if (method === 'GET') {
-                await this.paymentController.getPayments(req, res);
-            } else if (method === 'POST') {
-                req.body = body;
-                await this.paymentController.createPayment(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else if (paymentPath === '/process') {
-            if (method === 'POST') {
-                req.body = body;
-                await this.paymentController.processPayment(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else if (paymentPath.match(/^\/\d+\/confirm$/)) {
-            const id = paymentPath.split('/')[1];
-            req.params = { id };
-            if (method === 'POST') {
-                req.body = body;
-                await this.paymentController.confirmPayment(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else if (paymentPath.match(/^\/\d+\/approve$/)) {
-            const id = paymentPath.split('/')[1];
-            req.params = { id };
-            if (method === 'POST') {
-                req.body = body;
-                await this.paymentController.approveCod(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else if (paymentPath.match(/^\/\d+\/collect$/)) {
-            const id = paymentPath.split('/')[1];
-            req.params = { id };
-            if (method === 'POST') {
-                req.body = body;
-                await this.paymentController.collectCod(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else if (paymentPath.match(/^\/\d+$/)) {
-            const id = paymentPath.substring(1);
-            req.params = { id };
-            if (method === 'GET') {
-                await this.paymentController.getPayment(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else if (paymentPath.match(/^\/\d+\/status$/)) {
-            const id = paymentPath.split('/')[1];
-            req.params = { id };
-            if (method === 'PUT') {
-                req.body = body;
-                await this.paymentController.updatePaymentStatus(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else {
-            this.sendError(res, 'API endpoint not found', 404);
-        }
-    }
-
     // Admin routes handler
     async handleAdminRoutes(req, res, pathname, method, body) {
         return adminRoutes(req, res, this.adminController, pathname, this.sendError.bind(this));
-    }
-
-    // Admin order routes handler
-    async handleAdminOrderRoutes(req, res, pathname, method, body) {
-        const adminOrderPath = pathname.replace('/api/admin/orders', '');
-        console.log('📦 Admin Order Route:', { pathname, adminOrderPath, method });
-
-        // Check authentication for protected routes
-        const authResult = await authMiddleware.authenticate(req, res);
-        if (!authResult || !authResult.success) {
-            console.warn('⚠️ Auth failed for admin order route');
-            return;
-        }
-        req.user = authResult.user;
-        console.log('✅ Auth OK, user:', req.user.id);
-
-        if (adminOrderPath === '/' || adminOrderPath === '') {
-            console.log('📦 Admin Order root path, method:', method);
-            if (method === 'GET') {
-                await this.orderController.getAdminOrders(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else if (adminOrderPath.match(/^\/\d+$/)) {
-            const id = adminOrderPath.substring(1);
-            req.params = { id };
-            if (method === 'GET') {
-                await this.orderController.getAdminOrder(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else if (adminOrderPath.match(/^\/\d+\/status$/)) {
-            const id = adminOrderPath.replace('/status', '').replace('/', '');
-            if (method === 'PUT') {
-                req.params = { id };
-                req.body = body;
-                await this.orderController.updateAdminOrderStatus(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else if (adminOrderPath.match(/^\/\d+\/cancel$/)) {
-            const id = adminOrderPath.replace('/cancel', '').replace('/', '');
-            if (method === 'PUT') {
-                req.params = { id };
-                req.body = body;
-                await this.orderController.cancelAdminOrder(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else if (adminOrderPath.match(/^\/\d+\/address$/)) {
-            const id = adminOrderPath.replace('/address', '').replace('/', '');
-            if (method === 'PUT') {
-                req.params = { id };
-                req.body = body;
-                await this.orderController.updateOrderAddress(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else if (adminOrderPath.match(/^\/\d+\/reorder$/)) {
-            const id = adminOrderPath.replace('/reorder', '').replace('/', '');
-            if (method === 'POST') {
-                req.params = { id };
-                req.body = body;
-                await this.orderController.reorderItems(req, res);
-            } else {
-                this.sendError(res, 'Method not allowed', 405);
-            }
-        } else {
-            console.warn('⚠️ Admin order route not found:', { adminOrderPath, method });
-            this.sendError(res, 'API endpoint not found', 404);
-        }
     }
 
     // Start the server

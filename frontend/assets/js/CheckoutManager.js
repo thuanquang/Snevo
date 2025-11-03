@@ -84,7 +84,37 @@ class CheckoutManager {
     async checkForPendingOrder() {
         try {
             // Fetch user's orders
-            const orders = await window.ordersAPI.getOrders();
+            const response = await window.ordersAPI.getOrders();
+            console.log('📦 Raw orders response:', response);
+            
+            // Extract orders array from response
+            // API returns paginated format: {success: true, data: {orders: [...], total: N, page: 1, ...}}
+            let orders;
+            
+            if (Array.isArray(response)) {
+                orders = response;
+            } else if (response && typeof response === 'object') {
+                // Try different nested structures
+                if (Array.isArray(response.data)) {
+                    orders = response.data;
+                } else if (response.data && Array.isArray(response.data.orders)) {
+                    // ⭐ Paginated format with data.orders
+                    orders = response.data.orders;
+                } else if (response.data && Array.isArray(response.data.data)) {
+                    orders = response.data.data;
+                } else {
+                    orders = [];
+                }
+            } else {
+                orders = [];
+            }
+            
+            console.log('📦 Extracted orders array:', orders);
+            
+            if (!Array.isArray(orders) || orders.length === 0) {
+                console.log('ℹ️ No orders found or invalid format');
+                return;
+            }
             
             // Find most recent pending order
             const pendingOrder = orders.find(o => o.status === 'pending');
