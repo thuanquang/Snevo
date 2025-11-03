@@ -125,6 +125,8 @@ class NavbarManager {
       return "products";
     } else if (path.includes("categories.html")) {
       return "categories";
+    } else if (path.includes("about.html")) {
+      return "about";
     } else if (path.includes("cart.html")) {
       return "cart";
     } else if (path.includes("checkout.html")) {
@@ -561,13 +563,10 @@ class NavbarManager {
                             <li class="nav-item">
                                 <a class="nav-link" href="#" data-navbar-link="products">Shop</a>
                             </li>
-                            <li class="nav-item dropdown">
+                            <li class="nav-item">
                                 <a class="nav-link" href="#" data-navbar-link="about">
                                     About
                                 </a>
-                                <ul class="dropdown-menu" id="categoriesDropdown">
-                                    <!-- Categories will be loaded dynamically -->
-                                </ul>
                             </li>
                         </ul>
                         
@@ -678,7 +677,7 @@ class NavbarManager {
     const pathMap = {
       home: "index.html",
       products: "products.html",
-      categories: "categories.html",
+      about: "about.html",
       cart: "cart.html",
       profile: "profile.html",
       orders: "orders.html",
