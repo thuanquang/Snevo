@@ -83,13 +83,18 @@ class ProfileController {
             }
 
             const userId = req.user.id;
-            const updates = req.body;
+            const updates = req.body || {};  // ⭐ FIX: Default to empty object if undefined
 
             console.log('📝 Updating profile for user:', userId);
             console.log('📝 Update data:', updates);
 
+             // ⭐ AVATAR UPLOAD PATHS
+             // This controller supports TWO update paths:
+             // 1. JSON path (no file): Avatar fields omitted from request
+             // 2. Multipart path (with file): Middleware converts image_url to avatar_url
+            
              // Handle multipart avatar upload - map image_url to avatar_url
-             if (updates.image_url) {
+             if (updates && updates.image_url) {
                 updates.avatar_url = updates.image_url;
                 delete updates.image_url;
                 console.log('📤 Avatar uploaded from multipart, URL:', updates.avatar_url);
@@ -104,6 +109,7 @@ class ProfileController {
             }
 
             // Fields that are allowed to be updated
+            // ⭐ avatar_url is OPTIONAL - can be updated or omitted
             const allowedFields = [
                 'username', 'full_name', 'phone', 
                 'date_of_birth', 'gender', 'avatar_url'
