@@ -16,15 +16,8 @@ html {
   padding-bottom: 0px !important;
   margin: 0px 0px 50px 0px !important;
 }
-.filters-sidebar {
-  border: none !important;
-  padding: 0 16px 0 0 !important;
-}
 
-.filters-header {
-  margin-bottom: 20px !important;
-}
-
+/* Products Card */
 .products-grid {
   display: grid !important;
   grid-template-columns: repeat(3, 1fr);
@@ -85,10 +78,26 @@ html {
 
 /* Filter Styles */
 .filters-sidebar {
-  background: white;
-  border: 2px solid #dedede;
-  border-radius: 12px;
-  padding: 24px;
+  border: none !important;
+  padding: 0 16px 0 0 !important;
+}
+
+.filters-header {
+  margin-bottom: 20px !important;
+}
+
+.filter-title {
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  color: #000;
+}
+
+.form-check-label {
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  font-size: 15px;
+  color: #333;;
 }
 
 /* Color Options */
@@ -180,6 +189,8 @@ html {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* Product View Styles */
 .products-grid.list-view .col-lg-4,
 .products-grid.list-view .col-md-6 {
   flex: 0 0 100%;
@@ -201,13 +212,12 @@ html {
   width: 100%;
   max-width: 300px;
   position: relative;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   height: 40px;
-  margin-bottom: 10px;
 }
 
 .price-range-filter::before {
-  content: '';
+  content: "";
   position: absolute;
   width: 100%;
   height: 8px;
@@ -313,6 +323,25 @@ html {
 .price-values {
   text-align: center;
   font-size: 16px;
+  color: #000;
+}
+
+/*Dropdown Sort*/
+.form-select {
+  font-family: "Poppins", sans-serif;
+  font-size: 16px;
+  color: #000;
+}
+
+#sortSelect {
+  border: none !important;
+  color: #000 !important;
+}
+
+/*Result count*/
+#resultsCount {
+  font-family: "Poppins", sans-serif !important;
+  font-size: 16px !important;
   color: #000;
 }
 
