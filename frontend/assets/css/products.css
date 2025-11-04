@@ -281,7 +281,7 @@ html {
   position: relative;
   margin-top: -6px;
   z-index: 5;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease ;
 }
 
 .form-range::-moz-range-thumb {
