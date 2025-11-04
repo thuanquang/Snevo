@@ -4,7 +4,7 @@
 class UploadConfig {
     constructor() {
         this.maxFileSize = process.env.MAX_FILE_SIZE || 5 * 1024 * 1024; // 5MB
-        this.allowedTypes = process.env.ALLOWED_FILE_TYPES?.split(',') || ['image/jpeg', 'image/png', 'image/gif'];
+        this.allowedTypes = process.env.ALLOWED_FILE_TYPES?.split(',') || ['image/jpeg', 'image/png', 'image/gif', 'image/avif'];
         this.uploadPath = process.env.UPLOAD_PATH || './uploads';
     }
 
