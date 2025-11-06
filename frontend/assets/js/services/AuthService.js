@@ -235,7 +235,7 @@ class AuthService {
       const { data, error } = await this.supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: window.location.href,
+          redirectTo: `${window.location.origin}/`,
           queryParams: {
             access_type: "offline",
             prompt: "consent",
