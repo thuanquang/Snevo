@@ -17,8 +17,8 @@ class UploadMiddleware {
     // ⭐ UPDATED: Accept configurable options
     const defaultOptions = {
       maxFileSize: 5 * 1024 * 1024, // 5MB
-      allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'],
-      allowedExtensions: ['.jpg', '.jpeg', '.png', '.webp'],
+      allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/jpg', 'image/gif', 'image/avif'],
+      allowedExtensions: ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.avif'],
       storageBucket: 'product-images',
       storagePath: 'products', // 📌 NEW: configurable path prefix
       imageQuality: 90,
