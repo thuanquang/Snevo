@@ -91,9 +91,9 @@ class AdminProduct {
     if (!file) return;
 
     // Validate file type
-    const validTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
+    const validTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg", "image/gif", "image/avif"];
     if (!validTypes.includes(file.type)) {
-      AdminUtils.showError("Please select a valid image (JPG, PNG, WEBP)");
+      AdminUtils.showError("Please select a valid image (JPG, PNG, WEBP, GIF, AVIF)");
       event.target.value = "";
       return;
     }

@@ -51,13 +51,12 @@
           <div class="col-lg-3 col-md-4">
             <div class="filters-sidebar">
               <div class="filters-header d-flex justify-content-between">
-                <h5 class="mb-0">Filters</h5>
-                <button
-                  class="btn btn-sm btn-outline-secondary"
+                <!--<button
+                  class="btn btn-sm "
                   id="clearFilters"
                 >
                   Clear All
-                </button>
+                </button> -->
               </div>
               <div class="filters-body">
                 <!-- Category Filter -->
@@ -69,41 +68,34 @@
                 <!-- Price Filter -->
                 <div class="filter-group mb-4">
                   <h6 class="filter-title">Price Range</h6>
-                  <div class="price-range">
-                    <div class="row">
-                      <div class="col-6">
-                        <input
-                          type="number"
-                          class="form-control form-control-sm"
-                          placeholder="Min"
-                          id="minPrice"
-                        />
-                      </div>
-                      <div class="col-6">
-                        <input
-                          type="number"
-                          class="form-control form-control-sm"
-                          placeholder="Max"
-                          id="maxPrice"
-                        />
-                      </div>
-                    </div>
-                    <div class="mt-2">
-                      <input
-                        type="range"
-                        class="form-range"
-                        min="0"
-                        max="10000000"
-                        value="5000000"
-                        id="priceRange"
-                      />
-                      <div
-                        class="d-flex justify-content-between small text-muted"
-                      >
-                        <span>$0</span>
-                        <span>$10000000+</span>
-                      </div>
-                    </div>
+                  <div class="price-range-filter">
+                    <div
+                      class="price-range-slider-track"
+                      id="sliderTrack"
+                      style="width: 100%; left: 0"
+                    ></div>
+                    <input
+                      type="range"
+                      class="form-range"
+                      id="minPriceRange"
+                      min="0"
+                      max="10000000"
+                      value="0"
+                      step="10000"
+                    />
+                    <input
+                      type="range"
+                      class="form-range"
+                      id="maxPriceRange"
+                      min="0"
+                      max="10000000"
+                      value="10000000"
+                      step="10000"
+                    />
+                  </div>
+                  <div class="price-values">
+                    <span id="minPriceDisplay">Min</span> -
+                    <span id="maxPriceDisplay">Max</span>
                   </div>
                 </div>
 
@@ -169,7 +161,7 @@
               <div class="row align-items-center">
                 <div class="col-md-6">
                   <div class="results-info">
-                    <span id="resultsCount">Showing 1-12 of 48 products</span>
+                    <span id="resultsCount"></span>
                   </div>
                 </div>
                 <div class="col-md-6">
@@ -177,7 +169,7 @@
                     <!-- Sort Dropdown -->
                     <div class="me-3">
                       <select
-                        class="form-select form-select-sm"
+                        class="form-select form-select-sm "
                         id="sortSelect"
                       >
                         <option value="featured">Sort by: Featured</option>

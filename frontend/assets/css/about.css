@@ -1,0 +1,442 @@
+/* ============================================
+   ABOUT PAGE STYLES - SNEVO
+   Clean, Minimalist, Premium Design
+   ============================================ */
+
+/* ============================================
+   ROOT VARIABLES
+   ============================================ */
+:root {
+  --primary-black: #000000;
+  --secondary-black: #1a1a1a;
+  --light-gray: #f5f5f5;
+  --medium-gray: #e0e0e0;
+  --text-gray: #666666;
+  --border-gray: #d4d4d4;
+  --white: #ffffff;
+  --transition-smooth: all 0.3s ease;
+  --transition-fast: all 0.2s ease;
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+body {
+  font-family: "Inter", sans-serif;
+  color: var(--secondary-black);
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+/* ============================================
+   HERO SECTION
+   ============================================ */
+.about-hero {
+  background: linear-gradient(
+    135deg,
+    var(--primary-black) 0%,
+    var(--secondary-black) 100%
+  );
+  padding: 180px 0 120px;
+  margin-top: 76px;
+  position: relative;
+}
+
+.about-hero::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 49px,
+    rgba(255, 255, 255, 0.03) 49px,
+    rgba(255, 255, 255, 0.03) 50px
+  );
+  pointer-events: none;
+}
+
+.hero-title {
+  font-family: "Poppins", sans-serif;
+  font-size: 72px;
+  font-weight: 700;
+  color: var(--white);
+  letter-spacing: -2px;
+  margin-bottom: 24px;
+  line-height: 1.1;
+}
+
+.hero-subtitle {
+  font-size: 20px;
+  color: var(--medium-gray);
+  font-weight: 400;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* ============================================
+   SECTION COMMONS
+   ============================================ */
+.mission-section,
+.values-section,
+.story-section {
+  padding: 120px 0;
+}
+
+.cta-section {
+  padding: 100px 0;
+  background: var(--light-gray);
+}
+
+.section-label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--text-gray);
+  margin-bottom: 16px;
+}
+
+.section-title {
+  font-family: "Poppins", sans-serif;
+  font-size: 48px;
+  font-weight: 700;
+  color: var(--primary-black);
+  letter-spacing: -1px;
+  margin-bottom: 32px;
+  line-height: 1.2;
+}
+
+.section-text {
+  font-size: 18px;
+  color: var(--text-gray);
+  line-height: 1.8;
+  margin-bottom: 24px;
+}
+
+/* ============================================
+   MISSION SECTION
+   ============================================ */
+.mission-section {
+  background: var(--white);
+}
+
+.mission-visual {
+  width: 100%;
+  height: 500px;
+  background: linear-gradient(
+    135deg,
+    var(--light-gray) 0%,
+    var(--medium-gray) 100%
+  );
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.mission-visual::after {
+  content: "";
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  background: var(--primary-black);
+  bottom: -100px;
+  right: -100px;
+  border-radius: 50%;
+  opacity: 0.1;
+}
+
+/* ============================================
+   VALUES SECTION
+   ============================================ */
+.values-section {
+  background: var(--light-gray);
+}
+
+.value-card {
+  background: var(--white);
+  padding: 48px 32px;
+  border-radius: 12px;
+  border: 1px solid var(--border-gray);
+  transition: var(--transition-smooth);
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.value-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: var(--primary-black);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: var(--transition-smooth);
+}
+
+.value-card:hover {
+  transform: translateY(-8px);
+  border-color: var(--primary-black);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+}
+
+.value-card:hover::before {
+  transform: scaleX(1);
+}
+
+.value-number {
+  font-family: "Poppins", sans-serif;
+  font-size: 56px;
+  font-weight: 700;
+  color: var(--light-gray);
+  line-height: 1;
+  margin-bottom: 16px;
+  transition: var(--transition-smooth);
+}
+
+.value-card:hover .value-number {
+  color: var(--medium-gray);
+}
+
+.value-title {
+  font-family: "Poppins", sans-serif;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--primary-black);
+  margin-bottom: 16px;
+}
+
+.value-description {
+  font-size: 16px;
+  color: var(--text-gray);
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* ============================================
+   STORY SECTION
+   ============================================ */
+.story-section {
+  background: var(--white);
+}
+
+.story-visual {
+  width: 100%;
+  height: 600px;
+  background: linear-gradient(
+    225deg,
+    var(--primary-black) 0%,
+    var(--secondary-black) 100%
+  );
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.story-visual::before {
+  content: "";
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  background: var(--white);
+  top: -150px;
+  left: -150px;
+  border-radius: 50%;
+  opacity: 0.05;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+  margin-top: 48px;
+}
+
+.stat-item {
+  text-align: center;
+  padding: 24px;
+  background: var(--light-gray);
+  border-radius: 8px;
+  transition: var(--transition-smooth);
+}
+
+.stat-item:hover {
+  background: var(--primary-black);
+}
+
+.stat-number {
+  font-family: "Poppins", sans-serif;
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--primary-black);
+  margin-bottom: 8px;
+  transition: var(--transition-smooth);
+}
+
+.stat-item:hover .stat-number {
+  color: var(--white);
+}
+
+.stat-label {
+  font-size: 14px;
+  color: var(--text-gray);
+  font-weight: 500;
+  transition: var(--transition-smooth);
+}
+
+.stat-item:hover .stat-label {
+  color: var(--medium-gray);
+}
+
+/* ============================================
+   CTA SECTION
+   ============================================ */
+.cta-title {
+  font-family: "Poppins", sans-serif;
+  font-size: 48px;
+  font-weight: 700;
+  color: var(--primary-black);
+  margin-bottom: 20px;
+  letter-spacing: -1px;
+}
+
+.cta-text {
+  font-size: 20px;
+  color: var(--text-gray);
+  margin-bottom: 40px;
+  line-height: 1.6;
+}
+
+.btn-primary-cta {
+  display: inline-block;
+  padding: 18px 48px;
+  background: var(--primary-black);
+  color: var(--white);
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: var(--transition-smooth);
+  border: 2px solid var(--primary-black);
+}
+
+.btn-primary-cta:hover {
+  background: var(--secondary-black);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  color: var(--white);
+}
+
+.btn-secondary-cta {
+  display: inline-block;
+  padding: 18px 48px;
+  background: transparent;
+  color: var(--primary-black);
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 8px;
+  border: 2px solid var(--primary-black);
+  transition: var(--transition-smooth);
+}
+
+.btn-secondary-cta:hover {
+  background: var(--primary-black);
+  color: var(--white);
+  transform: translateY(-2px);
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+@media (max-width: 991px) {
+  .hero-title {
+    font-size: 56px;
+  }
+
+  .section-title {
+    font-size: 40px;
+  }
+
+  .mission-visual,
+  .story-visual {
+    height: 400px;
+    margin-top: 40px;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .mission-section,
+  .values-section,
+  .story-section {
+    padding: 80px 0;
+  }
+}
+
+@media (max-width: 767px) {
+  .about-hero {
+    padding: 140px 0 80px;
+  }
+
+  .hero-title {
+    font-size: 42px;
+  }
+
+  .hero-subtitle {
+    font-size: 18px;
+  }
+
+  .section-title {
+    font-size: 32px;
+  }
+
+  .section-text {
+    font-size: 16px;
+  }
+
+  .cta-title {
+    font-size: 36px;
+  }
+
+  .cta-text {
+    font-size: 18px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .value-card {
+    padding: 32px 24px;
+  }
+
+  .mission-section,
+  .values-section,
+  .story-section {
+    padding: 60px 0;
+  }
+}
+
+@media (max-width: 575px) {
+  .hero-title {
+    font-size: 36px;
+  }
+
+  .btn-primary-cta,
+  .btn-secondary-cta {
+    padding: 16px 32px;
+    font-size: 14px;
+    width: 100%;
+    text-align: center;
+  }
+}

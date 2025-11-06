@@ -22,14 +22,45 @@ class ProductManager {
       colors: [], // ← NEW: Selected color IDs
       search: null,
     };
+
+    // NEW: Dynamic price range
+    this.priceRange = {
+      min: 0,
+      max: 10000000, // Default, sẽ được cập nhật từ API
+    };
+
     this.currentSort = "featured";
     this.currentPage = 1;
     this.productsPerPage = 12;
     this.totalProducts = 0;
     this.totalPages = 0;
     this.isLoading = false;
+    this.priceDebounceTimer = null;
 
     console.log("✅ ProductManager initialized with variant filtering");
+  }
+
+  /**
+   * ⭐ NEW: Load max price từ products
+   */
+  async loadPriceRange() {
+    try {
+      const response = await this.api.getProducts({
+        is_active: true,
+        limit: 1,
+        sort_by: "base_price",
+        sort_order: "desc",
+      });
+
+      if (response.success && response.data && response.data.length > 0) {
+        const maxProduct = response.data[0];
+        this.priceRange.max =
+          Math.ceil(maxProduct.base_price / 100000) * 100000; // Làm tròn lên
+        console.log(`✅ Price range loaded: 0 - ${this.priceRange.max}`);
+      }
+    } catch (error) {
+      console.error("❌ Error loading price range:", error);
+    }
   }
 
   /**
@@ -41,12 +72,12 @@ class ProductManager {
 
       this.parseUrlParameters();
       this.setupEventListeners();
-
       // Load reference data
       await Promise.all([
         this.loadCategories(),
         this.loadColors(), // ← NEW
         this.loadSizes(), // ← NEW
+        this.loadPriceRange(), // ⭐ NEW: Load price range
       ]);
 
       // Load products
@@ -169,7 +200,6 @@ class ProductManager {
       console.error("❌ Error loading categories:", error);
     }
   }
-
   /**
    * Load products from backend API
    */
@@ -191,11 +221,11 @@ class ProductManager {
         params.category_id = this.currentFilters.categories[0];
       }
 
-      // Price filters
-      if (this.currentFilters.minPrice) {
+      // ⭐ Price filters - chỉ gửi khi có giá trị
+      if (this.currentFilters.minPrice !== null) {
         params.min_price = this.currentFilters.minPrice;
       }
-      if (this.currentFilters.maxPrice) {
+      if (this.currentFilters.maxPrice !== null) {
         params.max_price = this.currentFilters.maxPrice;
       }
 
@@ -263,10 +293,14 @@ class ProductManager {
 
     try {
       // Fetch review stats for all products in parallel
-      const statsPromises = products.map(product => 
-        window.reviewsAPI.getProductReviewStats(product.shoe_id)
-          .catch(error => {
-            console.warn(`Failed to fetch stats for product ${product.shoe_id}:`, error);
+      const statsPromises = products.map((product) =>
+        window.reviewsAPI
+          .getProductReviewStats(product.shoe_id)
+          .catch((error) => {
+            console.warn(
+              `Failed to fetch stats for product ${product.shoe_id}:`,
+              error
+            );
             return { average_rating: 0, total_reviews: 0 };
           })
       );
@@ -279,9 +313,9 @@ class ProductManager {
         product.total_reviews = allStats[index]?.total_reviews || 0;
       });
 
-      console.log('✅ Enriched products with review stats');
+      console.log("✅ Enriched products with review stats");
     } catch (error) {
-      console.error('❌ Error enriching products with reviews:', error);
+      console.error("❌ Error enriching products with reviews:", error);
     }
   }
 
@@ -295,10 +329,14 @@ class ProductManager {
     const html = this.colors
       .map(
         (color) => `
-        <div class="color-option ${this.currentFilters.colors.includes(color.color_id) ? 'active' : ''}" 
+        <div class="color-option ${
+          this.currentFilters.colors.includes(color.color_id) ? "active" : ""
+        }" 
             data-color-id="${color.color_id}"
             title="${color.color_name}">
-          <span class="color-circle" style="background: ${color.hex_code};"></span>
+          <span class="color-circle" style="background: ${
+            color.hex_code
+          };"></span>
         </div>
       `
       )
@@ -307,7 +345,6 @@ class ProductManager {
     container.innerHTML = html;
     console.log(`✅ Rendered ${this.colors.length} color filters`);
   }
-
 
   /**
    * ⭐ NEW: Render size filters
@@ -439,19 +476,15 @@ class ProductManager {
     });
 
     // Price range
-    const priceRange = document.getElementById("priceRange");
-    if (priceRange) {
-      priceRange.addEventListener("input", (e) =>
-        this.handlePriceRangeChange(e)
-      );
-    }
+    const minRange = document.getElementById("minPriceRange");
+    const maxRange = document.getElementById("maxPriceRange");
 
-    const minPrice = document.getElementById("minPrice");
-    const maxPrice = document.getElementById("maxPrice");
-    if (minPrice)
-      minPrice.addEventListener("change", () => this.handlePriceInputChange());
-    if (maxPrice)
-      maxPrice.addEventListener("change", () => this.handlePriceInputChange());
+    if (minRange && maxRange) {
+      const handler = this.handlePriceRangeChange.bind(this);
+      minRange.addEventListener("input", handler);
+      maxRange.addEventListener("input", handler);
+      console.log("✅ Price range event listeners attached");
+    }
 
     // Sort change
     const sortSelect = document.getElementById("sortSelect");
@@ -533,52 +566,111 @@ class ProductManager {
   }
 
   /**
-   * Handle price range change
+   * ⭐ Initialize Price Range UI với giá trị động
    */
-  async handlePriceRangeChange(e) {
-    const value = parseInt(e.target.value);
-    
-    // Update UI immediately
-    this.currentFilters.maxPrice = value < 10000000 ? value : null;
-    const maxPriceInput = document.getElementById("maxPrice");
-    if (maxPriceInput) {
-      maxPriceInput.value = this.currentFilters.maxPrice || "";
+  initializePriceRangeUI() {
+    const minRange = document.getElementById("minPriceRange");
+    const maxRange = document.getElementById("maxPriceRange");
+    const minDisplay = document.getElementById("minPriceDisplay");
+    const maxDisplay = document.getElementById("maxPriceDisplay");
+
+    if (!minRange || !maxRange || !minDisplay || !maxDisplay) {
+      console.warn("⚠️ Price range elements not found");
+      return;
     }
 
-    // ✅ Clear previous timer
+    // Set max values
+    minRange.max = this.priceRange.max;
+    maxRange.max = this.priceRange.max;
+
+    // ⭐ Set initial values (không filter)
+    minRange.value = this.priceRange.min;
+    maxRange.value = this.priceRange.max;
+
+    // Set initial display
+    minDisplay.textContent = this.formatPrice(this.priceRange.min);
+    maxDisplay.textContent = this.formatPrice(this.priceRange.max);
+
+    // ⭐ IMPORTANT: Không set filters ban đầu
+    this.currentFilters.minPrice = null;
+    this.currentFilters.maxPrice = null;
+
+    // Initialize slider track position
+    this.updateSliderTrack();
+
+    console.log("✅ Price range UI initialized:", {
+      min: this.priceRange.min,
+      max: this.priceRange.max,
+    });
+  }
+
+  /**
+   * Update slider track position based on thumb values
+   */
+  updateSliderTrack() {
+    const minRange = document.getElementById("minPriceRange");
+    const maxRange = document.getElementById("maxPriceRange");
+    const sliderTrack = document.getElementById("sliderTrack");
+
+    if (!minRange || !maxRange || !sliderTrack) return;
+
+    const min = parseInt(minRange.value);
+    const max = parseInt(maxRange.value);
+    const rangeMin = parseInt(minRange.min);
+    const rangeMax = parseInt(minRange.max);
+
+    const percentMin = ((min - rangeMin) / (rangeMax - rangeMin)) * 100;
+    const percentMax = ((max - rangeMin) / (rangeMax - rangeMin)) * 100;
+
+    sliderTrack.style.left = percentMin + "%";
+    sliderTrack.style.width = percentMax - percentMin + "%";
+  }
+
+  /**
+   * ⭐ Unified price range handler với logic fixed
+   */
+  handlePriceRangeChange() {
+    const minRange = document.getElementById("minPriceRange");
+    const maxRange = document.getElementById("maxPriceRange");
+    const minDisplay = document.getElementById("minPriceDisplay");
+    const maxDisplay = document.getElementById("maxPriceDisplay");
+
+    if (!minRange || !maxRange) return;
+
+    let minVal = parseInt(minRange.value);
+    let maxVal = parseInt(maxRange.value);
+
+    // Ensure min < max với gap tối thiểu
+    const minGap = 100000;
+    if (minVal > maxVal - minGap) {
+      minVal = maxVal - minGap;
+      minRange.value = minVal;
+    }
+
+    // Update display
+    if (minDisplay) minDisplay.textContent = this.formatPrice(minVal);
+    if (maxDisplay) maxDisplay.textContent = this.formatPrice(maxVal);
+
+    // Update slider track visual
+    this.updateSliderTrack();
+
+    // ⭐ FIX: Chỉ set filter nếu khác giá trị mặc định
+    this.currentFilters.minPrice = minVal > this.priceRange.min ? minVal : null;
+    this.currentFilters.maxPrice = maxVal < this.priceRange.max ? maxVal : null;
+
+    // Debounce API call
     if (this.priceDebounceTimer) {
       clearTimeout(this.priceDebounceTimer);
     }
 
-    // ✅ Set new timer - wait 500ms before API call
     this.priceDebounceTimer = setTimeout(async () => {
       this.currentPage = 1;
       await this.loadProducts();
-      console.log("💰 Price filter applied after debounce");
-    }, 500); // Wait 500ms
-  }
-
-  /**
-   * Handle price input change
-   */
-  async handlePriceInputChange() {
-    const minPriceInput = document.getElementById("minPrice");
-    const maxPriceInput = document.getElementById("maxPrice");
-
-    const minPrice = minPriceInput ? minPriceInput.value : "";
-    const maxPrice = maxPriceInput ? maxPriceInput.value : "";
-
-    this.currentFilters.minPrice = minPrice ? parseInt(minPrice) : null;
-    this.currentFilters.maxPrice = maxPrice ? parseInt(maxPrice) : null;
-
-    // Update range slider
-    const priceRange = document.getElementById("priceRange");
-    if (priceRange && this.currentFilters.maxPrice) {
-      priceRange.value = this.currentFilters.maxPrice;
-    }
-
-    this.currentPage = 1;
-    await this.loadProducts();
+      console.log("💰 Price filter applied:", {
+        min: this.currentFilters.minPrice,
+        max: this.currentFilters.maxPrice,
+      });
+    }, 500);
   }
 
   /**
@@ -668,9 +760,9 @@ class ProductManager {
     }
     container.innerHTML = "";
     if (!products || products.length === 0) {
-        this.showNoResults();
-        container.style.display = "none"; 
-        return; 
+      this.showNoResults();
+      container.style.display = "none";
+      return;
     }
 
     const productsHTML = products
@@ -743,23 +835,23 @@ class ProductManager {
     const hasHalfStar = rating % 1 >= 0.5;
     const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
 
-    let stars = '';
-    
+    let stars = "";
+
     // Full stars
     for (let i = 0; i < fullStars; i++) {
       stars += '<i class="fas fa-star text-warning"></i>';
     }
-    
+
     // Half star
     if (hasHalfStar) {
       stars += '<i class="fas fa-star-half-alt text-warning"></i>';
     }
-    
+
     // Empty stars
     for (let i = 0; i < emptyStars; i++) {
       stars += '<i class="far fa-star text-warning"></i>';
     }
-    
+
     return stars;
   }
   /**
@@ -1039,18 +1131,27 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (window.authManager) {
     window.authManager.updateAuthUI();
   }
-  
+
   // Sync cart count from API and update navbar
-  if (window.authManager && window.authManager.isAuthenticated() && window.cartAPI && window.navbarManager) {
+  if (
+    window.authManager &&
+    window.authManager.isAuthenticated() &&
+    window.cartAPI &&
+    window.navbarManager
+  ) {
     try {
-      console.log('🛒 Syncing cart count from API...');
+      console.log("🛒 Syncing cart count from API...");
       const cartRes = await window.cartAPI.getCart();
-      const cartItems = Array.isArray(cartRes?.data) ? cartRes.data : (Array.isArray(cartRes) ? cartRes : []);
+      const cartItems = Array.isArray(cartRes?.data)
+        ? cartRes.data
+        : Array.isArray(cartRes)
+        ? cartRes
+        : [];
       const cartCount = cartItems.length;
-      console.log('🛒 Cart count from API:', cartCount);
+      console.log("🛒 Cart count from API:", cartCount);
       window.navbarManager.updateCartCount(cartCount);
     } catch (err) {
-      console.error('Failed to sync cart count:', err);
+      console.error("Failed to sync cart count:", err);
     }
   }
 });
