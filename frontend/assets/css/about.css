@@ -1,11 +1,21 @@
-/* ============================================
-   ABOUT PAGE STYLES - SNEVO
-   Clean, Minimalist, Premium Design
-   ============================================ */
+html {
+  overflow-x: hidden !important;
+  width: 100%;
+  position: relative;
+  scroll-behavior: smooth !important;
+}
 
-/* ============================================
-   ROOT VARIABLES
-   ============================================ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.container {
+  max-width: 1520px !important;
+  padding-left: 60px;
+  padding-right: 60px;
+}
 :root {
   --primary-black: #000000;
   --secondary-black: #1a1a1a;
@@ -22,7 +32,7 @@
    BASE STYLES
    ============================================ */
 body {
-  font-family: "Inter", sans-serif;
+  font-family: "Poppins", sans-serif;
   color: var(--secondary-black);
   line-height: 1.7;
   overflow-x: hidden;
