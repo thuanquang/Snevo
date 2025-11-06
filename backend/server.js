@@ -188,18 +188,19 @@ class Server {
             return;
         }
         // SKIP body parsing for upload routes
+        const isMultipart = (req.headers['content-type'] || '').includes('multipart/form-data');
         const isUploadRoute = (
-        (req.method === 'POST' && pathname === '/api/products') ||
-        (req.method === 'PUT' && pathname.match(/^\/api\/products\/\d+$/)) ||
-        (req.method === 'PUT' && pathname === '/api/auth/profile')
+            (req.method === 'POST' && pathname === '/api/products') ||
+            (req.method === 'PUT' && pathname.match(/^\/api\/products\/\d+$/)) ||
+            (req.method === 'PUT' && pathname === '/api/auth/profile' && isMultipart)  // ⭐ FIX: Only skip if multipart
         );
 
         // Parse body for POST/PUT/PATCH requests
         let body = {};
         if (['POST', 'PUT', 'PATCH'].includes(req.method)) {
-            const isMultipart = (req.headers['content-type'] || '').includes('multipart/form-data');
+            const isMultipartRequest = (req.headers['content-type'] || '').includes('multipart/form-data');
             
-            if (isUploadRoute || isMultipart) {
+            if (isUploadRoute || isMultipartRequest) {
                 // SKIP parsing for upload routes or multipart requests - middleware will handle it
                 console.log('Skipping JSON body parse for upload/multipart request');
                 // Upload middleware will populate req.body

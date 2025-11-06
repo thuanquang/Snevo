@@ -705,6 +705,18 @@ class ProfileManager {
 
     /**
      * Setup avatar upload handlers
+     * 
+     * ⭐ IMPORTANT: Avatar preview is INDEPENDENT from form validation
+     * 
+     * This method:
+     * - Listens for file selection changes only
+     * - Updates preview display based on selected file
+     * - Does NOT validate form or prevent submission
+     * - Does NOT interfere with other form fields
+     * - Safely handles file clearing (preview resets to default)
+     * 
+     * The form submission is handled separately in handlePersonalInfoSubmit()
+     * which decides whether to use multipart (with file) or JSON (without file).
      */
     setupAvatarUploadHandlers() {
         const avatarFileInput = document.getElementById('avatarFile');
@@ -939,6 +951,28 @@ class ProfileManager {
 
     /**
      * Handle personal info form submission
+     * 
+     * ⭐ KEY FEATURE: Avatar upload is COMPLETELY OPTIONAL
+     * 
+     * This method intelligently handles profile updates with or without avatar:
+     * - If avatar file is selected: Uses multipart FormData for file upload
+     * - If no avatar file: Uses JSON for profile-only updates
+     * - Avatar upload status NEVER blocks profile field submission
+     * 
+     * Behavior:
+     * 1. Validates profile fields (full_name, username required)
+     * 2. Checks if user selected an avatar file
+     * 3. If file exists: validates (type, size), uploads via multipart
+     * 4. If no file: submits profile fields via JSON
+     * 5. Shows success/error feedback independent of avatar status
+     * 
+     * Supported scenarios:
+     * ✅ Update profile WITHOUT avatar (name, username, phone changes only)
+     * ✅ Update profile WITH avatar (profile + file upload)
+     * ✅ Update avatar ONLY (just replace avatar, keep other fields)
+     * 
+     * @param {Event} e - Form submit event from personalInfoForm
+     * @returns {Promise<void>}
      */
     async handlePersonalInfoSubmit(e) {
         e.preventDefault();
@@ -973,7 +1007,7 @@ class ProfileManager {
             let response;
 
             if (avatarFile) {
-                // ⭐ NEW: File selected - use FormData with multipart
+                // ⭐ NEW: File selected - use FormData with multipart upload
                 console.log('📤 Avatar file detected, using FormData for multipart upload');
                 
                 // Validate file
