@@ -53,7 +53,7 @@
             <div>
               <i class="fas fa-sliders-h"></i>
               <span>Filters</span>
-            </div>  
+            </div>
             <i class="fas fa-chevron-down"></i>
           </button>
         </div>
@@ -61,7 +61,7 @@
         <div class="row">
           <!-- Sidebar Filters -->
           <div class="col-lg-3 col-md-4">
-            <div class="filters-sidebar">
+            <div class="filters-sidebar" id="filtersSidebar">
               <div class="filters-header d-flex justify-content-between">
                 <div class="filters-header">
                   <button class="btn-close-filters" id="closeFilters">
@@ -290,5 +290,37 @@
     <script type="module" src="../assets/js/Application.js"></script>
     <script type="module" src="../assets/js/auth-persistence.js"></script>
     <script type="module" src="../assets/js/animations.js"></script>
+    <script>
+      // Mobile Filter Toggle Logic
+      document.addEventListener("DOMContentLoaded", function () {
+        const mobileFilterToggle =
+          document.getElementById("mobileFilterToggle");
+        const filtersSidebar = document.getElementById("filtersSidebar");
+        const closeFilters = document.getElementById("closeFilters");
+        const filterBackdrop = document.getElementById("filterBackdrop");
+
+        if (mobileFilterToggle) {
+          mobileFilterToggle.addEventListener("click", function () {
+            filtersSidebar.classList.add("active");
+            filterBackdrop.classList.add("active");
+            document.body.style.overflow = "hidden";
+          });
+        }
+
+        function closeFilterMenu() {
+          filtersSidebar.classList.remove("active");
+          filterBackdrop.classList.remove("active");
+          document.body.style.overflow = "";
+        }
+
+        if (closeFilters) {
+          closeFilters.addEventListener("click", closeFilterMenu);
+        }
+
+        if (filterBackdrop) {
+          filterBackdrop.addEventListener("click", closeFilterMenu);
+        }
+      });
+    </script>
   </body>
 </html>
