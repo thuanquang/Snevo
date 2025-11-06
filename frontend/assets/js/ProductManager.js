@@ -808,12 +808,6 @@ class ProductManager {
                     : ""
                 }
                 <div class="product-category text-muted small">${categoryName}</div>
-                ${
-                  hasStock
-                    ? '<span class="badge bg-success">In Stock</span>'
-                    : '<span class="badge bg-danger">Out of Stock</span>'
-                }
-                </div>
             </div>
             </div>
         `;
@@ -1160,6 +1154,32 @@ document.addEventListener("DOMContentLoaded", async () => {
 if (typeof module !== "undefined" && module.exports) {
   module.exports = ProductManager;
 }
+
+// Mobile Filter Toggle Logic
+document.addEventListener('DOMContentLoaded', function() {
+  const mobileFilterToggle = document.getElementById('mobileFilterToggle');
+  const filtersSidebar = document.getElementById('filtersSidebar');
+  const closeFilters = document.getElementById('closeFilters');
+  const filterBackdrop = document.getElementById('filterBackdrop');
+
+  // Open filters
+  mobileFilterToggle?.addEventListener('click', function() {
+    filtersSidebar?.classList.add('active');
+    filterBackdrop?.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  });
+
+  // Close filters
+  function closeFilterMenu() {
+    filtersSidebar?.classList.remove('active');
+    filterBackdrop?.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  closeFilters?.addEventListener('click', closeFilterMenu);
+  filterBackdrop?.addEventListener('click', closeFilterMenu);
+});
+
 
 // ES6 exports
 export default ProductManager;

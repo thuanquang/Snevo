@@ -1,3 +1,17 @@
+/* Product Card Styles */
+html {
+  overflow-x: hidden !important;
+  width: 100%;
+  position: relative;
+  scroll-behavior: smooth !important;
+}
+
+.container {
+  max-width: 1520px !important;
+  padding-left: 60px;
+  padding-right: 60px;
+}
+
 :root {
   --nike-black: #111111;
   --nike-gray: #757575;
@@ -5,14 +19,8 @@
   --nike-border: #e5e5e5;
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
 body {
-  font-family: "Helvetica Neue", Arial, sans-serif;
+  font-family: "Poppins", Arial, sans-serif;
   color: var(--nike-black);
   background-color: #fff;
 }
@@ -28,13 +36,6 @@ body {
 .loading .spinner-border {
   width: 3rem;
   height: 3rem;
-}
-
-/* Product Container */
-.product-detail-container {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 40px 20px;
 }
 
 /* Image Gallery */

@@ -25,6 +25,7 @@
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="../assets/images/favicon.ico" />
   </head>
+
   <body>
     <!-- Unified Navbar Root -->
     <div id="navbarRoot" data-navbar-page="products"></div>
@@ -46,11 +47,27 @@
     <!-- Products Section -->
     <section class="products-section py-5">
       <div class="container">
+        <!-- Mobile Filter Toggle Button -->
+        <div class="mobile-filter-toggle">
+          <button class="btn-filter-toggle" id="mobileFilterToggle">
+            <div>
+              <i class="fas fa-sliders-h"></i>
+              <span>Filters</span>
+            </div>  
+            <i class="fas fa-chevron-down"></i>
+          </button>
+        </div>
+
         <div class="row">
           <!-- Sidebar Filters -->
           <div class="col-lg-3 col-md-4">
             <div class="filters-sidebar">
               <div class="filters-header d-flex justify-content-between">
+                <div class="filters-header">
+                  <button class="btn-close-filters" id="closeFilters">
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
                 <!--<button
                   class="btn btn-sm "
                   id="clearFilters"
@@ -159,17 +176,17 @@
             <!-- Toolbar -->
             <div class="products-toolbar mb-4">
               <div class="row align-items-center">
-                <div class="col-md-6">
+                <div class="col-md-6 ps-0">
                   <div class="results-info">
                     <span id="resultsCount"></span>
                   </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-6 pe-0">
                   <div class="d-flex align-items-center justify-content-md-end">
                     <!-- Sort Dropdown -->
-                    <div class="me-3">
+                    <div class="me-0 pe-0">
                       <select
-                        class="form-select form-select-sm "
+                        class="form-select form-select-sm"
                         id="sortSelect"
                       >
                         <option value="featured">Sort by: Featured</option>
@@ -181,7 +198,7 @@
                       </select>
                     </div>
 
-                    <!-- View Toggle -->
+                    <!-- View Toggle 
                     <div class="btn-group" role="group">
                       <button
                         type="button"
@@ -199,7 +216,7 @@
                       >
                         <i class="fas fa-list"></i>
                       </button>
-                    </div>
+                    </div> -->
                   </div>
                 </div>
               </div>
@@ -236,9 +253,6 @@
               <p class="text-muted">
                 Try adjusting your filters or search terms
               </p>
-              <button class="btn btn-primary" onclick="clearAllFilters()">
-                Clear Filters
-              </button>
             </div>
 
             <!-- Pagination -->
@@ -251,6 +265,8 @@
         </div>
       </div>
     </section>
+    <!-- Filter Backdrop -->
+    <div class="filter-backdrop" id="filterBackdrop"></div>
     <!-- Unified Footer Root -->
     <div id="footerRoot"></div>
     <!-- Scripts -->
@@ -274,6 +290,5 @@
     <script type="module" src="../assets/js/Application.js"></script>
     <script type="module" src="../assets/js/auth-persistence.js"></script>
     <script type="module" src="../assets/js/animations.js"></script>
-    <style></style>
   </body>
 </html>
