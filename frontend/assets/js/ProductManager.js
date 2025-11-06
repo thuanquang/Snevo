@@ -792,9 +792,7 @@ class ProductManager {
                 </div>
                 <div class="card-body">
                 <h5 class="product-title">${product.shoe_name}</h5>
-                <div class="product-price">
-                    ${this.formatPrice(product.base_price)}
-                </div>
+                <div class="product-category text-muted small">${categoryName}</div>
                 ${
                   totalReviews > 0
                     ? `
@@ -807,12 +805,8 @@ class ProductManager {
                 `
                     : ""
                 }
-                <div class="product-category text-muted small">${categoryName}</div>
-                ${
-                  hasStock
-                    ? '<span class="badge bg-success">In Stock</span>'
-                    : '<span class="badge bg-danger">Out of Stock</span>'
-                }
+                <div class="product-price">
+                  ${this.formatPrice(product.base_price)}
                 </div>
             </div>
             </div>

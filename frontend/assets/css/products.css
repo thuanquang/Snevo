@@ -16,15 +16,8 @@ html {
   padding-bottom: 0px !important;
   margin: 0px 0px 50px 0px !important;
 }
-.filters-sidebar {
-  border: none !important;
-  padding: 0 16px 0 0 !important;
-}
 
-.filters-header {
-  margin-bottom: 20px !important;
-}
-
+/* Products Card */
 .products-grid {
   display: grid !important;
   grid-template-columns: repeat(3, 1fr);
@@ -34,8 +27,6 @@ html {
 
 .product-card {
   padding: 0 0 0 0;
-  border: 2px solid #dedede;
-  border-radius: 12px;
   overflow: hidden;
   background: white;
   height: 100% !important;
@@ -43,13 +34,15 @@ html {
   border: none !important;
 }
 
-.product-image {
+.card-img-top {
   width: 100%;
-  height: 400px;
-  margin-top: -100px !important;
   object-fit: cover;
+  border-radius: 0px !important;
 }
 
+.card-body{
+  padding: 16px 0px 16px 0px !important;
+}
 .product-title {
   font-family: "Poppins", sans-serif;
   font-weight: 600;
@@ -59,8 +52,8 @@ html {
 }
 
 .product-price {
-  font-family: "Inter", sans-serif;
-  font-weight: 600;
+  font-family: "Poppins", sans-serif;
+  font-weight: 400 !important;
   font-size: 20px;
   color: #000;
 }
@@ -83,12 +76,31 @@ html {
   font-weight: 500;
 }
 
+.product-category {
+  font-family: "Poppins", sans-serif;
+  font-size: 16px;
+  color: #777;
+  margin-bottom: 8px;
+}
+
 /* Filter Styles */
 .filters-sidebar {
-  background: white;
-  border: 2px solid #dedede;
-  border-radius: 12px;
-  padding: 24px;
+  border: none !important;
+  padding: 0 16px 0 0 !important;
+}
+
+.filter-title {
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  color: #000;
+}
+
+.form-check-label {
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  font-size: 15px;
+  color: #333;;
 }
 
 /* Color Options */
@@ -180,6 +192,8 @@ html {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* Product View Styles */
 .products-grid.list-view .col-lg-4,
 .products-grid.list-view .col-md-6 {
   flex: 0 0 100%;
@@ -199,15 +213,14 @@ html {
 /* Price Range Slider Styles */
 .price-range-filter {
   width: 100%;
-  max-width: 300px;
+  max-width: 285px;
   position: relative;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   height: 40px;
-  margin-bottom: 10px;
 }
 
 .price-range-filter::before {
-  content: '';
+  content: "";
   position: absolute;
   width: 100%;
   height: 8px;
@@ -316,17 +329,208 @@ html {
   color: #000;
 }
 
-@media (max-width: 768px) {
+/*Dropdown Sort*/
+.form-select {
+  font-family: "Poppins", sans-serif;
+  font-size: 16px;
+  color: #000;
+}
+
+#sortSelect {
+  border: none !important;
+  color: #000 !important;
+}
+
+/*Result count*/
+#resultsCount {
+  font-family: "Poppins", sans-serif !important;
+  font-size: 16px !important;
+  color: #000;
+}
+
+/* ============================================
+   MOBILE FILTER TOGGLE
+   ============================================ */
+.mobile-filter-toggle {
+  display: none;
+  margin-bottom: 20px;
+}
+
+.btn-filter-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 14px 20px;
+  background: #000;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-family: "Poppins", sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-filter-toggle:hover {
+  background: #333;
+}
+
+.btn-filter-toggle i:first-child {
+  margin-right: 10px;
+}
+
+.btn-close-filters {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #000;
+  cursor: pointer;
+  padding: 0;
+}
+
+.filter-backdrop {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.filter-backdrop.active {
+  display: block;
+  opacity: 1;
+}
+
+/* ============================================
+   TABLET RESPONSIVE (991px and below)
+   ============================================ */
+@media (max-width: 991px) {
+  .container {
+    padding-left: 40px;
+    padding-right: 40px;
+  }
+
+  /* Show mobile filter toggle */
+  .mobile-filter-toggle {
+    display: block;
+  }
+
+  /* Transform sidebar to slide-in menu */
   .filters-sidebar {
-    margin-bottom: 2rem;
+    position: fixed !important;
+    top: 0;
+    left: -100%;
+    width: 320px;
+    max-width: 85%;
+    height: 100vh;
+    background: #fff;
+    z-index: 1000;
+    padding: 24px !important;
+    overflow-y: auto;
+    transition: left 0.3s ease;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
   }
 
-  .products-toolbar {
-    flex-direction: column;
-    gap: 1rem;
+  .filters-sidebar.active {
+    left: 0;
   }
 
-  .products-toolbar .col-md-6 {
-    text-align: center;
+  .filters-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .btn-close-filters {
+    display: block;
+  }
+
+  /* Product grid: 2 columns on tablet */
+  .products-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 20px;
+  }
+
+  .card-img-top {
+    height: 300px;
   }
 }
+
+/* ============================================
+   MOBILE RESPONSIVE (767px and below)
+   ============================================ */
+@media (max-width: 767px) {
+  .container {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  /* Product grid: Still 2 columns on mobile */
+  .products-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 16px;
+  }
+
+  .card-img-top {
+    height: 220px;
+  }
+
+  .card-body {
+    padding: 12px 0px 12px 0px !important;
+  }
+
+  .product-title {
+    font-size: 16px;
+  }
+
+  .product-price {
+    font-size: 18px;
+  }
+
+  .filters-sidebar {
+    width: 280px;
+  }
+
+  .price-range-filter {
+    max-width: 100%;
+  }
+}
+
+/* ============================================
+   SMALL MOBILE (575px and below)
+   ============================================ */
+@media (max-width: 575px) {
+  .products-grid {
+    gap: 12px;
+  }
+
+  .card-img-top {
+    height: 180px;
+  }
+
+  .card-body {
+    padding: 10px 0px 10px 0px !important;
+  }
+
+  .product-title {
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+
+  .product-price {
+    font-size: 16px;
+  }
+
+  .product-category {
+    font-size: 14px;
+  }
+}
+
