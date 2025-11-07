@@ -21,12 +21,7 @@ export default async function categoryRoutes(req, res, controller, pathname) {
 
   try {
     // This sets req.user if token is valid
-    const authResult = await authMiddleware.authenticate(req, res);
     
-    // If authentication fails and response already sent, return early
-    if (!authResult.success && res.writableEnded) {
-      return;
-    }
     // If auth fails but no response sent yet, continue (for public routes)
     // req.user will be null for unauthenticated requests
 
@@ -43,6 +38,12 @@ export default async function categoryRoutes(req, res, controller, pathname) {
     if (path === '/' && method === 'GET') {
       req.query = query;
       return controller.getCategories(req, res);
+    }
+    const authResult = await authMiddleware.authenticate(req, res);
+    
+    // If authentication fails and response already sent, return early
+    if (!authResult.success && res.writableEnded) {
+      return;
     }
 
     // POST /api/categories
