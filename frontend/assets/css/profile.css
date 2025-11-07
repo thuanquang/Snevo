@@ -275,6 +275,27 @@
   color: #666;
   margin-bottom: 0;
 }
+/* Form validation styles */
+.form-control.is-invalid {
+  border-color: #dc3545;
+  background-image: none;
+}
+
+.form-control.is-invalid:focus {
+  border-color: #dc3545;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+.invalid-feedback {
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+.text-danger {
+  color: #dc3545;
+}
 
 @media (max-width: 991.98px) {
   .profile-sidebar {
