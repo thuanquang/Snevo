@@ -14,9 +14,9 @@
 
 .navbar-nav.mx-auto {
   position: absolute !important;
-  left: 50% !important;
+  left: 49.7% !important;
   transform: translateX(-49.5%) !important;
-  font-family: "Poppins", sans-serif !important;
+  font-family: "Inter", sans-serif !important;
   margin: 0 !important;
   gap: 80px !important;
   display: flex !important;
