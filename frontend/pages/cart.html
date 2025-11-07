@@ -12,6 +12,10 @@
     <link rel="stylesheet" href="../assets/css/components.css">
     <link rel="stylesheet" href="../assets/css/responsive.css">
     <link rel="stylesheet" href="../assets/css/animations.css">
+    <link rel="stylesheet" href="../assets/css/cart.css">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="../assets/images/favicon.ico">
@@ -35,18 +39,18 @@
         <div class="container py-5">
             <div class="row">
                 <div class="col-12">
-                    <h1 class="mb-4">Shopping Cart</h1>
-                    <p class="text-muted">Review your items before checkout</p>
+                    <h1 class="cart-title">Giỏ Hàng</h1>
+                    <p class="cart-subtitle">Xem lại sản phẩm trước khi thanh toán</p>
                     <div id="cartContent">
                         <div id="cartItems" class="list-group mb-4"></div>
-                        <div class="card">
+                        <div class="card cart-summary">
                             <div class="card-body d-flex justify-content-between align-items-center">
                                 <div>
-                                    <div class="fw-bold">Subtotal: <span id="cartSubtotal">₫0</span></div>
+                                    <div class="subtotal-text">Tổng tiền: <span id="cartSubtotal">₫0</span></div>
                                 </div>
                                 <div class="d-flex gap-2">
-                                    <a href="products.html" class="btn btn-outline-secondary">Continue Shopping</a>
-                                    <a href="checkout.html" class="btn btn-primary">Checkout</a>
+                                    <a href="products.html" class="btn continue-shopping-btn">Mua Tiếp</a>
+                                    <a href="checkout.html" class="btn checkout-btn">Thanh Toán</a>
                                 </div>
                             </div>
                         </div>

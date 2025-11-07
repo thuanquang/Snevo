@@ -32,7 +32,7 @@ html {
    BASE STYLES
    ============================================ */
 body {
-  font-family: "Poppins", sans-serif;
+  font-family: "Inter", sans-serif;
   color: var(--secondary-black);
   line-height: 1.7;
   overflow-x: hidden;
