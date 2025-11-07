@@ -484,6 +484,72 @@ body {
     width: 15px;
     height: 15px;
   }
+
+  /* Sport carousel */
+  .sport-carousel {
+    padding: 0 20px;
+    margin: 80px auto 60px auto;
+  }
+
+  .sport-carousel-heading {
+    font-size: 48px;
+    margin-bottom: 40px !important;
+  }
+
+  #slider {
+    height: 450px;
+  }
+
+  .slide-content {
+    width: 350px;
+    height: 450px;
+  }
+
+  .sport-name {
+    font-size: 36px;
+  }
+
+  .sport-desc {
+    font-size: 16px;
+    padding: 0 20px;
+  }
+
+  .sport-cta {
+    padding: 14px 32px;
+    font-size: 16px;
+  }
+
+  /*banner section*/
+  .banner-section {
+    margin: 100px auto 20px auto;
+  }
+
+  .banner-section .banner-bg {
+    height: 450px !important;
+  }
+
+  .banner-section .banner-word {
+    font-size: 280px;
+    transform: translateY(28%) translateX(-8%);
+  }
+
+  .banner-section .banner-img {
+    display: none;
+  }
+
+  .banner-section .banner-title {
+    font-size: 42px !important;
+  }
+
+  .banner-section .banner-desc {
+    font-size: 18px;
+    margin-bottom: 24px;
+  }
+
+  .banner-section .banner-cta {
+    font-size: 18px;
+    padding: 14px 32px;
+  }
 }
 
 /* Mobile (767px and below) */
@@ -574,8 +640,8 @@ body {
     margin-top: 250px;
   }
   .products-heading {
-    font-size: 36px;
-    margin-top: 0px;
+    font-size: 48px;
+    margin-top: 0px !important;
   }
 
   .product-grid {
@@ -610,6 +676,87 @@ body {
   .view-more img {
     width: 14px;
     height: 14px;
+  }
+
+  /* Sport carousel */
+  .sport-carousel {
+    padding: 0 10px;
+    margin: 60px auto 40px auto;
+  }
+
+  .sport-carousel-heading {
+    margin-bottom: 30px !important;
+    margin-top: 80px !important;
+  }
+
+  #slider {
+    height: 380px;
+  }
+
+  .slide-content {
+    width: 280px;
+    height: 380px;
+  }
+
+  .sport-name {
+    font-size: 28px;
+    margin-bottom: 12px;
+  }
+
+  .sport-desc {
+    font-size: 14px;
+    padding: 0 15px;
+    margin-bottom: 20px;
+  }
+
+  .sport-cta {
+    padding: 12px 28px;
+    font-size: 14px;
+  }
+
+  /*banner section*/
+  .banner-section {
+    margin: 60px auto 20px auto;
+  }
+
+  .banner-section .banner-bg {
+    height: auto !important;
+    padding: 40px 20px;
+  }
+
+  .banner-section .banner-word {
+    display: none;
+  }
+
+  .banner-section .banner-img {
+    display: none;
+  }
+
+  .banner-section .banner-content {
+    text-align: center;
+    margin: 0 !important;
+  }
+
+  .banner-section .banner-title {
+    font-size: 32px;
+    margin-bottom: 16px;
+  }
+
+  .banner-section .banner-title br {
+    display: none;
+  }
+
+  .banner-section .banner-desc {
+    font-size: 16px;
+    margin-bottom: 20px;
+    padding: 0 10px;
+  }
+
+  .banner-section .banner-cta {
+    font-size: 16px;
+    padding: 12px 28px;
+    width: 100%;
+    max-width: 250px;
   }
 }
 
@@ -692,6 +839,9 @@ body {
   }
 
   /* Product Section */
+  .products-section {
+    margin-top: 150px;
+  }
   .products-heading {
     font-size: 32px;
     margin: 80px 0px 24px 0px;
@@ -714,7 +864,7 @@ body {
   }
 
   .product-card-title {
-    font-size: 16px;
+    font-size: 16px !important;
   }
 
   .product-card-price {
@@ -730,5 +880,91 @@ body {
     width: 12px;
     height: 12px;
     color: black !important;
+  }
+
+  /* Sport carousel */
+  .sport-carousel {
+    padding: 0 5px;
+    margin: 40px auto 30px auto;
+  }
+
+  .sport-carousel-heading {
+    font-size: 32px !important;
+    margin-bottom: 24px !important;
+  }
+
+  #slider {
+    height: 320px;
+  }
+
+  .slide-content {
+    width: 240px;
+    height: 320px;
+  }
+
+  .sport-name {
+    font-size: 32px !important;
+    margin-bottom: 10px;
+  }
+
+  .sport-desc {
+    font-size: 16px !important;
+    padding: 0 12px;
+    margin-bottom: 16px;
+  }
+
+  .sport-cta {
+    padding: 10px 24px !important;
+    font-size: 14px !important;
+  }
+
+  /* Hide side slides on very small screens for better focus */
+  #slider input:checked + label {
+    transform: translateX(0) scale(1);
+  }
+
+  /*banner section*/
+  .banner-section {
+    margin: 40px auto 20px auto;
+  }
+
+  .banner-section .banner-bg {
+    padding: 30px 15px;
+    border-radius: 12px;
+  }
+
+  .banner-section .banner-word {
+    display: none;
+  }
+
+  .banner-section .banner-img {
+    margin-bottom: 24px;
+    display: none;
+  }
+
+  .banner-section .banner-title {
+    font-size: 28px;
+  }
+
+  .banner-section .banner-desc {
+    font-size: 15px;
+    margin-bottom: 18px;
+  }
+
+  .banner-section .banner-cta {
+    font-size: 15px;
+    padding: 12px 24px;
+    width: 100%;
+    max-width: 220px;
+  }
+
+  /* Testimonials Section */
+  .testimonials-section {
+    padding: 0 0;
+    margin-top: 80px;
+  }
+  .testimonials-heading {
+    font-size: 32px;
+    margin-bottom: 40px;
   }
 }
