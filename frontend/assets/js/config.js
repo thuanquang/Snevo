@@ -23,7 +23,11 @@ window.APP_CONFIG = {
     name: 'Snevo',
     version: '1.0.0',
     environment: 'development',
-    buildTime: '2025-11-04T13:41:09.320Z',
+<<<<<<<<< Temporary merge branch 1
+    buildTime: '2025-11-07T08:16:46.453Z',
+=========
+    buildTime: '2025-11-07T08:18:51.076Z',
+>>>>>>>>> Temporary merge branch 2
     features: {
         googleAuth: isValidGoogleClientId && isValidSupabaseUrl && isValidSupabaseKey,
         emailVerification: isValidSupabaseUrl && isValidSupabaseKey,
