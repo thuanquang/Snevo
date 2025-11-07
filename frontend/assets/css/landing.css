@@ -217,6 +217,11 @@ body {
   margin-top: 300px;
 }
 
+/* Initial state for sport carousel */
+#slider:not(.expanded) {
+  transition:  0.3s ease, transform 0.3s ease;
+}
+
 .products-heading {
   font-family: "Inter", sans-serif;
   font-size: 48px;
