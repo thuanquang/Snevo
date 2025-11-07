@@ -932,7 +932,7 @@ class ProductManager {
     const startIndex = (this.currentPage - 1) * this.productsPerPage + 1;
     const endIndex = Math.min(this.currentPage * this.productsPerPage, total);
 
-    resultsCount.textContent = `Showing ${startIndex}-${endIndex} of ${total} products`;
+    resultsCount.textContent = `Hiện ${startIndex}-${endIndex} trong số ${total} sản phẩm`;
   }
   /**
    * ⭐ NEW: Update size filters UI

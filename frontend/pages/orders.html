@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Orders - Snevo</title>
+    <title>Đơn hàng của tôi - Snevo</title>
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -32,16 +32,16 @@
         <div class="container py-5">
             <div class="row">
                 <div class="col-12">
-                    <h1 class="mb-2">My Orders</h1>
-                    <p class="text-muted mb-4">Track and manage your orders</p>
+                    <h1 class="mb-2">Đơn hàng của tôi</h1>
+                    <p class="text-muted mb-4">Theo dõi và quản lý đơn hàng của bạn</p>
                     
                     <!-- Tabs Section -->
                     <div id="tabsSection" class="orders-tabs">
-                        <!-- <button class="tab-btn active" data-status="">All Orders</button> -->
-                        <button class="tab-btn" data-status="pending">Pending</button>
-                        <button class="tab-btn" data-status="processing">Approved</button>
-                        <button class="tab-btn" data-status="delivered">Completed</button>
-                        <button class="tab-btn" data-status="cancelled">Cancelled</button>
+                        <!-- <button class="tab-btn active" data-status="">Tất cả đơn hàng</button> -->
+                        <button class="tab-btn" data-status="pending">Chờ xử lý</button>
+                        <button class="tab-btn" data-status="processing">Đã duyệt</button>
+                        <button class="tab-btn" data-status="delivered">Hoàn thành</button>
+                        <button class="tab-btn" data-status="cancelled">Đã hủy</button>
                     </div>
                     
                     <!-- List View -->
@@ -49,17 +49,17 @@
                         <div id="ordersContainer" class="mt-4">
                             <div class="text-center py-5">
                                 <div class="spinner-border text-primary" role="status">
-                                    <span class="visually-hidden">Loading...</span>
+                                    <span class="visually-hidden">Đang tải...</span>
                                 </div>
-                                <p class="mt-3 text-muted">Loading your orders...</p>
+                                <p class="mt-3 text-muted">Đang tải đơn hàng của bạn...</p>
                             </div>
                         </div>
                         
                         <!-- Pagination -->
                         <div class="pagination-controls">
-                            <button class="btn btn-outline-primary" id="prevBtn" disabled>← Previous</button>
-                            <span id="pageInfo" class="text-muted">Page 1</span>
-                            <button class="btn btn-outline-primary" id="nextBtn">Next →</button>
+                            <button class="btn btn-outline-primary" id="prevBtn" disabled>← Trước</button>
+                            <span id="pageInfo" class="text-muted">Trang 1</span>
+                            <button class="btn btn-outline-primary" id="nextBtn">Sau →</button>
                         </div>
                     </div>
                     
@@ -80,30 +80,30 @@
     <!-- Cancel Modal -->
     <div id="cancelModalBackdrop" class="modal-backdrop"></div>
     <div id="cancelModal" class="modal-content-custom">
-        <h5 class="mb-3">Cancel Order</h5>
-        <p class="text-muted mb-3">Why are you cancelling this order?</p>
+        <h5 class="mb-3">Hủy đơn hàng</h5>
+        <p class="text-muted mb-3">Tại sao bạn muốn hủy đơn hàng này?</p>
         
         <div class="mb-3">
-            <label for="cancelReason" class="form-label">Cancellation Reason</label>
+            <label for="cancelReason" class="form-label">Lý do hủy đơn</label>
             <select class="form-select" id="cancelReason">
-                <option value="">-- Select a reason --</option>
-                <option value="Wrong item ordered">Wrong item ordered</option>
-                <option value="Changed my mind">Changed my mind</option>
-                <option value="Found better price">Found better price</option>
-                <option value="Other">Other</option>
+                <option value="">-- Chọn lý do --</option>
+                <option value="Wrong item ordered">Đặt sai sản phẩm</option>
+                <option value="Changed my mind">Đổi ý</option>
+                <option value="Found better price">Tìm thấy giá tốt hơn</option>
+                <option value="Other">Lý do khác</option>
             </select>
         </div>
         
         <div class="form-check mb-3">
             <input class="form-check-input" type="checkbox" id="confirmCheckbox">
             <label class="form-check-label" for="confirmCheckbox">
-                I understand the order will be cancelled immediately and refund will arrive within 3-5 business days.
+                Tôi hiểu rằng đơn hàng sẽ bị hủy ngay lập tức và tiền hoàn trả sẽ được xử lý trong vòng 3-5 ngày làm việc.
             </label>
         </div>
         
         <div class="d-flex gap-2 justify-content-end">
-            <button class="btn btn-secondary" id="cancelModalCloseBtn">Close</button>
-            <button class="btn btn-danger" id="confirmCancelBtn" disabled>Confirm Cancel</button>
+            <button class="btn btn-secondary" id="cancelModalCloseBtn">Đóng</button>
+            <button class="btn btn-danger" id="confirmCancelBtn" disabled>Xác nhận hủy</button>
         </div>
     </div>
 
@@ -112,14 +112,14 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="reviewModalTitle">Write a Review</h5>
+                    <h5 class="modal-title" id="reviewModalTitle">Viết đánh giá</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <form id="reviewForm">
                         <input type="hidden" id="reviewId" value="">
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Rating *</label>
+                            <label class="form-label fw-bold">Đánh giá *</label>
                             <div id="starRating" class="star-rating-input">
                                 <div class="star" data-rating="1">
                                     <svg viewBox="0 0 24 24" class="star-outline">
@@ -148,25 +148,25 @@
                                 </div>
                             </div>
                             <input type="hidden" id="ratingInput" value="0" required>
-                            <div class="invalid-feedback">Please select a rating</div>
+                            <div class="invalid-feedback">Vui lòng chọn số sao đánh giá</div>
                         </div>
                         <div class="mb-3">
-                            <label for="reviewComment" class="form-label fw-bold">Your Review</label>
+                            <label for="reviewComment" class="form-label fw-bold">Nhận xét của bạn</label>
                             <textarea 
                                 id="reviewComment" 
                                 class="form-control" 
                                 rows="5" 
                                 maxlength="2000"
-                                placeholder="Share your thoughts about this product..."></textarea>
+                                placeholder="Chia sẻ suy nghĩ của bạn về sản phẩm này..."></textarea>
                             <div class="form-text">
-                                <span id="charCount">0</span>/2000 characters
+                                <span id="charCount">0</span>/2000 ký tự
                             </div>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="submitReviewBtn">Submit Review</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary" id="submitReviewBtn">Gửi đánh giá</button>
                 </div>
             </div>
         </div>
@@ -658,11 +658,11 @@
 
         function getStatusLabel(status) {
             const labels = {
-                'pending': 'Pending Approval',
-                'processing': 'Approved',
-                'delivered': 'Completed',
-                'success': 'Completed',  // Backward compatibility
-                'cancelled': 'Cancelled'
+                'pending': 'Chờ duyệt',
+                'processing': 'Đã duyệt',
+                'delivered': 'Đã hoàn thành',
+                'success': 'Đã hoàn thành',  // Backward compatibility
+                'cancelled': 'Đã hủy'
             };
             return labels[status] || status;
         }

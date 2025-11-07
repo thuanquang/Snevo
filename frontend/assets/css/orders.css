@@ -1,3 +1,17 @@
+
+html {
+  overflow-x: hidden !important;
+  width: 100%;
+  position: relative;
+  scroll-behavior: smooth !important;
+}
+
+.container {
+  max-width: 1520px !important;
+  padding-left: 60px;
+  padding-right: 60px;
+}
+
 .orders-tabs {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr;

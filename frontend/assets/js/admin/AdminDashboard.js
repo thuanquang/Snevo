@@ -347,7 +347,7 @@ class AdminDashboard {
     this.charts.orderStatus = new Chart(ctx, {
       type: 'doughnut',
       data: {
-        labels: ['Pending', 'Processing', 'Delivered', 'Cancelled'],
+        labels: ['Chờ Xử Lý', 'Đang Xử Lý', 'Đã Giao', 'Đã Hủy'],
         datasets: [{
           data: [
             statusCounts.pending,
@@ -374,7 +374,7 @@ class AdminDashboard {
           },
           title: {
             display: true,
-            text: 'Orders by Status'
+            text: 'Trạng Thái Đơn Hàng'
           }
         }
       }
@@ -442,7 +442,7 @@ class AdminDashboard {
           },
           title: {
             display: true,
-            text: 'Revenue (Last 7 Days)'
+            text: 'Doanh Thu (7 Ngày Qua)'
           },
           tooltip: {
             callbacks: {
@@ -535,7 +535,7 @@ class AdminDashboard {
           },
           title: {
             display: true,
-            text: 'Top Selling Products (Last 30 Days)'
+            text: 'Sản Phẩm Bán Chạy (30 Ngày Qua)'
           },
           tooltip: {
             callbacks: {
@@ -569,7 +569,7 @@ class AdminDashboard {
             },
             title: {
               display: true,
-              text: 'Revenue'
+              text: 'Doanh Thu'
             }
           },
           y1: {
@@ -582,7 +582,7 @@ class AdminDashboard {
             },
             title: {
               display: true,
-              text: 'Units'
+              text: 'Số Lượng'
             }
           }
         }
@@ -619,11 +619,11 @@ class AdminDashboard {
    */
   getStatusLabel(status) {
     const labelMap = {
-      'pending': 'Pending',
-      'processing': 'Approved',
-      'delivered': 'Completed',
-      'cancelled': 'Cancelled',
-      'refunded': 'Refunded'
+      'pending': 'Chờ Xử Lý',
+      'processing': 'Đã Duyệt',
+      'delivered': 'Hoàn Thành',
+      'cancelled': 'Đã Hủy',
+      'refunded': 'Hoàn Tiền'
     };
     return labelMap[status?.toLowerCase()] || status;
   }
