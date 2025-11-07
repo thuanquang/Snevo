@@ -162,7 +162,7 @@ class AdminOrderManagement {
         <tr>
           <td colspan="7" class="text-center text-muted py-4">
             <i class="fas fa-inbox me-2"></i>
-            No orders found
+            Không tìm thấy đơn hàng nào
           </td>
         </tr>
       `;
@@ -193,10 +193,10 @@ class AdminOrderManagement {
       
       // Status labels
       const statusLabels = {
-        'pending': 'Pending',
-        'processing': 'Approved',
-        'delivered': 'Completed',
-        'cancelled': 'Cancelled'
+        'pending': 'Chờ Xác Nhận',
+        'processing': 'Đã Xác Nhận',
+        'delivered': 'Hoàn Thành',
+        'cancelled': 'Đã Hủy'
       };
       const statusLabel = statusLabels[status] || status.charAt(0).toUpperCase() + status.slice(1);
       
@@ -414,21 +414,21 @@ class AdminOrderManagement {
         
         paymentSection = `
           <hr>
-          <h6 class="fw-bold mb-3">Payment Information</h6>
+          <h6 class="fw-bold mb-3">Thông Tin Thanh Toán</h6>
           <div class="card bg-light mb-2">
             <div class="card-body">
               <div class="row mb-2">
                 <div class="col-6">
-                  <p class="mb-1"><strong>Method:</strong></p>
+                  <p class="mb-1"><strong>Phương Thức:</strong></p>
                   <p class="mb-0">${paymentMethodDisplay}</p>
                 </div>
                 <div class="col-6">
-                  <p class="mb-1"><strong>Status:</strong></p>
+                  <p class="mb-1"><strong>Trạng Thái:</strong></p>
                   <p class="mb-0">${paymentStatusBadge}</p>
                 </div>
               </div>
               <hr class="my-2">
-              <p class="mb-1"><strong>Details:</strong></p>
+              <p class="mb-1"><strong>Chi Tiết:</strong></p>
               ${paymentDetailsHtml}
               ${actionButtons}
             </div>
@@ -439,7 +439,7 @@ class AdminOrderManagement {
           <hr>
           <div class="alert alert-warning">
             <i class="fas fa-exclamation-triangle me-2"></i>
-            No payment information available
+            Không có thông tin thanh toán
           </div>
         `;
       }
@@ -447,29 +447,29 @@ class AdminOrderManagement {
       const detailHtml = `
         <div class="row mb-3">
           <div class="col-md-6">
-            <h6 class="text-muted">Order ID</h6>
+            <h6 class="text-muted">Mã Đơn Hàng</h6>
             <p class="fs-5 fw-bold">#${orderData.order_id}</p>
           </div>
           <div class="col-md-6">
-            <h6 class="text-muted">Status</h6>
+            <h6 class="text-muted">Trạng Thái</h6>
             <p><span class="badge bg-${statusColor} fs-6">${statusLabel}</span></p>
           </div>
         </div>
         
         <div class="row mb-3">
           <div class="col-md-6">
-            <h6 class="text-muted">Order Date</h6>
+            <h6 class="text-muted">Ngày Đặt</h6>
             <p>${formattedDate}</p>
           </div>
           <div class="col-md-6">
-            <h6 class="text-muted">Customer</h6>
-            <p>${address.recipient_name || 'Unknown'}</p>
+            <h6 class="text-muted">Khách Hàng</h6>
+            <p>${address.recipient_name || 'Không Xác Định'}</p>
           </div>
         </div>
         
         <hr>
         
-        <h6 class="fw-bold mb-3">Shipping Address</h6>
+        <h6 class="fw-bold mb-3">Địa Chỉ Giao Hàng</h6>
         <div class="card bg-light mb-3">
           <div class="card-body">
             <p class="mb-1"><strong>${address.recipient_name || 'N/A'}</strong></p>
@@ -478,30 +478,30 @@ class AdminOrderManagement {
           </div>
         </div>
         
-        <h6 class="fw-bold mb-3">Order Items</h6>
+        <h6 class="fw-bold mb-3">Chi Tiết Đơn Hàng</h6>
         <table class="table table-sm table-hover">
           <thead class="table-light">
             <tr>
-              <th>Product</th>
-              <th>Qty</th>
-              <th>Price</th>
-              <th>Total</th>
+              <th>Sản Phẩm</th>
+              <th>SL</th>
+              <th>Đơn Giá</th>
+              <th>Tổng</th>
             </tr>
           </thead>
           <tbody>
-            ${itemsHtml || '<tr><td colspan="4" class="text-center text-muted">No items</td></tr>'}
+            ${itemsHtml || '<tr><td colspan="4" class="text-center text-muted">Không có sản phẩm</td></tr>'}
           </tbody>
         </table>
         
         <hr>
         
-        <h6 class="fw-bold mb-3">Payment Summary</h6>
+        <h6 class="fw-bold mb-3">Tổng Thanh Toán</h6>
         <div class="row text-end">
           <div class="col-md-6 offset-md-6">
-            <p class="mb-1"><strong>Subtotal:</strong> ₫${new Intl.NumberFormat('vi-VN').format(Math.round(totalAmount - (orderData.shipping_cost || 0) - (orderData.tax_amount || 0)))}</p>
-            <p class="mb-1"><strong>Shipping:</strong> ₫${new Intl.NumberFormat('vi-VN').format(Math.round(orderData.shipping_cost || 0))}</p>
-            <p class="mb-3"><strong>Tax:</strong> ₫${new Intl.NumberFormat('vi-VN').format(Math.round(orderData.tax_amount || 0))}</p>
-            <p class="mb-0 fs-5"><strong>Total:</strong> ₫${new Intl.NumberFormat('vi-VN').format(Math.round(totalAmount))}</p>
+            <p class="mb-1"><strong>Tạm Tính:</strong> ₫${new Intl.NumberFormat('vi-VN').format(Math.round(totalAmount - (orderData.shipping_cost || 0) - (orderData.tax_amount || 0)))}</p>
+            <p class="mb-1"><strong>Phí Vận Chuyển:</strong> ₫${new Intl.NumberFormat('vi-VN').format(Math.round(orderData.shipping_cost || 0))}</p>
+            <p class="mb-3"><strong>Thuế:</strong> ₫${new Intl.NumberFormat('vi-VN').format(Math.round(orderData.tax_amount || 0))}</p>
+            <p class="mb-0 fs-5"><strong>Tổng Cộng:</strong> ₫${new Intl.NumberFormat('vi-VN').format(Math.round(totalAmount))}</p>
           </div>
         </div>
         
@@ -509,7 +509,7 @@ class AdminOrderManagement {
         
         ${orderData.notes ? `
           <hr>
-          <h6 class="fw-bold mb-2">Notes</h6>
+          <h6 class="fw-bold mb-2">Ghi Chú</h6>
           <div class="alert alert-secondary small mb-0">${orderData.notes}</div>
         ` : ''}
       `;
@@ -527,7 +527,7 @@ class AdminOrderManagement {
    * Approve order (change status from pending to processing)
    */
   async approveOrder(orderId) {
-    if (!confirm(`Approve order #${orderId}?`)) {
+    if (!confirm(`Xác nhận đơn hàng #${orderId}?`)) {
       return;
     }
     
@@ -554,13 +554,13 @@ class AdminOrderManagement {
    */
   async cancelOrder(orderId, buttonElement) {
     // Prompt for reason
-    const reason = prompt('Reason for cancellation:', 'Admin cancellation');
+    const reason = prompt('Lý do hủy đơn:', 'Admin hủy đơn');
     
     if (reason === null) {
       return;
     }
 
-    if (!confirm(`Cancel order #${orderId}? Payments will be refunded if applicable.`)) {
+    if (!confirm(`Hủy đơn hàng #${orderId}? Tiền sẽ được hoàn lại nếu có thể.`)) {
       return;
     }
 
@@ -588,9 +588,9 @@ class AdminOrderManagement {
    */
   getPaymentMethodDisplay(method) {
     const methodMap = {
-      'cash': '<i class="fas fa-money-bill-wave me-1"></i>Cash on Delivery',
-      'credit_card': '<i class="fas fa-credit-card me-1"></i>Credit Card',
-      'bank_transfer': '<i class="fas fa-university me-1"></i>Bank Transfer',
+      'cash': '<i class="fas fa-money-bill-wave me-1"></i>Thanh Toán Khi Nhận Hàng',
+      'credit_card': '<i class="fas fa-credit-card me-1"></i>Thẻ Tín Dụng',
+      'bank_transfer': '<i class="fas fa-university me-1"></i>Chuyển Khoản',
       'stripe': '<i class="fab fa-stripe me-1"></i>Stripe'
     };
     return methodMap[method?.toLowerCase()] || `<i class="fas fa-question-circle me-1"></i>${method}`;
@@ -601,10 +601,10 @@ class AdminOrderManagement {
    */
   getPaymentStatusBadge(status) {
     const statusMap = {
-      'pending': '<span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i>Pending</span>',
-      'completed': '<span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Completed</span>',
-      'failed': '<span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i>Failed</span>',
-      'refunded': '<span class="badge bg-secondary"><i class="fas fa-undo me-1"></i>Refunded</span>'
+      'pending': '<span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i>Đang Chờ</span>',
+      'completed': '<span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Đã Hoàn Thành</span>',
+      'failed': '<span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i>Thất Bại</span>',
+      'refunded': '<span class="badge bg-secondary"><i class="fas fa-undo me-1"></i>Đã Hoàn Tiền</span>'
     };
     return statusMap[status?.toLowerCase()] || `<span class="badge bg-secondary">${status}</span>`;
   }
@@ -614,7 +614,7 @@ class AdminOrderManagement {
    */
   renderPaymentDetails(payment) {
     if (!payment || !payment.details) {
-      return '<p class="text-muted">No payment details available</p>';
+      return '<p class="text-muted">Không có chi tiết thanh toán</p>';
     }
 
     const details = payment.details;
@@ -622,15 +622,15 @@ class AdminOrderManagement {
 
     if (details.type === 'card' && details.card_number) {
       html = `
-        <p class="mb-1"><strong>Card Number:</strong> ${details.card_number}</p>
-        ${details.processed_at ? `<p class="mb-0 text-muted"><small>Processed: ${details.processed_at}</small></p>` : ''}
+        <p class="mb-1"><strong>Số Thẻ:</strong> ${details.card_number}</p>
+        ${details.processed_at ? `<p class="mb-0 text-muted"><small>Xử Lý: ${details.processed_at}</small></p>` : ''}
       `;
     } else if (details.type === 'bank' && details.bank_code) {
       html = `
-        <p class="mb-1"><strong>Bank:</strong> ${details.bank_code}</p>
-        <p class="mb-1"><strong>Account:</strong> ${details.account_number}</p>
-        ${details.submitted_at ? `<p class="mb-1 text-muted"><small>Submitted: ${details.submitted_at}</small></p>` : ''}
-        ${details.verified_by ? `<p class="mb-0 text-success"><small><i class="fas fa-check-circle"></i> Verified by Admin #${details.verified_by} on ${details.verified_at}</small></p>` : ''}
+        <p class="mb-1"><strong>Ngân Hàng:</strong> ${details.bank_code}</p>
+        <p class="mb-1"><strong>Số Tài Khoản:</strong> ${details.account_number}</p>
+        ${details.submitted_at ? `<p class="mb-1 text-muted"><small>Đã Chuyển: ${details.submitted_at}</small></p>` : ''}
+        ${details.verified_by ? `<p class="mb-0 text-success"><small><i class="fas fa-check-circle"></i> Xác Nhận bởi Admin #${details.verified_by} lúc ${details.verified_at}</small></p>` : ''}
       `;
     } else if (details.type === 'stripe' && details.stripe_payment_intent_id) {
       html = `
