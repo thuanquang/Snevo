@@ -71,6 +71,10 @@
   filter: none;
 }
 
+.navbar-toggler{
+  border: none !important;
+}
+
 .user-avatar-link {
   display: flex;
   align-items: center;
