@@ -558,7 +558,7 @@ class NavbarManager {
                     <div class="collapse navbar-collapse" id="navbarNav">
                         <ul class="navbar-nav mx-auto" style="gap: 80px;">
                             <li class="nav-item">
-                                <a class="nav-link" href="#" data-navbar-link="home">Tranh chủ</a>
+                                <a class="nav-link" href="#" data-navbar-link="home">Trang chủ</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="#" data-navbar-link="products">Mua sắm</a>

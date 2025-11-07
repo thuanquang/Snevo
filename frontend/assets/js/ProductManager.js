@@ -148,8 +148,6 @@ class ProductManager {
       // ✅ Sync navbar search
       this.syncNavbarSearch();
     }
-
-    // ... rest of the code
   }
 
   /**
