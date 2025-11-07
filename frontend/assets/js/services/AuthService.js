@@ -232,10 +232,16 @@ class AuthService {
     }
 
     try {
+      // Build redirect URL - must be full URL with protocol
+      const redirectUrl = `${window.location.origin}/`;
+      console.log('🔐 Google OAuth redirect URL:', redirectUrl);
+      console.log('📍 Current location origin:', window.location.origin);
+      console.log('📍 Current location hostname:', window.location.hostname);
+      
       const { data, error } = await this.supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/`,
+          redirectTo: redirectUrl,
           queryParams: {
             access_type: "offline",
             prompt: "consent",

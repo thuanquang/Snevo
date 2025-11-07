@@ -358,30 +358,6 @@ class AdminManager {
     return this.variantGenerator.updateGeneratorCounts();
   }
 
-  // Legacy methods (kept for backward compatibility)
-  toggleVariantSelection(variantId) {
-    console.warn(
-      "⚠️ toggleVariantSelection is deprecated, use handleVariantCheckbox"
-    );
-    const checkbox = document.querySelector(`[data-variant-id="${variantId}"]`);
-    if (checkbox) {
-      return this.handleVariantCheckbox(variantId, checkbox.checked);
-    }
-  }
-
-  updateImportQuantity(variantId, quantity) {
-    return this.updateImportSummary();
-  }
-
-  updateImportPrice(variantId, price) {
-    return this.updateImportSummary();
-  }
-
-  submitImport() {
-    console.warn("⚠️ submitImport is deprecated, use submitBatchImport");
-    return this.submitBatchImport();
-  }
-
   // CRUD Actions
   editShoe(shoeId) {
     return this.productManager.openProductForm(shoeId);
