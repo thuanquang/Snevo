@@ -27,26 +27,26 @@
         <div class="checkout-container py-5">
             <div class="row">
                 <div class="col-12">
-                    <h1 class="mb-4">Checkout</h1>
+                    <h1 class="mb-4">Thanh Toán</h1>
                 </div>
             </div>
 
             <!-- Step Indicator -->
             <div class="step-indicator">
                 <div class="step active" data-step="1">
-                    <i class="fas fa-shopping-bag"></i><br>Cart Review
+                    <i class="fas fa-shopping-bag"></i><br>Giỏ Hàng
                 </div>
                 <div class="step" data-step="2">
-                    <i class="fas fa-map-marker-alt"></i><br>Shipping Address
+                    <i class="fas fa-map-marker-alt"></i><br>Địa Chỉ Giao Hàng
                 </div>
                 <div class="step" data-step="3">
-                    <i class="fas fa-truck"></i><br>Delivery Options
+                    <i class="fas fa-truck"></i><br>Phương Thức Vận Chuyển
                 </div>
                 <div class="step" data-step="4">
-                    <i class="fas fa-credit-card"></i><br>Payment
+                    <i class="fas fa-credit-card"></i><br>Thanh Toán
                 </div>
                 <div class="step" data-step="5">
-                    <i class="fas fa-check-circle"></i><br>Review & Confirm
+                    <i class="fas fa-check-circle"></i><br>Xem Lại & Xác Nhận
                 </div>
             </div>
 
@@ -55,65 +55,65 @@
                 <div class="col-lg-8">
                     <!-- Step 1: Cart Review -->
                     <div class="checkout-step active" id="step-1">
-                        <h3 class="mb-4">Review Your Items</h3>
+                        <h3 class="mb-4">Xem Lại Giỏ Hàng</h3>
                         <div id="cartReviewContainer"></div>
                         <div class="d-flex justify-content-between btn-step">
-                            <a href="cart.html" class="btn btn-outline-secondary">Back to Cart</a>
-                            <button class="btn btn-primary" id="btnNextStep1">Continue</button>
+                            <a href="cart.html" class="btn btn-outline-secondary">Quay Lại</a>
+                            <button class="btn btn-continue" id="btnNextStep1">Tiếp Tục</button>
                         </div>
                     </div>
 
                     <!-- Step 2: Shipping Address -->
                     <div class="checkout-step" id="step-2">
-                        <h3 class="mb-4">Select Shipping Address</h3>
+                        <h3 class="mb-4">Chọn Địa Chỉ Giao Hàng</h3>
                         <div id="addressesContainer"></div>
                         <a href="#" class="btn btn-outline-secondary btn-sm mb-3" id="btnAddNewAddress">
-                            <i class="fas fa-plus"></i> Add New Address
+                            <i class="fas fa-plus"></i> Thêm Địa Chỉ Mới
                         </a>
                         <div class="d-flex justify-content-between btn-step">
-                            <button class="btn btn-outline-secondary" id="btnPrevStep2">Back</button>
-                            <button class="btn btn-primary" id="btnNextStep2" disabled>Continue</button>
+                            <button class="btn btn-outline-secondary" id="btnPrevStep2">Quay Lại</button>
+                            <button class="btn btn-continue" id="btnNextStep2" disabled>Tiếp Tục</button>
                         </div>
                     </div>
 
                     <!-- Step 3: Delivery Options -->
                     <div class="checkout-step" id="step-3">
-                        <h3 class="mb-4">Select Delivery Option</h3>
+                        <h3 class="mb-4">Chọn Phương Thức Vận Chuyển</h3>
                         <div id="deliveryOptionsContainer"></div>
                         <div class="d-flex justify-content-between btn-step">
-                            <button class="btn btn-outline-secondary" id="btnPrevStep3">Back</button>
-                            <button class="btn btn-primary" id="btnNextStep3" disabled>Continue</button>
+                            <button class="btn btn-outline-secondary" id="btnPrevStep3">Quay Lại</button>
+                            <button class="btn btn-continue" id="btnNextStep3" disabled>Tiếp Tục</button>
                         </div>
                     </div>
 
                     <!-- Step 4: Payment Method -->
                     <div class="checkout-step" id="step-4">
-                        <h3 class="mb-4">Select Payment Method</h3>
+                        <h3 class="mb-4">Chọn Phương Thức Thanh Toán</h3>
                         <div id="paymentMethodsContainer"></div>
                         <div id="paymentFormContainer" class="mt-4"></div>
                         <div class="d-flex justify-content-between btn-step">
-                            <button class="btn btn-outline-secondary" id="btnPrevStep4">Back</button>
-                            <button class="btn btn-primary" id="btnNextStep4" disabled>Continue</button>
+                            <button class="btn btn-outline-secondary" id="btnPrevStep4">Quay Lại</button>
+                            <button class="btn btn-continue" id="btnNextStep4" disabled>Tiếp Tục</button>
                         </div>
                     </div>
 
                     <!-- Step 5: Review & Confirm -->
                     <div class="checkout-step" id="step-5">
-                        <h3 class="mb-4">Review Your Order</h3>
+                        <h3 class="mb-4">Xem Lại Đơn Hàng</h3>
                         <div class="card mb-4">
                             <div class="card-header bg-light">
-                                <h5>Order Summary</h5>
+                                <h5>Tổng Quan Đơn Hàng</h5>
                             </div>
                             <div class="card-body" id="orderSummaryReview"></div>
                         </div>
                         <div class="d-flex justify-content-between btn-step gap-3">
-                            <button class="btn btn-outline-secondary" id="btnPrevStep5">Back</button>
+                            <button class="btn btn-outline-secondary" id="btnPrevStep5">Quay Lại</button>
                             <div class="flex-grow-1 d-flex gap-2 justify-content-end">
                                 <button class="btn btn-outline-danger" id="btnCancelCheckout">
-                                    <i class="fas fa-times"></i> Cancel Checkout
+                                    <i class="fas fa-times"></i> Hủy Đơn Hàng
                                 </button>
                                 <button class="btn btn-success btn-lg" id="btnConfirmOrder">
-                                    <i class="fas fa-check"></i> Confirm & Pay
+                                    <i class="fas fa-check"></i> Xác Nhận & Thanh Toán
                                 </button>
                             </div>
                         </div>
@@ -123,21 +123,21 @@
                 <!-- Order Summary Sidebar -->
                 <div class="col-lg-4">
                     <div class="order-summary">
-                        <h5 class="mb-3">Order Total</h5>
+                        <h5 class="mb-3">Tổng Đơn Hàng</h5>
                         <div class="summary-row">
-                            <span>Subtotal</span>
+                            <span>Tạm tính</span>
                             <span id="summarySubtotal">₫0</span>
                         </div>
                         <div class="summary-row">
-                            <span>Shipping</span>
+                            <span>Phí vận chuyển</span>
                             <span id="summaryShipping">₫0</span>
                         </div>
                         <div class="summary-row">
-                            <span>Tax</span>
+                            <span>Thuế</span>
                             <span id="summaryTax">₫0</span>
                         </div>
                         <div class="summary-row total">
-                            <span>Total</span>
+                            <span>Tổng cộng</span>
                             <span id="summaryTotal">₫0</span>
                         </div>
                     </div>
@@ -150,24 +150,22 @@
     <div class="modal fade" id="addAddressModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Add New Address</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="addAddressForm">
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Recipient Name *</label>
-                                <input type="text" class="form-control" id="recipientName" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Phone Number *</label>
-                                <input type="tel" class="form-control" id="phoneNumber" required>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Thêm Địa Chỉ Mới</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="addAddressForm">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Tên người nhận *</label>
+                                    <input type="text" class="form-control" id="recipientName" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Số điện thoại *</label>
+                                    <input type="tel" class="form-control" id="phoneNumber" required>
+                                </div>
+                            </div>                        <div class="mb-3">
                             <label class="form-label">Street Address *</label>
                             <input type="text" class="form-control" id="street" required>
                         </div>

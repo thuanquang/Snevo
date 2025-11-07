@@ -141,12 +141,10 @@
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
 }
 
 .filter-btn:hover {
   border-color: var(--nike-black);
-  transform: translateY(-2px);
 }
 
 .filter-btn.active {
@@ -459,7 +457,7 @@
 }
 
 .badge.bg-success {
-  background-color: #2e7d32 !important;
+  background-color: #000 !important;
   color: white;
 }
 

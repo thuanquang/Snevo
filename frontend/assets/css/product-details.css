@@ -332,7 +332,6 @@ body {
 
 .add-to-bag-btn:hover:not(:disabled) {
   background-color: #333;
-  transform: scale(1.02);
 }
 
 .add-to-bag-btn:disabled {
@@ -404,6 +403,10 @@ body {
   margin-bottom: 16px;
 }
 
+.badge {
+  background-color: #000 !important;
+}
+
 /* Responsive */
 @media (max-width: 992px) {
   .product-info {
@@ -466,7 +469,6 @@ body {
 }
 
 .color-option:hover:not(:disabled) {
-  transform: scale(1.05);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
@@ -587,4 +589,5 @@ body {
   font-size: 10px;
   padding: 2px 6px;
   border-radius: 3px;
+  background-color: #000 !important;
 }

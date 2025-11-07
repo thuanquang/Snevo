@@ -133,7 +133,7 @@ class CartManager {
         console.log('🎨 Rendering cart with', this.items.length, 'items');
 
         if (!this.items || this.items.length === 0) {
-            container.innerHTML = '<div class="text-center text-muted py-5">Your cart is empty</div>';
+            container.innerHTML = '<div class="text-center text-muted py-5">Giỏ hàng của bạn đang trống</div>';
             console.log('📭 Cart is empty');
             return;
         }
@@ -169,7 +169,7 @@ class CartManager {
                 <div class="flex-grow-1">
                   <div class="fw-semibold">${title}</div>
                   <div class="text-muted small">${variantText}</div>
-                  <div class="text-muted small">${price} x 
+                  <div class="text-muted small quantity-controls">${price} x 
                     <button class="btn btn-sm btn-light px-2 ms-1" data-action="dec">-</button>
                     <span class="mx-2">${it.quantity}</span>
                     <button class="btn btn-sm btn-light px-2" data-action="inc">+</button>
@@ -177,7 +177,7 @@ class CartManager {
                 </div>
                 <div class="text-end">
                   <div class="fw-semibold">${lineTotal}</div>
-                  <button class="btn btn-sm btn-outline-danger mt-2" data-action="remove">Remove</button>
+                  <button class="btn btn-sm remove-btn mt-2" data-action="remove">Xóa</button>
                 </div>
               </div>
             `;
