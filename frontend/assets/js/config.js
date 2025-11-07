@@ -7,19 +7,8 @@
 window.SUPABASE_URL = 'https://dmvtnumichfheaduijzh.supabase.co';
 window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtdnRudW1pY2hmaGVhZHVpanpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3OTQxNjcsImV4cCI6MjA3MjM3MDE2N30.UlEoRUSX2v67-KUji5rp_SX3PHHvav7bWWXG0ikYWII';
 
-// API Configuration - Dynamic based on environment
-const protocol = window.location.protocol; // https: or http:
-const hostname = window.location.hostname; // your-railway-app.railway.app or localhost
-const port = window.location.port ? `:${window.location.port}` : '';
-
-// For production (Railway), use the same domain
-// For localhost development, use localhost:3001
-if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    window.API_BASE_URL = 'http://localhost:3001';
-} else {
-    // Production: use same domain and protocol as current page
-    window.API_BASE_URL = `${protocol}//${hostname}${port}`;
-}
+// API Configuration
+window.API_BASE_URL = 'http://localhost:3001';
 
 // Google OAuth Configuration
 window.GOOGLE_CLIENT_ID = '19098760843-j6ilk2t1o27f0mvujrqinqf90ojsuajf.apps.googleusercontent.com';
@@ -34,7 +23,7 @@ window.APP_CONFIG = {
     name: 'Snevo',
     version: '1.0.0',
     environment: 'development',
-    buildTime: '2025-11-06T06:33:03.127Z',
+    buildTime: '2025-11-07T08:18:51.076Z',
     features: {
         googleAuth: isValidGoogleClientId && isValidSupabaseUrl && isValidSupabaseKey,
         emailVerification: isValidSupabaseUrl && isValidSupabaseKey,
@@ -49,9 +38,8 @@ window.APP_CONFIG = {
 };
 
 // Development info
-console.log('🔧 Configuration loaded');
+console.log('🔧 Development configuration loaded');
 console.log('📊 Supabase URL:', window.SUPABASE_URL);
-console.log('🌐 API Base URL:', window.API_BASE_URL);
 console.log('🔑 Google Auth:', window.APP_CONFIG.features.googleAuth ? 'enabled' : 'disabled');
 
 // Validation warnings
