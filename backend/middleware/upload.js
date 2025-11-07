@@ -153,6 +153,7 @@ class UploadMiddleware {
           fit: 'inside',
           withoutEnlargement: true
         })
+        .flatten({ background: { r: 255, g: 255, b: 255 } })
         .jpeg({ quality: this.config.imageQuality })
         .toBuffer();
     } catch (error) {
