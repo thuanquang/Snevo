@@ -73,22 +73,22 @@ class ProductDetailManager {
         productDetail.innerHTML = `
                     <div class="container py-5">
                         <div class="alert alert-danger" role="alert">
-                            <h4 class="alert-heading">⚠️ Failed to Load Product</h4>
-                            <p><strong>Error:</strong> ${
-                              error.message || "Unknown error"
+                            <h4 class="alert-heading">⚠️ Không thể tải sản phẩm</h4>
+                            <p><strong>Lỗi:</strong> ${
+                              error.message || "Lỗi không xác định"
                             }</p>
                             <hr>
                             <p class="mb-0">
-                                <strong>Debug Info:</strong><br>
-                                Product ID: ${this.productId}<br>
-                                Check console (F12) for more details.
+                                <strong>Thông tin gỡ lỗi:</strong><br>
+                                Mã sản phẩm: ${this.productId}<br>
+                                Kiểm tra console (F12) để biết thêm chi tiết.
                             </p>
                             <div class="mt-3">
                                 <button class="btn btn-primary" onclick="location.reload()">
-                                    🔄 Retry
+                                    🔄 Thử lại
                                 </button>
                                 <a href="products.html" class="btn btn-secondary">
-                                    ← Back to Products
+                                    ← Quay lại danh sách
                                 </a>
                             </div>
                         </div>
@@ -226,7 +226,7 @@ class ProductDetailManager {
     // Set title and subtitle
     document.getElementById("productTitle").textContent = product.shoe_name;
     document.getElementById("productSubtitle").textContent =
-      product.category_name || "Men's Shoes";
+      product.category_name || "Giày Nam";
 
     // Fetch and display rating summary
     try {
@@ -273,7 +273,7 @@ class ProductDetailManager {
     // Set description
     document.getElementById("productDescription").textContent =
       product.description ||
-      "Premium quality shoes designed for performance and style.";
+      "Giày chất lượng cao được thiết kế để đạt hiệu suất và phong cách tốt nhất";
 
     // Set main image
     const mainImage = document.querySelector("#mainImage img");
@@ -349,7 +349,7 @@ class ProductDetailManager {
     if (!colorOptions) return;
 
     if (!this.allColors || this.allColors.length === 0) {
-      colorOptions.innerHTML = '<p class="text-muted">No colors available</p>';
+      colorOptions.innerHTML = '<p class="text-muted">Không có màu sắc</p>';
       return;
     }
 
@@ -396,7 +396,7 @@ class ProductDetailManager {
     if (!sizeOptions) return;
 
     if (!this.allSizes || this.allSizes.length === 0) {
-      sizeOptions.innerHTML = '<p class="text-muted">No sizes available</p>';
+      sizeOptions.innerHTML = '<p class="text-muted">Không có kích cỡ</p>';
       return;
     }
 
@@ -683,13 +683,13 @@ class ProductDetailManager {
 
     if (status === "out") {
       stockInfo.classList.add("out-of-stock");
-      stockMessage.textContent = "This combination is currently out of stock";
+      stockMessage.textContent = "Phiên bản này hiện đã hết hàng";
     } else if (quantity < 5) {
       stockInfo.classList.add("low-stock");
-      stockMessage.textContent = `Only ${quantity} left in stock`;
+      stockMessage.textContent = `Chỉ còn ${quantity} sản phẩm trong kho`;
     } else {
       stockInfo.classList.add("in-stock");
-      stockMessage.textContent = "In stock and ready to ship";
+      stockMessage.textContent = "Còn hàng - Sẵn sàng giao hàng";
     }
   }
 
@@ -738,7 +738,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const mgr = window.productDetailManager;
       if (!mgr || !mgr.currentVariant) {
-        alert("Please select color and size");
+        alert("Vui lòng chọn màu sắc và kích cỡ");
         return;
       }
 
@@ -751,12 +751,12 @@ document.addEventListener("DOMContentLoaded", () => {
         // Navigate to cart page
         window.location.href = "cart.html";
       } else {
-        const msg = res?.error || "Failed to add to cart";
+        const msg = res?.error || "Không thể thêm vào giỏ hàng";
         if (window.showToast) window.showToast(msg, "error");
       }
     } catch (err) {
       if (window.showToast)
-        window.showToast(err.message || "Failed to add to cart", "error");
+        window.showToast(err.message || "Không thể thêm vào giỏ hàng", "error");
     }
   });
 });
@@ -840,19 +840,17 @@ ProductDetailManager.prototype.setupReviewValidation = async function() {
     writeReviewBtn.addEventListener('click', async (e) => {
       e.preventDefault();
 
-      // Check authentication first
+        // Check authentication first
       if (!window.authService?.isAuthenticated()) {
-        alert('Please login to write a review');
+        alert('Vui lòng đăng nhập để viết đánh giá');
         if (window.showLoginModal) {
           window.showLoginModal();
         }
         return;
-      }
-
-      // Validate purchase (uses cache for instant validation)
+      }      // Validate purchase (uses cache for instant validation)
       const canReview = await this.validateUserPurchase();
       if (!canReview) {
-        alert('You can only review products from completed orders (delivered/success status).');
+        alert('Bạn chỉ có thể đánh giá sản phẩm từ những đơn hàng đã hoàn thành (đã giao/thành công).');
         return;
       }
 
@@ -916,6 +914,49 @@ ProductDetailManager.prototype.validateUserPurchase = async function() {
   }
 };
 
+// Set up DOM initialization
+ProductDetailManager.prototype.initializeDOMEvents = function() {
+  // Debug: Check Bootstrap availability
+  console.log("🔍 Bootstrap available:", typeof bootstrap !== "undefined");
+  console.log(
+    "🔍 Bootstrap.Modal available:",
+    typeof bootstrap !== "undefined" && typeof bootstrap.Modal !== "undefined"
+  );
+
+  // Test modal close buttons
+  setTimeout(() => {
+    const modal = document.getElementById("reviewModal");
+    const closeButtons = modal?.querySelectorAll('[data-bs-dismiss="modal"]');
+    console.log("🔍 Modal found:", !!modal);
+    console.log("🔍 Close buttons found:", closeButtons?.length);
+
+    if (closeButtons) {
+      closeButtons.forEach((btn, idx) => {
+        console.log(`  Button ${idx}:`, btn.className);
+      });
+    }
+  }, 500);
+
+  // Initialize product detail
+  const productId = new URLSearchParams(window.location.search).get("id");
+  if (!productId) {
+    this.showAlert("Không tìm thấy sản phẩm", "danger");
+    setTimeout(() => {
+      window.location.href = "products.html";
+    }, 2000);
+    return;
+  }
+  this.init(productId);
+};
+
+// Set up DOM content loaded event
+document.addEventListener("DOMContentLoaded", () => {
+  // Create product detail manager instance
+  if (!window.productDetailManager) {
+    window.productDetailManager = new ProductDetailManager();
+  }
+  window.productDetailManager.initializeDOMEvents();
+});
+
 // Make it globally accessible
 window.ProductDetailManager = ProductDetailManager;
-window.productDetailManager = new ProductDetailManager();
