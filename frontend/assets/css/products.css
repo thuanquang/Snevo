@@ -478,7 +478,7 @@ html {
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 16px;
   }
-
+  
   .card-img-top {
     height: 220px;
   }
