@@ -34,16 +34,16 @@ const footerHTML = `
             <div class="col-lg-3 col-md-6">
                 <h6 class="fw-semibold text-dark mb-3">Follow Us</h6>
                 <div class="social-links d-flex gap-3">
-                    <a href="#" class="text-dark" aria-label="Facebook">
+                    <a href="https://www.facebook.com/Snevo.Musiq" class="text-dark" target="_blank" aria-label="Facebook">
                         <i class="fab fa-facebook-f"></i>
                     </a>
-                    <a href="#" class="text-dark" aria-label="Twitter">
+                    <a href="https://www.facebook.com/Snevo.Musiq" class="text-dark" target="_blank" aria-label="Twitter">
                         <i class="fab fa-twitter"></i>
                     </a>
-                    <a href="#" class="text-dark" aria-label="Instagram">
+                    <a href="https://www.instagram.com/sne_vo/" class="text-dark" target="_blank" aria-label="Instagram">
                         <i class="fab fa-instagram"></i>
                     </a>
-                    <a href="#" class="text-dark" aria-label="YouTube">
+                    <a href="https://www.youtube.com/@vuxhng239" class="text-dark" target="_blank" aria-label="YouTube">
                         <i class="fab fa-youtube"></i>
                     </a>
                 </div>
