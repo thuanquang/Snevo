@@ -84,7 +84,7 @@
             <div class="size-selector">
               <div class="size-selector-header">
                 <h3>Chọn Kích Cỡ</h3>
-                <a href="#" class="size-guide-link">
+                <a href="javascript:void(0);" class="size-guide-link" id="sizeGuideLink">
                   <i class="fas fa-ruler"></i>
                   Hướng dẫn chọn size
                 </a>
@@ -318,6 +318,21 @@
     <div id="alertContainer"></div>
     <!-- Unified Footer Root -->
     <div id="footerRoot"></div>
+    <!-- ✅ Simple Size Guide Modal -->
+    <div id="sizeGuideModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8); z-index: 2000; align-items: center; justify-content: center;">
+      <div style="background: white; padding: 30px; border-radius: 12px; max-width: 80%; max-height: 85vh; overflow: auto; position: relative; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+        
+        <!-- Nút đóng -->
+        <button type="button" id="closeSizeGuideBtn" style="position: absolute; top: 10px; right: 15px; background: none; border: none; font-size: 32px; cursor: pointer; color: #666; padding: 0; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+          <i class="fas fa-times"></i>
+        </button>
+        
+        <!-- Ảnh -->
+        <div style="text-align: center; margin-top: 20px;">
+          <img id="sizeGuideImg" src="" alt="Size Guide" style="max-width: 100%; height: auto; max-height: 600px; display: block;" />
+        </div>
+      </div>
+    </div>
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
@@ -335,6 +350,5 @@
     <script type="module" src="../assets/js/ReviewManager.js"></script>
     <script type="module" src="../assets/js/ProductDetailManager.js"></script>
     <script type="module" src="../assets/js/animations.js"></script>
-
   </body>
 </html>
