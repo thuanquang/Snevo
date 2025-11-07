@@ -23,6 +23,10 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@400;700&display=swap"
       rel="stylesheet"
     />
+    <!-- Resource hints for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="../assets/images/favicon.ico" />
@@ -31,379 +35,506 @@
     <!-- Unified Navbar Root -->
     <div id="navbarRoot" data-navbar-page="home"></div>
 
-    <!-- Hero Section -->
-    <section class="hero-section">
-      <div class="container">
-        <div class="row align-items-center">
-          <div class="col-lg-6">
-            <div class="hero-content">
-              <h1>Tìm Kiếm Bạn Đời Của Mình</h1>
-              <p>Mọi thứ bạn muốn, chúng tôi đều có tại Snevo</p>
-              <div class="hero-actions">
-                <a href="products.html" class="btn">Mua Ngay</a>
+    <!-- Skeleton Loading -->
+    <div id="skeleton-content">
+      <!-- Hero Section Skeleton -->
+      <section class="hero-section">
+        <div class="container">
+          <div class="row align-items-center">
+            <div class="col-lg-6">
+              <div class="hero-content">
+                <div class="skeleton skeleton-title"></div>
+                <div class="skeleton skeleton-text" style="width: 80%"></div>
+                <div class="skeleton skeleton-button mt-4"></div>
+              </div>
+            </div>
+            <div class="col-lg-6 hero-image-wrapper">
+              <div class="hero-image text-end">
+                <div class="skeleton skeleton-image"></div>
               </div>
             </div>
           </div>
-          <div class="col-lg-6 hero-image-wrapper">
-            <div class="hero-image text-end">
-              <div class="hero-vertical-text">ULTIMATE</div>
+        </div>
+      </section>
+
+      <!-- Products Section Skeleton -->
+      <section class="products-section">
+        <div class="container">
+          <div
+            class="skeleton skeleton-title mx-auto"
+            style="width: 300px"
+          ></div>
+          <div class="product-grid">
+            <div class="skeleton skeleton-card"></div>
+            <div class="skeleton skeleton-card"></div>
+            <div class="skeleton skeleton-card"></div>
+            <div class="skeleton skeleton-card"></div>
+            <div class="skeleton skeleton-card"></div>
+            <div class="skeleton skeleton-card"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Testimonials Section Skeleton -->
+      <section class="testimonials-section">
+        <div class="container">
+          <div
+            class="skeleton skeleton-title mx-auto"
+            style="width: 400px"
+          ></div>
+          <div class="row justify-content-center g-4">
+            <div class="col-lg-5">
+              <div class="testimonial-card">
+                <div class="skeleton skeleton-testimonial"></div>
+              </div>
+            </div>
+            <div class="col-lg-5">
+              <div class="testimonial-card">
+                <div class="skeleton skeleton-testimonial"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Main Content -->
+    <div id="main-content" style="display: none;">
+      <!-- Hero Section -->
+      <section class="hero-section">
+        <div class="container">
+          <div class="row align-items-center">
+            <div class="col-lg-6">
+              <div class="hero-content">
+                <h1>Tìm Kiếm Bạn Đời Của Mình</h1>
+                <p>Mọi thứ bạn muốn, chúng tôi đều có tại Snevo</p>
+                <div class="hero-actions">
+                  <a href="products.html" class="btn">Mua Ngay</a>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-6 hero-image-wrapper">
+              <div class="hero-image text-end">
+                <div class="hero-vertical-text">ULTIMATE</div>
+                <!-- Hero image is critical; keep eager loading for LCP stability -->
+                <img
+                  src="../assets/images/ui/hero_image.svg"
+                  alt="Hero Image"
+                  class="w-100 h-auto hero-img"
+                  decoding="async"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Brand Carousel -->
+      <section class="brand-carousel">
+        <div class="container">
+          <div class="brands-slider">
+            <div class="brand-item">
               <img
-                src="../assets/images/ui/hero_image.svg"
-                alt="Hero Image"
-                class="w-100 h-auto"
+                src="../assets/images/ui/amazon.svg"
+                alt="Amazon"
+                class="height-200 brand-img"
+                loading="lazy"
+                decoding="async"
+                fetchpriority="low"
+              />
+            </div>
+            <div class="brand-item">
+              <img
+                src="../assets/images/ui/ajio.svg"
+                alt="Ajio"
+                class="height-40 brand-img"
+                loading="lazy"
+                decoding="async"
+                fetchpriority="low"
+              />
+            </div>
+            <div class="brand-item">
+              <img
+                src="../assets/images/ui/ebay.svg"
+                alt="Ebay"
+                class="height-150 brand-img"
+                loading="lazy"
+                decoding="async"
+                fetchpriority="low"
+              />
+            </div>
+            <div class="brand-item">
+              <img
+                src="../assets/images/ui/amazon_new.svg"
+                alt="Puma"
+                class="height-200 brand-img"
+                loading="lazy"
+                decoding="async"
+                fetchpriority="low"
+              />
+            </div>
+            <div class="brand-item">
+              <img
+                src="../assets/images/ui/ajio_new.svg"
+                alt="Reebok"
+                class="height-40 brand-img"
+                loading="lazy"
+                decoding="async"
+                fetchpriority="low"
+              />
+            </div>
+            <div class="brand-item">
+              <img
+                src="../assets/images/ui/ebay.svg"
+                alt="New Balance"
+                class="height-150 brand-img"
+                loading="lazy"
+                decoding="async"
+                fetchpriority="low"
               />
             </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- Brand Carousel -->
-    <section class="brand-carousel">
-      <div class="container">
-        <div class="brands-slider">
-          <div class="brand-item">
-            <img
-              src="../assets/images/ui/amazon.svg"
-              alt="Amazon"
-              class="height-200"
-            />
+      <!-- Shop by Sport Section -->
+      <section id="slider" class="sport-carousel container">
+        <h2 class="sport-carousel-heading">- Mua Sắm Theo Môn Thể Thao -</h2>
+        <input type="radio" name="slider" id="s1" />
+        <input type="radio" name="slider" id="s2" />
+        <input type="radio" name="slider" id="s3" checked />
+        <input type="radio" name="slider" id="s4" />
+        <input type="radio" name="slider" id="s5" />
+        <label for="s1" id="slide1" class="slide-content">
+          <div class="sport-name">Chạy Bộ</div>
+          <div class="sport-desc">
+            Nâng cao hiệu suất với bộ sưu tập của chúng tôi
           </div>
-          <div class="brand-item">
-            <img
-              src="../assets/images/ui/ajio.svg"
-              alt="Ajio"
-              class="height-40"
-            />
+          <div class="sport-cta">Mua Ngay</div>
+        </label>
+        <label for="s2" id="slide2" class="slide-content">
+          <div class="sport-name">Bóng Đá</div>
+          <div class="sport-desc">Nâng tầm trận đấu với trang bị phù hợp</div>
+          <div class="sport-cta">Mua Ngay</div>
+        </label>
+        <label for="s3" id="slide3" class="slide-content">
+          <div class="sport-name">Bóng Rổ</div>
+          <div class="sport-desc">
+            Cải thiện kỹ năng với những sản phẩm hàng đầu
           </div>
-          <div class="brand-item">
-            <img
-              src="../assets/images/ui/ebay.svg"
-              alt="Ebay"
-              class="height-150"
-            />
+          <div class="sport-cta">Mua Ngay</div>
+        </label>
+        <label for="s4" id="slide4" class="slide-content">
+          <div class="sport-name">Tập Luyện</div>
+          <div class="sport-desc">Trang bị để đạt hiệu suất tốt nhất</div>
+          <div class="sport-cta">Mua Ngay</div>
+        </label>
+        <label for="s5" id="slide5" class="slide-content">
+          <div class="sport-name">Thời Trang</div>
+          <div class="sport-desc">
+            Kết hợp hoàn hảo giữa phong cách và thoải mái
           </div>
-          <div class="brand-item">
-            <img
-              src="../assets/images/ui/amazon_new.svg"
-              alt="Puma"
-              class="height-200"
-            />
-          </div>
-          <div class="brand-item">
-            <img
-              src="../assets/images/ui/ajio_new.svg"
-              alt="Reebok"
-              class="height-40"
-            />
-          </div>
-          <div class="brand-item">
-            <img
-              src="../assets/images/ui/ebay.svg"
-              alt="New Balance"
-              class="height-150"
-            />
-          </div>
-        </div>
-      </div>
-    </section>
+          <div class="sport-cta">Mua Ngay</div>
+        </label>
+      </section>
 
-    <!-- Shop by Sport Section -->
-    <section id="slider" class="sport-carousel container">
-      <h2 class="sport-carousel-heading">- Mua Sắm Theo Môn Thể Thao -</h2>
-      <input type="radio" name="slider" id="s1" />
-      <input type="radio" name="slider" id="s2" />
-      <input type="radio" name="slider" id="s3" checked />
-      <input type="radio" name="slider" id="s4" />
-      <input type="radio" name="slider" id="s5" />
-      <label for="s1" id="slide1" class="slide-content">
-        <div class="sport-name">Chạy Bộ</div>
-        <div class="sport-desc">
-          Nâng cao hiệu suất với bộ sưu tập của chúng tôi
-        </div>
-        <div class="sport-cta">Mua Ngay</div>
-      </label>
-      <label for="s2" id="slide2" class="slide-content">
-        <div class="sport-name">Bóng Đá</div>
-        <div class="sport-desc">Nâng tầm trận đấu với trang bị phù hợp</div>
-        <div class="sport-cta">Mua Ngay</div>
-      </label>
-      <label for="s3" id="slide3" class="slide-content">
-        <div class="sport-name">Bóng Rổ</div>
-        <div class="sport-desc">
-          Cải thiện kỹ năng với những sản phẩm hàng đầu
-        </div>
-        <div class="sport-cta">Mua Ngay</div>
-      </label>
-      <label for="s4" id="slide4" class="slide-content">
-        <div class="sport-name">Tập Luyện</div>
-        <div class="sport-desc">Trang bị để đạt hiệu suất tốt nhất</div>
-        <div class="sport-cta">Mua Ngay</div>
-      </label>
-      <label for="s5" id="slide5" class="slide-content">
-        <div class="sport-name">Thời Trang</div>
-        <div class="sport-desc">
-          Kết hợp hoàn hảo giữa phong cách và thoải mái
-        </div>
-        <div class="sport-cta">Mua Ngay</div>
-      </label>
-    </section>
-
-    <!-- Products Section -->
-    <section class="products-section">
-      <div class="container">
-        <h2 class="products-heading">- Sản Phẩm Bán Chạy -</h2>
-        <div class="product-grid">
-          <!-- Product Card Template -->
-          <div class="product-card">
-            <img src="../assets/images/products/shoes_1.svg" alt="Product 1" />
-            <div class="product-card-content">
-              <div>
-                <h3 class="product-card-title">Air Max 270</h3>
-                <p class="product-card-price">$199.99</p>
+      <!-- Products Section -->
+      <section class="products-section">
+        <div class="container">
+          <h2 class="products-heading">- Sản Phẩm Bán Chạy -</h2>
+          <div class="product-grid">
+            <!-- Product Card Template -->
+            <div class="product-card">
+              <img
+                src="../assets/images/products/shoes_1.svg"
+                alt="Product 1"
+                class="product-img"
+                loading="lazy"
+                decoding="async"
+                fetchpriority="low"
+              />
+              <div class="product-card-content">
+                <div>
+                  <h3 class="product-card-title">Air Max 270</h3>
+                  <p class="product-card-price">$199.99</p>
+                </div>
+                <a href="#" class="view-more">
+                  <img src="../assets/images/ui/arrow.svg" alt="View" />
+                </a>
               </div>
-              <a href="#" class="view-more">
-                <img src="../assets/images/ui/arrow.svg" alt="View" />
-              </a>
             </div>
-          </div>
 
-          <!-- Product 2 -->
-          <div class="product-card">
-            <img src="../assets/images/products/shoes_2.svg" alt="Product 2" />
-            <div class="product-card-content">
-              <div>
-                <h3 class="product-card-title">ZoomX Vaporfly</h3>
-                <p class="product-card-price">$249.99</p>
+            <!-- Product 2 -->
+            <div class="product-card">
+              <img
+                src="../assets/images/products/shoes_2.svg"
+                alt="Product 2"
+                class="product-img"
+                loading="lazy"
+                decoding="async"
+                fetchpriority="low"
+              />
+              <div class="product-card-content">
+                <div>
+                  <h3 class="product-card-title">ZoomX Vaporfly</h3>
+                  <p class="product-card-price">$249.99</p>
+                </div>
+                <a href="#" class="view-more">
+                  <img src="../assets/images/ui/arrow.svg" alt="View" />
+                </a>
               </div>
-              <a href="#" class="view-more">
-                <img src="../assets/images/ui/arrow.svg" alt="View" />
-              </a>
             </div>
-          </div>
 
-          <!-- Product 3 -->
-          <div class="product-card">
-            <img src="../assets/images/products/shoes_3.svg" alt="Product 3" />
-            <div class="product-card-content">
-              <div>
-                <h3 class="product-card-title">Air Jordan 1</h3>
-                <p class="product-card-price">$179.99</p>
+            <!-- Product 3 -->
+            <div class="product-card">
+              <img
+                src="../assets/images/products/shoes_3.svg"
+                alt="Product 3"
+                class="product-img"
+                loading="lazy"
+                decoding="async"
+                fetchpriority="low"
+              />
+              <div class="product-card-content">
+                <div>
+                  <h3 class="product-card-title">Air Jordan 1</h3>
+                  <p class="product-card-price">$179.99</p>
+                </div>
+                <a href="#" class="view-more">
+                  <img src="../assets/images/ui/arrow.svg" alt="View" />
+                </a>
               </div>
-              <a href="#" class="view-more">
-                <img src="../assets/images/ui/arrow.svg" alt="View" />
-              </a>
             </div>
-          </div>
 
-          <!-- Product 4 -->
-          <div class="product-card">
-            <img src="../assets/images/products/shoes_4.svg" alt="Product 4" />
-            <div class="product-card-content">
-              <div>
-                <h3 class="product-card-title">React Infinity</h3>
-                <p class="product-card-price">$159.99</p>
+            <!-- Product 4 -->
+            <div class="product-card">
+              <img
+                src="../assets/images/products/shoes_4.svg"
+                alt="Product 4"
+                class="product-img"
+                loading="lazy"
+                decoding="async"
+                fetchpriority="low"
+              />
+              <div class="product-card-content">
+                <div>
+                  <h3 class="product-card-title">React Infinity</h3>
+                  <p class="product-card-price">$159.99</p>
+                </div>
+                <a href="#" class="view-more">
+                  <img src="../assets/images/ui/arrow.svg" alt="View" />
+                </a>
               </div>
-              <a href="#" class="view-more">
-                <img src="../assets/images/ui/arrow.svg" alt="View" />
-              </a>
             </div>
-          </div>
 
-          <!-- Product 5 -->
-          <div class="product-card">
-            <img src="../assets/images/products/shoes_5.svg" alt="Product 5" />
-            <div class="product-card-content">
-              <div>
-                <h3 class="product-card-title">Metcon 7</h3>
-                <p class="product-card-price">$139.99</p>
+            <!-- Product 5 -->
+            <div class="product-card">
+              <img
+                src="../assets/images/products/shoes_5.svg"
+                alt="Product 5"
+                class="product-img"
+                loading="lazy"
+                decoding="async"
+                fetchpriority="low"
+              />
+              <div class="product-card-content">
+                <div>
+                  <h3 class="product-card-title">Metcon 7</h3>
+                  <p class="product-card-price">$139.99</p>
+                </div>
+                <a href="#" class="view-more">
+                  <img src="../assets/images/ui/arrow.svg" alt="View" />
+                </a>
               </div>
-              <a href="#" class="view-more">
-                <img src="../assets/images/ui/arrow.svg" alt="View" />
-              </a>
             </div>
-          </div>
 
-          <!-- Product 6 -->
-          <div class="product-card">
-            <img src="../assets/images/products/shoes_1.svg" alt="Product 6" />
-            <div class="product-card-content">
-              <div>
-                <h3 class="product-card-title">Free Run 5.0</h3>
-                <p class="product-card-price">$129.99</p>
+            <!-- Product 6 -->
+            <div class="product-card">
+              <img
+                src="../assets/images/products/shoes_1.svg"
+                alt="Product 6"
+                class="product-img"
+                loading="lazy"
+                decoding="async"
+                fetchpriority="low"
+              />
+              <div class="product-card-content">
+                <div>
+                  <h3 class="product-card-title">Free Run 5.0</h3>
+                  <p class="product-card-price">$129.99</p>
+                </div>
+                <a href="#" class="view-more">
+                  <img src="../assets/images/ui/arrow.svg" alt="View" />
+                </a>
               </div>
-              <a href="#" class="view-more">
-                <img src="../assets/images/ui/arrow.svg" alt="View" />
-              </a>
             </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <section class="banner-section container">
-      <div
-        class="banner-bg position-relative rounded-4 d-flex align-items-center"
-        style="height: 578px"
-      >
-        <span class="banner-word position-absolute">Snevo</span>
-        <div class="row w-100">
-          <div class="col-lg-7 d-flex align-items-center">
-            <img
-              src="../assets/images/ui/banner.svg"
-              alt="Snevo Banner"
-              class="banner-img"
-              style="width: 140%"
-            />
-          </div>
-          <div
-            class="col-lg-5 d-flex align-items-center justify-content-center"
-            style="z-index: 2"
-          >
-            <div class="banner-content text-white ms-lg-5">
-              <h1 class="banner-title mb-3">
-                Sẵn sàng dẫn đầu<br /><span class="bold-text"
-                  >xu hướng</span
-                >
-              </h1>
-              <p class="banner-desc mb-4">
-                Khám phá tất cả sản phẩm độc quyền của Snevo và thêm
-                vào giỏ hàng của bạn
-              </p>
-              <button
-                class="banner-cta btn btn-white text-black px-5 py-2 fw-bold rounded-3 shadow-sm"
-              >
-                Khám Phá
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Testimonials Section -->
-    <section class="testimonials-section">
-      <div class="container">
-        <h2 class="testimonials-heading">- Khách Hàng Nói Gì Về Chúng Tôi -</h2>
-
-        <!-- Testimonial Slider -->
+      <section class="banner-section container">
         <div
-          id="testimonialCarousel"
-          class="carousel slide"
-          data-bs-ride="carousel"
-          data-bs-interval="5000"
+          class="banner-bg position-relative rounded-4 d-flex align-items-center"
+          style="height: 578px"
         >
-          <div class="carousel-inner">
-            <!-- Slide 1 -->
-            <div class="carousel-item active">
-              <div class="row justify-content-center g-4">
-                <!-- Testimonial 1 -->
-                <div class="col-lg-5">
-                  <div class="testimonial-card">
-                    <div class="testimonial-content">
-                      <div class="testimonial-image">
-                        <img src="../assets/images/ui/nhan.jpg" alt="Nhan" />
-                      </div>
-                      <div class="testimonial-text">
-                        <h4 class="testimonial-name">Nhan Pham</h4>
-                        <div class="testimonial-rating">★★★★★</div>
-                        <p class="testimonial-quote">
-                          "Sự chú ý đến từng chi tiết trong những đôi giày này
-                          thật đáng kinh ngạc. Chúng không chỉ thoải mái mà còn
-                          cực kỳ thời trang!"
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <!-- Testimonial 2 -->
-                <div class="col-lg-5">
-                  <div class="testimonial-card">
-                    <div class="testimonial-content">
-                      <div class="testimonial-image">
-                        <img src="../assets/images/ui/thian.jpg" alt="Thian" />
-                      </div>
-                      <div class="testimonial-text">
-                        <h4 class="testimonial-name">Thian Le</h4>
-                        <div class="testimonial-rating">★★★★★</div>
-                        <p class="testimonial-quote">
-                          "Đây là món đồ tuyệt vời nhất tôi mua trong năm nay!
-                          Chất lượng sản phẩm tuyệt hảo, và đội ngũ hỗ trợ khách
-                          hàng rất nhiệt tình!"
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+          <span class="banner-word position-absolute">Snevo</span>
+          <div class="row w-100">
+            <div class="col-lg-7 d-flex align-items-center">
+              <img
+                src="../assets/images/ui/banner.svg"
+                alt="Snevo Banner"
+                class="banner-img"
+                style="width: 140%"
+              />
+            </div>
+            <div
+              class="col-lg-5 d-flex align-items-center justify-content-center"
+              style="z-index: 2"
+            >
+              <div class="banner-content text-white ms-lg-5">
+                <h1 class="banner-title mb-3">
+                  Sẵn sàng dẫn đầu<br /><span class="bold-text">xu hướng</span>
+                </h1>
+                <p class="banner-desc mb-4">
+                  Khám phá tất cả sản phẩm độc quyền của Snevo và thêm vào giỏ
+                  hàng của bạn
+                </p>
+                <button
+                  class="banner-cta btn btn-white text-black px-5 py-2 fw-bold rounded-3 shadow-sm"
+                >
+                  Khám Phá
+                </button>
               </div>
             </div>
-            <!-- Slide 2 -->
-            <div class="carousel-item">
-              <div class="row justify-content-center g-4">
-                <!-- Testimonial 3 -->
-                <div class="col-lg-5">
-                  <div class="testimonial-card">
-                    <div class="testimonial-content">
-                      <div class="testimonial-image">
-                        <img src="../assets/images/ui/duong.jpg" alt="Duong" />
-                      </div>
-                      <div class="testimonial-text">
-                        <h4 class="testimonial-name">Duong Tran</h4>
-                        <div class="testimonial-rating">★★★★★</div>
-                        <p class="testimonial-quote">
-                          "Đôi giày thể thao thoải mái nhất mà tôi từng mang.
-                          Dịch vụ khách hàng rất tốt, và giao hàng cực kỳ
-                          nhanh!"
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <!-- Testimonial 4 -->
-                <div class="col-lg-5">
-                  <div class="testimonial-card">
-                    <div class="testimonial-content">
-                      <div class="testimonial-image">
-                        <img src="../assets/images/ui/nhan.jpg" alt="Nhan" />
-                      </div>
-                      <div class="testimonial-text">
-                        <h4 class="testimonial-name">Nhan Nguyen</h4>
-                        <div class="testimonial-rating">★★★★★</div>
-                        <p class="testimonial-quote">
-                          "Chất lượng và phong cách tuyệt vời. Những đôi giày
-                          này đã trở thành lựa chọn hàng đầu của tôi cho cả đi
-                          chơi và tập luyện!"
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <!-- Carousel Indicators -->
-          <div class="carousel-indicators">
-            <button
-              type="button"
-              data-bs-target="#testimonialCarousel"
-              data-bs-slide-to="0"
-              class="active"
-            ></button>
-            <button
-              type="button"
-              data-bs-target="#testimonialCarousel"
-              data-bs-slide-to="1"
-            ></button>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
+      <!-- Testimonials Section -->
+      <section class="testimonials-section">
+        <div class="container">
+          <h2 class="testimonials-heading">
+            - Khách Hàng Nói Gì Về Chúng Tôi -
+          </h2>
+
+          <!-- Testimonial Slider -->
+          <div
+            id="testimonialCarousel"
+            class="carousel slide"
+            data-bs-ride="carousel"
+            data-bs-interval="5000"
+          >
+            <div class="carousel-inner">
+              <!-- Slide 1 -->
+              <div class="carousel-item active">
+                <div class="row justify-content-center g-4">
+                  <!-- Testimonial 1 -->
+                  <div class="col-lg-5">
+                    <div class="testimonial-card">
+                      <div class="testimonial-content">
+                                    <div class="testimonial-image">
+                                    <img src="../assets/images/ui/nhan.jpg" alt="Nhan" loading="lazy" decoding="async" fetchpriority="low" />
+                                  </div>
+                        <div class="testimonial-text">
+                          <h4 class="testimonial-name">Nhan Pham</h4>
+                          <div class="testimonial-rating">★★★★★</div>
+                          <p class="testimonial-quote">
+                            "Sự chú ý đến từng chi tiết trong những đôi giày này
+                            thật đáng kinh ngạc. Chúng không chỉ thoải mái mà
+                            còn cực kỳ thời trang!"
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Testimonial 2 -->
+                  <div class="col-lg-5">
+                    <div class="testimonial-card">
+                      <div class="testimonial-content">
+                        <div class="testimonial-image">
+                          <img src="../assets/images/ui/thian.jpg" alt="Thian" loading="lazy" decoding="async" fetchpriority="low" />
+                        </div>
+                        <div class="testimonial-text">
+                          <h4 class="testimonial-name">Thian Le</h4>
+                          <div class="testimonial-rating">★★★★★</div>
+                          <p class="testimonial-quote">
+                            "Đây là món đồ tuyệt vời nhất tôi mua trong năm nay!
+                            Chất lượng sản phẩm tuyệt hảo, và đội ngũ hỗ trợ
+                            khách hàng rất nhiệt tình!"
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Slide 2 -->
+              <div class="carousel-item">
+                <div class="row justify-content-center g-4">
+                  <!-- Testimonial 3 -->
+                  <div class="col-lg-5">
+                    <div class="testimonial-card">
+                      <div class="testimonial-content">
+                        <div class="testimonial-image">
+                          <img src="../assets/images/ui/duong.jpg" alt="Duong" loading="lazy" decoding="async" fetchpriority="low" />
+                        </div>
+                        <div class="testimonial-text">
+                          <h4 class="testimonial-name">Duong Tran</h4>
+                          <div class="testimonial-rating">★★★★★</div>
+                          <p class="testimonial-quote">
+                            "Đôi giày thể thao thoải mái nhất mà tôi từng mang.
+                            Dịch vụ khách hàng rất tốt, và giao hàng cực kỳ
+                            nhanh!"
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Testimonial 4 -->
+                  <div class="col-lg-5">
+                    <div class="testimonial-card">
+                      <div class="testimonial-content">
+                        <div class="testimonial-image">
+                          <img src="../assets/images/ui/nhan.jpg" alt="Nhan" loading="lazy" decoding="async" fetchpriority="low" />
+                        </div>
+                        <div class="testimonial-text">
+                          <h4 class="testimonial-name">Nhan Nguyen</h4>
+                          <div class="testimonial-rating">★★★★★</div>
+                          <p class="testimonial-quote">
+                            "Chất lượng và phong cách tuyệt vời. Những đôi giày
+                            này đã trở thành lựa chọn hàng đầu của tôi cho cả đi
+                            chơi và tập luyện!"
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Carousel Indicators -->
+            <div class="carousel-indicators">
+              <button
+                type="button"
+                data-bs-target="#testimonialCarousel"
+                data-bs-slide-to="0"
+                class="active"
+              ></button>
+              <button
+                type="button"
+                data-bs-target="#testimonialCarousel"
+                data-bs-slide-to="1"
+              ></button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
     <div id="footerRoot"></div>
     <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <!-- Configuration -->
     <script src="../assets/js/config.js"></script>
@@ -416,6 +547,9 @@
     <script type="module" src="../assets/js/animations.js"></script>
     <script type="module" src="../assets/js/Application.js"></script>
     <script type="module" src="../assets/js/auth-persistence.js"></script>
-    <script src="../assets/js/carousel.js"></script>
+  <script defer src="../assets/js/carousel.js"></script>
+  <script defer src="../assets/js/skeleton-loader.js"></script>
+  <!-- Lazy image helper (small, non-business UX helper) -->
+  <script defer src="../assets/js/lazy-images.js"></script>
   </body>
 </html>
