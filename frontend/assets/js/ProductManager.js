@@ -36,8 +36,6 @@ class ProductManager {
     this.totalPages = 0;
     this.isLoading = false;
     this.priceDebounceTimer = null;
-
-    console.log("✅ ProductManager initialized with variant filtering");
   }
 
   /**
@@ -56,7 +54,6 @@ class ProductManager {
         const maxProduct = response.data[0];
         this.priceRange.max =
           Math.ceil(maxProduct.base_price / 100000) * 100000; // Làm tròn lên
-        console.log(`✅ Price range loaded: 0 - ${this.priceRange.max}`);
       }
     } catch (error) {
       console.error("❌ Error loading price range:", error);
@@ -68,8 +65,6 @@ class ProductManager {
    */
   async init() {
     try {
-      console.log("🔄 Initializing ProductManager...");
-
       this.parseUrlParameters();
       this.setupEventListeners();
       // Load reference data
@@ -84,8 +79,6 @@ class ProductManager {
       await this.loadProducts();
 
       this.updateFiltersUI();
-
-      console.log("✅ ProductManager ready");
     } catch (error) {
       console.error("❌ Failed to initialize ProductManager:", error);
       this.showError("Failed to load products. Please refresh the page.");
@@ -101,7 +94,6 @@ class ProductManager {
       if (response.success) {
         this.colors = response.data || [];
         this.renderColorFilters();
-        console.log(`✅ Loaded ${this.colors.length} colors`);
       }
     } catch (error) {
       console.error("❌ Error loading colors:", error);
@@ -118,7 +110,6 @@ class ProductManager {
       if (response.success) {
         this.sizes = response.data || [];
         this.renderSizeFilters();
-        console.log(`✅ Loaded ${this.sizes.length} sizes`);
       }
     } catch (error) {
       console.error("❌ Error loading sizes:", error);
@@ -134,7 +125,6 @@ class ProductManager {
     if (navbarSearchInput && this.currentFilters.search) {
       navbarSearchInput.value = this.currentFilters.search;
       document.getElementById("searchNavItem")?.classList.add("active");
-      console.log("✅ Navbar search synced:", this.currentFilters.search);
     }
   }
 
@@ -194,7 +184,6 @@ class ProductManager {
       if (response.success) {
         this.categories = response.data || [];
         this.renderCategoryFilters();
-        console.log(`✅ Loaded ${this.categories.length} categories`);
       }
     } catch (error) {
       console.error("❌ Error loading categories:", error);
@@ -249,8 +238,6 @@ class ProductManager {
       params.sort_by = sortConfig.by;
       params.sort_order = sortConfig.order;
 
-      console.log("🔄 Loading products with params:", params);
-
       const response = await this.api.getProducts(params);
 
       if (response.success) {
@@ -264,10 +251,6 @@ class ProductManager {
           this.totalPages = response.pagination.totalPages || 0;
           this.currentPage = response.pagination.page || 1;
         }
-
-        console.log(
-          `✅ Loaded ${this.products.length} products (Total: ${this.totalProducts})`
-        );
 
         this.renderProducts(this.products);
         this.renderPagination(this.totalPages);
@@ -312,8 +295,6 @@ class ProductManager {
         product.average_rating = allStats[index]?.average_rating || 0;
         product.total_reviews = allStats[index]?.total_reviews || 0;
       });
-
-      console.log("✅ Enriched products with review stats");
     } catch (error) {
       console.error("❌ Error enriching products with reviews:", error);
     }
@@ -343,7 +324,6 @@ class ProductManager {
       .join("");
 
     container.innerHTML = html;
-    console.log(`✅ Rendered ${this.colors.length} color filters`);
   }
 
   /**
@@ -367,8 +347,6 @@ class ProductManager {
       .join("");
 
     container.innerHTML = html;
-
-    console.log(`✅ Rendered ${this.sizes.length} size filters`);
   }
 
   /**
@@ -409,8 +387,6 @@ class ProductManager {
       this.currentFilters.sizes.push(sizeId);
     }
 
-    console.log("🔄 Size filter changed:", this.currentFilters.sizes);
-
     // Update UI
     this.updateSizeFiltersUI();
 
@@ -438,8 +414,6 @@ class ProductManager {
    * Setup event listeners
    */
   setupEventListeners() {
-    console.log("🎯 Setting up event listeners...");
-
     // COLOR FILTER - Event Delegation
     const colorContainer = document.getElementById("colorFilters");
     if (colorContainer) {
@@ -452,7 +426,6 @@ class ProductManager {
           }
         }
       });
-      console.log("✅ Color filter event listener attached");
     }
 
     document
@@ -483,7 +456,6 @@ class ProductManager {
       const handler = this.handlePriceRangeChange.bind(this);
       minRange.addEventListener("input", handler);
       maxRange.addEventListener("input", handler);
-      console.log("✅ Price range event listeners attached");
     }
 
     // Sort change
@@ -597,11 +569,6 @@ class ProductManager {
 
     // Initialize slider track position
     this.updateSliderTrack();
-
-    console.log("✅ Price range UI initialized:", {
-      min: this.priceRange.min,
-      max: this.priceRange.max,
-    });
   }
 
   /**
@@ -666,10 +633,6 @@ class ProductManager {
     this.priceDebounceTimer = setTimeout(async () => {
       this.currentPage = 1;
       await this.loadProducts();
-      console.log("💰 Price filter applied:", {
-        min: this.currentFilters.minPrice,
-        max: this.currentFilters.maxPrice,
-      });
     }, 500);
   }
 
@@ -816,7 +779,6 @@ class ProductManager {
 
     container.innerHTML = productsHTML;
     container.style.display = "flex";
-    console.log(`✅ Rendered ${products.length} products`);
   }
 
   /**
@@ -1051,7 +1013,6 @@ class ProductManager {
    * Quick view (modal)
    */
   quickView(productId) {
-    console.log("Quick view product:", productId);
     // TODO: Implement quick view modal
   }
 
@@ -1134,7 +1095,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     window.navbarManager
   ) {
     try {
-      console.log("🛒 Syncing cart count from API...");
       const cartRes = await window.cartAPI.getCart();
       const cartItems = Array.isArray(cartRes?.data)
         ? cartRes.data
@@ -1142,7 +1102,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         ? cartRes
         : [];
       const cartCount = cartItems.length;
-      console.log("🛒 Cart count from API:", cartCount);
       window.navbarManager.updateCartCount(cartCount);
     } catch (err) {
       console.error("Failed to sync cart count:", err);

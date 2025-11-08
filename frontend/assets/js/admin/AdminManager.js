@@ -37,7 +37,6 @@ class AdminManager {
     this.actions.productManager = this.productManager; // Wire connection
     window.adminActions = this.actions; // Expose globally
     window.adminManager = this;
-    console.log("✅ AdminManager initialized");
   }
 
   /**
@@ -45,8 +44,6 @@ class AdminManager {
    */
   async init() {
     try {
-      console.log("🔄 Initializing AdminManager...");
-
       // Wait for API
       if (!this.core.api) {
         await this.core.waitForAPI();
@@ -73,7 +70,6 @@ class AdminManager {
       // Setup event listeners (ONLY ONCE)
       this.setupEventListeners();
 
-      console.log("✅ AdminManager initialized successfully");
       this.setupLogoutButton();
     } catch (error) {
       console.error("❌ Init error:", error);
@@ -83,7 +79,6 @@ class AdminManager {
   setupEventListeners() {
     // ✅ Check if already setup
     if (this._listenersSetup) {
-      console.log("⚠️ Event listeners already setup, skipping...");
       return;
     }
 
@@ -134,7 +129,6 @@ class AdminManager {
 
     // ✅ Mark as setup
     this._listenersSetup = true;
-    console.log("✅ Event listeners setup complete");
   }
   /**
    * Setup logout button
@@ -142,14 +136,11 @@ class AdminManager {
   setupLogoutButton() {
     const logoutBtn = document.getElementById("logoutBtn");
     if (!logoutBtn) {
-      console.warn("⚠️ Logout button not found");
       return;
     }
 
-    console.log("🔐 Setting up logout button");
     logoutBtn.addEventListener("click", (e) => {
       e.preventDefault();
-      console.log("👋 Logout clicked");
       this.handleLogout();
     });
   }
@@ -158,8 +149,6 @@ class AdminManager {
    * Handle logout
    */
   async handleLogout() {
-    console.log("🚪 Starting logout...");
-
     const logoutBtn = document.getElementById("logoutBtn");
     if (logoutBtn) {
       logoutBtn.disabled = true;
@@ -178,7 +167,6 @@ class AdminManager {
       await new Promise((resolve) => setTimeout(resolve, 800));
 
       // Redirect
-      console.log("✅ Logout complete - redirecting");
       window.location.href = "index.html";
     } catch (error) {
       console.error("❌ Logout error:", error);
@@ -195,21 +183,14 @@ class AdminManager {
    * Clear all session data
    */
   async clearAllSessionData() {
-    console.log("🧹 Clearing session data...");
-
     try {
       // STEP 1: Supabase signout (with safety check)
       try {
         if (window.supabaseClient) {
-          console.log("🔑 Signing out from Supabase...");
           const { error } = await window.supabaseClient.auth.signOut();
           if (error) {
             console.error("⚠️ Supabase signOut error:", error);
-          } else {
-            console.log("✅ Supabase signOut successful");
           }
-        } else {
-          console.warn("⚠️ Supabase client not available");
         }
       } catch (err) {
         console.error("⚠️ Supabase signOut failed:", err);
@@ -217,7 +198,6 @@ class AdminManager {
       }
 
       // STEP 2: Clear localStorage
-      console.log("🗑️ Clearing localStorage...");
       const keysToRemove = [
         "authtoken",
         "refreshtoken",
@@ -230,7 +210,6 @@ class AdminManager {
       keysToRemove.forEach((key) => {
         if (localStorage.getItem(key)) {
           localStorage.removeItem(key);
-          console.log(`  ✓ Removed ${key}`);
         }
       });
 
@@ -239,16 +218,13 @@ class AdminManager {
       allKeys.forEach((key) => {
         if (key.startsWith("sb-") || key.includes("supabase")) {
           localStorage.removeItem(key);
-          console.log(`  ✓ Removed: ${key}`);
         }
       });
 
       // STEP 4: Clear sessionStorage
-      console.log("🗑️ Clearing sessionStorage...");
       sessionStorage.clear();
 
       // STEP 5: Clear cookies
-      console.log("🍪 Clearing cookies...");
       document.cookie.split(";").forEach((cookie) => {
         const eqPos = cookie.indexOf("=");
         const name =
@@ -262,23 +238,18 @@ class AdminManager {
         ) {
           document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
           document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=${window.location.hostname}`;
-          console.log(`  ✓ Cleared: ${name}`);
         }
       });
 
       // STEP 6: Update AuthManager (if exists and has method)
       if (window.authManager) {
-        console.log("🔄 Updating AuthManager...");
         if (typeof window.authManager.clearAuthData === "function") {
           window.authManager.clearAuthData();
         }
         if (typeof window.authManager.updateAuthUI === "function") {
           window.authManager.updateAuthUI();
         }
-        // Skip emit() - không có trong authManager
       }
-
-      console.log("✅ All session data cleared");
     } catch (error) {
       console.error("❌ Error clearing session:", error);
       throw error;
@@ -415,12 +386,9 @@ class AdminManager {
         this.switchSection(sectionName);
       });
     });
-
-    console.log("✅ Section switching initialized");
   }
 
   switchSection(sectionName) {
-    console.log("🔄 Switching to section:", sectionName);
 
     // Hide all sections
     document.querySelectorAll(".content-section").forEach((section) => {
@@ -456,8 +424,6 @@ class AdminManager {
           }
           break;
       }
-    } else {
-      console.error("❌ Section not found:", `${sectionName}Section`);
     }
 
     // Update active link
@@ -477,7 +443,6 @@ class AdminManager {
    */
   async deleteVariant(variantId, buttonElement) {
     try {
-      console.log('🗑️ Delete variant called:', variantId);     
       // Pass to AdminActions with buttonElement
       await this.actions.deleteVariant(variantId, buttonElement);
     } catch (error) {
@@ -496,9 +461,7 @@ class AdminManager {
     }
 
     try {
-      console.log('💳 Confirming payment:', paymentId);
       const response = await window.paymentsAPI.confirmPayment(paymentId);
-      console.log('✅ Payment confirmed:', response);
       
       AdminUtils.showToast('Success', 'Payment confirmed successfully', 'success');
       
@@ -521,9 +484,7 @@ class AdminManager {
     }
 
     try {
-      console.log('✅ Approving COD order:', paymentId);
       const response = await window.paymentsAPI.approveCod(paymentId);
-      console.log('✅ COD order approved:', response);
       
       AdminUtils.showToast('Success', 'COD order approved for delivery', 'success');
       
@@ -546,9 +507,7 @@ class AdminManager {
     }
 
     try {
-      console.log('💵 Collecting COD payment:', paymentId);
       const response = await window.paymentsAPI.collectCod(paymentId);
-      console.log('✅ COD collected:', response);
       
       AdminUtils.showToast('Success', 'COD payment marked as collected', 'success');
       
