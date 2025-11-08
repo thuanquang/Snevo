@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admin Dashboard - Nike Store</title>
+      <title>Bảng Điều Khiển - Snevo</title>
 
     <!-- Bootstrap 5 CSS -->
     <link
@@ -21,8 +21,11 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
     />
-
-    <link href="../assets/css/animations.css" rel="stylesheet" />
+    <!-- Inter Font -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />    <link href="../assets/css/animations.css" rel="stylesheet" />
     <link href="../assets/css/components.css" rel="stylesheet" />
     <link href="../assets/css/responsive.css" rel="stylesheet" />
     <link href="../assets/css/navbar.css" rel="stylesheet" />
@@ -38,13 +41,13 @@
       <!-- Sidebar -->
       <aside class="admin-sidebar" id="adminSidebar">
         <div class="sidebar-brand">
-          <h4><i class="fas fa-user-shield"></i> Admin Panel</h4>
+          <h4><i class="fas fa-user-shield"></i> Quản Trị</h4>
         </div>
         <ul class="sidebar-menu">
           <li class="sidebar-menu-item">
             <a href="#" class="sidebar-menu-link" data-section="dashboard">
               <i class="fas fa-chart-line"></i>
-              <span>Dashboard</span>
+              <span>Tổng Quan</span>
             </a>
           </li>
           <li class="sidebar-menu-item">
@@ -54,20 +57,19 @@
               data-section="inventory"
             >
               <i class="fas fa-boxes"></i>
-              <span>Inventory Management</span>
+              <span>Quản Lý Kho</span>
             </a>
           </li>
           <li class="sidebar-menu-item">
             <a href="#" class="sidebar-menu-link" data-section="history">
               <i class="fas fa-history"></i>
-              <span>History & Recovery</span>
-              <span class="badge bg-warning ms-auto" id="deletedCount">0</span>
+              <span>Lịch Sử & Khôi Phục</span>             
             </a>
           </li>
           <li class="sidebar-menu-item">
             <a href="#" class="sidebar-menu-link" data-section="orders">
               <i class="fas fa-shopping-cart"></i>
-              <span>Orders Management</span>
+              <span>Quản lý đơn hàng</span>
               <span class="badge bg-danger ms-auto" id="pendingOrdersCount">0</span>
             </a>
           </li>
@@ -89,8 +91,8 @@
           style="display: none"
         >
           <div class="admin-header">
-            <h1>Dashboard</h1>
-            <p>Overview of store statistics and metrics</p>
+            <h1>Tổng Quan</h1>
+            <p>Thống kê và chỉ số cửa hàng</p>
           </div>
 
           <!-- Statistics Cards -->
@@ -100,7 +102,7 @@
               <div class="section-card">
                 <div class="d-flex justify-content-between align-items-start">
                   <div>
-                    <p class="text-muted small mb-2">Pending Orders</p>
+                    <p class="text-muted small mb-2">Đơn Chờ Duyệt</p>
                     <h3 class="mb-0" id="dashPendingCount">0</h3>
                   </div>
                   <i class="fas fa-hourglass-half text-warning" style="font-size: 2rem;"></i>
@@ -113,7 +115,7 @@
               <div class="section-card">
                 <div class="d-flex justify-content-between align-items-start">
                   <div>
-                    <p class="text-muted small mb-2">Approved Orders</p>
+                    <p class="text-muted small mb-2">Đã Duyệt</p>
                     <h3 class="mb-0" id="dashApprovedCount">0</h3>
                   </div>
                   <i class="fas fa-check-circle text-info" style="font-size: 2rem;"></i>
@@ -126,7 +128,7 @@
               <div class="section-card">
                 <div class="d-flex justify-content-between align-items-start">
                   <div>
-                    <p class="text-muted small mb-2">Cancelled Orders</p>
+                    <p class="text-muted small mb-2">Đã Hủy</p>
                     <h3 class="mb-0" id="dashCancelledCount">0</h3>
                   </div>
                   <i class="fas fa-times-circle text-danger" style="font-size: 2rem;"></i>
@@ -139,7 +141,7 @@
               <div class="section-card">
                 <div class="d-flex justify-content-between align-items-start">
                   <div>
-                    <p class="text-muted small mb-2">Total Revenue</p>
+                    <p class="text-muted small mb-2">Doanh Thu</p>
                     <h3 class="mb-0" id="dashTotalRevenue">₫0</h3>
                   </div>
                   <i class="fas fa-chart-line text-success" style="font-size: 2rem;"></i>
@@ -155,7 +157,7 @@
               <div class="section-card">
                 <div class="d-flex justify-content-between align-items-start">
                   <div>
-                    <p class="text-muted small mb-2">Total Shoes</p>
+                    <p class="text-muted small mb-2">Tổng Số Giày</p>
                     <h3 class="mb-0" id="dashTotalShoes">0</h3>
                   </div>
                   <i class="fas fa-shoe-prints text-primary" style="font-size: 2rem;"></i>
@@ -168,7 +170,7 @@
               <div class="section-card">
                 <div class="d-flex justify-content-between align-items-start">
                   <div>
-                    <p class="text-muted small mb-2">Total Variants</p>
+                    <p class="text-muted small mb-2">Tổng Số Biến Thể</p>
                     <h3 class="mb-0" id="dashTotalVariants">0</h3>
                   </div>
                   <i class="fas fa-boxes text-info" style="font-size: 2rem;"></i>
@@ -181,7 +183,7 @@
               <div class="section-card">
                 <div class="d-flex justify-content-between align-items-start">
                   <div>
-                    <p class="text-muted small mb-2">Total Orders</p>
+                    <p class="text-muted small mb-2">Tổng Đơn Hàng</p>
                     <h3 class="mb-0" id="dashTotalOrders">0</h3>
                   </div>
                   <i class="fas fa-shopping-cart text-success" style="font-size: 2rem;"></i>
@@ -194,7 +196,7 @@
               <div class="section-card">
                 <div class="d-flex justify-content-between align-items-start">
                   <div>
-                    <p class="text-muted small mb-2">Low Stock Items</p>
+                    <p class="text-muted small mb-2">Hàng Sắp Hết</p>
                     <h3 class="mb-0" id="dashLowStockItems">0</h3>
                   </div>
                   <i class="fas fa-exclamation-triangle text-warning" style="font-size: 2rem;"></i>
@@ -207,11 +209,11 @@
           <div class="section-card">
             <div class="section-header">
               <h2 class="section-title">
-                <i class="fas fa-list"></i> Recent Orders
+                <i class="fas fa-list"></i> Đơn Hàng Gần Đây
               </h2>
               <div class="section-actions">
                 <a href="#" class="btn btn-sm btn-outline-secondary" data-section="orders" onclick="adminManager.switchSection('orders')">
-                  <i class="fas fa-arrow-right"></i> View All
+                  <i class="fas fa-arrow-right"></i> Xem Tất Cả
                 </a>
               </div>
             </div>
@@ -220,11 +222,11 @@
               <table class="table table-hover table-sm">
                 <thead class="table-light">
                   <tr>
-                    <th>Order ID</th>
-                    <th>Customer</th>
-                    <th>Amount</th>
-                    <th>Status</th>
-                    <th>Date</th>
+                    <th>Mã Đơn</th>
+                    <th>Khách Hàng</th>
+                    <th>Tổng Tiền</th>
+                    <th>Trạng Thái</th>
+                    <th>Ngày Đặt</th>
                   </tr>
                 </thead>
                 <tbody id="dashRecentOrdersBody">
@@ -281,8 +283,8 @@
         <!-- Inventory Management Section -->
         <div id="inventorySection" class="content-section">
           <div class="admin-header">
-            <h1>Inventory Management</h1>
-            <p>Manage shoes, variants, and categories</p>
+            <h1>Quản Lý Kho</h1>
+            <p>Quản lý giày, phiên bản và danh mục</p>
           </div>
 
           <div class="section-card">
@@ -406,8 +408,8 @@
         <!-- History & Recovery Section -->
         <div id="historySection" class="content-section" style="display: none">
           <div class="admin-header">
-            <h1><i class="fas fa-history me-2"></i>History & Recovery</h1>
-            <p>Manage deleted items, view import history, and audit logs</p>
+            <h1><i class="fas fa-history me-2"></i>Lịch Sử & Khôi Phục</h1>
+            <p>Quản lý mục đã xóa, xem lịch sử nhập hàng và nhật ký hệ thống</p>
           </div>
 
           <!-- Tabs Navigation -->
@@ -422,9 +424,6 @@
                 role="tab"
               >
                 <i class="bi bi-trash3 me-2"></i>Deleted Products
-                <span class="badge bg-danger ms-2" id="deletedProductsCount"
-                  >0</span
-                >
               </button>
             </li>
             <li class="nav-item" role="presentation">
@@ -437,9 +436,6 @@
                 role="tab"
               >
                 <i class="bi bi-boxes me-2"></i>Deleted Variants
-                <span class="badge bg-warning ms-2" id="deletedVariantsCount"
-                  >0</span
-                >
               </button>
             </li>
             <li class="nav-item" role="presentation">
@@ -918,19 +914,19 @@
         <!-- Orders Management Section -->
         <div id="ordersSection" class="content-section" style="display: none">
           <div class="admin-header">
-            <h1><i class="fas fa-shopping-cart me-2"></i>Orders Management</h1>
-            <p>View, approve, and manage customer orders</p>
+            <h1><i class="fas fa-shopping-cart me-2"></i>Quản Lý Đơn Hàng</h1>
+            <p>Xem, duyệt và quản lý đơn hàng khách hàng</p>
           </div>
 
           <!-- Orders Section Card -->
           <div class="section-card">
             <div class="section-header">
               <h2 class="section-title">
-                <i class="fas fa-list"></i> All Orders
+                <i class="fas fa-list"></i> Tất Cả Đơn Hàng
               </h2>
               <div class="section-actions">
                 <button class="btn btn-outline-secondary" onclick="window.adminLoadOrders()">
-                  <i class="fas fa-sync-alt"></i> Refresh
+                  <i class="fas fa-sync-alt"></i> Làm Mới
                 </button>
               </div>
             </div>
@@ -965,11 +961,11 @@
                     <i class="fas fa-filter"></i>
                   </span>
                   <select class="form-select" id="orderStatusFilter" onchange="window.adminLoadOrders(1)">
-                    <option value="">All Status</option>
-                    <option value="pending">Pending</option>
-                    <option value="processing">Approved</option>
-                    <option value="delivered">Completed</option>
-                    <option value="cancelled">Cancelled</option>
+                    <option value="">Tất Cả Trạng Thái</option>
+                    <option value="pending">Chờ Xác Nhận</option>
+                    <option value="processing">Đã Xác Nhận</option>
+                    <option value="delivered">Hoàn Thành</option>
+                    <option value="cancelled">Đã Hủy</option>
                   </select>
                 </div>
               </div>
@@ -989,13 +985,13 @@
               <table class="table table-hover">
                 <thead class="table-light">
                   <tr>
-                    <th>Order ID</th>
-                    <th>Customer</th>
-                    <th>Amount</th>
-                    <th>Status</th>
-                    <th>Payment</th>
-                    <th>Date</th>
-                    <th>Actions</th>
+                    <th>Mã Đơn</th>
+                    <th>Khách Hàng</th>
+                    <th>Tổng Tiền</th>
+                    <th>Trạng Thái</th>
+                    <th>Thanh Toán</th>
+                    <th>Ngày Đặt</th>
+                    <th>Thao Tác</th>
                   </tr>
                 </thead>
                 <tbody id="ordersTableBody">
@@ -1245,7 +1241,7 @@
           <div class="modal-header bg-gradient-primary text-white">
             <h5 class="modal-title">
               <i class="bi bi-gear-fill me-2"></i>
-              Generate Product Variants
+              Tạo Phiên Bản Sản Phẩm
             </h5>
             <button
               type="button"
@@ -1261,10 +1257,10 @@
                   <div class="col-md-6">
                     <h6 class="mb-1 fw-bold">
                       <i class="bi bi-box-seam text-primary me-2"></i>
-                      <span id="variantGen_ShoeName">Product Name</span>
+                      <span id="variantGen_ShoeName">Tên Sản Phẩm</span>
                     </h6>
                     <small class="text-muted">
-                      Product ID:
+                      Mã Sản Phẩm:
                       <span id="variantGen_ShoeID" class="badge bg-secondary"
                         >-</span
                       >
@@ -1273,7 +1269,7 @@
                   <div class="col-md-6">
                     <label class="form-label small mb-1 fw-bold">
                       <i class="bi bi-tag-fill me-1"></i>
-                      Default Price
+                      Giá Mặc Định
                     </label>
                     <div class="input-group">
                       <span class="input-group-text">₫</span>
@@ -1299,7 +1295,7 @@
                   <div class="card-header bg-primary text-white">
                     <h6 class="mb-0">
                       <i class="bi bi-palette-fill me-2"></i>
-                      Select Colors
+                      Chọn Màu Sắc
                     </h6>
                   </div>
                   <div
@@ -1319,7 +1315,7 @@
                   <div class="card-header bg-success text-white">
                     <h6 class="mb-0">
                       <i class="bi bi-rulers me-2"></i>
-                      Select Sizes
+                      Chọn Kích Thước
                     </h6>
                   </div>
                   <div
@@ -1338,8 +1334,7 @@
             <div id="variantGen_Status" class="mb-4">
               <div class="alert alert-info border-0 shadow-sm mb-0">
                 <i class="bi bi-info-circle me-2"></i>
-                Please select at least one color and one size to generate
-                variants
+                Vui lòng chọn ít nhất một màu sắc và một kích thước để tạo phiên bản
               </div>
             </div>
 
@@ -1348,7 +1343,7 @@
               <div class="card-body">
                 <h6 class="card-title text-muted mb-3">
                   <i class="bi bi-graph-up me-2"></i>
-                  Generation Summary
+                  Tổng Quan
                 </h6>
                 <div class="row text-center g-3">
                   <div class="col-4">
@@ -1361,7 +1356,7 @@
                       >
                         0
                       </div>
-                      <small class="text-muted d-block">Colors</small>
+                      <small class="text-muted d-block">Màu Sắc</small>
                     </div>
                   </div>
                   <div class="col-4">
@@ -1374,7 +1369,7 @@
                       >
                         0
                       </div>
-                      <small class="text-muted d-block">Sizes</small>
+                      <small class="text-muted d-block">Kích Thước</small>
                     </div>
                   </div>
                   <div class="col-4">
@@ -1387,7 +1382,7 @@
                       >
                         0
                       </div>
-                      <small class="text-muted d-block">New Variants</small>
+                      <small class="text-muted d-block">Phiên Bản Mới</small>
                     </div>
                   </div>
                 </div>
@@ -1399,7 +1394,7 @@
               <div class="card-body">
                 <label class="form-label fw-bold mb-2">
                   <i class="bi bi-box-seam text-warning me-2"></i>
-                  Initial Stock Quantity (Optional)
+                  Số Lượng Tồn Kho Ban Đầu (Tùy Chọn)
                 </label>
                 <input
                   type="number"
@@ -1407,12 +1402,11 @@
                   id="variantGen_DefaultStock"
                   value="0"
                   min="0"
-                  placeholder="Leave 0 for no initial stock"
+                  placeholder="Để 0 nếu không có tồn kho ban đầu"
                 />
                 <small class="form-text text-muted d-block mt-2">
                   <i class="bi bi-lightbulb me-1"></i>
-                  Set starting inventory for all generated variants. Individual
-                  quantities can be adjusted later.
+                  Thiết lập số lượng tồn kho ban đầu cho tất cả các phiên bản. Có thể điều chỉnh riêng lẻ sau.
                 </small>
               </div>
             </div>
@@ -1424,7 +1418,7 @@
               data-bs-dismiss="modal"
             >
               <i class="bi bi-x-circle me-2"></i>
-              Cancel
+              Hủy
             </button>
             <button
               type="button"
@@ -1432,7 +1426,7 @@
               onclick="adminManager.variantGenerator.submitGenerateVariants()"
             >
               <i class="bi bi-check-circle me-2"></i>
-              Generate Variants
+              Tạo Phiên Bản
             </button>
           </div>
         </div>
@@ -1445,7 +1439,7 @@
         <div class="modal-content">
           <div class="modal-header bg-info text-white">
             <h5 class="modal-title">
-              <i class="fas fa-box me-2"></i>Order Details
+              <i class="fas fa-box me-2"></i>Chi Tiết Đơn Hàng
             </h5>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
           </div>
@@ -1453,7 +1447,7 @@
             <div id="orderDetailContent"></div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
           </div>
         </div>
       </div>
@@ -1499,7 +1493,7 @@
           <!-- Modal Header -->
           <div class="modal-header bg-primary text-white">
             <h5 class="modal-title" id="productFormModalTitle">
-              <i class="bi bi-plus-circle me-2"></i> Add New Product
+              <i class="bi bi-plus-circle me-2"></i> Thêm Sản Phẩm Mới
             </h5>
             <button
               type="button"
@@ -1515,13 +1509,13 @@
                 <!-- Product Name -->
                 <div class="col-md-12">
                   <label for="productName" class="form-label fw-bold">
-                    <i class="bi bi-tag me-1"></i> Product Name *
+                    <i class="bi bi-tag me-1"></i> Tên Sản Phẩm *
                   </label>
                   <input
                     type="text"
                     class="form-control"
                     id="productName"
-                    placeholder="e.g., Nike Air Max 270"
+                    placeholder="VD: Nike Air Max 270"
                     required
                   />
                 </div>
@@ -1529,17 +1523,17 @@
                 <!-- Category -->
                 <div class="col-md-6">
                   <label for="productCategory" class="form-label fw-bold">
-                    <i class="bi bi-folder me-1"></i> Category *
+                    <i class="bi bi-folder me-1"></i> Danh Mục *
                   </label>
                   <select class="form-select" id="productCategory" required>
-                    <option value="">-- Select Category --</option>
+                    <option value="">-- Chọn Danh Mục --</option>
                   </select>
                 </div>
 
                 <!-- Price -->
                 <div class="col-md-6">
                   <label for="productPrice" class="form-label fw-bold">
-                    <i class="bi bi-currency-dollar me-1"></i> Base Price (VND)
+                    <i class="bi bi-currency-dollar me-1"></i> Giá Cơ Bản (VND)
                     *
                   </label>
                   <input
@@ -1556,20 +1550,20 @@
                 <!-- Description -->
                 <div class="col-md-12">
                   <label for="productDescription" class="form-label fw-bold">
-                    <i class="bi bi-text-paragraph me-1"></i> Description
+                    <i class="bi bi-text-paragraph me-1"></i> Mô Tả
                   </label>
                   <textarea
                     class="form-control"
                     id="productDescription"
                     rows="4"
-                    placeholder="Enter product description..."
+                    placeholder="Nhập mô tả sản phẩm..."
                   ></textarea>
                 </div>
 
                 <!-- Image Upload -->
                 <div class="col-md-12">
                   <label for="productImage" class="form-label fw-bold">
-                    <i class="bi bi-image me-1"></i> Product Image *
+                    <i class="bi bi-image me-1"></i> Hình Ảnh *
                   </label>
                   <input
                     type="file"
@@ -1578,7 +1572,7 @@
                     accept="image/jpeg,image/png,image/webp,image/jpg,image/gif,image/avif"
                   />
                   <small class="form-text text-muted">
-                    Max size: 5MB. Formats: JPG, PNG, WEBP, GIF, AVIF
+                    Dung lượng tối đa: 5MB. Định dạng: JPG, PNG, WEBP, GIF, AVIF
                   </small>
                 </div>
 
@@ -1605,10 +1599,10 @@
               class="btn btn-secondary"
               data-bs-dismiss="modal"
             >
-              <i class="bi bi-x-circle me-2"></i> Cancel
+              <i class="bi bi-x-circle me-2"></i> Hủy
             </button>
             <button type="button" class="btn btn-primary" id="submitProductBtn">
-              <i class="bi bi-plus-circle me-2"></i> Add Product
+              <i class="bi bi-plus-circle me-2"></i> Thêm Sản Phẩm
             </button>
           </div>
         </div>

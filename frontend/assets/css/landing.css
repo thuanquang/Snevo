@@ -12,7 +12,7 @@ html {
 }
 
 body {
-  font-family: "Poppins", sans-serif;
+  font-family: "Inter", sans-serif;
   background-color: white !important;
   overflow-x: hidden !important;
 }
@@ -42,6 +42,63 @@ body {
   }
 }
 
+/* Skeleton Loading Styles */
+.skeleton {
+  background: #eee;
+  background: linear-gradient(110deg, #ececec 8%, #f5f5f5 18%, #ececec 33%);
+  background-size: 200% 100%;
+  animation: 1.5s shine linear infinite;
+}
+
+@keyframes shine {
+  to {
+    background-position-x: -200%;
+  }
+}
+
+.skeleton-text {
+  height: 1em;
+  margin: 0.5em 0;
+  border-radius: 4px;
+}
+
+.skeleton-title {
+  height: 2em;
+  margin-bottom: 1em;
+  border-radius: 4px;
+  width: 70%;
+}
+
+.skeleton-button {
+  height: 3em;
+  width: 150px;
+  border-radius: 32px;
+}
+
+.skeleton-image {
+  width: 100%;
+  height: 400px;
+  border-radius: 12px;
+}
+
+.skeleton-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+}
+
+.skeleton-card {
+  border: 2px solid #dedede;
+  border-radius: 12px;
+  overflow: hidden;
+  height: 500px;
+}
+
+.skeleton-testimonial {
+  height: 160px;
+  border-radius: 12px;
+}
+
 .hero-section {
   margin-top: 0px;
   background-color: white;
@@ -67,15 +124,15 @@ body {
 }
 
 .hero-content h1 {
-  font-family: "Poppins", sans-serif;
-  font-weight: 600;
+  font-family: "Inter", sans-serif;
+  font-weight: 700;
   font-size: 75px;
   color: #000;
   line-height: 1.2;
 }
 
 .hero-content p {
-  font-family: "Poppins", sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 24px;
   margin-top: 24px;
   color: #000;
@@ -156,11 +213,20 @@ body {
   width: auto;
 }
 
+.products-section {
+  margin-top: 300px;
+}
+
+/* Initial state for sport carousel */
+#slider:not(.expanded) {
+  transition:  0.3s ease, transform 0.3s ease;
+}
+
 .products-heading {
-  font-family: "Poppins", sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 48px;
-  font-weight: bold;
-  margin: 300px 0px 50px 0px;
+  font-weight: 800;
+  margin: 0px 0px 50px 0px;
   text-align: center;
 }
 
@@ -194,13 +260,13 @@ body {
 }
 
 .product-card-title {
-  font-family: "Poppins", sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 24px;
   margin: 0 0 8px 0;
 }
 
 .product-card-price {
-  font-family: "Poppins", sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 20px;
   color: #000;
   margin: 0px 0 0 0 !important;
@@ -237,7 +303,7 @@ body {
 }
 
 .banner-section .banner-word {
-  font-family: "Poppins", sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 400px;
   font-weight: 900;
   color: #fff;
@@ -300,9 +366,9 @@ body {
 }
 
 .testimonials-heading {
-  font-family: "Poppins", sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 48px;
-  font-weight: bold;
+  font-weight: 800 !important;
   margin-bottom: 64px;
   text-align: center;
 }
@@ -337,7 +403,7 @@ body {
 }
 
 .testimonial-name {
-  font-family: "Poppins", sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 24px;
   margin: 0;
   font-weight: 600;
@@ -350,7 +416,7 @@ body {
 }
 
 .testimonial-quote {
-  font-family: "Poppins", sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 16px;
   line-height: 1.6;
   color: #333;
@@ -371,30 +437,596 @@ body {
   margin: 0 6px;
 }
 
-/*@keyframes slideLogos {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-100%); }
-}*/
+/* ============================================
+   RESPONSIVE CODING
+   ============================================ */
 
-.email-verification-notice {
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  border-bottom: 1px solid #dee2e6;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  font-size: 14px;
-  transform: translateY(-100%);
-  opacity: 0;
-  transition: all 0.3s ease-in-out;
-  z-index: 1050;
-  width: 100%;
-}
-
-.email-verification-notice.show {
-  transform: translateY(0);
-  opacity: 1;
-}
-
+/* Tablet (991px and below) */
 @media (max-width: 991px) {
+  /*Hero Section*/
+  .hero-section::after {
+    display: none;
+  }
+
   .hero-vertical-text {
     display: none;
+  }
+
+  .hero-section {
+    padding: 80px 0 80px 0;
+    margin-top: 5vh;
+  }
+
+  .hero-content {
+    margin-right: 0 !important;
+    text-align: center;
+  }
+
+  .hero-content h1 {
+    font-size: 56px;
+  }
+
+  .hero-content p {
+    font-size: 20px;
+    margin-top: 20px;
+  }
+
+  .hero-actions {
+    margin-top: 28px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .hero-image img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /*brand carousel Section */
+  .brand-carousel {
+    padding: 16px 0;
+    margin: 0px 0 80px 0;
+  }
+
+  .brands-slider {
+    gap: 24px;
+  }
+
+  .brand-item img.height-200 {
+    height: 120px;
+    width: auto;
+  }
+
+  .brand-item img.height-150 {
+    height: 90px;
+    width: auto;
+  }
+
+  .brand-item img.height-40 {
+    height: 32px;
+    width: auto;
+  }
+
+  /* Sport carousel Section */
+  .products-heading {
+    font-size: 42px;
+    margin: 200px 0px 40px 0px;
+  }
+
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 24px;
+  }
+
+  .product-card img {
+    height: 300px;
+    margin-top: 40px;
+    margin-bottom: -80px;
+  }
+
+  .product-card-content {
+    padding: 0px 20px 0px 20px !important;
+    margin-bottom: 24px;
+  }
+
+  .product-card-title {
+    font-size: 20px;
+  }
+
+  .product-card-price {
+    font-size: 18px;
+  }
+
+  .view-more {
+    width: 44px;
+    height: 44px;
+  }
+
+  .view-more img {
+    width: 15px;
+    height: 15px;
+  }
+
+  /* Sport carousel */
+  .sport-carousel {
+    padding: 0 20px;
+    margin: 80px auto 60px auto;
+  }
+
+  .sport-carousel-heading {
+    font-size: 48px;
+    margin-bottom: 40px !important;
+  }
+
+  #slider {
+    height: 450px;
+  }
+
+  .slide-content {
+    width: 350px;
+    height: 450px;
+  }
+
+  .sport-name {
+    font-size: 36px;
+  }
+
+  .sport-desc {
+    font-size: 16px;
+    padding: 0 20px;
+  }
+
+  .sport-cta {
+    padding: 14px 32px;
+    font-size: 16px;
+  }
+
+  /*banner section*/
+  .banner-section {
+    margin: 100px auto 20px auto;
+  }
+
+  .banner-section .banner-bg {
+    height: 450px !important;
+  }
+
+  .banner-section .banner-word {
+    font-size: 280px;
+    transform: translateY(28%) translateX(-8%);
+  }
+
+  .banner-section .banner-img {
+    display: none;
+  }
+
+  .banner-section .banner-title {
+    font-size: 42px !important;
+  }
+
+  .banner-section .banner-desc {
+    font-size: 18px;
+    margin-bottom: 24px;
+  }
+
+  .banner-section .banner-cta {
+    font-size: 18px;
+    padding: 14px 32px;
+  }
+}
+
+/* Mobile (767px and below) */
+@media (max-width: 767px) {
+  .container {
+    padding-left: 30px;
+    padding-right: 30px;
+  }
+
+  .hero-section {
+    padding: 60px 0 60px 0;
+    margin-top: 4.5vh;
+  }
+
+  .hero-section::after {
+    display: none;
+  }
+
+  .hero-vertical-text {
+    display: none;
+  }
+
+  .hero-content {
+    margin-right: 0 !important;
+    text-align: center;
+    width: 100%;
+  }
+
+  .hero-content h1 {
+    font-size: 42px;
+    line-height: 1.2;
+  }
+
+  .hero-content p {
+    font-size: 18px;
+    margin-top: 16px;
+    padding: 0 10px;
+  }
+
+  .hero-actions {
+    margin-top: 24px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .hero-actions .btn {
+    padding: 16px 32px;
+    font-size: 16px;
+    width: auto;
+  }
+
+  .hero-image-wrapper {
+    margin-top: 40px;
+  }
+
+  .hero-image img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .brand-carousel {
+    padding: 12px 0;
+    margin: 0px 0 60px 0;
+  }
+
+  .brands-slider {
+    gap: 16px;
+    animation: slideLogos 30s linear infinite;
+  }
+
+  .brand-item img.height-200 {
+    height: 80px;
+    width: auto;
+  }
+
+  .brand-item img.height-150 {
+    height: 60px;
+    width: auto;
+  }
+
+  .brand-item img.height-40 {
+    height: 24px;
+    width: auto;
+  }
+
+  /* Product Section */
+  .products-section {
+    margin-top: 250px;
+  }
+  .products-heading {
+    font-size: 48px;
+    margin-top: 0px !important;
+  }
+
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 16px;
+  }
+
+  .product-card img {
+    height: 220px;
+    margin-top: 30px;
+    margin-bottom: -60px;
+  }
+
+  .product-card-content {
+    padding: 0px 16px 0px 16px !important;
+    margin-bottom: 20px;
+  }
+
+  .product-card-title {
+    font-size: 18px;
+  }
+
+  .product-card-price {
+    font-size: 16px;
+  }
+
+  .view-more {
+    width: 40px;
+    height: 40px;
+  }
+
+  .view-more img {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* Sport carousel */
+  .sport-carousel {
+    padding: 0 10px;
+    margin: 60px auto 40px auto;
+  }
+
+  .sport-carousel-heading {
+    margin-bottom: 30px !important;
+    margin-top: 80px !important;
+  }
+
+  #slider {
+    height: 380px;
+  }
+
+  .slide-content {
+    width: 280px;
+    height: 380px;
+  }
+
+  .sport-name {
+    font-size: 28px;
+    margin-bottom: 12px;
+  }
+
+  .sport-desc {
+    font-size: 14px;
+    padding: 0 15px;
+    margin-bottom: 20px;
+  }
+
+  .sport-cta {
+    padding: 12px 28px;
+    font-size: 14px;
+  }
+
+  /*banner section*/
+  .banner-section {
+    margin: 60px auto 20px auto;
+  }
+
+  .banner-section .banner-bg {
+    height: auto !important;
+    padding: 40px 20px;
+  }
+
+  .banner-section .banner-word {
+    display: none;
+  }
+
+  .banner-section .banner-img {
+    display: none;
+  }
+
+  .banner-section .banner-content {
+    text-align: center;
+    margin: 0 !important;
+  }
+
+  .banner-section .banner-title {
+    font-size: 32px;
+    margin-bottom: 16px;
+  }
+
+  .banner-section .banner-title br {
+    display: none;
+  }
+
+  .banner-section .banner-desc {
+    font-size: 16px;
+    margin-bottom: 20px;
+    padding: 0 10px;
+  }
+
+  .banner-section .banner-cta {
+    font-size: 16px;
+    padding: 12px 28px;
+    width: 100%;
+    max-width: 250px;
+  }
+}
+
+/* Small Mobile (575px and below) */
+@media (max-width: 575px) {
+  .container {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .hero-section {
+    margin-top: 3.5vh;
+  }
+
+  .hero-section::after {
+    display: none;
+  }
+
+  .hero-vertical-text {
+    display: none;
+  }
+
+  .hero-content {
+    margin-right: 0 !important;
+    text-align: center;
+    width: 100%;
+  }
+
+  .hero-content h1 {
+    font-size: 32px;
+    line-height: 1.2;
+  }
+
+  .hero-content p {
+    font-size: 16px;
+    margin-top: 14px;
+    padding: 0 5px;
+  }
+
+  .hero-actions {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .hero-actions .btn {
+    padding: 14px 28px;
+    font-size: 15px;
+    width: 100%;
+    max-width: 280px;
+  }
+
+  .hero-image-wrapper {
+    margin-top: 32px;
+  }
+
+  .brand-carousel {
+    padding: 10px 0;
+    margin: 0px 0 40px 0;
+  }
+
+  .brands-slider {
+    gap: 12px;
+    animation: slideLogos 25s linear infinite;
+  }
+
+  .brand-item img.height-200 {
+    height: 60px;
+    width: auto;
+  }
+
+  .brand-item img.height-150 {
+    height: 45px;
+    width: auto;
+  }
+
+  .brand-item img.height-40 {
+    height: 20px;
+    width: auto;
+  }
+
+  /* Product Section */
+  .products-section {
+    margin-top: 150px;
+  }
+  .products-heading {
+    font-size: 32px;
+    margin: 80px 0px 24px 0px;
+  }
+
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px;
+  }
+
+  .product-card img {
+    height: 180px;
+    margin-top: 20px;
+    margin-bottom: -50px;
+  }
+
+  .product-card-content {
+    padding: 0px 12px 0px 12px !important;
+    margin-bottom: 16px;
+  }
+
+  .product-card-title {
+    font-size: 16px !important;
+  }
+
+  .product-card-price {
+    font-size: 14px;
+  }
+
+  .view-more {
+    width: 36px;
+    height: 36px;
+  }
+
+  .view-more img {
+    width: 12px;
+    height: 12px;
+    color: black !important;
+  }
+
+  /* Sport carousel */
+  .sport-carousel {
+    padding: 0 5px;
+    margin: 40px auto 30px auto;
+  }
+
+  .sport-carousel-heading {
+    font-size: 32px !important;
+    margin-bottom: 24px !important;
+  }
+
+  #slider {
+    height: 320px;
+  }
+
+  .slide-content {
+    width: 240px;
+    height: 320px;
+  }
+
+  .sport-name {
+    font-size: 32px !important;
+    margin-bottom: 10px;
+  }
+
+  .sport-desc {
+    font-size: 16px !important;
+    padding: 0 12px;
+    margin-bottom: 16px;
+  }
+
+  .sport-cta {
+    padding: 10px 24px !important;
+    font-size: 14px !important;
+  }
+
+  /* Hide side slides on very small screens for better focus */
+  #slider input:checked + label {
+    transform: translateX(0) scale(1);
+  }
+
+  /*banner section*/
+  .banner-section {
+    margin: 40px auto 20px auto;
+  }
+
+  .banner-section .banner-bg {
+    padding: 30px 15px;
+    border-radius: 12px;
+  }
+
+  .banner-section .banner-word {
+    display: none;
+  }
+
+  .banner-section .banner-img {
+    margin-bottom: 24px;
+    display: none;
+  }
+
+  .banner-section .banner-title {
+    font-size: 28px;
+  }
+
+  .banner-section .banner-desc {
+    font-size: 15px;
+    margin-bottom: 18px;
+  }
+
+  .banner-section .banner-cta {
+    font-size: 15px;
+    padding: 12px 24px;
+    width: 100%;
+    max-width: 220px;
+  }
+
+  /* Testimonials Section */
+  .testimonials-section {
+    padding: 0 0;
+    margin-top: 80px;
+  }
+  .testimonials-heading {
+    font-size: 32px;
+    margin-bottom: 40px;
   }
 }

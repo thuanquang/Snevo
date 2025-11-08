@@ -51,7 +51,7 @@ class ProductDetailManager {
       this.renderProduct();
       this.renderColors();
       this.renderSizes();
-
+      this.initSizeGuideModal();
       // Hide loading, show content
       document.getElementById("loading").style.display = "none";
       document.getElementById("productDetail").style.display = "block";
@@ -73,22 +73,22 @@ class ProductDetailManager {
         productDetail.innerHTML = `
                     <div class="container py-5">
                         <div class="alert alert-danger" role="alert">
-                            <h4 class="alert-heading">⚠️ Failed to Load Product</h4>
-                            <p><strong>Error:</strong> ${
-                              error.message || "Unknown error"
+                            <h4 class="alert-heading">⚠️ Không thể tải sản phẩm</h4>
+                            <p><strong>Lỗi:</strong> ${
+                              error.message || "Lỗi không xác định"
                             }</p>
                             <hr>
                             <p class="mb-0">
-                                <strong>Debug Info:</strong><br>
-                                Product ID: ${this.productId}<br>
-                                Check console (F12) for more details.
+                                <strong>Thông tin gỡ lỗi:</strong><br>
+                                Mã sản phẩm: ${this.productId}<br>
+                                Kiểm tra console (F12) để biết thêm chi tiết.
                             </p>
                             <div class="mt-3">
                                 <button class="btn btn-primary" onclick="location.reload()">
-                                    🔄 Retry
+                                    🔄 Thử lại
                                 </button>
                                 <a href="products.html" class="btn btn-secondary">
-                                    ← Back to Products
+                                    ← Quay lại danh sách
                                 </a>
                             </div>
                         </div>
@@ -226,33 +226,37 @@ class ProductDetailManager {
     // Set title and subtitle
     document.getElementById("productTitle").textContent = product.shoe_name;
     document.getElementById("productSubtitle").textContent =
-      product.category_name || "Men's Shoes";
+      product.category_name || "Giày Nam";
 
     // Fetch and display rating summary
     try {
       if (window.reviewsAPI) {
-        const stats = await window.reviewsAPI.getProductReviewStats(product.shoe_id);
+        const stats = await window.reviewsAPI.getProductReviewStats(
+          product.shoe_id
+        );
         const avgRating = stats.average_rating || 0;
         const totalReviews = stats.total_reviews || 0;
-        
+
         const ratingSummaryHTML = `
           <div class="rating-summary d-flex align-items-center gap-2 mb-2">
             <div class="stars">
               ${this.generateStarHTML(avgRating)}
             </div>
             <span class="fw-bold">${avgRating.toFixed(1)}</span>
-            <span class="text-muted">(${totalReviews} ${totalReviews === 1 ? 'review' : 'reviews'})</span>
+            <span class="text-muted">(${totalReviews} ${
+          totalReviews === 1 ? "review" : "reviews"
+        })</span>
           </div>
         `;
-        
+
         // Insert after subtitle
         const subtitleEl = document.getElementById("productSubtitle");
         if (subtitleEl) {
-          subtitleEl.insertAdjacentHTML('afterend', ratingSummaryHTML);
+          subtitleEl.insertAdjacentHTML("afterend", ratingSummaryHTML);
         }
       }
     } catch (error) {
-      console.error('❌ Failed to load rating summary:', error);
+      console.error("❌ Failed to load rating summary:", error);
     }
 
     // Set price
@@ -273,7 +277,7 @@ class ProductDetailManager {
     // Set description
     document.getElementById("productDescription").textContent =
       product.description ||
-      "Premium quality shoes designed for performance and style.";
+      "Giày chất lượng cao được thiết kế để đạt hiệu suất và phong cách tốt nhất";
 
     // Set main image
     const mainImage = document.querySelector("#mainImage img");
@@ -303,7 +307,7 @@ class ProductDetailManager {
    * Generate star HTML for rating display
    */
   generateStarHTML(rating) {
-    let html = '';
+    let html = "";
     for (let i = 1; i <= 5; i++) {
       if (i <= Math.floor(rating)) {
         html += '<i class="fas fa-star text-warning"></i>';
@@ -349,7 +353,7 @@ class ProductDetailManager {
     if (!colorOptions) return;
 
     if (!this.allColors || this.allColors.length === 0) {
-      colorOptions.innerHTML = '<p class="text-muted">No colors available</p>';
+      colorOptions.innerHTML = '<p class="text-muted">Không có màu sắc</p>';
       return;
     }
 
@@ -396,7 +400,7 @@ class ProductDetailManager {
     if (!sizeOptions) return;
 
     if (!this.allSizes || this.allSizes.length === 0) {
-      sizeOptions.innerHTML = '<p class="text-muted">No sizes available</p>';
+      sizeOptions.innerHTML = '<p class="text-muted">Không có kích cỡ</p>';
       return;
     }
 
@@ -683,13 +687,13 @@ class ProductDetailManager {
 
     if (status === "out") {
       stockInfo.classList.add("out-of-stock");
-      stockMessage.textContent = "This combination is currently out of stock";
+      stockMessage.textContent = "Phiên bản này hiện đã hết hàng";
     } else if (quantity < 5) {
       stockInfo.classList.add("low-stock");
-      stockMessage.textContent = `Only ${quantity} left in stock`;
+      stockMessage.textContent = `Chỉ còn ${quantity} sản phẩm trong kho`;
     } else {
       stockInfo.classList.add("in-stock");
-      stockMessage.textContent = "In stock and ready to ship";
+      stockMessage.textContent = "Còn hàng - Sẵn sàng giao hàng";
     }
   }
 
@@ -719,6 +723,53 @@ class ProductDetailManager {
       alert.remove();
     }, 3000);
   }
+  initSizeGuideModal() {
+    const sizeGuideLink = document.getElementById("sizeGuideLink");
+    const sizeGuideModal = document.getElementById("sizeGuideModal");
+    const closeSizeGuideBtn = document.getElementById("closeSizeGuideBtn");
+    const sizeGuideImg = document.getElementById("sizeGuideImg");
+
+    if (!sizeGuideLink || !sizeGuideModal) {
+      console.warn("⚠️ Size guide elements not found");
+      return;
+    }
+
+    // Mở modal
+    sizeGuideLink.addEventListener("click", (e) => {
+      e.preventDefault();
+
+      const imagePath = "../assets/images/us-size.jpeg";
+      sizeGuideImg.src = imagePath;
+
+      // ✅ FIX: Dùng display flex thay vì inline style
+      sizeGuideModal.style.display = "flex";
+      sizeGuideModal.style.flexDirection = "column";
+      sizeGuideModal.style.alignItems = "center";
+      sizeGuideModal.style.justifyContent = "center";
+
+      console.log("✅ Size guide modal opened with image:", imagePath);
+    });
+
+    // Đóng modal
+    closeSizeGuideBtn?.addEventListener("click", () => {
+      sizeGuideModal.style.display = "none";
+      console.log("✅ Size guide modal closed");
+    });
+
+    // Đóng khi click ngoài
+    sizeGuideModal.addEventListener("click", (e) => {
+      if (e.target === sizeGuideModal) {
+        sizeGuideModal.style.display = "none";
+      }
+    });
+
+    // Đóng khi nhấn ESC
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && sizeGuideModal.style.display === "flex") {
+        sizeGuideModal.style.display = "none";
+      }
+    });
+  }
 }
 
 // Add to Bag button functionality
@@ -738,7 +789,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const mgr = window.productDetailManager;
       if (!mgr || !mgr.currentVariant) {
-        alert("Please select color and size");
+        alert("Vui lòng chọn màu sắc và kích cỡ");
         return;
       }
 
@@ -751,12 +802,12 @@ document.addEventListener("DOMContentLoaded", () => {
         // Navigate to cart page
         window.location.href = "cart.html";
       } else {
-        const msg = res?.error || "Failed to add to cart";
+        const msg = res?.error || "Không thể thêm vào giỏ hàng";
         if (window.showToast) window.showToast(msg, "error");
       }
     } catch (err) {
       if (window.showToast)
-        window.showToast(err.message || "Failed to add to cart", "error");
+        window.showToast(err.message || "Không thể thêm vào giỏ hàng", "error");
     }
   });
 });
@@ -764,10 +815,10 @@ document.addEventListener("DOMContentLoaded", () => {
 /**
  * Initialize ReviewManager
  */
-ProductDetailManager.prototype.initReviewManager = async function() {
+ProductDetailManager.prototype.initReviewManager = async function () {
   try {
-    if (typeof ReviewManager === 'undefined') {
-      console.warn('⚠️ ReviewManager not loaded');
+    if (typeof ReviewManager === "undefined") {
+      console.warn("⚠️ ReviewManager not loaded");
       return;
     }
 
@@ -776,51 +827,55 @@ ProductDetailManager.prototype.initReviewManager = async function() {
       loadStats: true,
       loadReviews: true,
       checkUserReview: true,
-      setupWriteButton: false // Don't let ReviewManager setup write button, we'll do it manually
+      setupWriteButton: false, // Don't let ReviewManager setup write button, we'll do it manually
     });
     await window.reviewManager.init();
-    
+
     // ⭐ Preload orders cache for instant validation
     await this.preloadOrdersCache();
-    
+
     // ⭐ Setup write review button with purchase validation
     await this.setupReviewValidation();
-    
-    console.log('✅ ReviewManager initialized with purchase validation');
+
+    console.log("✅ ReviewManager initialized with purchase validation");
   } catch (error) {
-    console.error('❌ Error initializing ReviewManager:', error);
+    console.error("❌ Error initializing ReviewManager:", error);
   }
 };
 
 /**
  * Preload orders cache for instant purchase validation
  */
-ProductDetailManager.prototype.preloadOrdersCache = async function() {
+ProductDetailManager.prototype.preloadOrdersCache = async function () {
   try {
     // Only preload if user is authenticated
     if (!window.authService?.isAuthenticated()) {
-      console.log('⏭️ Skipping orders cache preload (not authenticated)');
+      console.log("⏭️ Skipping orders cache preload (not authenticated)");
       return;
     }
 
     // Wait for ordersAPI to be available
     let attempts = 0;
     while (!window.ordersAPI && attempts < 30) {
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
       attempts++;
     }
 
     if (!window.ordersAPI) {
-      console.warn('⚠️ ordersAPI not available for cache preload');
+      console.warn("⚠️ ordersAPI not available for cache preload");
       return;
     }
 
     // Fetch and cache all orders once
     const response = await window.ordersAPI.getOrders({ limit: 1000 });
     this.ordersCache = response.data?.orders || response.orders || [];
-    console.log('✅ Preloaded orders cache:', this.ordersCache.length, 'orders');
+    console.log(
+      "✅ Preloaded orders cache:",
+      this.ordersCache.length,
+      "orders"
+    );
   } catch (error) {
-    console.error('❌ Error preloading orders cache:', error);
+    console.error("❌ Error preloading orders cache:", error);
     this.ordersCache = []; // Set empty array as fallback
   }
 };
@@ -828,31 +883,31 @@ ProductDetailManager.prototype.preloadOrdersCache = async function() {
 /**
  * Setup review validation - only allow reviews from users who purchased the product
  */
-ProductDetailManager.prototype.setupReviewValidation = async function() {
+ProductDetailManager.prototype.setupReviewValidation = async function () {
   try {
-    const writeReviewBtn = document.getElementById('writeReviewBtn');
+    const writeReviewBtn = document.getElementById("writeReviewBtn");
     if (!writeReviewBtn) {
-      console.warn('⚠️ Write review button not found');
+      console.warn("⚠️ Write review button not found");
       return;
     }
 
     // Add click handler with validation
-    writeReviewBtn.addEventListener('click', async (e) => {
+    writeReviewBtn.addEventListener("click", async (e) => {
       e.preventDefault();
 
       // Check authentication first
       if (!window.authService?.isAuthenticated()) {
-        alert('Please login to write a review');
+        alert("Vui lòng đăng nhập để viết đánh giá");
         if (window.showLoginModal) {
           window.showLoginModal();
         }
         return;
-      }
-
-      // Validate purchase (uses cache for instant validation)
+      } // Validate purchase (uses cache for instant validation)
       const canReview = await this.validateUserPurchase();
       if (!canReview) {
-        alert('You can only review products from completed orders (delivered/success status).');
+        alert(
+          "Bạn chỉ có thể đánh giá sản phẩm từ những đơn hàng đã hoàn thành (đã giao/thành công)."
+        );
         return;
       }
 
@@ -862,9 +917,9 @@ ProductDetailManager.prototype.setupReviewValidation = async function() {
       }
     });
 
-    console.log('✅ Review purchase validation enabled for write button');
+    console.log("✅ Review purchase validation enabled for write button");
   } catch (error) {
-    console.error('❌ Error setting up review validation:', error);
+    console.error("❌ Error setting up review validation:", error);
   }
 };
 
@@ -872,24 +927,24 @@ ProductDetailManager.prototype.setupReviewValidation = async function() {
  * Validate if user has purchased this product from a completed order
  * Uses cached orders data for instant validation
  */
-ProductDetailManager.prototype.validateUserPurchase = async function() {
+ProductDetailManager.prototype.validateUserPurchase = async function () {
   try {
     // ⭐ Use cached orders if available
     let orders = this.ordersCache;
 
     // Fallback: fetch if cache is empty (shouldn't happen if preload worked)
     if (!orders || orders.length === 0) {
-      console.warn('⚠️ Orders cache empty, fetching...');
-      
+      console.warn("⚠️ Orders cache empty, fetching...");
+
       // Wait for ordersAPI
       let attempts = 0;
       while (!window.ordersAPI && attempts < 30) {
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
         attempts++;
       }
 
       if (!window.ordersAPI) {
-        console.error('❌ ordersAPI not available');
+        console.error("❌ ordersAPI not available");
         return false;
       }
 
@@ -899,23 +954,67 @@ ProductDetailManager.prototype.validateUserPurchase = async function() {
     }
 
     // Check if product exists in any completed order
-    const hasCompletedOrder = orders.some(order => {
-      const isCompleted = order.status === 'delivered' || order.status === 'success';
+    const hasCompletedOrder = orders.some((order) => {
+      const isCompleted =
+        order.status === "delivered" || order.status === "success";
       if (!isCompleted) return false;
 
       // Check if this product is in the order items
-      return (order.order_items || []).some(item => {
+      return (order.order_items || []).some((item) => {
         return item.shoe_variants?.shoe_id === parseInt(this.productId);
       });
     });
 
     return hasCompletedOrder;
   } catch (error) {
-    console.error('❌ Error validating user purchase:', error);
+    console.error("❌ Error validating user purchase:", error);
     return false;
   }
 };
 
+// Set up DOM initialization
+ProductDetailManager.prototype.initializeDOMEvents = function () {
+  // Debug: Check Bootstrap availability
+  console.log("🔍 Bootstrap available:", typeof bootstrap !== "undefined");
+  console.log(
+    "🔍 Bootstrap.Modal available:",
+    typeof bootstrap !== "undefined" && typeof bootstrap.Modal !== "undefined"
+  );
+
+  // Test modal close buttons
+  setTimeout(() => {
+    const modal = document.getElementById("reviewModal");
+    const closeButtons = modal?.querySelectorAll('[data-bs-dismiss="modal"]');
+    console.log("🔍 Modal found:", !!modal);
+    console.log("🔍 Close buttons found:", closeButtons?.length);
+
+    if (closeButtons) {
+      closeButtons.forEach((btn, idx) => {
+        console.log(`  Button ${idx}:`, btn.className);
+      });
+    }
+  }, 500);
+
+  // Initialize product detail
+  const productId = new URLSearchParams(window.location.search).get("id");
+  if (!productId) {
+    this.showAlert("Không tìm thấy sản phẩm", "danger");
+    setTimeout(() => {
+      window.location.href = "products.html";
+    }, 2000);
+    return;
+  }
+  this.init(productId);
+};
+
+// Set up DOM content loaded event
+document.addEventListener("DOMContentLoaded", () => {
+  // Create product detail manager instance
+  if (!window.productDetailManager) {
+    window.productDetailManager = new ProductDetailManager();
+  }
+  window.productDetailManager.initializeDOMEvents();
+});
+
 // Make it globally accessible
 window.ProductDetailManager = ProductDetailManager;
-window.productDetailManager = new ProductDetailManager();

@@ -276,24 +276,38 @@ class AdminActions {
       // Error already handled in AdminVariantGenerator
     }
   }
-
+  /**
+   * ➕ Add category
+   */
+  addCategory() {
+    console.log("➕ Add category");
+    if (window.adminManager?.categoryManager) {
+      return window.adminManager.categoryManager.openCategoryForm();
+    } else {
+      console.error("❌ CategoryManager not initialized");
+    }
+  }
   /**
    * Edit category
    */
   editCategory(categoryId) {
     console.log("✏️ Edit category:", categoryId);
-    alert("Edit category feature - Coming soon");
+    if (window.adminManager?.categoryManager) {
+      return window.adminManager.categoryManager.openCategoryForm(categoryId);
+    } else {
+      console.error("❌ CategoryManager not initialized");
+    }
   }
 
   /**
    * Delete category
    */
   async deleteCategory(categoryId) {
-    if (!confirm("Are you sure you want to delete this category?")) {
-      return;
-    }
-
     console.log("🗑️ Delete category:", categoryId);
-    alert("Delete category feature - Coming soon");
+    if (window.adminManager?.categoryManager) {
+      await window.adminManager.categoryManager.deleteCategory(categoryId);
+    } else {
+      console.error("❌ CategoryManager not initialized");
+    }
   }
 }

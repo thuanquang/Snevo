@@ -141,12 +141,10 @@
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
 }
 
 .filter-btn:hover {
   border-color: var(--nike-black);
-  transform: translateY(-2px);
 }
 
 .filter-btn.active {
@@ -171,11 +169,6 @@
   border: 1px solid var(--nike-border);
   border-radius: 16px;
   transition: all 0.3s ease;
-}
-
-.review-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  transform: translateY(-2px);
 }
 
 .review-header {
@@ -464,7 +457,7 @@
 }
 
 .badge.bg-success {
-  background-color: #2e7d32 !important;
+  background-color: #000 !important;
   color: white;
 }
 

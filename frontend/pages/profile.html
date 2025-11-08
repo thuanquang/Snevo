@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Profile Management - Snevo</title>
+    <title>Quản lý hồ sơ - Snevo</title>
 
     <!-- Bootstrap CSS -->
     <link
@@ -36,16 +36,14 @@
         <div class="row">
           <!-- Profile Navigation Sidebar -->
           <div class="col-lg-3 col-md-4 mb-4">
-            <div class="profile-sidebar">
+                <div class="profile-sidebar">
               <div class="profile-avatar text-center mb-5">
                 <div class="avatar-circle mx-auto mb-3" id="profileAvatar">
                   <i class="fas fa-user"></i>
                 </div>
-                <h5 class="profile-name" id="profileName">Loading...</h5>
-                <p class="profile-email" id="profileEmail">Loading...</p>
-              </div>
-
-              <nav class="profile-nav">
+                <h5 class="profile-name" id="profileName">Đang tải...</h5>
+                <p class="profile-email" id="profileEmail">Đang tải...</p>
+              </div>              <nav class="profile-nav">
                 <ul class="nav flex-column">
                   <li class="nav-item">
                     <a
@@ -53,7 +51,7 @@
                       href="#personal-info"
                       data-section="personal-info"
                     >
-                      Personal Info
+                      Thông tin cá nhân
                     </a>
                   </li>
                   <li class="nav-item">
@@ -62,16 +60,12 @@
                       href="#address-book"
                       data-section="address-book"
                     >
-                      Address Book
+                      Sổ địa chỉ
                     </a>
                   </li>
                   <li class="nav-item">
-                    <a
-                      class="nav-link"
-                      href="orders.html"
-                      target="_self"
-                    >
-                      My Orders
+                    <a class="nav-link" href="orders.html" target="_self">
+                      Đơn hàng của tôi
                     </a>
                   </li>
                   <li class="nav-item">
@@ -80,7 +74,7 @@
                       href="#account-settings"
                       data-section="account-settings"
                     >
-                      Account Settings
+                      Cài đặt tài khoản
                     </a>
                   </li>
                 </ul>
@@ -93,7 +87,7 @@
                   id="logoutBtn"
                   style="border-radius: 8px; padding: 12px 24px"
                 >
-                  Logout
+                  Đăng xuất
                 </button>
               </div>
             </div>
@@ -108,9 +102,9 @@
                 id="personal-info-section"
               >
                 <div class="section-header">
-                  <h3 class="section-title">Personal Information</h3>
+                  <h3 class="section-title">Thông tin cá nhân</h3>
                   <p class="section-subtitle">
-                    Update your personal details and profile information
+                    Cập nhật thông tin cá nhân và hồ sơ của bạn
                   </p>
                 </div>
 
@@ -122,7 +116,7 @@
                   <div class="row">
                     <div class="col-md-6 mb-4">
                       <label for="fullName" class="form-label"
-                        >Full Name *</label
+                        >Họ và tên *</label
                       >
                       <input
                         type="text"
@@ -133,18 +127,18 @@
                         minlength="2"
                         maxlength="100"
                         pattern="^[\p{L}\s]+$"
-                        title="Full name should contain letters and spaces"
+                        title="Họ tên chỉ nên chứa chữ cái và dấu cách"
                       />
                       <div
                         class="form-text"
                         style="font-size: 12px; color: #999; margin-top: 4px"
                       >
-                        Enter your full legal name
+                        Nhập họ tên đầy đủ của bạn
                       </div>
                     </div>
                     <div class="col-md-6 mb-4">
                       <label for="username" class="form-label"
-                        >Username *</label
+                        >Tên người dùng *</label
                       >
                       <input
                         type="text"
@@ -155,13 +149,13 @@
                         minlength="3"
                         maxlength="50"
                         pattern="^[a-zA-Z0-9_]+$"
-                        title="Username can only contain letters, numbers, and underscores"
+                        title="Tên người dùng chỉ có thể chứa chữ cái, số và dấu gạch dưới"
                       />
                       <div
                         class="form-text"
                         style="font-size: 12px; color: #999; margin-top: 4px"
                       >
-                        Choose a unique username for your account
+                        Chọn một tên người dùng duy nhất cho tài khoản của bạn
                       </div>
                     </div>
                   </div>
@@ -169,7 +163,7 @@
                   <div class="row">
                     <div class="col-md-6 mb-4">
                       <label for="email" class="form-label"
-                        >Email Address</label
+                        >Địa chỉ email</label
                       >
                       <input
                         type="email"
@@ -183,24 +177,24 @@
                         class="form-text"
                         style="font-size: 12px; color: #999; margin-top: 4px"
                       >
-                        Email cannot be changed. Contact support if needed.
+                        Email không thể thay đổi. Liên hệ hỗ trợ nếu cần thiết.
                       </div>
                     </div>
                     <div class="col-md-6 mb-4">
-                      <label for="phone" class="form-label">Phone Number</label>
+                      <label for="phone" class="form-label">Số điện thoại</label>
                       <input
                         type="tel"
                         class="form-control"
                         id="phone"
                         name="phone"
                         pattern="^[0-9+\-\s()]{10,20}$"
-                        title="Please enter a valid phone number"
+                        title="Vui lòng nhập số điện thoại hợp lệ"
                       />
                       <div
                         class="form-text"
                         style="font-size: 12px; color: #999; margin-top: 4px"
                       >
-                        Enter your contact phone number
+                        Nhập số điện thoại liên hệ của bạn
                       </div>
                     </div>
                   </div>
@@ -208,7 +202,7 @@
                   <div class="row">
                     <div class="col-md-6 mb-4">
                       <label for="dateOfBirth" class="form-label"
-                        >Date of Birth</label
+                        >Ngày sinh</label
                       >
                       <input
                         type="date"
@@ -220,22 +214,22 @@
                         class="form-text"
                         style="font-size: 12px; color: #999; margin-top: 4px"
                       >
-                        Your date of birth (optional)
+                        Ngày sinh của bạn (tùy chọn)
                       </div>
                     </div>
                     <div class="col-md-6 mb-4">
-                      <label for="gender" class="form-label">Gender</label>
+                      <label for="gender" class="form-label">Giới tính</label>
                       <select class="form-select" id="gender" name="gender">
-                        <option value="">Prefer not to say</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                        <option value="other">Other</option>
+                        <option value="">Không muốn tiết lộ</option>
+                        <option value="male">Nam</option>
+                        <option value="female">Nữ</option>
+                        <option value="other">Khác</option>
                       </select>
                       <div
                         class="form-text"
                         style="font-size: 12px; color: #999; margin-top: 4px"
                       >
-                        Select your gender (optional)
+                        Chọn giới tính của bạn (tùy chọn)
                       </div>
                     </div>
                   </div>
@@ -249,19 +243,46 @@
                     - Avatar validation does NOT block form submission
                   -->
                   <div class="mb-4">
-                    <label class="form-label">Profile Picture</label>
+                    <label class="form-label">Ảnh đại diện</label>
                     <div class="card border-light bg-light">
                       <div class="card-body text-center py-4">
                         <div id="avatarPreview" class="mb-3">
-                          <div style="width: 120px; height: 120px; margin: 0 auto; background: #e9ecef; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px dashed #dee2e6;">
-                            <i class="fas fa-user fa-3x" style="color: #999;"></i>
+                          <div
+                            style="
+                              width: 120px;
+                              height: 120px;
+                              margin: 0 auto;
+                              background: #e9ecef;
+                              border-radius: 50%;
+                              display: flex;
+                              align-items: center;
+                              justify-content: center;
+                              border: 2px dashed #dee2e6;
+                            "
+                          >
+                            <i
+                              class="fas fa-user fa-3x"
+                              style="color: #999"
+                            ></i>
                           </div>
                         </div>
-                        <input type="file" class="form-control d-none" id="avatarFile" name="avatar_file" accept="image/jpeg,image/png,image/webp,image/jpg" />
-                        <label for="avatarFile" class="btn btn-primary mb-2" style="cursor: pointer;">
-                          <i class="fas fa-upload me-2"></i>Choose Photo
+                        <input
+                          type="file"
+                          class="form-control d-none"
+                          id="avatarFile"
+                          name="avatar_file"
+                          accept="image/jpeg,image/png,image/webp,image/jpg"
+                        />
+                        <label
+                          for="avatarFile"
+                          class="btn btn-primary mb-2"
+                          style="cursor: pointer"
+                        >
+                          <i class="fas fa-upload me-2"></i>Chọn ảnh
                         </label>
-                        <p class="text-muted small mb-0">JPG, PNG, or WEBP • Max 5MB</p>
+                        <p class="text-muted small mb-0">
+                          JPG, PNG, hoặc WEBP • Tối đa 5MB
+                        </p>
                       </div>
                     </div>
                     <div id="avatarUploadFeedback" class="d-none mt-2"></div>
@@ -279,7 +300,7 @@
                     "
                   >
                     <i class="fas fa-spinner fa-spin me-2"></i>
-                    Saving your profile information...
+                    Đang lưu thông tin hồ sơ của bạn...
                   </div>
 
                   <!-- Success/Error messages -->
@@ -291,14 +312,14 @@
                       class="btn btn-primary"
                       id="savePersonalInfoBtn"
                     >
-                      Save Changes
+                      Lưu thay đổi
                     </button>
                     <button
                       type="button"
                       class="btn btn-outline-secondary"
                       onclick="refreshPersonalInfo()"
                     >
-                      Refresh Data
+                      Làm mới
                     </button>
                   </div>
                 </form>
@@ -307,18 +328,16 @@
               <!-- Address Book Section -->
               <div class="profile-section-content" id="address-book-section">
                 <div class="section-header">
-                  <h3 class="section-title">Address Book</h3>
-                  <p class="section-subtitle">Manage your shipping addresses</p>
+                  <h3 class="section-title">Sổ địa chỉ</h3>
+                  <p class="section-subtitle">Quản lý địa chỉ giao hàng của bạn</p>
                 </div>
 
                 <div class="address-actions mb-5">
                   <button
+                    onclick="window.openAddAddressModal()"
                     class="btn btn-primary"
-                    data-bs-toggle="modal"
-                    data-bs-target="#addAddressModal"
-                    style="border-radius: 8px; padding: 12px 24px"
                   >
-                    Add New Address
+                    Thêm địa chỉ mới
                   </button>
                 </div>
 
@@ -329,7 +348,7 @@
                       role="status"
                       style="color: #000"
                     >
-                      <span class="visually-hidden">Loading addresses...</span>
+                      <span class="visually-hidden">Đang tải địa chỉ...</span>
                     </div>
                   </div>
                 </div>
@@ -341,21 +360,21 @@
                 id="account-settings-section"
               >
                 <div class="section-header">
-                  <h3 class="section-title">Account Settings</h3>
+                  <h3 class="section-title">Cài đặt tài khoản</h3>
                   <p class="section-subtitle">
-                    Manage your account preferences and security
+                    Quản lý tùy chọn và bảo mật tài khoản của bạn
                   </p>
                 </div>
 
                 <div class="account-settings">
                   <div class="setting-group mb-5">
-                    <h5 class="setting-group-title">Account Information</h5>
+                    <h5 class="setting-group-title">Thông tin tài khoản</h5>
                     <div class="setting-item">
                       <div
                         class="d-flex justify-content-between align-items-center"
                       >
                         <div>
-                          <h6 class="mb-1">Account Status</h6>
+                          <h6 class="mb-1">Trạng thái tài khoản</h6>
                           <p class="text-muted mb-0" id="accountStatus">
                             Active
                           </p>
@@ -378,9 +397,9 @@
                         class="d-flex justify-content-between align-items-center"
                       >
                         <div>
-                          <h6 class="mb-1">Member Since</h6>
+                          <h6 class="mb-1">Thành viên từ</h6>
                           <p class="text-muted mb-0" id="memberSince">
-                            Loading...
+                            Đang tải...
                           </p>
                         </div>
                       </div>
@@ -388,15 +407,15 @@
                   </div>
 
                   <div class="setting-group mb-5">
-                    <h5 class="setting-group-title">Security</h5>
+                    <h5 class="setting-group-title">Bảo mật</h5>
                     <div class="setting-item">
                       <div
                         class="d-flex justify-content-between align-items-center"
                       >
                         <div>
-                          <h6 class="mb-1">Login Sessions</h6>
+                          <h6 class="mb-1">Phiên đăng nhập</h6>
                           <p class="text-muted mb-0">
-                            Manage your active login sessions
+                            Quản lý các phiên đăng nhập đang hoạt động
                           </p>
                         </div>
                         <button
@@ -404,23 +423,23 @@
                           onclick="viewSessions()"
                           style="border-radius: 6px; padding: 6px 16px"
                         >
-                          View Sessions
+                          Xem phiên
                         </button>
                       </div>
                     </div>
                   </div>
 
                   <div class="setting-group mb-5">
-                    <h5 class="setting-group-title">Data & Privacy</h5>
+                    <h5 class="setting-group-title">Dữ liệu & Quyền riêng tư</h5>
 
                     <div class="setting-item">
                       <div
                         class="d-flex justify-content-between align-items-center"
                       >
                         <div>
-                          <h6 class="mb-1">Delete Account</h6>
+                          <h6 class="mb-1">Xóa tài khoản</h6>
                           <p class="text-muted mb-0">
-                            Permanently delete your account and all data
+                            Xóa vĩnh viễn tài khoản và tất cả dữ liệu của bạn
                           </p>
                         </div>
                         <button
@@ -428,7 +447,7 @@
                           onclick="confirmAccountDeletion()"
                           style="border-radius: 6px; padding: 6px 16px"
                         >
-                          Delete Account
+                          Xóa tài khoản
                         </button>
                       </div>
                     </div>
@@ -441,12 +460,14 @@
       </div>
     </section>
 
-    <!-- Add Address Modal -->
+    <!-- ==================== ADDRESS MANAGEMENT MODALS ==================== -->
+
+    <!-- 1. Add New Address Modal -->
     <div class="modal fade" id="addAddressModal" tabindex="-1">
-      <div class="modal-dialog">
+      <div class="modal-dialog modal-lg">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Add New Address</h5>
+            <h5 class="modal-title">Thêm địa chỉ mới</h5>
             <button
               type="button"
               class="btn-close"
@@ -454,114 +475,190 @@
             ></button>
           </div>
           <div class="modal-body">
-            <form id="addAddressForm">
-              <div class="mb-4">
-                <label for="addressStreet" class="form-label"
-                  >Street Address *</label
-                >
-                <input
-                  type="text"
-                  class="form-control"
-                  id="addressStreet"
-                  name="street"
-                  required
-                />
-              </div>
-
-              <div class="row">
-                <div class="col-md-6 mb-4">
-                  <label for="addressCity" class="form-label">City *</label>
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="addressCity"
-                    name="city"
-                    required
-                  />
-                </div>
-                <div class="col-md-6 mb-4">
-                  <label for="addressState" class="form-label">State *</label>
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="addressState"
-                    name="state"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div class="row">
-                <div class="col-md-6 mb-4">
-                  <label for="addressCountry" class="form-label"
-                    >Country *</label
+            <form id="addAddressForm" novalidate>
+              <!-- Row 1: Recipient Name & Phone Number -->
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label class="form-label"
+                    >Tên người nhận <span class="text-danger">*</span></label
                   >
                   <input
                     type="text"
                     class="form-control"
-                    id="addressCountry"
-                    name="country"
-                    value="Vietnam"
+                    name="recipient_name"
+                    placeholder="Họ và tên"
                     required
                   />
+                  <small
+                    class="text-danger d-block mt-1"
+                    style="display: none"
+                  ></small>
                 </div>
-                <div class="col-md-6 mb-4">
-                  <label for="addressZip" class="form-label">ZIP Code *</label>
+                <div class="col-md-6">
+                  <label class="form-label"
+                    >Số điện thoại <span class="text-danger">*</span></label
+                  >
+                  <input
+                    type="tel"
+                    class="form-control"
+                    name="phone_number"
+                    placeholder="+84..."
+                    required
+                  />
+                  <small
+                    class="text-danger d-block mt-1"
+                    style="display: none"
+                  ></small>
+                </div>
+              </div>
+
+              <!-- Row 2: Street Address -->
+              <div class="row mb-3">
+                <div class="col-12">
+                  <label class="form-label"
+                    >Địa chỉ <span class="text-danger">*</span></label
+                  >
                   <input
                     type="text"
                     class="form-control"
-                    id="addressZip"
-                    name="zip_code"
+                    name="street"
+                    placeholder="Số nhà, tên đường"
                     required
+                  />
+                  <small
+                    class="text-danger d-block mt-1"
+                    style="display: none"
+                  ></small>
+                </div>
+              </div>
+
+              <!-- Row 3: Ward & District -->
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label class="form-label"
+                    >Phường/Xã <span class="text-danger">*</span></label
+                  >
+                  <input
+                    type="text"
+                    class="form-control"
+                    name="ward"
+                    required
+                  />
+                  <small
+                    class="text-danger d-block mt-1"
+                    style="display: none"
+                  ></small>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label"
+                    >Quận/Huyện <span class="text-danger">*</span></label
+                  >
+                  <input
+                    type="text"
+                    class="form-control"
+                    name="district"
+                    required
+                  />
+                  <small
+                    class="text-danger d-block mt-1"
+                    style="display: none"
+                  ></small>
+                </div>
+              </div>
+
+              <!-- Row 4: City & State/Province -->
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label class="form-label"
+                    >Thành phố <span class="text-danger">*</span></label
+                  >
+                  <input
+                    type="text"
+                    class="form-control"
+                    name="city"
+                    required
+                  />
+                  <small
+                    class="text-danger d-block mt-1"
+                    style="display: none"
+                  ></small>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label"
+                    >Tỉnh <span class="text-danger">*</span></label
+                  >
+                  <input
+                    type="text"
+                    class="form-control"
+                    name="state"
+                    required
+                  />
+                  <small
+                    class="text-danger d-block mt-1"
+                    style="display: none"
+                  ></small>
+                </div>
+              </div>
+
+              <!-- Row 5: Zip Code & Country -->
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label class="form-label">Mã bưu điện</label>
+                  <input type="text" class="form-control" name="zip_code" />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Quốc gia</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    name="country"
+                    value="Việt Nam"
                   />
                 </div>
               </div>
 
-              <div class="form-check mb-4">
-                <input
-                  class="form-check-input"
-                  type="checkbox"
-                  id="addressDefault"
-                  name="is_default"
-                />
-                <label
-                  class="form-check-label"
-                  for="addressDefault"
-                  style="font-family: 'Poppins', sans-serif; font-weight: 500"
-                >
-                  Set as default address
-                </label>
+              <!-- Checkbox: Default Address -->
+              <div class="mb-3">
+                <div class="form-check">
+                  <input
+                    type="checkbox"
+                    class="form-check-input"
+                    id="addIsDefault"
+                    name="is_default"
+                  />
+                  <label class="form-check-label" for="addIsDefault">
+                    Đặt làm địa chỉ mặc định
+                  </label>
+                </div>
               </div>
             </form>
           </div>
           <div class="modal-footer">
             <button
               type="button"
-              class="btn btn-outline-secondary"
+              class="btn btn-secondary"
               data-bs-dismiss="modal"
-              style="border-radius: 8px; padding: 12px 24px"
             >
-              Cancel
+              Hủy
             </button>
             <button
               type="button"
               class="btn btn-primary"
-              onclick="saveNewAddress()"
-              style="border-radius: 8px; padding: 12px 24px"
+              onclick="window.profileManager.handleAddAddress()"
             >
-              Save Address
+              Lưu địa chỉ
             </button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Edit Address Modal -->
+    <!-- 2. Edit Address Modal -->
     <div class="modal fade" id="editAddressModal" tabindex="-1">
-      <div class="modal-dialog">
+      <div class="modal-dialog modal-lg">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Edit Address</h5>
+            <h5 class="modal-title">Chỉnh sửa địa chỉ</h5>
             <button
               type="button"
               class="btn-close"
@@ -570,105 +667,165 @@
           </div>
           <div class="modal-body">
             <form id="editAddressForm">
-              <input type="hidden" id="editAddressId" name="address_id" />
-              <div class="mb-4">
-                <label for="editAddressStreet" class="form-label"
-                  >Street Address *</label
-                >
+              <input type="hidden" id="editAddressId" />
+
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label class="form-label">Recipient Name *</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    name="recipient_name"
+                    required
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Phone Number *</label>
+                  <input
+                    type="tel"
+                    class="form-control"
+                    name="phone_number"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Street Address *</label>
                 <input
                   type="text"
                   class="form-control"
-                  id="editAddressStreet"
                   name="street"
                   required
                 />
               </div>
 
-              <div class="row">
-                <div class="col-md-6 mb-4">
-                  <label for="editAddressCity" class="form-label">City *</label>
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label class="form-label">Ward *</label>
                   <input
                     type="text"
                     class="form-control"
-                    id="editAddressCity"
+                    name="ward"
+                    required
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">District *</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    name="district"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label class="form-label">City *</label>
+                  <input
+                    type="text"
+                    class="form-control"
                     name="city"
                     required
                   />
                 </div>
-                <div class="col-md-6 mb-4">
-                  <label for="editAddressState" class="form-label"
-                    >State *</label
-                  >
+                <div class="col-md-6">
+                  <label class="form-label">State/Province *</label>
                   <input
                     type="text"
                     class="form-control"
-                    id="editAddressState"
                     name="state"
                     required
                   />
                 </div>
               </div>
 
-              <div class="row">
-                <div class="col-md-6 mb-4">
-                  <label for="editAddressCountry" class="form-label"
-                    >Country *</label
-                  >
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="editAddressCountry"
-                    name="country"
-                    required
-                  />
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label class="form-label">Zip Code</label>
+                  <input type="text" class="form-control" name="zip_code" />
                 </div>
-                <div class="col-md-6 mb-4">
-                  <label for="editAddressZip" class="form-label"
-                    >ZIP Code *</label
-                  >
+                <div class="col-md-6">
+                  <label class="form-label">Country</label>
                   <input
                     type="text"
                     class="form-control"
-                    id="editAddressZip"
-                    name="zip_code"
-                    required
+                    name="country"
+                    value="Vietnam"
                   />
                 </div>
               </div>
 
-              <div class="form-check mb-4">
-                <input
-                  class="form-check-input"
-                  type="checkbox"
-                  id="editAddressDefault"
-                  name="is_default"
-                />
-                <label
-                  class="form-check-label"
-                  for="editAddressDefault"
-                  style="font-family: 'Poppins', sans-serif; font-weight: 500"
-                >
-                  Set as default address
-                </label>
+              <div class="mb-3">
+                <div class="form-check">
+                  <input
+                    type="checkbox"
+                    class="form-check-input"
+                    name="is_default"
+                    id="editIsDefault"
+                  />
+                  <label class="form-check-label" for="editIsDefault">
+                    Set as default address
+                  </label>
+                </div>
               </div>
             </form>
           </div>
           <div class="modal-footer">
             <button
               type="button"
-              class="btn btn-outline-secondary"
+              class="btn btn-secondary"
               data-bs-dismiss="modal"
-              style="border-radius: 8px; padding: 12px 24px"
             >
               Cancel
             </button>
             <button
               type="button"
               class="btn btn-primary"
-              onclick="updateAddress()"
-              style="border-radius: 8px; padding: 12px 24px"
+              onclick="window.profileManager.handleUpdateAddress()"
             >
               Update Address
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Delete Address Confirmation Modal -->
+    <div class="modal fade" id="deleteAddressModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header bg-danger text-white">
+            <h5 class="modal-title">Xóa địa chỉ</h5>
+            <button
+              type="button"
+              class="btn-close btn-close-white"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <p>Bạn có chắc chắn muốn xóa địa chỉ này không?</p>
+            <p class="text-muted">
+              <small>Hành động này không thể hoàn tác.</small>
+            </p>
+            <input type="hidden" id="deleteAddressId" />
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="btn btn-danger"
+              onclick="window.profileManager.handleDeleteAddress()"
+            >
+              Delete
             </button>
           </div>
         </div>
@@ -680,7 +837,7 @@
       <div class="modal-dialog modal-lg">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Active Login Sessions</h5>
+            <h5 class="modal-title">Phiên đăng nhập đang hoạt động</h5>
             <button
               type="button"
               class="btn-close"
@@ -691,9 +848,9 @@
             <div id="sessionsList">
               <div class="text-center py-4">
                 <div class="spinner-border text-primary" role="status">
-                  <span class="visually-hidden">Loading sessions...</span>
+                  <span class="visually-hidden">Đang tải phiên...</span>
                 </div>
-                <p class="mt-2 text-muted">Loading your active sessions...</p>
+                <p class="mt-2 text-muted">Đang tải các phiên hoạt động của bạn...</p>
               </div>
             </div>
           </div>
@@ -704,7 +861,7 @@
               data-bs-dismiss="modal"
               style="border-radius: 8px; padding: 12px 24px"
             >
-              Close
+              Đóng
             </button>
             <button
               type="button"
@@ -712,7 +869,7 @@
               onclick="terminateAllSessions()"
               style="border-radius: 8px; padding: 12px 24px"
             >
-              Terminate All Other Sessions
+              Kết thúc tất cả phiên khác
             </button>
           </div>
         </div>
@@ -724,7 +881,7 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header bg-danger text-white">
-            <h5 class="modal-title">⚠️ Delete Account</h5>
+            <h5 class="modal-title">⚠️ Xóa tài khoản</h5>
             <button
               type="button"
               class="btn-close btn-close-white"
@@ -733,37 +890,37 @@
           </div>
           <div class="modal-body">
             <div class="alert alert-danger" role="alert">
-              <strong>Warning:</strong> This action cannot be undone! All your
-              data will be permanently deleted.
+              <strong>Cảnh báo:</strong> Hành động này không thể hoàn tác! Tất cả dữ liệu
+              của bạn sẽ bị xóa vĩnh viễn.
             </div>
 
-            <p class="mb-3">This will permanently delete:</p>
+            <p class="mb-3">Những thông tin sau sẽ bị xóa vĩnh viễn:</p>
             <ul class="mb-4">
-              <li>Your profile information</li>
-              <li>All saved addresses</li>
-              <li>Order history</li>
-              <li>Reviews and ratings</li>
-              <li>All personal data</li>
+              <li>Thông tin hồ sơ của bạn</li>
+              <li>Tất cả địa chỉ đã lưu</li>
+              <li>Lịch sử đơn hàng</li>
+              <li>Đánh giá và xếp hạng</li>
+              <li>Tất cả dữ liệu cá nhân</li>
             </ul>
 
             <p class="mb-3">
               <strong
-                >To confirm deletion, please type your email address
-                below:</strong
+                >Để xác nhận xóa tài khoản, vui lòng nhập địa chỉ email của bạn
+                vào bên dưới:</strong
               >
             </p>
             <div class="mb-3">
               <label for="deleteEmailConfirm" class="form-label"
-                >Email Address</label
+                >Địa chỉ email</label
               >
               <input
                 type="email"
                 class="form-control"
                 id="deleteEmailConfirm"
-                placeholder="Enter your email address"
+                placeholder="Nhập địa chỉ email của bạn"
               />
               <small class="text-muted"
-                >Current email: <span id="currentEmailDisplay"></span
+                >Email hiện tại: <span id="currentEmailDisplay"></span
               ></small>
             </div>
 
@@ -780,7 +937,7 @@
               data-bs-dismiss="modal"
               style="border-radius: 8px; padding: 12px 24px"
             >
-              Cancel
+              Hủy
             </button>
             <button
               type="button"
@@ -788,7 +945,7 @@
               onclick="executeAccountDeletion()"
               style="border-radius: 8px; padding: 12px 24px"
             >
-              <i class="fas fa-trash me-2"></i>Delete Account
+              <i class="fas fa-trash me-2"></i>Xóa tài khoản
             </button>
           </div>
         </div>
@@ -825,20 +982,24 @@
       });
 
       // Expose necessary functions to global scope for onclick handlers
-      window.saveNewAddress = () =>
-        profileManager.handleAddressAdd(
-          new FormData(document.getElementById("addAddressForm"))
-        );
-      window.editAddress = (id) => profileManager.editAddress(id);
-      window.updateAddress = () =>
-        profileManager.handleAddressEdit(
-          document.getElementById("editAddressId").value,
-          new FormData(document.getElementById("editAddressForm"))
-        );
-      window.deleteAddress = (id) => profileManager.handleAddressDelete(id);
+      // ⭐ Address Management (UPDATED)
+      window.openAddAddressModal = () => profileManager.openAddAddressModal();
+      window.openEditAddressModal = (id) =>
+        profileManager.openEditAddressModal(id);
+      window.openDeleteAddressModal = (id) =>
+        profileManager.openDeleteAddressModal(id);
+      window.handleAddAddress = () => profileManager.handleAddAddress();
+      window.handleUpdateAddress = () => profileManager.handleUpdateAddress();
+      window.handleDeleteAddress = () => profileManager.handleDeleteAddress();
+
+      // Personal Info
       window.refreshPersonalInfo = () => profileManager.refreshPersonalInfo();
+
+      // Sessions
       window.viewSessions = () => profileManager.viewSessions();
       window.terminateAllSessions = () => profileManager.terminateAllSessions();
+
+      // Account Deletion
       window.confirmAccountDeletion = () =>
         profileManager.confirmAccountDeletion();
       window.executeAccountDeletion = () =>

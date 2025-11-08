@@ -13,8 +13,8 @@ body {
 
 .sport-carousel-heading {
    margin: 150px 0px 90px 0px;
-   font-family: 'Poppins', sans-serif;
-   font-weight: Bold;
+   font-family: 'Inter', sans-serif;
+   font-weight: 800;
    text-align: center;
    font-size: 48px;
 }
@@ -48,16 +48,16 @@ body {
   box-sizing: border-box;
 }
 #slider label .sport-name {
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 1000;
   font-size: 48px;
   margin-bottom: 8px;
 }
 
 #slider label .sport-desc {
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 400;
-  font-size: 16px;
+  font-size: 24px;
   margin-bottom: 12px;
 }
 
@@ -65,7 +65,7 @@ body {
   background-color: white;
   color: black;
   padding: 10px 24px;
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 600;
   font-size: 16px;
   text-align: center;

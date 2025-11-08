@@ -738,6 +738,50 @@ class ProductsAPI {
       throw error;
     }
   }
+  /**
+   * ⭐ CREATE new category (Admin only)
+   */
+  async createCategory(categoryData) {
+    try {
+      console.log('➕ Creating category:', categoryData);
+      const response = await this.client.post('/api/categories', categoryData);
+      console.log('✅ Category created:', response);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Create category error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * ⭐ UPDATE category (Admin only)
+   */
+  async updateCategory(categoryId, updateData) {
+    try {
+      console.log(`🔄 Updating category ${categoryId}:`, updateData);
+      const response = await this.client.put(`/api/categories/${categoryId}`, updateData);
+      console.log('✅ Category updated:', response);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Update category error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * ⭐ SOFT DELETE category (Admin only)
+   */
+  async deleteCategory(categoryId) {
+    try {
+      console.log(`🗑️ Soft deleting category ${categoryId}`);
+      const response = await this.client.delete(`/api/categories/${categoryId}`);
+      console.log('✅ Category deleted:', response);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Delete category error:', error);
+      throw error;
+    }
+  }
 }
 class ImportsAPI {
   constructor(client) {

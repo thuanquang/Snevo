@@ -30,7 +30,7 @@ class AdminManager {
     window.adminHistory = this.historyManager;
     this.actions = new AdminActions(this.core);
 
-    // ✅ NEW: Initialize dashboard and order management modules
+    // Initialize dashboard and order management modules
     this.dashboard = new AdminDashboard(this.core, this);
     this.orderManagement = new AdminOrderManagement(this.core, this);
 
@@ -64,7 +64,7 @@ class AdminManager {
       this.core.updateStats();
 
       // ✅ Setup dashboard and order management
-      this.dashboard.attachToSection('dashboardSection');
+      this.dashboard.attachToSection("dashboardSection");
       this.orderManagement.init();
 
       // Setup event listeners (ONLY ONCE)
@@ -345,7 +345,9 @@ class AdminManager {
   deleteVariant(variantId) {
     return this.actions.deleteVariant(variantId);
   }
-
+  addCategory() {
+    return this.actions.addCategory();
+  }
   editCategory(categoryId) {
     return this.actions.editCategory(categoryId);
   }
@@ -436,7 +438,7 @@ class AdminManager {
     if (activeLink) {
       activeLink.classList.add("active");
     }
-    }
+  }
 
   /**
    * Delete variant wrapper - called from HTML onclick
@@ -446,17 +448,17 @@ class AdminManager {
       // Pass to AdminActions with buttonElement
       await this.actions.deleteVariant(variantId, buttonElement);
     } catch (error) {
-      console.error('Delete variant failed in AdminManager:', error);
+      console.error("Delete variant failed in AdminManager:", error);
     }
   }
 
   // ==================== PAYMENT HELPERS (for Order Management) ====================
-  
+
   /**
    * Confirm bank transfer payment
    */
   async confirmPayment(paymentId) {
-    if (!confirm('Confirm this bank transfer payment?')) {
+    if (!confirm("Confirm this bank transfer payment?")) {
       return;
     }
 
@@ -467,11 +469,17 @@ class AdminManager {
       
       // Reload orders to reflect changes
       if (this.orderManagement) {
-        await this.orderManagement.loadOrders(this.orderManagement.currentState.currentPage);
+        await this.orderManagement.loadOrders(
+          this.orderManagement.currentState.currentPage
+        );
       }
     } catch (err) {
-      console.error('❌ Failed to confirm payment:', err);
-      AdminUtils.showToast('Error', 'Failed to confirm payment: ' + (err.message || 'Unknown error'), 'error');
+      console.error("❌ Failed to confirm payment:", err);
+      AdminUtils.showToast(
+        "Error",
+        "Failed to confirm payment: " + (err.message || "Unknown error"),
+        "error"
+      );
     }
   }
 
@@ -479,7 +487,7 @@ class AdminManager {
    * Approve COD order (not collected yet, just approved for delivery)
    */
   async approveCod(paymentId) {
-    if (!confirm('Approve this Cash on Delivery order for delivery?')) {
+    if (!confirm("Approve this Cash on Delivery order for delivery?")) {
       return;
     }
 
@@ -490,11 +498,17 @@ class AdminManager {
       
       // Reload orders to reflect changes
       if (this.orderManagement) {
-        await this.orderManagement.loadOrders(this.orderManagement.currentState.currentPage);
+        await this.orderManagement.loadOrders(
+          this.orderManagement.currentState.currentPage
+        );
       }
     } catch (err) {
-      console.error('❌ Failed to approve COD:', err);
-      AdminUtils.showToast('Error', 'Failed to approve COD order: ' + (err.message || 'Unknown error'), 'error');
+      console.error("❌ Failed to approve COD:", err);
+      AdminUtils.showToast(
+        "Error",
+        "Failed to approve COD order: " + (err.message || "Unknown error"),
+        "error"
+      );
     }
   }
 
@@ -502,7 +516,7 @@ class AdminManager {
    * Mark COD as collected (after delivery)
    */
   async collectCod(paymentId) {
-    if (!confirm('Mark this Cash on Delivery payment as collected?')) {
+    if (!confirm("Mark this Cash on Delivery payment as collected?")) {
       return;
     }
 
@@ -513,14 +527,21 @@ class AdminManager {
       
       // Reload orders to reflect changes
       if (this.orderManagement) {
-        await this.orderManagement.loadOrders(this.orderManagement.currentState.currentPage);
+        await this.orderManagement.loadOrders(
+          this.orderManagement.currentState.currentPage
+        );
       }
     } catch (err) {
-      console.error('❌ Failed to collect COD:', err);
-      AdminUtils.showToast('Error', 'Failed to mark payment as collected: ' + (err.message || 'Unknown error'), 'error');
+      console.error("❌ Failed to collect COD:", err);
+      AdminUtils.showToast(
+        "Error",
+        "Failed to mark payment as collected: " +
+          (err.message || "Unknown error"),
+        "error"
+      );
     }
   }
-}// Initialize on page load
+} // Initialize on page load
 window.addEventListener("DOMContentLoaded", async () => {
   window.adminManager = new AdminManager();
   await window.adminManager.init();

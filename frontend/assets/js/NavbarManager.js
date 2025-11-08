@@ -507,14 +507,14 @@ class NavbarManager {
                     <div class="collapse navbar-collapse" id="navbarNav">
                         <ul class="navbar-nav mx-auto" style="gap: 80px;">
                             <li class="nav-item">
-                                <a class="nav-link" href="#" data-navbar-link="home">Home</a>
+                                <a class="nav-link" href="#" data-navbar-link="home">Trang chủ</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="#" data-navbar-link="products">Shop</a>
+                                <a class="nav-link" href="#" data-navbar-link="products">Mua sắm</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="#" data-navbar-link="about">
-                                    About
+                                    Giới thiệu
                                 </a>
                             </li>
                         </ul>
@@ -545,7 +545,7 @@ class NavbarManager {
                             <li class="nav-item" style=" border-radius: 32px;">
                                 <ul class="navbar-nav" id="authButtons">
                                     <li class="nav-item">
-                                        <a class="nav-link px-4 fw-medium" style="color: black !important;" href="#" id="globalLoginLink">Login</a>
+                                        <a class="nav-link px-4 fw-medium" style="color: black !important;" href="#" id="globalLoginLink">Đăng nhập</a>
                                     </li>
                                 </ul>
                             </li>

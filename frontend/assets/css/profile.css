@@ -1,4 +1,18 @@
 /* Minimalist Profile Styles - Following Landing Page Design */
+
+html {
+  overflow-x: hidden !important;
+  width: 100%;
+  position: relative;
+  scroll-behavior: smooth !important;
+}
+
+.container {
+  max-width: 1520px !important;
+  padding-left: 60px;
+  padding-right: 60px;
+}
+
 .profile-section-content {
   transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
   opacity: 1;
@@ -20,7 +34,7 @@
   border: none;
   background: transparent;
   color: #666;
-  font-family: "Poppins", sans-serif;
+  font-family: "Inter", sans-serif;
   font-weight: 500;
   border-left: 3px solid transparent;
 }
@@ -52,7 +66,7 @@
 
 .section-title {
   color: #000;
-  font-family: "Poppins", sans-serif;
+  font-family: "Inter", sans-serif;
   font-weight: 700;
   font-size: 32px;
   margin-bottom: 8px;
@@ -60,7 +74,7 @@
 
 .section-subtitle {
   color: #666;
-  font-family: "Poppins", sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 16px;
   font-weight: 400;
 }
@@ -69,7 +83,7 @@
   margin-right: 12px;
   margin-bottom: 12px;
   border-radius: 8px;
-  font-family: "Poppins", sans-serif;
+  font-family: "Inter", sans-serif;
   font-weight: 600;
   padding: 12px 24px;
 }
@@ -97,7 +111,7 @@
 }
 
 .profile-name {
-  font-family: "Poppins", sans-serif;
+  font-family: "Inter", sans-serif;
   font-weight: 700;
   font-size: 20px;
   color: #000;
@@ -105,7 +119,7 @@
 }
 
 .profile-email {
-  font-family: "Poppins", sans-serif;
+  font-family: "Inter", sans-serif;
   font-weight: 400;
   font-size: 14px;
   color: #666;
@@ -117,7 +131,7 @@
   border: 2px solid #e5e5e5;
   border-radius: 8px;
   padding: 12px 16px;
-  font-family: "Poppins", sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 14px;
   transition: all 0.2s ease;
 }
@@ -129,7 +143,7 @@
 }
 
 .form-label {
-  font-family: "Poppins", sans-serif;
+  font-family: "Inter", sans-serif;
   font-weight: 600;
   font-size: 14px;
   color: #000;
@@ -149,14 +163,14 @@
 }
 
 .address-card .card-title {
-  font-family: "Poppins", sans-serif;
+  font-family: "Inter", sans-serif;
   font-weight: 600;
   font-size: 16px;
   color: #000;
 }
 
 .address-card .card-text {
-  font-family: "Poppins", sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 14px;
   color: #666;
 }
@@ -166,7 +180,7 @@
   background: #000;
   border: 2px solid #000;
   color: #fff;
-  font-family: "Poppins", sans-serif;
+  font-family: "Inter", sans-serif;
   font-weight: 600;
 }
 
@@ -179,7 +193,7 @@
   border: 2px solid #000;
   color: #000;
   background: transparent;
-  font-family: "Poppins", sans-serif;
+  font-family: "Inter", sans-serif;
   font-weight: 600;
 }
 
@@ -192,7 +206,7 @@
   border: 2px solid #e5e5e5;
   color: #666;
   background: transparent;
-  font-family: "Poppins", sans-serif;
+  font-family: "Inter", sans-serif;
   font-weight: 600;
 }
 
@@ -206,7 +220,7 @@
   border: 2px solid #dc3545;
   color: #dc3545;
   background: transparent;
-  font-family: "Poppins", sans-serif;
+  font-family: "Inter", sans-serif;
   font-weight: 600;
 }
 
@@ -228,7 +242,7 @@
 }
 
 .modal-title {
-  font-family: "Poppins", sans-serif;
+  font-family: "Inter", sans-serif;
   font-weight: 700;
   font-size: 20px;
   color: #000;
@@ -254,7 +268,7 @@
 }
 
 .setting-group-title {
-  font-family: "Poppins", sans-serif;
+  font-family: "Inter", sans-serif;
   font-weight: 700;
   font-size: 18px;
   color: #000;
@@ -262,7 +276,7 @@
 }
 
 .setting-item h6 {
-  font-family: "Poppins", sans-serif;
+  font-family: "Inter", sans-serif;
   font-weight: 600;
   font-size: 16px;
   color: #000;
@@ -270,10 +284,31 @@
 }
 
 .setting-item p {
-  font-family: "Poppins", sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 14px;
   color: #666;
   margin-bottom: 0;
+}
+/* Form validation styles */
+.form-control.is-invalid {
+  border-color: #dc3545;
+  background-image: none;
+}
+
+.form-control.is-invalid:focus {
+  border-color: #dc3545;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+.invalid-feedback {
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+.text-danger {
+  color: #dc3545;
 }
 
 @media (max-width: 991.98px) {
