@@ -22,7 +22,6 @@ class ProfileManager {
             await this.loadAddresses();
             await this.loadNotificationSettings();
             this.isInitialized = true;
-            console.log('ProfileManager initialized successfully');
         } catch (error) {
             console.error('Failed to initialize ProfileManager:', error);
             throw error;
@@ -34,8 +33,6 @@ class ProfileManager {
      */
     async loadUserProfile() {
         try {
-            console.log('🔄 Loading user profile...');
-
             // Get session from Supabase
             if (!window.authService || !window.authService.supabase) {
                 console.error('AuthService not available');
@@ -54,7 +51,6 @@ class ProfileManager {
             }
 
             const token = session.access_token;
-            console.log('✅ Got access token from session');
 
             const response = await fetch('/api/auth/profile', {
                 headers: {
@@ -65,13 +61,11 @@ class ProfileManager {
 
             if (response.ok) {
                 const data = await response.json();
-                console.log('✅ Profile loaded from API:', data);
                 this.currentUser = data.user;
                 await this.updateProfileDisplay();
                 await this.loadAddresses();
                 return this.currentUser;
             } else if (response.status === 404) {
-                console.log('Profile not found - this might be a new user');
                 // For new users, try to get basic info from AuthManager
                 if (window.authManager && window.authManager.getCurrentUser()) {
                     const authUser = window.authManager.getCurrentUser();
@@ -86,7 +80,6 @@ class ProfileManager {
                         gender: '',
                         avatar_url: authUser.avatar_url || ''
                     };
-                    console.log('Using AuthManager user data as fallback:', this.currentUser);
                     await this.updateProfileDisplay();
                     await this.loadAddresses();
                     return this.currentUser;
@@ -103,7 +96,6 @@ class ProfileManager {
 
             // Fallback to AuthManager data if API fails
             if (window.authManager && window.authManager.getCurrentUser()) {
-                console.log('🔄 Falling back to AuthManager user data');
                 const authUser = window.authManager.getCurrentUser();
                 this.currentUser = {
                     user_id: authUser.id,
@@ -144,7 +136,6 @@ class ProfileManager {
             // Get the current session token
             const { data: { session } } = await window.authService.supabase.auth.getSession();
             if (!session) {
-                console.log('No active session for loading addresses');
                 const addressesList = document.getElementById('addressesList');
                 if (addressesList) {
                     addressesList.innerHTML = '<div class="alert alert-info">Please log in to view your addresses.</div>';
@@ -521,19 +512,11 @@ class ProfileManager {
      * Initialize profile page - main entry point for profile.html
      */
     async initializeProfilePage() {
-        console.log('🔍 initializeProfilePage called');
-        console.log('Current URL:', window.location.href);
-        console.log('AuthManager available:', !!window.authManager);
-        
         // Wait for AuthManager to be available and initialized
         await this.waitForAuthManager();
-        console.log('AuthManager ready');
         
         // Wait for AuthService to be fully initialized
         await this.waitForAuthService();
-        
-        console.log('Is authenticated:', window.authManager.isAuthenticated());
-        console.log('Current user:', window.authManager.getCurrentUser());
         
         // Revalidate session first to avoid stale state
         try {
@@ -546,7 +529,6 @@ class ProfileManager {
 
         // Enforce authentication strictly for profile
         if (!window.authManager.isAuthenticated()) {
-            console.log('❌ Not authenticated after revalidation, showing login modal');
             // Show login modal instead of redirecting
             if (window.showLoginModal) {
                 window.showLoginModal();
@@ -554,10 +536,7 @@ class ProfileManager {
             return;
         }
         
-        console.log('✅ User is authenticated, proceeding with profile page');
-        
         // Continue with profile setup
-        console.log('🚀 Setting up profile page');
         this.setupProfileNavigation();
         await this.loadUserProfile();
         this.setupProfileForms();
@@ -574,29 +553,23 @@ class ProfileManager {
         
         while (attempts < maxAttempts) {
             if (window.authManager && typeof window.authManager.isAuthenticated === 'function') {
-                console.log('AuthManager found after', attempts * 100, 'ms');
                 return;
             }
             await new Promise(resolve => setTimeout(resolve, 100));
             attempts++;
         }
-        
-        console.warn('AuthManager not found after 5 seconds, proceeding anyway');
     }
 
     /**
      * Wait for AuthService to be fully initialized
      */
     async waitForAuthService() {
-        console.log('🔍 Waiting for AuthService initialization...');
-        
         // Wait for authService to be available
         let attempts = 0;
         const maxAttempts = 50; // 5 seconds max wait
         
         while (attempts < maxAttempts) {
             if (window.authService) {
-                console.log('✅ AuthService object found');
                 break;
             }
             await new Promise(resolve => setTimeout(resolve, 100));
@@ -610,15 +583,7 @@ class ProfileManager {
         
         // Wait for the initialization promise to resolve
         try {
-            console.log('⏳ Awaiting AuthService initialization...');
             await window.authService.initialize();
-            console.log('✅ AuthService fully initialized with session restored');
-            
-            // Check if we have a session
-            const hasSession = window.authService.hasStoredSession();
-            const isAuthenticated = window.authService.isAuthenticated();
-            console.log('📊 Session status:', { hasSession, isAuthenticated });
-            
             return;
         } catch (error) {
             console.error('❌ Error waiting for AuthService:', error);
@@ -748,27 +713,21 @@ class ProfileManager {
         const logoutBtn = document.getElementById('logoutBtn');
         if (logoutBtn) {
             logoutBtn.addEventListener('click', async () => {
-                console.log('Profile logout button clicked');
-
                 // Disable button and show loading state
                 logoutBtn.disabled = true;
                 logoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Logging out...';
 
                 try {
                     if (window.authManager) {
-                        console.log('Using AuthManager logout for profile');
                         const result = await window.authManager.logout();
-                        console.log('Profile logout result:', result);
                         
                         // Check if logout was successful
                         if (result && result.error) {
                             throw new Error(result.error.message || 'Logout failed');
                         }
                         
-                        console.log('Profile logout successful via AuthManager');
                         // AuthManager handles redirect and auth state clearing
                     } else {
-                        console.log('AuthManager not available, using fallback for profile');
                         // Fallback logout process
                         await this.performLogout();
                     }
@@ -777,7 +736,6 @@ class ProfileManager {
 
                     // If AuthManager logout failed, try fallback
                     if (window.authManager) {
-                        console.log('AuthManager logout failed, trying fallback for profile');
                         try {
                             await this.performLogout();
                         } catch (fallbackError) {
@@ -1007,8 +965,7 @@ class ProfileManager {
             let response;
 
             if (avatarFile) {
-                // ⭐ NEW: File selected - use FormData with multipart upload
-                console.log('📤 Avatar file detected, using FormData for multipart upload');
+                // File selected - use FormData with multipart upload
                 
                 // Validate file
                 const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
@@ -1053,8 +1010,7 @@ class ProfileManager {
                 });
 
             } else {
-                // ⭐ EXISTING: No file - use JSON as before
-                console.log('📝 No avatar file, using JSON for update');
+                // No file - use JSON as before
                 
                 const formData = new FormData(form);
                 const data = Object.fromEntries(formData);
@@ -1067,8 +1023,6 @@ class ProfileManager {
                         data[key] = new Date(data[key]).toISOString().split('T')[0];
                     }
                 });
-
-                console.log('📝 Submitting profile update:', data);
 
                 // Get the current session token
                 const { data: { session } } = await window.authService.supabase.auth.getSession();
@@ -1088,7 +1042,6 @@ class ProfileManager {
 
             if (response.ok) {
                 const result = await response.json();
-                console.log('✅ Profile updated successfully:', result);
 
                 // Show success message
                 messageDiv.className = 'alert alert-success';
@@ -1110,7 +1063,6 @@ class ProfileManager {
 
             } else {
                 const error = await response.json();
-                console.error('❌ Profile update failed:', error);
                 throw new Error(error.message || `Failed to update profile (${response.status})`);
             }
 
@@ -1500,8 +1452,6 @@ class ProfileManager {
      * Perform manual logout
      */
     async performLogout() {
-        console.log('Performing manual logout');
-
         // Show logout success message before clearing data
         this.showLogoutSuccessToast();
 
@@ -1522,18 +1472,7 @@ class ProfileManager {
                 window.authManager.emit('logout');
             }
 
-            // Verify logout was successful
-            const verification = this.verifyAuthDataCleared();
-            const logoutSuccessful = Object.values(verification).every(value => value === true);
-
-            if (logoutSuccessful) {
-                console.log('✅ Logout completed successfully');
-            } else {
-                console.warn('⚠️ Some auth data may still exist after logout:', verification);
-            }
-
             // Redirect to home page
-            console.log('Redirecting to index.html after logout');
             window.location.href = 'index.html';
 
         } catch (error) {
@@ -1542,7 +1481,6 @@ class ProfileManager {
 
             // Force redirect after a timeout as fallback
             setTimeout(() => {
-                console.log('🔄 Force redirecting after error');
                 window.location.href = 'index.html';
             }, 3000);
         }
@@ -1579,13 +1517,7 @@ class ProfileManager {
             }
         });
 
-        // Verify that data was cleared
-        const verification = this.verifyAuthDataCleared();
-
-        console.log('Authentication data cleared:', clearedTokens);
-        console.log('Verification result:', verification);
-
-        return { clearedTokens, verification };
+        return { clearedTokens };
     }
 
     /**
@@ -1607,12 +1539,6 @@ class ProfileManager {
             verification.authManagerUserCleared = !window.authManager.getCurrentUser();
         }
 
-        const allCleared = Object.values(verification).every(value => value === true);
-
-        if (!allCleared) {
-            console.warn('Some authentication data may not have been cleared properly:', verification);
-        }
-
         return verification;
     }
 
@@ -1631,14 +1557,12 @@ class ProfileManager {
         sessionKeys.forEach(key => {
             if (localStorage.getItem(key)) {
                 localStorage.removeItem(key);
-                console.log('Cleared session data:', key);
             }
         });
 
         // Clear sessionStorage as well
         if (typeof sessionStorage !== 'undefined') {
             sessionStorage.clear();
-            console.log('SessionStorage cleared');
         }
     }
 
@@ -1751,7 +1675,6 @@ class ProfileManager {
      * Refresh personal info data
      */
     refreshPersonalInfo() {
-        console.log('🔄 Refreshing personal info data...');
         this.loadUserProfile();
         this.showSuccess('Profile data refreshed successfully!');
     }
@@ -1760,14 +1683,6 @@ class ProfileManager {
      * Debug profile authentication
      */
     debugProfileAuth() {
-        console.log('🔍 Profile Authentication Debug:');
-        console.log('Current URL:', window.location.href);
-        console.log('AuthManager available:', !!window.authManager);
-        if (window.authManager) {
-            console.log('Is authenticated:', window.authManager.isAuthenticated());
-            console.log('Current user:', window.authManager.getCurrentUser());
-            console.log('Auth token:', window.authManager.getAuthToken() ? 'Present' : 'Missing');
-        }
         return {
             url: window.location.href,
             authManagerAvailable: !!window.authManager,
