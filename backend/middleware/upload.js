@@ -28,11 +28,6 @@ class UploadMiddleware {
 
     // Merge options with defaults
     this.config = { ...defaultOptions, ...options };
-    console.log('📦 UploadMiddleware initialized with config:', {
-      bucket: this.config.storageBucket,
-      path: this.config.storagePath,
-      maxSize: this.config.maxFileSize
-    });
   }
 
   /**
@@ -68,7 +63,6 @@ class UploadMiddleware {
 
       bb.on('file', (fieldname, file, info) => {
         const { filename, encoding, mimeType } = info;
-        console.log(`📎 Receiving file: ${filename} (${mimeType})`);
 
         const chunks = [];
         file.on('data', (chunk) => {
@@ -89,16 +83,12 @@ class UploadMiddleware {
       });
 
       bb.on('field', (fieldname, value) => {
-        console.log(`📝 Field: ${fieldname} = ${value}`);
         fields[fieldname] = value;
       });
 
       bb.on('finish', () => {
-        console.log('✅ Busboy finished parsing');
-        
         // ⭐ Convert field types BEFORE resolving
         const convertedFields = this.convertFieldTypes(fields);
-        console.log('🔄 Converted fields:', convertedFields);
         
         resolve({ files, fields: convertedFields });
       });
@@ -166,8 +156,6 @@ class UploadMiddleware {
    */
   async uploadToSupabase(file) {
     try {
-      console.log('📤 Uploading to Supabase:', file.filename);
-
       // Validate file first
       this.validateFile(file);
 
@@ -198,7 +186,6 @@ class UploadMiddleware {
 
       const publicUrl = publicUrlData.publicUrl;
 
-      console.log('✅ Upload successful:', publicUrl);
       return publicUrl;
 
     } catch (error) {
@@ -230,7 +217,6 @@ class UploadMiddleware {
         throw new Error('Failed to delete file: ' + error.message);
       }
 
-      console.log('✅ File deleted:', filePath);
       return true;
     } catch (error) {
       console.error('Delete error:', error);
@@ -243,24 +229,17 @@ class UploadMiddleware {
    */
   async handleUpload(req, res, next) {
     try {
-      console.log('🔄 Starting upload middleware...');
-      
       const contentType = req.headers['content-type'] || '';
       
       if (!contentType.includes('multipart/form-data')) {
-        console.log('⏭️ Not multipart, skipping upload middleware');
         return await next();  // ⭐ AWAIT next()
       }
 
       // ✅ Buffer stream FIRST before parsing
-      console.log('📦 Buffering request stream...');
       const buffer = await this.bufferRequestStream(req);
-      console.log(`✅ Stream buffered: ${buffer.length} bytes`);
 
       // ✅ Parse from buffer instead of stream
       const { files, fields } = await this.parseMultipartData(buffer, req.headers);
-      
-      console.log(`📦 Parsed ${files.length} file(s), ${Object.keys(fields).length} field(s)`);
 
       // Attach fields to req.body
       req.body = fields;
@@ -274,8 +253,6 @@ class UploadMiddleware {
         
         // Attach image URL to req.body
         req.body.image_url = imageUrl;
-        
-        console.log('✅ File uploaded successfully:', imageUrl);
       }
 
       await next();  // ⭐ AWAIT next()

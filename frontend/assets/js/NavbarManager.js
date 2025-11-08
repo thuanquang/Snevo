@@ -11,9 +11,6 @@ class NavbarManager {
       ...options,
     };
 
-    // Debug path
-    console.log("🔧 NavbarManager options:", this.options);
-
     this.template = null;
     this.isInitialized = false;
     this.currentPage = null;
@@ -47,17 +44,10 @@ class NavbarManager {
    */
   async initialize() {
     if (this.isInitialized) {
-      console.log("⚠️ NavbarManager already initialized");
       return;
     }
 
     try {
-      console.log("🚀 Initializing NavbarManager...");
-      console.log(
-        "🔍 NavbarRoot element exists:",
-        !!document.getElementById("navbarRoot")
-      );
-
       // Load navbar template
       await this.loadTemplate();
 
@@ -78,8 +68,6 @@ class NavbarManager {
 
       this.isInitialized = true;
       this.emit("initialized");
-
-      console.log("✅ NavbarManager initialized successfully");
     } catch (error) {
       console.error("❌ Failed to initialize NavbarManager:", error);
       this.emit("initializationError", error);
@@ -91,7 +79,6 @@ class NavbarManager {
    * Load navbar template
    */
   async loadTemplate() {
-    console.log("🔄 Skipping template loading, will create navbar directly");
     // Skip template loading for now and create navbar directly
     this.template = null;
   }
@@ -107,7 +94,6 @@ class NavbarManager {
     } else {
       this.currentPage = this.getPageFromPath();
     }
-    console.log("📍 Current page detected:", this.currentPage);
   }
 
   /**
@@ -162,30 +148,20 @@ class NavbarManager {
         }, {});
       this.overrides = { ...this.overrides, ...dataAttrs };
     }
-
-    console.log("🔧 Navbar overrides loaded:", this.overrides);
   }
 
   /**
    * Render navbar into the page
    */
   renderNavbar() {
-    console.log("🔄 Rendering navbar...");
     const navbarRoot = document.getElementById("navbarRoot");
     if (!navbarRoot) {
       console.error("❌ navbarRoot element not found");
       return;
     }
 
-    console.log("✅ navbarRoot found:", navbarRoot);
-    console.log(
-      "📄 Template length:",
-      this.template ? this.template.length : "No template"
-    );
-
     // If no template, create navbar directly
     if (!this.template) {
-      console.log("🔄 No template available, creating navbar directly");
       this.createNavbarDirectly();
       return;
     }
@@ -198,12 +174,8 @@ class NavbarManager {
     const navbar = tempDiv.querySelector("#unifiedNavbar");
     const searchOverlay = tempDiv.querySelector("#searchOverlay");
 
-    console.log("🔍 Navbar element found:", !!navbar);
-    console.log("🔍 Search overlay found:", !!searchOverlay);
-
     if (navbar) {
       navbarRoot.appendChild(navbar);
-      console.log("✅ Navbar appended to navbarRoot");
     } else {
       console.error(
         "❌ No navbar element found in template, creating directly"
@@ -214,13 +186,10 @@ class NavbarManager {
     if (searchOverlay) {
       // Append search overlay to body
       document.body.appendChild(searchOverlay);
-      console.log("✅ Search overlay appended to body");
     }
 
     // Update paths
     this.updatePaths();
-
-    console.log("✅ Navbar rendered successfully");
   }
 
   /**
@@ -230,7 +199,7 @@ class NavbarManager {
   initScrollBehavior() {
     let lastScrollTop = 0;
     let ticking = false;
-    const scrollThreshold = 50; // Giảm threshold để nhạy hơn
+    const scrollThreshold = 50; // Reduce threshold for more responsiveness
     const navbarRoot = document.getElementById("navbarRoot");
 
     if (!navbarRoot) {
@@ -238,9 +207,7 @@ class NavbarManager {
       return;
     }
 
-    console.log("✅ Navbar scroll behavior initialized");
-
-    // Đảm bảo navbar có style ban đầu
+    // Ensure navbar has initial style
     navbarRoot.style.position = "fixed";
     navbarRoot.style.top = "0";
     navbarRoot.style.left = "0";
@@ -253,7 +220,7 @@ class NavbarManager {
       const currentScroll =
         window.pageYOffset || document.documentElement.scrollTop;
 
-      // Luôn hiện navbar ở đầu trang
+      // Always show navbar at top of page
       if (currentScroll <= scrollThreshold) {
         navbarRoot.style.transform = "translateY(0)";
         lastScrollTop = currentScroll;
@@ -261,25 +228,23 @@ class NavbarManager {
         return;
       }
 
-      // Tính delta để kiểm tra hướng scroll
+      // Calculate delta to check scroll direction
       const scrollDelta = currentScroll - lastScrollTop;
 
-      // Scroll xuống (delta > 5 để tránh scroll nhỏ)
+      // Scroll down (delta > 5 to avoid small scrolls)
       if (scrollDelta > 5 && currentScroll > scrollThreshold) {
         navbarRoot.style.transform = "translateY(-100%)";
-        console.log("📉 Hiding navbar");
       }
-      // Scroll lên (delta < -5)
+      // Scroll up (delta < -5)
       else if (scrollDelta < -5) {
         navbarRoot.style.transform = "translateY(0)";
-        console.log("📈 Showing navbar");
       }
 
       lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
       ticking = false;
     };
 
-    // Sử dụng requestAnimationFrame để tối ưu performance
+    // Use requestAnimationFrame to optimize performance
     window.addEventListener(
       "scroll",
       () => {
@@ -291,7 +256,7 @@ class NavbarManager {
       { passive: true }
     );
 
-    // Thêm event listener cho touchmove trên mobile
+    // Add event listener for touchmove on mobile
     let touchStartY = 0;
     let touchEndY = 0;
 
@@ -322,7 +287,7 @@ class NavbarManager {
           const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
           const scrollDelta = currentScroll - lastScrollTop;
           
-          // ✅ Only close dropdown when scrolling DOWN
+          // Only close dropdown when scrolling DOWN
           if (scrollDelta > scrollThreshold) {
               // Find dropdown element
               const userDropdown = document.getElementById('userDropdown');
@@ -333,12 +298,11 @@ class NavbarManager {
                   // If dropdown is open, close it
                   if (dropdownInstance && dropdownInstance._isShown()) {
                       dropdownInstance.hide();
-                      console.log('📉 Closing user dropdown on scroll down');
                   }
               }
           }
           
-          // ✅ Scroll UP: Do nothing (don't auto-open dropdown)
+          // Scroll UP: Do nothing (don't auto-open dropdown)
           
           lastScrollTop = currentScroll;
       }, { passive: true });
@@ -408,19 +372,15 @@ class NavbarManager {
       return;
     }
 
-    console.log("✅ Binding new search bar events");
-
     // Handle input focus - expand search
     searchInput.addEventListener("focus", () => {
       searchNavItem?.classList.add("active");
-      console.log("🔍 Search expanded");
     });
 
     // Handle input blur - collapse if empty
     searchInput.addEventListener("blur", () => {
       if (!searchInput.value.trim()) {
         searchNavItem?.classList.remove("active");
-        console.log("🔍 Search collapsed");
       }
     });
 
@@ -441,8 +401,6 @@ class NavbarManager {
 
     // Auto-populate search from URL if on products page
     this.populateSearchFromURL();
-
-    console.log("✅ New search events bound");
   }
 
   /**
@@ -458,7 +416,6 @@ class NavbarManager {
     if (searchQuery && this.currentPage === "products") {
       searchInput.value = searchQuery;
       document.getElementById("searchNavItem")?.classList.add("active");
-      console.log("✅ Search input populated from URL:", searchQuery);
     }
   }
 
@@ -474,17 +431,13 @@ class NavbarManager {
       return;
     }
 
-    console.log("🔍 Navbar search initiated:", query);
-
     // Build search URL
     const searchUrl = this.buildSearchURL(query);
 
     // Check if already on products page
     if (this.currentPage === "products" && window.productManager) {
-      console.log("📍 Already on products page, updating search...");
       this.updateProductsPageSearch(query);
     } else {
-      console.log("📍 Navigating to products page with search...");
       window.location.href = searchUrl;
     }
   }
@@ -518,8 +471,6 @@ class NavbarManager {
 
       // Trigger product reload
       window.productManager.loadProducts();
-
-      console.log("✅ Products page search updated:", query);
     } catch (error) {
       console.error("❌ Error updating products search:", error);
       // Fallback: reload page with new search
@@ -535,7 +486,6 @@ class NavbarManager {
     if (searchInput) {
       searchInput.value = "";
       searchInput.blur();
-      console.log("✅ Search cleared");
     }
   }
 
@@ -543,7 +493,6 @@ class NavbarManager {
    * Create navbar directly in DOM
    */
   createNavbarDirectly() {
-    console.log("🔄 Creating navbar directly...");
     const navbarRoot = document.getElementById("navbarRoot");
 
     const navbarHTML = `
@@ -607,9 +556,8 @@ class NavbarManager {
         `;
 
     navbarRoot.innerHTML = navbarHTML;
-    console.log("✅ Navbar created directly");
 
-    // ✅ Bind new search events
+    // Bind new search events
     this.bindNewSearchEvents();
 
     // Update paths
@@ -786,7 +734,6 @@ class NavbarManager {
     if (cartLink) {
       cartLink.addEventListener("click", (e) => {
         // Let default navigation work, but we can add custom logic here
-        console.log("Cart link clicked");
       });
     }
   }
@@ -799,7 +746,6 @@ class NavbarManager {
     if (loginLink) {
       loginLink.addEventListener("click", (e) => {
         e.preventDefault();
-        console.log("Login link clicked, opening modal...");
         if (window.showLoginModal) {
           window.showLoginModal();
         } else {
@@ -891,8 +837,6 @@ class NavbarManager {
     if (this.overrides.customActions) {
       this.addCustomActions(this.overrides.customActions);
     }
-
-    console.log("✅ Navbar overrides applied");
   }
 
   /**
@@ -933,7 +877,6 @@ class NavbarManager {
         a.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
         a.addEventListener("click", async (e) => {
           e.preventDefault();
-          console.log("Navbar logout button clicked");
 
           // Disable the button and show loading state
           a.disabled = true;
@@ -942,13 +885,8 @@ class NavbarManager {
 
           try {
             if (window.authManager) {
-              console.log("Using AuthManager logout from navbar");
               await window.authManager.logout();
-              console.log("Navbar logout successful via AuthManager");
             } else {
-              console.log(
-                "AuthManager not available from navbar, using fallback"
-              );
               // Fallback logout process
               await this.performNavbarLogout();
             }
@@ -957,9 +895,6 @@ class NavbarManager {
 
             // If AuthManager logout failed, try fallback
             if (window.authManager) {
-              console.log(
-                "AuthManager logout failed from navbar, trying fallback"
-              );
               try {
                 await this.performNavbarLogout();
               } catch (fallbackError) {
@@ -997,8 +932,6 @@ class NavbarManager {
    * Perform navbar logout fallback
    */
   async performNavbarLogout() {
-    console.log("Performing manual navbar logout");
-
     // Show logout success message before clearing data
     this.showNavbarLogoutSuccessToast();
 
@@ -1020,7 +953,6 @@ class NavbarManager {
       }
 
       // Redirect to home page
-      console.log("Redirecting to index.html after navbar logout");
       window.location.href = this.getRelativePath("index.html");
     } catch (error) {
       console.error("❌ Error during navbar logout process:", error);
@@ -1030,7 +962,6 @@ class NavbarManager {
 
       // Force redirect after a timeout as fallback
       setTimeout(() => {
-        console.log("🔄 Force redirecting after navbar logout error");
         window.location.href = this.getRelativePath("index.html");
       }, 3000);
     }
@@ -1068,8 +999,6 @@ class NavbarManager {
           window.location.hostname;
       }
     });
-
-    console.log("Navbar authentication data cleared");
   }
 
   /**
@@ -1087,14 +1016,12 @@ class NavbarManager {
     sessionKeys.forEach((key) => {
       if (localStorage.getItem(key)) {
         localStorage.removeItem(key);
-        console.log("Cleared navbar session data:", key);
       }
     });
 
     // Clear sessionStorage as well
     if (typeof sessionStorage !== "undefined") {
       sessionStorage.clear();
-      console.log("Navbar sessionStorage cleared");
     }
   }
 
@@ -1176,7 +1103,6 @@ class NavbarManager {
   updateAuthState(user, isAuthenticated) {
     // This will be handled by AuthManager.updateAuthUI()
     // which targets the #authButtons element
-    console.log("🔄 Auth state updated in navbar:", { user, isAuthenticated });
   }
 
   /**
@@ -1188,7 +1114,6 @@ class NavbarManager {
       cartCount.textContent = count;
       cartCount.style.display = count > 0 ? "block" : "none";
     }
-    console.log("🛒 Cart count updated:", count);
   }
 
   /**
@@ -1280,9 +1205,7 @@ window.navbarManager = navbarManager;
 
 // Manual initialization trigger (for debugging)
 window.initNavbar = () => {
-  console.log("🔄 Manual navbar initialization triggered");
   if (navbarManager.isInitialized) {
-    console.log("⚠️ NavbarManager already initialized");
     return;
   }
   navbarManager.initialize();

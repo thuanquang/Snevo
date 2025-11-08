@@ -46,8 +46,6 @@ class CheckoutManager {
             return;
         }
 
-        console.log('✅ CheckoutManager initialized');
-        
         // Check for pending order to resume
         await this.checkForPendingOrder();
         
@@ -85,7 +83,6 @@ class CheckoutManager {
         try {
             // Fetch user's orders
             const response = await window.ordersAPI.getOrders();
-            console.log('📦 Raw orders response:', response);
             
             // Extract orders array from response
             // API returns paginated format: {success: true, data: {orders: [...], total: N, page: 1, ...}}
@@ -109,10 +106,7 @@ class CheckoutManager {
                 orders = [];
             }
             
-            console.log('📦 Extracted orders array:', orders);
-            
             if (!Array.isArray(orders) || orders.length === 0) {
-                console.log('ℹ️ No orders found or invalid format');
                 return;
             }
             
@@ -120,15 +114,12 @@ class CheckoutManager {
             const pendingOrder = orders.find(o => o.status === 'pending');
             
             if (pendingOrder) {
-                console.log('⏳ Found pending order:', pendingOrder.order_id);
-                
                 // Show modal with options
                 const message = `You have an incomplete checkout from ${new Date(pendingOrder.created_at).toLocaleString()}. Would you like to resume or start fresh?`;
                 
                 if (confirm(message + '\n\nClick OK to Resume, Cancel to start fresh.')) {
                     // Resume: load order data
                     this.currentOrderId = pendingOrder.order_id;
-                    console.log('▶️ Resuming pending order:', this.currentOrderId);
                     // Skip to step 5 (review) to allow payment retry
                     // Optionally load order details
                 } else {
@@ -136,7 +127,6 @@ class CheckoutManager {
                     if (confirm('Cancel the pending order to release stock?')) {
                         try {
                             await window.ordersAPI.cancelOrder(pendingOrder.order_id);
-                            console.log('✅ Pending order cancelled');
                         } catch (e) {
                             console.warn('⚠️ Failed to cancel pending order:', e);
                         }
@@ -151,9 +141,7 @@ class CheckoutManager {
 
     async loadCartPreview() {
         try {
-            console.log('📦 Loading cart preview...');
             const response = await window.ordersAPI.previewOrder();
-            console.log('✅ Cart preview loaded:', response);
             
             // Extract data from response (API wraps in {success, message, data})
             const preview = response.data || response;
@@ -162,12 +150,6 @@ class CheckoutManager {
             this.orderData.subtotal = preview.subtotal || 0;
             this.orderData.tax_amount = preview.tax_amount || 0;
             this.orderData.total = preview.total || 0;
-            
-            console.log('📦 Extracted preview data:', {
-                items: this.orderData.items.length,
-                subtotal: this.orderData.subtotal,
-                total: this.orderData.total
-            });
             
             this.updateSummary();
             this.renderCartReview();
@@ -198,10 +180,8 @@ class CheckoutManager {
     async loadAddresses() {
         try {
             const result = await window.usersAPI.getAddresses();
-            console.log('📍 Loaded addresses:', result);
             // Handle both {data: [...]} and {addresses: [...], success, count} response formats
             this.addresses = result.data || result.addresses || [];
-            console.log('📍 Addresses list:', this.addresses);
             this.renderAddresses();
         } catch (err) {
             console.error('❌ Failed to load addresses:', err);
@@ -245,9 +225,6 @@ class CheckoutManager {
             container.innerHTML = '<p class="text-muted">No saved addresses. Add a new one to continue.</p>';
             return;
         }
-
-        console.log('🏠 Rendering addresses:', this.addresses);
-        console.log('🏠 First address structure:', this.addresses[0]);
 
         let html = '';
         for (const addr of this.addresses) {
@@ -339,7 +316,6 @@ class CheckoutManager {
 
     renderPaymentMethods() {
         const container = document.getElementById('paymentMethodsContainer');
-        console.log('🔧 renderPaymentMethods called, container:', container);
         if (!container) return;
 
         let html = '';
@@ -355,20 +331,16 @@ class CheckoutManager {
             `;
         }
         container.innerHTML = html;
-        console.log('✅ Payment methods HTML rendered');
 
         // Add event listeners
         const radios = container.querySelectorAll('input[name="payment"]');
-        console.log('📻 Found radios:', radios.length);
         
         radios.forEach(radio => {
             radio.addEventListener('change', (e) => {
-                console.log('🔄 Payment method changed to:', e.target.value);
                 this.orderData.payment_method = e.target.value;
                 this.updatePaymentSelection();
-                this.renderPaymentForm(); // ⭐ Show payment form if needed
+                this.renderPaymentForm();
                 const btn = document.getElementById('btnNextStep4');
-                console.log('🔘 Setting button disabled=false, btn:', btn);
                 if (btn) btn.disabled = false;
             });
         });
@@ -376,14 +348,10 @@ class CheckoutManager {
         // Render payment form if non-cash method selected
         this.renderPaymentForm();
 
-        // ⭐ Enable button immediately after rendering (initial default selected)
+        // Enable button immediately after rendering (initial default selected)
         const btn = document.getElementById('btnNextStep4');
-        console.log('🎯 Final button check - btnNextStep4:', btn);
         if (btn) {
             btn.disabled = false;
-            console.log('✅ Button enabled successfully');
-        } else {
-            console.error('❌ btnNextStep4 button NOT FOUND');
         }
     }
 
@@ -403,8 +371,6 @@ class CheckoutManager {
             console.warn('⚠️ paymentFormContainer not found');
             return;
         }
-
-        console.log('🎨 Rendering payment form for method:', this.orderData.payment_method);
 
         // Hide form for cash on delivery
         if (this.orderData.payment_method === 'cash') {
@@ -476,7 +442,6 @@ class CheckoutManager {
 
         html += '</div>';
         formContainer.innerHTML = html;
-        console.log('✅ Payment form rendered');
     }
 
     renderReview() {
@@ -486,10 +451,6 @@ class CheckoutManager {
         const address = this.addresses.find(a => a.address_id === this.orderData.address_id);
         const delivery = this.deliveryOptions.find(o => o.id === this.orderData.delivery_option);
         const payment = this.paymentMethods.find(m => m.id === this.orderData.payment_method);
-
-        console.log('🔍 Review render - Address:', address);
-        console.log('🔍 Review render - Items:', this.orderData.items);
-        console.log('🔍 Review render - Item[0]:', this.orderData.items[0]);
 
         let html = `
             <div class="row mb-4">
@@ -700,18 +661,13 @@ class CheckoutManager {
                 payment_method: this.orderData.payment_method,
                 payment_details: payment_details
             };
-            console.log('� Creating order with payload:', orderPayload);
             const orderRes = await window.ordersAPI.createOrder(orderPayload);
-            console.log('✅ Order created:', orderRes);
 
             // Extract order data from nested response
             const orderData = orderRes?.data || orderRes;
             const orderId = orderData.order_id;
             const orderStatus = orderData.order_status;
             const payment = orderData.payment;
-            
-            console.log('📦 Order ID:', orderId, 'Status:', orderStatus);
-            console.log('� Payment:', payment);
 
             if (!orderId) {
                 throw new Error('Order created but no order_id in response');
@@ -739,10 +695,7 @@ class CheckoutManager {
             alert(message);
             window.location.href = `orders.html?order_id=${orderId}`;
         } catch (err) {
-            console.error('❌ Order confirmation failed');
-            console.error('Error object:', err);
-            console.error('Error message:', err.message);
-            console.error('Error response:', err.response);
+            console.error('❌ Order confirmation failed:', err);
             
             // Extract validation errors if available
             const serverDetails = err?.response?.data?.details;
@@ -770,9 +723,7 @@ class CheckoutManager {
 
             // If an order was created, cancel it (which will trigger stock release via database trigger)
             if (this.currentOrderId) {
-                console.log('❌ Cancelling order:', this.currentOrderId);
                 await window.ordersAPI.cancelOrder(this.currentOrderId);
-                console.log('✅ Order cancelled, stock released');
             }
 
             // Show success message
@@ -864,8 +815,6 @@ class CheckoutManager {
             const result = await window.usersAPI.addAddress(addressData);
             
             if (result.success || result.address) {
-                console.log('✅ Address saved:', result.address);
-                
                 // Close modal
                 bootstrap.Modal.getInstance(document.getElementById('addAddressModal')).hide();
                 
@@ -883,7 +832,6 @@ class CheckoutManager {
                 // Show success message
                 alert('Address added successfully!');
             } else {
-                console.warn('⚠️ Response not success:', result);
                 alert('Failed to save address: ' + (result.message || 'Unknown error'));
             }
         } catch (err) {
